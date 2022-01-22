@@ -2,4 +2,4 @@ FROM node:16
 
 WORKDIR /usr/app
 
-ENTRYPOINT [ "yarn", "dev" ]
+ENTRYPOINT [ "sh", "entrypoint.dev.sh" ]

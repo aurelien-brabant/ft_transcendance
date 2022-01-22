@@ -2,8 +2,6 @@ FROM		node:16
 
 RUN		yarn global add @nestjs/cli
 
-RUN		mkdir -p /usr/app
-
 WORKDIR		/usr/app
 
-ENTRYPOINT	[ "yarn", "start:dev" ]
+ENTRYPOINT	[ "sh", "entrypoint.dev.sh" ]
