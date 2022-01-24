@@ -1,2 +1,4 @@
 *.env
 .babelrc
+.gitignore
+src/docker-compose.dev.yml
