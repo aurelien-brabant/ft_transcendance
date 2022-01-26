@@ -15,7 +15,14 @@ function Connect42 () {
   const [btnTitle, setBtnTitle] = useState('ENTER');
   const [btnMsg, setBtnMsg] = useState('Log-in to 42 intra');
   const [link, setLink] = useState('https://api.intra.42.fr/oauth/authorize?client_id=3abe804af24b93683af50cc13f370833e49b97d8431026f7333497922021abf0&redirect_uri=http%3A%2F%2Flocalhost%3A3000%2F&response_type=code&state=Unguessable_random_string');
-	
+  const [login, setLogin] = useState('');
+  //const [firstName, setFirstName] = useState('');
+  //const [lastName, setLastName] = useState('');
+  //const [email, setEmail] = useState('');
+  const [userInfos, setUserInfos] = useState('');
+  const [picUrl, setPicUrl] = useState('');
+  let picStatus = '';
+
   const querySearch = async (code: string) => {
     const req = await fetch('https://api.intra.42.fr/oauth/token', {
       method: 'POST',
@@ -23,13 +30,23 @@ function Connect42 () {
         'Content-Type': 'application/x-www-form-urlencoded',
       },
       body: `grant_type=authorization_code&client_id=3abe804af24b93683af50cc13f370833e49b97d8431026f7333497922021abf0&client_secret=f90c0a91ba638e2223192c3ab3b3278d2cf53ef313130e70c531690dff8a0e50&code=${code}&redirect_uri=http://localhost:3000/`
-      });
+    });
     const res = await req.json();
     setToken(res.access_token);
     setExpIn(res.expires_in);
     setRefreshToken(res.refresh_token);
     setIat(res.created_at);
-    setMsg('Login successfull');
+
+    const reqInfos = await fetch(`https://api.intra.42.fr/v2/me?access_token=${res.access_token}`);
+    const resInfos = await reqInfos.json();
+    setLogin(resInfos.login);
+   // setFirstName(resInfos.first_name);
+    //setLastName(resInfos.last_name);
+    //setEmail(resInfos.email);
+    
+    setPicUrl(resInfos.image_url);
+    setMsg(`Login successfull as ${resInfos.first_name} ${resInfos.last_name}`);
+    setUserInfos(`${resInfos.login} - ${resInfos.wallet} wallets - ${resInfos.email}`);
     setLink('/dashboard');
     setBtnTitle('ENTER');
     setBtnMsg('PONG');
@@ -57,10 +74,13 @@ function Connect42 () {
       setMsg('You need to login to continue');
   }, []);
   
+  if (!picUrl)
+    picStatus = 'hide';
   
   return (
 		  <div className={styles.grid}>
-        <p>{msg}</p>
+        <img className={styles[picStatus]} src={picUrl} alt={login} width="20%" />
+        <p>{msg}<br/>{userInfos}</p>
 			  <a href={link} className={styles.card}>
         	 <h2>{btnTitle} &rarr;</h2>
         	 <p>{btnMsg}</p>
