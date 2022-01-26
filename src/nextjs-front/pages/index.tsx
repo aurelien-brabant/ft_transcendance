@@ -1,51 +1,69 @@
 import type { NextPage } from 'next'
-import { useState } from 'react'
+import { useState, useEffect } from 'react'
 import Head from 'next/head'
 import Image from 'next/image'
 import styles from '../styles/Home.module.css'
 
 function Connect42 () {
-  const [Logged, setLogged] = useState();
-  const [token, setToken] = useState();
-  const [Link, setLink] = useState("https://api.intra.42.fr/oauth/authorize?client_id=3abe804af24b93683af50cc13f370833e49b97d8431026f7333497922021abf0&redirect_uri=http%3A%2F%2Flocalhost%3A3000%2F&response_type=code");
+  const [logged, setLogged] = useState('');
+  const [code, setCode] = useState('');
+  const [token, setToken] = useState('');
+  const [expIn, setExpIn] = useState('');
+  const [refreshToken, setRefreshToken] = useState('');
+  const [iat, setIat] = useState('');
+  const [msg, setMsg] = useState('Log in to continue');
+  const [btnTitle, setBtnTitle] = useState('ENTER');
+  const [btnMsg, setBtnMsg] = useState('Log-in to 42 intra');
+  const [link, setLink] = useState('https://api.intra.42.fr/oauth/authorize?client_id=3abe804af24b93683af50cc13f370833e49b97d8431026f7333497922021abf0&redirect_uri=http%3A%2F%2Flocalhost%3A3000%2F&response_type=code&state=Unguessable_random_string');
 	
-	if (!Logged) {
+  const querySearch = async (code: string) => {
+    const req = await fetch('https://api.intra.42.fr/oauth/token', {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/x-www-form-urlencoded',
+      },
+      body: `grant_type=authorization_code&client_id=3abe804af24b93683af50cc13f370833e49b97d8431026f7333497922021abf0&client_secret=f90c0a91ba638e2223192c3ab3b3278d2cf53ef313130e70c531690dff8a0e50&code=${code}&redirect_uri=http://localhost:3000/`
+      });
+    const res = await req.json();
+    setToken(res.access_token);
+    setExpIn(res.expires_in);
+    setRefreshToken(res.refresh_token);
+    setIat(res.created_at);
+    setMsg('Login successfull');
+    setLink('/dashboard');
+    setBtnTitle('ENTER');
+    setBtnMsg('PONG');
+  }
+  if (!logged) {
 		try {
 			const url = window.location.href;
 			const ret = url.substring(url.indexOf('?') + 1);
-			if (ret.startsWith('error='))
-				setLogged('invalids_creds');
-			else if (ret.startsWith('code=')) {
-				setToken(ret.substring(5))
-    		setLogged('logged');
-        console.log(token);
-			}
-		} catch (error) { console.error(error) }
+
+      if (ret.startsWith('error='))
+        setLogged('refused');
+      else if (ret.startsWith('code=') && (ret.substring(76) === 'Unguessable_random_string')) {
+        setLogged('authenticated');
+        setCode(ret.substring(5, 69));
+      }
+    } catch (error) { }
 	}
-  console.log(token);
-  console.log(Logged);
-  console.log('---------------');
 
-  let msg, link, btn_title, btn_msg;
+  useEffect(() => { 
+    if (code && !token) { 
+      setMsg('Authenticated');
+      querySearch(code);
+    }
+    else if (logged === 'refused')
+      setMsg('You need to login to continue');
+  }, []);
   
-  if (token) {
-    msg = "Login successfull";
-    setLink("/dashboard");
-    btn_title = "ENTER";
-    btn_msg = "PONG"
-  }
-	else {
-    msg = "Log in to continue";
-    btn_title = "CONNECT";
-    btn_msg = "Log-in to 42 intra"
-  }
-
+  
   return (
 		  <div className={styles.grid}>
         <p>{msg}</p>
-			  <a href={Link} className={styles.card}>
-        	 <h2>{btn_title} &rarr;</h2>
-        	 <p>{btn_msg}</p>
+			  <a href={link} className={styles.card}>
+        	 <h2>{btnTitle} &rarr;</h2>
+        	 <p>{btnMsg}</p>
         </a>
 		</div>
 	)
@@ -68,7 +86,7 @@ const Home: NextPage = () => {
         <p className={styles.description}>
           Let's transcend ourself!
         </p>
-		
+	
 		    <Connect42 />
       </main>
 
