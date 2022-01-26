@@ -51,18 +51,16 @@ function Connect42 () {
     setBtnTitle('ENTER');
     setBtnMsg('PONG');
   }
-  if (!logged) {
-		try {
-			const url = window.location.href;
-			const ret = url.substring(url.indexOf('?') + 1);
+  if (!logged && typeof window !== "undefined") {
+    const url = window.location.href;
+		const ret = url.substring(url.indexOf('?') + 1);
 
-      if (ret.startsWith('error='))
-        setLogged('refused');
-      else if (ret.startsWith('code=') && (ret.substring(76) === 'Unguessable_random_string')) {
-        setLogged('authenticated');
-        setCode(ret.substring(5, 69));
-      }
-    } catch (error) { }
+    if (ret.startsWith('error='))
+      setLogged('refused');
+    else if (ret.startsWith('code=') && (ret.substring(76) === 'Unguessable_random_string')) {
+      setLogged('authenticated');
+      setCode(ret.substring(5, 69));
+    }
 	}
 
   useEffect(() => { 
