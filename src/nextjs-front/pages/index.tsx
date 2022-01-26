@@ -11,11 +11,21 @@ function Connect42 () {
   const [expIn, setExpIn] = useState('');
   const [refreshToken, setRefreshToken] = useState('');
   const [iat, setIat] = useState('');
-  const [msg, setMsg] = useState('Log in to continue');
-  const [btnTitle, setBtnTitle] = useState('ENTER');
-  const [btnMsg, setBtnMsg] = useState('Log-in to 42 intra');
-  const [link, setLink] = useState('https://api.intra.42.fr/oauth/authorize?client_id=3abe804af24b93683af50cc13f370833e49b97d8431026f7333497922021abf0&redirect_uri=http%3A%2F%2Flocalhost%3A3000%2F&response_type=code&state=Unguessable_random_string');
+
+
+//  const [msg, setMsg] = useState('Log in to continue');
+  //const [btnTitle, setBtnTitle] = useState('ENTER');
+  //const [btnMsg, setBtnMsg] = useState('Log-in to 42 intra');
+  //const [link, setLink] = useState('https://api.intra.42.fr/oauth/authorize?client_id=3abe804af24b93683af50cc13f370833e49b97d8431026f7333497922021abf0&redirect_uri=http%3A%2F%2Flocalhost%3A3000%2F&response_type=code&state=Unguessable_random_string');
+
+
+  const [msg, setMsg] = useState('');
+  const [btnTitle, setBtnTitle] = useState('');
+  const [btnMsg, setBtnMsg] = useState('');
+  const [link, setLink] = useState('');
   const [login, setLogin] = useState('');
+
+
   //const [firstName, setFirstName] = useState('');
   //const [lastName, setLastName] = useState('');
   //const [email, setEmail] = useState('');
@@ -50,6 +60,14 @@ function Connect42 () {
     setLink('/dashboard');
     setBtnTitle('ENTER');
     setBtnMsg('PONG');
+    localStorage.setItem("token", res.access_token);
+    localStorage.setItem("login", resInfos.login);
+    localStorage.setItem("first_name", resInfos.first_name);
+    localStorage.setItem("last_name", resInfos.last_name);
+    localStorage.setItem("wallet", resInfos.wallet);
+    localStorage.setItem("email", resInfos.email);
+    localStorage.setItem("image_url", resInfos.image_url);
+
   }
   if (!logged && typeof window !== "undefined") {
     const url = window.location.href;
@@ -64,9 +82,23 @@ function Connect42 () {
 	}
 
   useEffect(() => { 
-    if (code && !token) { 
+    if (!code && !window.localStorage.token) {
+      setMsg('Log in to continue');
+      setBtnTitle('ENTER');
+      setBtnMsg('Log-in to 42 intra');
+      setLink('https://api.intra.42.fr/oauth/authorize?client_id=3abe804af24b93683af50cc13f370833e49b97d8431026f7333497922021abf0&redirect_uri=http%3A%2F%2Flocalhost%3A3000%2F&response_type=code&state=Unguessable_random_string');    
+    }
+    else if (code && !token) { 
       setMsg('Authenticated');
       querySearch(code);
+    }
+    else if (window.localStorage.token) {
+      setPicUrl(window.localStorage.image_url);
+      setMsg(`Login successfull as ${window.localStorage.first_name} ${window.localStorage.last_name}`);
+      setUserInfos(`${window.localStorage.login} - ${window.localStorage.wallet} wallets - ${window.localStorage.email}`);
+      setLink('/dashboard');
+      setBtnTitle('ENTER');
+      setBtnMsg('PONG');    
     }
     else if (logged === 'refused')
       setMsg('You need to login to continue');
@@ -77,13 +109,13 @@ function Connect42 () {
   
   return (
 		  <div className={styles.grid}>
-        <img className={styles[picStatus]} src={picUrl} alt={login} width="20%" />
+        { (picStatus !== 'hide') ? <Image className={styles[picStatus]} src={picUrl} alt={login} width="100%" height="100%" /> : <></> }
         <p>{msg}<br/>{userInfos}</p>
 			  <a href={link} className={styles.card}>
         	 <h2>{btnTitle} &rarr;</h2>
         	 <p>{btnMsg}</p>
         </a>
-		</div>
+		  </div>
 	)
 }
 
