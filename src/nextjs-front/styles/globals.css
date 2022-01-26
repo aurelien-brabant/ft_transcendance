@@ -1,3 +1,6 @@
+@tailwind base;
+@tailwind utilities;
+
 html,
 body {
   padding: 0;
