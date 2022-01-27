@@ -103,7 +103,7 @@ const TopNavBar: React.FC<TopNavBarProps> = ({ items }) => {
 						</Link>
 					</div>
 					<nav className="hidden md:block">
-						<ul className="flex gap-x-16">
+						<ul className="flex md:gap-x-6 lg:gap-x-16">
 							{items.map((item) => (
 								<li
 									key={item.id}
