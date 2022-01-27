@@ -1,23 +1,23 @@
 export type NavItem = {
-	id: number,
+	id: string;
 	label: string;
 	href: string;
 };
 
 export const wildNavItems: NavItem[] = [
 	{
-		id: 0,
+		id: 'discover',
 		label: 'Discover',
-		href: '/#discover',
+		href: '/home#discover',
 	},
 	{
-		id: 1,
+		id: 'features',
 		label: 'Features',
-		href: '/#features',
+		href: '/home#features',
 	},
 	{
-		id: 2,
+		id: 'team',
 		label: 'The team',
-		href: '/#team',
+		href: '/home#team',
 	}
 ];
