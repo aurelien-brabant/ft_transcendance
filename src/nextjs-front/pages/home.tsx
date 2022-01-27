@@ -29,14 +29,12 @@ const TeamMember: React.FC<TeamMember> = ({
   linkedinLink
 }) => (
   <div className="relative z-10 h-96 drop-shadow-md">
-    <div className="absolute inset-0 -z-10">
       <Image
         src={imageSrc}
         layout="fill"
         objectFit="cover"
         objectPosition="center"
       ></Image>
-    </div>
 
     <div className="absolute inset-0 z-20 flex flex-col items-center justify-between h-full p-4 text-center text-gray-900 bg-gray-100 opacity-0 transition hover:opacity-90 gap-y-2 ">
     <div className="flex flex-col items-center gap-y-2">
@@ -167,7 +165,13 @@ const HomePage: React.FC = () => {
         </div>
       </section>
 
-      <section id="team" className="py-16 bg-gray-900">
+      <section id="team" className="pt-16 pb-16 bg-center bg-cover"
+style={{
+          backgroundImage: `linear-gradient(rgba(0, 0, 0, 0.90), rgba(0, 0, 0, 0.90)),
+      url('/42paris.webp')`,
+        }}
+
+      >
         <div className="flex flex-col px-2 md:container md:mx-auto gap-y-16">
           <div className="flex flex-col gap-y-2">
           <h2 className="text-5xl font-bold text-center text-pink-600 uppercase">
@@ -177,7 +181,7 @@ const HomePage: React.FC = () => {
           </div>
           <div className="grid grid-cols-5 grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-5 gap-8">
             {team.map((member) => (
-              <TeamMember {...member} />
+              <TeamMember key={member.login42} {...member} />
             ))}
           </div>
         </div>
