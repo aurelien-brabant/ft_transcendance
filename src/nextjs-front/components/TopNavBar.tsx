@@ -1,7 +1,7 @@
 import Link from "next/link";
 import { NavItem } from "../constants/nav";
 import Image from "next/image";
-import { Fragment, useEffect, useState } from "react";
+import { Fragment, useCallback, useEffect, useState } from "react";
 import { FaHamburger } from "react-icons/fa";
 import { GiHamburger } from "react-icons/gi";
 
@@ -14,7 +14,7 @@ const TopNavBar: React.FC<TopNavBarProps> = ({ items }) => {
 	const [activateTab, setActiveTab] = useState("");
 	const [isMobileMenuOpened, setIsMobileMenuOpened] = useState(false);
 
-	const handleScroll = () => {
+	const handleScroll = useCallback(() => {
 		let tmp = "";
 
 		for (const item of items) {
@@ -30,14 +30,14 @@ const TopNavBar: React.FC<TopNavBarProps> = ({ items }) => {
 
 		setIsScrolling(window.scrollY > 60);
 		setActiveTab(tmp);
-	};
+	}, [items]);
 
 	useEffect(() => {
 		window.addEventListener("scroll", handleScroll);
 		return () => {
 			window.removeEventListener("scroll", handleScroll);
 		};
-	}, []);
+	}, [handleScroll]);
 
 	return (
 		<Fragment>
@@ -98,7 +98,7 @@ const TopNavBar: React.FC<TopNavBarProps> = ({ items }) => {
 						)}
 						<Link href="/">
 							<a className="flex">
-								<Image src="/logo.svg" height={70} width={70} />
+								<Image src="/logo.svg" alt="transcendance top logo" height={70} width={70} />
 							</a>
 						</Link>
 					</div>

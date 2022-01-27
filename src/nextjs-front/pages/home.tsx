@@ -30,6 +30,7 @@ const TeamMember: React.FC<TeamMember> = ({
 }) => (
   <div className="relative z-10 h-96 drop-shadow-md">
       <Image
+        alt={`${firstname} ${lastname}'s picture`}
         src={imageSrc}
         layout="fill"
         objectFit="cover"
@@ -81,11 +82,11 @@ const HomePage: React.FC = () => {
       >
         {/* Hero banner */}
         <div className="absolute z-0 hidden lg:block top-36 left-24 animate-blinkSlow">
-          <Image src="/starplanet.webp" height={400} width={400} />
+          <Image src="/starplanet.webp" alt="decorative planet" height={400} width={400} />
         </div>
 
         <div className="absolute z-0 hidden lg:block bottom-24 right-32 animate-fuse">
-          <Image src="/rocket.webp" height={400} width={400} />
+          <Image src="/rocket.webp" alt="decorative rocket" height={400} width={400} />
         </div>
 
         <div
@@ -93,7 +94,7 @@ const HomePage: React.FC = () => {
           style={{ minHeight: "95vh" }}
         >
           <h1 className="text-3xl leading-tight text-pink-600 uppercase lg:text-5xl md:text-5xl">
-            It's time for your
+            It{'\''}s time for your
             <br /> <b>self-transcendance</b>
           </h1>
           <h3 className="text-2xl lg:text-3xl text-neutral-200">
@@ -144,7 +145,7 @@ const HomePage: React.FC = () => {
                 </a>
               </Link>
             </div>
-            <Image src="/pong_mac.webp" width={1300} height={1096} />
+            <Image src="/pong_mac.webp" alt="pong overview" width={1300} height={1096} />
           </div>
         </div>
       </section>
