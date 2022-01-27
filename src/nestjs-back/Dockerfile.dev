@@ -1,6 +1,6 @@
 FROM		node:16
 
-RUN		yarn global add @nestjs/cli
+RUN			yarn global add @nestjs/cli
 
 WORKDIR		/usr/app
 
