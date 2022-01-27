@@ -62,6 +62,7 @@ function Connect42 () {
     setBtnMsg('PONG');
     localStorage.setItem("token", res.access_token);
     localStorage.setItem("login", resInfos.login);
+    localStorage.setItem("user_id", resInfos.id);
     localStorage.setItem("first_name", resInfos.first_name);
     localStorage.setItem("last_name", resInfos.last_name);
     localStorage.setItem("wallet", resInfos.wallet);
