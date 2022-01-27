@@ -1,3 +1,7 @@
+# This is the compose file used in PRODUCTION.
+# If you are a developper please use the DEVELOPMENT compose file instead.
+# See README.md for more info.
+
 version: '3'
 
 # We are keeping the postgres container separate so that only the nestjs container can reach to it.
@@ -27,7 +31,7 @@ services:
   nextjs-front:
     build:
       context: nextjs-front
-      dockerfile: Dockerfile.dev
+      dockerfile: Dockerfile
 
     networks:
       - rproxy
@@ -36,17 +40,14 @@ services:
       - ./nextjs-front:/usr/app
 
     environment:
-      - NODE_ENV=development
-
-    ports:
-      - 3000:3000
+      - NODE_ENV=production
 
   # backend
 
   nestjs-back:
     build:
       context: nestjs-back
-      dockerfile: Dockerfile.dev
+      dockerfile: Dockerfile
 
     networks:
       - rproxy
@@ -56,14 +57,11 @@ services:
       - ./nestjs-back:/usr/app
 
     environment:
-      - NODE_ENV=development
-      - POSTGRES_USER=transcendance
-      - POSTGRES_PASSWORD=transcendance
-      - POSTGRES_HOST=postgres
+      - NODE_ENV=production
+      - POSTGRES_USER=${POSTGRES_USER}
+      - POSTGRES_PASSWORD=${POSTGRES_PASSWORD}
+      - POSTGRES_HOST=postgres # no need to put that in the .env as it depends on the service name
 
-    ports:
-      - 5000:3000
-  
   postgres:
     image: postgres:14-alpine3.15
 
@@ -74,8 +72,8 @@ services:
       - postgres-data:/var/lib/postgresql/data
 
     environment:
-      - POSTGRES_USER=transcendance
-      - POSTGRES_PASSWORD=transcendance
+      - POSTGRES_USER=${POSTGRES_USER}
+      - POSTGRES_PASSWORD=${POSTGRES_PASSWORD}
 
 volumes:
   postgres-data:
