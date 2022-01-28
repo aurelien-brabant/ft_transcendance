@@ -4,6 +4,8 @@ import ProgressiveFrom, { defaultConfig, ProgressiveFormConfig } from "../compon
 
 import Image from 'next/image';
 import Link from 'next/link';
+import Head from 'next/head';
+import {Fragment} from "react";
 
 const formConfig: ProgressiveFormConfig = {
 	steps: [
@@ -39,6 +41,11 @@ const SignIn: React.FC<{}> = () => {
   };
 
   return (
+    <Fragment>
+    <Head>
+      <title>Sign in and play | ft_transcendance</title>
+      <meta name="description" content="Sign in with email or 42's intra and start playing pong online. Show the world you're the best pong player!" />
+    </Head>
     <div className="pt-20 bg-gray-900 ">
       <main
         className="flex flex-col items-center min-h-screen mx-auto pt-52 gap-y-8 text-neutral-200"
@@ -72,6 +79,7 @@ const SignIn: React.FC<{}> = () => {
         />
       </main>
     </div>
+    </Fragment>
   );
 };
 
