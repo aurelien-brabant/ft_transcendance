@@ -36,9 +36,6 @@ services:
     networks:
       - rproxy
 
-    volumes:
-      - ./nextjs-front:/usr/app
-
     environment:
       - NODE_ENV=production
 
@@ -52,9 +49,6 @@ services:
     networks:
       - rproxy
       - backend
-
-    volumes:
-      - ./nestjs-back:/usr/app
 
     environment:
       - NODE_ENV=production
