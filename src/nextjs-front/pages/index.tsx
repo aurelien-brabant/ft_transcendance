@@ -229,7 +229,7 @@ const HomePage: React.FC = () => {
               They made it happen!
             </h3>
           </div>
-          <div className="grid grid-cols-5 grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-5 gap-8">
+          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-5 gap-8">
             {team.map((member, index, arr) => (
               <TeamMember key={member.login42} {...member} fadeDirection={index === Math.floor(arr.length / 2) ? undefined : index < arr.length / 2 ? 'right' : 'left'  } />
             ))}
