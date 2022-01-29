@@ -10,7 +10,7 @@ import { SiLinkedin } from "react-icons/si";
 import ResponsiveFade from "../components/ResponsiveFade";
 import Head from "next/head";
 
-const Feature: React.FC<Feature> = ({ label, description, Icon }) => (
+const FeatureItem: React.FC<Feature> = ({ label, description, Icon }) => (
   <div className="flex flex-col items-center justify-between h-full text-xl text-center text-neutral-200 gap-y-8">
     <div className="flex flex-col items-center gap-8">
       <div className="flex items-center justify-center p-5 text-white bg-pink-600 rounded-full drop-shadow-md">
@@ -260,7 +260,7 @@ const HomePage: React.FC = () => {
             <div className="relative grid md:grid-cols-3 gap-16">
               <div className="absolute hidden h-1 bg-white rounded left-48 right-48 top-12 lg:block" />
               {features.map((feature) => (
-                <Feature key={feature.label} {...feature} />
+                <FeatureItem key={feature.label} {...feature} />
               ))}
             </div>
             <Link href="/">
