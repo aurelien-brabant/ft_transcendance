@@ -9,7 +9,7 @@ async function bootstrap() {
 
   console.log(__dirname);
 
-  if (process.env.NODE_ENV !== 'development') {
+  if (process.env.NODE_ENV === 'development') {
     const customOptions: SwaggerCustomOptions = {
       customCssUrl: '/material_swagger.css'
     }
