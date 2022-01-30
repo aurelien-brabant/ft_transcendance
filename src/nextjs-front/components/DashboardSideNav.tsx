@@ -7,9 +7,9 @@ type DashboardSideNavProps = {
 	isOpened: boolean;
 };
 
-const DashboardSideNav: React.FC<DashboardSideNavProps> = () => {
+const DashboardSideNav: React.FC<DashboardSideNavProps> = ({ isOpened }) => {
 	return (
-		<aside className="sticky flex flex-col items-center min-w-[6rem] py-2 bg-gray-900 top-14 gap-y-8 drop-shadow-lg z-20" style={{height: 'calc(100vh - 3.5rem)'}}>
+		<aside className={`sticky flex flex-col items-center ${isOpened ? 'w-[6rem] opacity-1' : 'w-0 opacity-0' } py-2 bg-gray-900 top-14 gap-y-8 drop-shadow-lg z-20`} style={{height: 'calc(100vh - 3.5rem)', transition: 'all .8s'}}>
 			<nav>
 				<ul className="flex flex-col gap-y-8">
 					{dashboardNavItems.map(item => (
