@@ -9,7 +9,7 @@ type DashboardSideNavProps = {
 
 const DashboardSideNav: React.FC<DashboardSideNavProps> = () => {
 	return (
-		<aside className="sticky flex flex-col items-center w-24 py-2 bg-gray-900 top-14 gap-y-8 drop-shadow-lg" style={{height: 'calc(100vh - 3.5rem)'}}>
+		<aside className="sticky flex flex-col items-center min-w-[6rem] py-2 bg-gray-900 top-14 gap-y-8 drop-shadow-lg z-20" style={{height: 'calc(100vh - 3.5rem)'}}>
 			<nav>
 				<ul className="flex flex-col gap-y-8">
 					{dashboardNavItems.map(item => (

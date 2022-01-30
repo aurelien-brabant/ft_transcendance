@@ -3,7 +3,7 @@ import Image from "next/image";
 import { FiSearch } from "react-icons/fi";
 import { GiHamburgerMenu } from "react-icons/gi";
 import { BiBell } from "react-icons/bi";
-import PreventSSR from "./PreventSSR";
+import Link from 'next/link';
 import { genUser } from "../seed/user";
 import notificationsContext from "../context/notifications/notificationsContext";
 import { faker } from '@faker-js/faker';
@@ -18,10 +18,11 @@ const DashboardTopNav: React.FC<DashboardTopNavProps> = ({
 	onHamburgerClick,
 }) => {
 	const [hasNotificationsOpened, setHasNotificationsOpened] = useState(false);
+	const [isUserMenuOpened, setIsUserMenuOpened] = useState(false);
 	const { notifications, notify, markAllAsRead } = useContext(notificationsContext);
 
 	return (
-		<div className="sticky top-0 z-20 flex items-center justify-between bg-neutral-100 h-14 drop-shadow-lg">
+		<div className="sticky top-0 z-20 z-30 flex items-center justify-between bg-neutral-100 h-14 drop-shadow-lg">
 			<div className="flex items-center justify-center h-full gap-x-4 md:gap-x-8">
 				<div className="flex items-center justify-center w-24 h-full bg-gray-900">
 					<Image
@@ -46,7 +47,7 @@ const DashboardTopNav: React.FC<DashboardTopNavProps> = ({
 				</div>
 			</div>
 
-			<div className="flex items-center justify-center md:pr-8 lg:pr-16 xl:pr-32 gap-x-8">
+			<div className="flex items-center justify-center pr-4 md:pr-8 lg:pr-16 xl:pr-32 gap-x-8">
 				<div
 					className="relative justify-end hidden hover:cursor-pointer md:flex"
 					onClick={() => {
@@ -97,8 +98,7 @@ const DashboardTopNav: React.FC<DashboardTopNavProps> = ({
 					)}
 				</div>
 				<div className="flex gap-x-4 md:gap-x-8">
-					<div className="flex items-center gap-x-6">
-						<PreventSSR>
+					<div className="relative flex items-center gap-x-6 hover:cursor-pointer" onClick={() => { setIsUserMenuOpened(!isUserMenuOpened); }}>
 							<span className="w-[7em] text-sm text-center font-bold">
 								{user.username.length > 12
 									? user.username.substring(0, 12) + "..."
@@ -109,9 +109,16 @@ const DashboardTopNav: React.FC<DashboardTopNavProps> = ({
 								height="45px"
 								width="45px"
 								src={user.avatar}
-								alt="faker image"
+								alt="user's avatar"
 							/>
-						</PreventSSR>
+
+						{ isUserMenuOpened && (
+						<nav className="absolute left-0 right-0 pt-1 translate-y-20 bg-neutral-100">
+							<Link href="/welcome"><a className="block p-2 text-sm font-bold hover:bg-neutral-200">Edit profile</a></Link>
+							<Link href={`/users/${user.username}`}><a className="block p-2 text-sm font-bold transition hover:bg-neutral-200">See profile</a></Link>
+							<Link href="#"><a className="block p-2 text-sm text-pink-600 transition hover:bg-neutral-200">Logout</a></Link>
+						</nav>
+						)}
 					</div>
 					<button
 						className="self-center hidden px-6 py-2 text-sm font-bold text-white uppercase bg-pink-600 rounded md:block"
