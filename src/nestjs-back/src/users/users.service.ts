@@ -1,10 +1,11 @@
 import { HttpException, HttpStatus, Injectable, NotFoundException } from '@nestjs/common';
-import { User } from './entities/user.entity';
+import { arrayBuffer } from 'stream/consumers';
+import { Users } from './entities/users.entity';
 
 @Injectable()
-export class UserService {
+export class UsersService {
 
-    private user: User[] = [
+    private users: Users[] = [
         {
             id: 1,
             username: "user1",
@@ -26,38 +27,36 @@ export class UserService {
         {
             id: 4,
             username: "user4",
-            email: "2@gmail.com",
+            email: "4@gmail.com",
             testArray: ['element7', 'element8'],
         }
     ];
 
-    findAll() { return this.user; }
+    findAll() { return this.users; }
 
     findOne(id: string) { 
-//        throw 'random error';
-        const user = this.user.find(item => item.id === +id);
+        const user = this.users.find(item => item.id === +id);
         if (!user)
-            throw new NotFoundException(`${id} not found`);
-//            throw new HttpException(`${id} not found`, HttpStatus.NOT_FOUND);
+            throw new NotFoundException(`User [${id}] not found`);
         return user;
     }
 
     create(createUserDto: any) {
-        this.user.push(createUserDto);
+        this.users.push(createUserDto);
         return createUserDto;
     }
  
     update(id: string, updateUserDto: any) { 
         const existingUser = this.findOne(id);
-        if (existingUser)
-//            return existingCoffee;
-            return this.user.push(updateUserDto);
-        }
-    /*
-    remove(id: string) { 
-        const coffeeIndex = this.findIndex(item => item.id === +id);
-            if (coffeeIndex)
-                this.coffee.splice(coffeeIndex, 1);
-    //            return existingCoffee;
-            }*/
+        if (!existingUser)
+            throw new NotFoundException(`Cannot remove user[${id}]: Not found`);
+          return this.users.splice(1, parseInt(id) - 1, updateUserDto);
+    }
+    
+    remove(id: string, updateUserDto: any) { 
+        const existingUser = this.findOne(id);
+        if (!existingUser)
+            throw new NotFoundException(`Cannot update user [${id}]: Not found`);
+        return this.users.filter(el => el !== existingUser);
+    }
 }
