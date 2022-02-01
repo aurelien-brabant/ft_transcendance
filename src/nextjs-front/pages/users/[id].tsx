@@ -8,6 +8,8 @@ import { SeedGameSummary, SeedRankedGameSummary } from "../../seed/game";
 import { GoArrowDown, GoArrowUp } from "react-icons/go";
 import Link from "next/link";
 import { Fragment, ReactElement } from "react";
+import { RiPingPongLine, RiMessage2Line } from 'react-icons/ri';
+import { IoMdPersonAdd } from 'react-icons/io';
 
 export const getServerSideProps: GetServerSideProps = async function (context) {
   return {
@@ -173,11 +175,24 @@ const UserProfilePage: NextPageWithLayout<UserProfilePageProps> = ({
     <div className="min-h-screen overflow-x-auto text-white bg-gray-900 grow">
       <div style={{ maxWidth: "800px" }} className="px-2 py-16 mx-auto">
         <div className="flex flex-col items-center gap-y-10">
-          <div className="w-48 h-48">
+          <div className="relative w-48 h-48">
             <img
               className="object-cover object-center w-full h-full rounded drop-shadow-md"
               src={user.avatar}
             />
+            <div className="absolute left-0 right-0 flex items-center justify-center -bottom-4 gap-x-2">
+              <button className="p-2 text-2xl text-gray-900 bg-white rounded-full transition hover:scale-105">
+                <RiPingPongLine />
+              </button>
+              <button className="p-2 text-2xl text-gray-900 bg-white rounded-full transition hover:scale-105">
+                <RiMessage2Line />
+              </button>
+
+              <button className="p-2 text-2xl text-gray-900 bg-white border-2 border-gray-900 rounded-full transition hover:scale-105">
+                <IoMdPersonAdd />
+              </button>
+
+            </div>
           </div>
           <div className="flex flex-col items-center">
             <h1 className="text-2xl text-pink-600">{user.username}</h1>
