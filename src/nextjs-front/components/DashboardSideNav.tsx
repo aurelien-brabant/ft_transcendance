@@ -8,7 +8,7 @@ type DashboardSideNavProps = {
 const DashboardSideNav: React.FC<DashboardSideNavProps> = ({ isOpened }) => {
 	return (
 		<aside
-			className={`sticky flex flex-col items-center ${
+			className={`shrink-0 sticky flex flex-col items-center ${
 				isOpened ? "w-24 opacity-100" : "w-0 opacity-0"
 			} md:w-24 md:opacity-100 py-2 bg-gray-900 top-14 gap-y-8 drop-shadow-lg z-20`}
 			style={{ height: "calc(100vh - 3.5rem)", transition: "all .8s" }}

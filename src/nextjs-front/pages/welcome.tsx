@@ -5,6 +5,7 @@ import { FiEdit2 } from "react-icons/fi";
 import { useState } from "react";
 import isEmail from "validator/lib/isEmail";
 import isMobilePhone from "validator/lib/isMobilePhone";
+import {NextPageWithLayout} from './_app';
 
 const labelClassName = "grow uppercase text-neutral-400";
 const inputClassName =
@@ -46,7 +47,7 @@ const baseObject: FormData = {
   tfa: false,
 };
 
-const Welcome: React.FC = () => {
+const Welcome: NextPageWithLayout = () => {
   const [formData, setFormData] = useState<FormData>(baseObject);
 
   const [invalidInputs, setInvalidInputs] = useState<InvalidInputs>({});
@@ -218,4 +219,7 @@ const Welcome: React.FC = () => {
   );
 };
 
-export default withDashboardLayout(Welcome);
+Welcome.getLayout = withDashboardLayout;
+
+
+export default Welcome;

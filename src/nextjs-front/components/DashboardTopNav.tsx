@@ -228,9 +228,7 @@ const DashboardTopNav: React.FC<DashboardTopNavProps> = ({
 						}}
 					>
 						<span className="w-[7em] text-sm text-center font-bold">
-							{user.username.length > 12
-								? user.username.substring(0, 12) + "..."
-								: user.username}
+							Username
 						</span>
 						<img
 							className="hidden rounded-full sm:block"

@@ -1,13 +1,8 @@
+import { ReactElement } from "react";
 import DashboardLayout from "../DashboardLayout";
 
-const withDashboardLayout = (Component: React.FC) => {
-	const Wrapped: React.FC = () => (
-		<DashboardLayout>
-			<Component />
-		</DashboardLayout>
-	);
-
-	return Wrapped;
-}
+const withDashboardLayout = (page: ReactElement) => (
+	<DashboardLayout>{page}</DashboardLayout>
+);
 
 export default withDashboardLayout;
