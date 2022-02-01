@@ -10,6 +10,7 @@ import Link from "next/link";
 import { Fragment, ReactElement } from "react";
 import { RiPingPongLine, RiMessage2Line } from 'react-icons/ri';
 import { IoMdPersonAdd } from 'react-icons/io';
+import Tooltip from "../../components/Tooltip";
 
 export const getServerSideProps: GetServerSideProps = async function (context) {
   return {
@@ -171,6 +172,8 @@ const HighlightItem: React.FC<Highlight> = ({ n, label, hint, nColor }) => (
 const UserProfilePage: NextPageWithLayout<UserProfilePageProps> = ({
   user,
 }) => {
+  const actionTooltipStyles = 'font-bold bg-gray-900 text-neutral-200';
+
   return (
     <div className="min-h-screen overflow-x-auto text-white bg-gray-900 grow">
       <div style={{ maxWidth: "800px" }} className="px-2 py-16 mx-auto">
@@ -180,19 +183,28 @@ const UserProfilePage: NextPageWithLayout<UserProfilePageProps> = ({
               className="object-cover object-center w-full h-full rounded drop-shadow-md"
               src={user.avatar}
             />
+
+            { /* actions */ }
             <div className="absolute left-0 right-0 flex items-center justify-center -bottom-4 gap-x-2">
+              <Tooltip className={actionTooltipStyles} content="challenge">
               <button className="p-2 text-2xl text-gray-900 bg-white rounded-full transition hover:scale-105">
                 <RiPingPongLine />
               </button>
+              </Tooltip>
+
+              <Tooltip className={actionTooltipStyles} content="message">
               <button className="p-2 text-2xl text-gray-900 bg-white rounded-full transition hover:scale-105">
                 <RiMessage2Line />
               </button>
+              </Tooltip>
 
-              <button className="p-2 text-2xl text-gray-900 bg-white border-2 border-gray-900 rounded-full transition hover:scale-105">
+              <Tooltip className={actionTooltipStyles} content="Add as friend">
+              <button className="p-2 text-2xl text-gray-900 bg-white rounded-full transition hover:scale-105">
                 <IoMdPersonAdd />
               </button>
-
+              </Tooltip>
             </div>
+
           </div>
           <div className="flex flex-col items-center">
             <h1 className="text-2xl text-pink-600">{user.username}</h1>
