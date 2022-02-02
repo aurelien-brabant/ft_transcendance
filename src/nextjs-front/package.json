@@ -12,6 +12,7 @@
     "react": "17.0.2",
     "react-awesome-reveal": "^3.8.1",
     "react-dom": "17.0.2",
+    "react-draggable": "^4.4.4",
     "react-icons": "^4.3.1",
     "react-responsive": "^9.0.0-beta.6",
     "sharp": "^0.29.3",
