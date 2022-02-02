@@ -1,18 +1,11 @@
-import { Controller, Get, Param, Post, Patch, Delete, Body, HttpCode, HttpStatus, Res, Query } from '@nestjs/common';
-import { response } from 'express';
+import { Controller, Get, Param, Post, Patch, Delete, Body } from '@nestjs/common';
 import { UsersService } from './users.service';
 import { CreateUserDto } from './dto/create-user.dto';
 import { UpdateUserDto } from './dto/update-user.dto';
-import { RemoveUserDto } from './dto/remove-user.dto';
 
 @Controller('users')
 export class UsersController {
     constructor(private readonly usersService: UsersService) {}
- //   @Get('param') 
-   // find(@Query() paginationQuery){
-     //   const { id, user } = paginationQuery;
-       // return `id: ${id} - user: ${user}`;
-   // }
     @Get()
     findAll() {
         return this.usersService.findAll();
@@ -35,6 +28,6 @@ export class UsersController {
 
     @Delete(':id')
     remove(@Param('id') id: string) {
-        return this.usersService.remove(id, UpdateUserDto);
+        return this.usersService.remove(id);
     }
 }
