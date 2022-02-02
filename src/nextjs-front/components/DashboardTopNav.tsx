@@ -24,6 +24,7 @@ interface Searchable {
 	content: string;
 	type: "page" | "user";
 	href: string;
+	id: string;
 }
 
 const searchableTypeColors: { [key: string]: string } = {
@@ -36,6 +37,7 @@ const baseSearchables = dashboardNavItems.map<Searchable>((item) => ({
 	content: item.label,
 	type: "page",
 	href: item.href,
+	id: item.label
 }));
 
 const SearchBar: React.FC<SearchBarProps> = ({ className }) => {
@@ -58,6 +60,7 @@ const SearchBar: React.FC<SearchBarProps> = ({ className }) => {
 				type: "user",
 				content: user.username,
 				href: `/users/${user.username}`,
+				id: faker.datatype.uuid()
 			}));
 
 			setSearchables([
@@ -117,7 +120,7 @@ const SearchBar: React.FC<SearchBarProps> = ({ className }) => {
 			<div className="absolute left-0 right-0 flex flex-col overflow-y-auto max-h-[800px] bg-neutral-100 translate-y-2 max-w-[50rem]">
 				{searchValue &&
 					searchResults.map((searchable, index) => (
-						<Fragment key={searchable.content}>
+						<Fragment key={searchable.id}>
 							<hr />
 							<article
 								className={`flex justify-between px-4 py-3 ${
@@ -214,7 +217,7 @@ const DashboardTopNav: React.FC<DashboardTopNavProps> = ({
 							</h6>
 							<hr />
 							{notifications.map((notif, index, arr) => (
-								<Fragment key={notif.issuedAt.toString()}>
+								<Fragment key={notif.id}>
 									<article
 										key={notif.issuedAt.toString()}
 										className={`px-2 py-3 ${

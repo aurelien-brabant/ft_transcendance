@@ -1,6 +1,7 @@
 import { createContext } from 'react';
 
 export type NotificationItem = {
+	id: string;
 	category: string;
 	content: string;
 	issuedAt: Date
@@ -9,7 +10,7 @@ export type NotificationItem = {
 
 export type NotificationsContextType = {
 	notifications: NotificationItem[];
-	notify: (item: NotificationItem) => void
+	notify: (item: { category: string, content: string }) => void
 	markAsRead: (notificationId: string) => void
 	markAllAsRead: () => void
 };
