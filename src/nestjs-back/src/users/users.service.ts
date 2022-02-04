@@ -14,11 +14,16 @@ export class UsersService {
     ) {}
 
     findAll() {
-        return this.usersRepository.find();
+        return this.usersRepository.find({
+            relations: ['games', 'friends']
+        });
     }
 
     async findOne(id: string) { 
-            const user =  await this.usersRepository.findOne(id);
+        const user =  await this.usersRepository.findOne(id,
+            {
+                relations: ['games', 'friends']
+            });
         if (!user)
             throw new NotFoundException(`User [${id}] not found`);
         return user;

@@ -1,4 +1,4 @@
-import { IsString, IsInt } from 'class-validator';
+import { IsString, IsInt, IsBoolean } from 'class-validator';
 
 export class CreateUserDto {
     @IsString()
@@ -16,7 +16,7 @@ export class CreateUserDto {
     @IsString()
     readonly pic: string;
 
-    @IsString()
+    @IsBoolean()
     readonly is_duoquadra: boolean;
 
     @IsInt()

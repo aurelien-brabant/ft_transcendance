@@ -6,4 +6,7 @@ export class CreateGameDto {
 
     @IsDate()
     readonly started_at: Date;
+
+  //  @IsInt({ each: true })
+    //readonly users: number [];
 }

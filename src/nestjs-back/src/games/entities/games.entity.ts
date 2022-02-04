@@ -12,9 +12,9 @@ export class Games {
     )
     users: Users[];
 
-    @Column({nullable: true})
+    @Column( {nullable: true} )
     winner: number;
 
-    @Column()
+    @Column( { nullable: true } ) //only for testing
     started_at: Date;
 }

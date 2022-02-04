@@ -16,16 +16,16 @@ export class Users {
     @Column()
     email: string;
 
-    @Column()
+    @Column({ nullable: true })
     phone: string;
 
-    @Column()
+    @Column({ nullable: true })
     pic: string;
 
     @Column()
     is_duoquadra: boolean;
 
-    @Column()
+    @Column({ nullable: true })
     rank: number;
 
     @JoinTable()
