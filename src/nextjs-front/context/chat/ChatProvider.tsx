@@ -1,11 +1,16 @@
-import { useState } from "react";
+import { useEffect, useState } from "react";
+import { faker } from '@faker-js/faker';
 import { BsFillChatDotsFill } from "react-icons/bs";
 import Chat from "../../components/Chat";
 import ChatGroupsView from "../../components/chat/Groups";
-import ChatGroupView from "../../components/chat/Group";
+import ChatGroupView, {GroupHeader} from "../../components/chat/Group";
 import ChatDirectMessagesView from "../../components/chat/DirectMessages";
 import ChatDirectMessageView, {DirectMessageHeader} from "../../components/chat/DirectMessage";
-import chatContext, { ChatView } from "./chatContext";
+import chatContext, { ChatGroup, ChatGroupPrivacy, ChatView } from "./chatContext";
+import Groupadd, {GroupaddHeader} from "../../components/chat/Groupadd";
+import PasswordProtection, {PasswordProtectionHeader} from "../../components/chat/PasswordProtection";
+import GroupUsers, {GroupUsersHeader} from "../../components/chat/GroupUsers";
+import GroupSettings, {GroupSettingsHeader} from "../../components/chat/GroupSettings";
 
 export type ChatViewItem = {
 	label: string;
@@ -27,6 +32,7 @@ const views: { [key: string]: ChatViewItem } = {
 		params: {},
 		isAction: false,
 		Component: ChatGroupView,
+		CustomHeaderComponent: GroupHeader
 	},
 	dms: {
 		label: "Direct messages",
@@ -40,12 +46,61 @@ const views: { [key: string]: ChatViewItem } = {
 		isAction: false,
 		Component: ChatDirectMessageView,
 		CustomHeaderComponent: DirectMessageHeader
+	},
+	groupadd: {
+		label: 'Add to group',
+		params: {},
+		isAction: false,
+		Component: Groupadd,
+		CustomHeaderComponent: GroupaddHeader
+	},
+	'password_protection': {
+		label: 'Password protected',
+		params: {},
+		isAction: false,
+		Component: PasswordProtection,
+		CustomHeaderComponent: PasswordProtectionHeader
+	},
+	group_users: {
+		label: 'Group users',
+		params: {},
+		isAction: false,
+		Component: GroupUsers,
+		CustomHeaderComponent: GroupUsersHeader
+	},
+	group_settings: {
+		label: 'Group settings',
+		params: {},
+		isAction: false,
+		Component: GroupSettings,
+		CustomHeaderComponent: GroupSettingsHeader
 	}
 };
 
 const ChatProvider: React.FC = ({ children }) => {
 	const [isChatOpened, setIsChatOpened] = useState(false);
 	const [viewStack, setViewStack] = useState<ChatViewItem[]>([]);
+	const [chatGroups, setChatGroups] = useState<ChatGroup[]>([]);
+	
+	useEffect(() => {
+		const groups: ChatGroup[] = [];
+
+		for (let i = 0; i != 20; ++i) {
+			groups.push({
+				label: faker.lorem.words(),
+				id: faker.datatype.uuid(),
+				lastMessage: faker.lorem.sentence(),
+				isAdmin: Math.random() > 0.5,
+				privacy: ['private', 'public', 'protected'][Math.floor(Math.random() * 3)] as ChatGroupPrivacy,
+				in: Math.random() > 0.2,
+				peopleCount: Math.floor(Math.random() * 100)
+			});
+		}
+
+		console.log(groups);
+
+		setChatGroups(groups);
+	}, [])
 
 	const openChat = () => {
 		setIsChatOpened(true);
@@ -98,6 +153,7 @@ const ChatProvider: React.FC = ({ children }) => {
 				openChatView,
 				setChatView,
 				closeRightmostView,
+				chatGroups
 			}}
 		>
 			{!isChatOpened ? (

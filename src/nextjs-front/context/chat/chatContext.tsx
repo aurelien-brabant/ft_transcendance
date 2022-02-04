@@ -1,6 +1,6 @@
 import { createContext } from 'react';
 
-export type ChatView = 'groups' | 'group' | 'dms' | 'dm'; // plural form denotes the list, singular the chat itself
+export type ChatView = 'groups' | 'group' | 'dms' | 'dm' | 'groupadd' | 'password_protection' | 'group_users' | 'group_settings'; // plural form denotes the list, singular the chat itself
 
 export type ChatMessage = {
 	author: string;
@@ -9,10 +9,16 @@ export type ChatMessage = {
 	isMe: boolean;
 };
 
+export type ChatGroupPrivacy = 'public' | 'protected' | 'private';
+
 export type ChatGroup = {
 	label: string;
 	lastMessage: string;
 	id: string;
+	privacy: ChatGroupPrivacy;
+	isAdmin: boolean;
+	in: boolean;
+	peopleCount: number;
 };
 
 export type ChatContextType = {
@@ -27,6 +33,8 @@ export type ChatContextType = {
 
 	/* chat state */
 	isChatOpened: boolean;
+
+	chatGroups: ChatGroup[];
 
 	/* data fetching */
 	//loadChatGroups: () => void;

@@ -8,18 +8,18 @@ import { AiOutlineClose, AiOutlineUser } from "react-icons/ai";
 import Tooltip from "../Tooltip";
 
 export const DirectMessageHeader: React.FC<{ viewParams: any }> = ({ viewParams }) => {
-	const { setChatView, closeChat } = useContext(chatContext) as ChatContextType;
+	const { setChatView, openChatView, closeChat } = useContext(chatContext) as ChatContextType;
 
 	return (
 		<div className="flex items-center justify-between p-3 px-5">
 			<div className="flex gap-x-2">
 				<button className="text-2xl" onClick={() => { closeChat() }}><AiOutlineClose /></button>
-			<button className="text-4xl" onClick={() => { setChatView('dms', 'Direct messages', {})}}><BsArrowLeftShort /></button>
+				<button className="text-4xl" onClick={() => { setChatView('dms', 'Direct messages', {})}}><BsArrowLeftShort /></button>
 			</div>
 			<div className="flex items-center gap-x-3">
 			<h6 className="font-bold">{viewParams.targetUsername}</h6> <UserStatusItem status="online" withText={false} />
 			</div>
-			<button>
+			<button onClick={() => { openChatView('groupadd', 'groupadd', { targetUsername: viewParams.targetUsername })}}>
 			<MdPeopleAlt className="text-3xl" />
 			</button>
 		</div>

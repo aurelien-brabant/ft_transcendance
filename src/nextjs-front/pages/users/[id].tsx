@@ -7,12 +7,10 @@ import Selector from "../../components/Selector";
 import { SeedGameSummary, SeedRankedGameSummary } from "../../seed/game";
 import { GoArrowDown, GoArrowUp } from "react-icons/go";
 import Link from "next/link";
-import { Fragment, ReactElement, useContext } from "react";
-import { RiPingPongLine, RiMessage2Line } from "react-icons/ri";
-import { IoMdPersonAdd } from "react-icons/io";
+import { Fragment, ReactElement } from "react";
+import { RiPingPongLine, RiMessage2Line } from 'react-icons/ri';
+import { IoMdPersonAdd } from 'react-icons/io';
 import Tooltip from "../../components/Tooltip";
-import ChatProvider from "../../context/chat/ChatProvider";
-import chatContext, { ChatContextType } from "../../context/chat/chatContext";
 
 export const getServerSideProps: GetServerSideProps = async function (context) {
   return {
@@ -172,10 +170,7 @@ const HighlightItem: React.FC<Highlight> = ({ n, label, hint, nColor }) => (
 const UserProfilePage: NextPageWithLayout<UserProfilePageProps> = ({
   user,
 }) => {
-  const actionTooltipStyles = "font-bold bg-gray-900 text-neutral-200";
-
-  const { openChat, setChatView } = useContext(chatContext) as ChatContextType;
-  console.log(openChat);
+  const actionTooltipStyles = 'font-bold bg-gray-900 text-neutral-200';
 
   return (
     <div className="min-h-screen overflow-x-auto text-white bg-fixed bg-center bg-fill grow" style={{
@@ -189,32 +184,27 @@ const UserProfilePage: NextPageWithLayout<UserProfilePageProps> = ({
               src={user.avatar}
             />
 
-            {/* actions */}
+            { /* actions */ }
             <div className="absolute left-0 right-0 flex items-center justify-center -bottom-4 gap-x-2">
               <Tooltip className={actionTooltipStyles} content="challenge">
-                <button className="p-2 text-2xl text-gray-900 bg-white rounded-full transition hover:scale-105">
-                  <RiPingPongLine />
-                </button>
+              <button className="p-2 text-2xl text-gray-900 bg-white rounded-full transition hover:scale-105">
+                <RiPingPongLine />
+              </button>
               </Tooltip>
 
               <Tooltip className={actionTooltipStyles} content="message">
-                <button
-                  className="p-2 text-2xl text-gray-900 bg-white rounded-full transition hover:scale-105"
-                  onClick={() => {
-                    setChatView('dm', user.username, {targetUsername: user.username});
-                    openChat();
-                  }}
-                >
-                  <RiMessage2Line />
-                </button>
+              <button className="p-2 text-2xl text-gray-900 bg-white rounded-full transition hover:scale-105">
+                <RiMessage2Line />
+              </button>
               </Tooltip>
 
               <Tooltip className={actionTooltipStyles} content="Add as friend">
-                <button className="p-2 text-2xl text-gray-900 bg-white rounded-full transition hover:scale-105">
-                  <IoMdPersonAdd />
-                </button>
+              <button className="p-2 text-2xl text-gray-900 bg-white rounded-full transition hover:scale-105">
+                <IoMdPersonAdd />
+              </button>
               </Tooltip>
             </div>
+
           </div>
           <div className="flex flex-col items-center">
             <h1 className="text-2xl text-pink-600">{user.username}</h1>
@@ -256,9 +246,7 @@ const UserProfilePage: NextPageWithLayout<UserProfilePageProps> = ({
                 label: "Last achievements",
                 component: (
                   <div className="flex flex-col items-center justify-center mt-8">
-                    <h3 className="text-2xl text-gray-600">
-                      Achievements are coming soon...
-                    </h3>
+                    <h3 className="text-2xl text-gray-600">Achievements are coming soon...</h3>
                   </div>
                 ),
               },

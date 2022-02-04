@@ -171,9 +171,9 @@ const Chat: React.FC<ChatProps> = ({ viewStack, onClose }) => {
 	return (
 		<div
 			className="fixed z-50 top-0 bottom-0 left-0 right-0 md:top-auto md:left-auto md:bottom-10 md:right-10
-				drop-shadow-lg flex flex-col overflow-hidden md:w-[25rem] md:h-[35em]"
+				drop-shadow-lg flex flex-col overflow-hidden md:w-[25rem] md:h-[35em] text-white rounded border-gray-800 border-2"
 		>
-			<header className="flex flex-col justify-end py-2 bg-gray-800 cursor-move gap-y-4 drop-shadow-md text-neutral-200">
+			<header className="flex flex-col justify-end py-2 border-b-2 border-gray-800 cursor-move bg-gray-900/90 gap-y-4 drop-shadow-md text-neutral-200">
 
 				{/* Provide a default header, or use the custom one instead if any */}
 
@@ -261,7 +261,7 @@ const Chat: React.FC<ChatProps> = ({ viewStack, onClose }) => {
 			</header>
 
 			{/* active chat view */}
-			<div className="h-full overflow-hidden bg-neutral-200">
+			<div className="h-full overflow-hidden bg-gray-900/90">
 				{viewStack.length > 0 && (
 					<currentView.Component
 						viewParams={currentView.params}
