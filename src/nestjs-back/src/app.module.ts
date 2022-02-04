@@ -6,9 +6,10 @@ import { GamesModule } from './games/games.module';
 import { GamesInvitesModule } from './gamesInvites/gamesInvites.module';
 import { FriendsInvitesModule } from './friendsInvites/friendsInvites.module';
 import { TypeOrmModule } from '@nestjs/typeorm';
+import { FriendsModule } from './friends/friends.module';
 
 @Module({
-  imports: [UsersModule, GamesModule, GamesInvitesModule, FriendsInvitesModule, TypeOrmModule.forRoot({
+  imports: [UsersModule, GamesModule, GamesInvitesModule, FriendsModule, FriendsInvitesModule, TypeOrmModule.forRoot({
       type: 'postgres',
       host: 'postgres',
       port: 5432,

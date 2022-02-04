@@ -1,4 +1,6 @@
-import { Column, Entity, PrimaryGeneratedColumn } from "typeorm";
+import { Friends } from "src/friends/entities/friends.entity";
+import { Games } from "src/games/entities/games.entity";
+import { Column, Entity, JoinTable, ManyToMany, PrimaryGeneratedColumn } from "typeorm";
 
 @Entity()
 export class Users {
@@ -26,9 +28,11 @@ export class Users {
     @Column()
     rank: number;
 
-    @Column('json', { nullable: true })
+    @JoinTable()
+    @ManyToMany( type => Games, (games) => games.users)
     games: number[];
 
-    @Column('json', { nullable: true })
+    @JoinTable()
+    @ManyToMany(type => Friends, (friends) => friends.users)
     friends: number[];
 }
