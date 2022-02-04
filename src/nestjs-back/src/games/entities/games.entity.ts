@@ -8,7 +8,7 @@ export class Games {
 
     @ManyToMany(
         type => Users,
-        user => user.games,
+        user => user.games
     )
     users: Users[];
 

@@ -29,10 +29,22 @@ export class Users {
     rank: number;
 
     @JoinTable()
-    @ManyToMany( type => Games, (games) => games.users)
-    games: number[];
+    @ManyToMany(
+        type => Games,
+        (games) => games.users,
+        {
+            cascade: true,
+        }
+    )
+    games: Games[];
 
     @JoinTable()
-    @ManyToMany(type => Friends, (friends) => friends.users)
-    friends: number[];
+    @ManyToMany(
+        type => Friends,
+        (friends) => friends.users,
+        {
+            cascade: true,
+        }
+    )
+    friends: Friends[];
 }
