@@ -1,6 +1,6 @@
 import { createContext } from 'react';
 
-export type ChatView = 'groups' | 'group' | 'dms' | 'dm' | 'groupadd' | 'password_protection' | 'group_users' | 'group_settings'; // plural form denotes the list, singular the chat itself
+export type ChatView = 'groups' | 'group' | 'dms' | 'dm' | 'groupadd' | 'password_protection' | 'group_users' | 'group_settings' | 'group_new'; // plural form denotes the list, singular the chat itself
 
 export type ChatMessage = {
 	author: string;

@@ -67,18 +67,18 @@ const Groups: React.FC<{
 
 	return (
 		<Fragment>
-			<div className="h-[15%] flex items-center p-4 bg-gray-900/90 border-gray-800 border-b-4">
+			<div className="h-[15%] gap-x-2 flex items-center p-4 bg-gray-900/90 border-gray-800 border-b-4 justify-between">
 				<input
 					ref={searchInputRef}
 					type="text"
-					className="px-2 py-1 bg-transparent border-b-2 border-pink-600 outline-0"
+					className="py-1 bg-transparent border-b-2 border-pink-600 text-md outline-0 max-w-[50%]"
 					placeholder="search for a group"
 					onChange={(e) => {
 						handleSearch(e.target.value);
 					}}
 				/>
 				<select
-					className="px-2 py-1 bg-gray-900 outline-none text-red"
+					className="px-2 py-1 text-sm bg-gray-900 outline-none"
 					onChange={handleSelect}
 				>
 					<option value="all">all</option>
@@ -86,6 +86,11 @@ const Groups: React.FC<{
 					<option value="public">public</option>
 					<option value="protected">protected</option>
 				</select>
+				<button className="px-2 py-1 text-sm font-bold uppercase bg-pink-600 rounded" onClick={() => {
+					openChatView('group_new', 'Create a new group', {});
+				}}>
+					New
+				</button>
 			</div>
 			<div className="h-[85%] overflow-x-auto">
 				{filteredGroups.map((gm) => (

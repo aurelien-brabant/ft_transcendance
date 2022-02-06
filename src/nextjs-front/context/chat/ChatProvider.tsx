@@ -11,6 +11,7 @@ import Groupadd, {GroupaddHeader} from "../../components/chat/Groupadd";
 import PasswordProtection, {PasswordProtectionHeader} from "../../components/chat/PasswordProtection";
 import GroupUsers, {GroupUsersHeader} from "../../components/chat/GroupUsers";
 import GroupSettings, {GroupSettingsHeader} from "../../components/chat/GroupSettings";
+import GroupNew, {GroupNewHeader} from "../../components/chat/GroupNew";
 
 export type ChatViewItem = {
 	label: string;
@@ -74,6 +75,13 @@ const views: { [key: string]: ChatViewItem } = {
 		isAction: false,
 		Component: GroupSettings,
 		CustomHeaderComponent: GroupSettingsHeader
+	},
+	group_new: {
+		label: 'Create a new group',
+		params: {},
+		isAction: false,
+		Component: GroupNew,
+		CustomHeaderComponent: GroupNewHeader
 	}
 };
 
