@@ -9,5 +9,7 @@ import { UsersService } from './users.service';
 @Module({
     imports: [TypeOrmModule.forFeature([Users, Games, Friends])], 
     controllers: [UsersController], 
-    providers: [UsersService] })
+    providers: [UsersService],
+    exports: [UsersService]
+})
 export class UsersModule {}

@@ -6,6 +6,7 @@ import { Games } from 'src/games/entities/games.entity';
 import { Repository } from 'typeorm';
 import { CreateUserDto } from './dto/create-user.dto';
 import { UpdateUserDto } from './dto/update-user.dto';
+import { hash as hashPassword } from 'bcrypt';
 
 @Injectable()
 export class UsersService {
@@ -25,6 +26,15 @@ export class UsersService {
         });
     }
 
+    async findOneByEmail(email: string): Promise<Users> | null {
+        const user = await this.usersRepository.findOne({ email });
+
+        // not found - let the controller throw the appropriate exception
+        if (!user) return null;
+
+        return user;
+    }
+
     async findOne(id: string) { 
         const user =  await this.usersRepository.findOne(id,
             {
@@ -36,6 +46,10 @@ export class UsersService {
     }
 
     async create(createUserDto: CreateUserDto) {
+        // hash the password with bcrypt using 10 salt rounds
+        const hashedPwd = await hashPassword(createUserDto.password, 10);
+
+        // NOTE: determine how this proves useful
         const games = await Promise.all(
             createUserDto.games.map(id => this.preloadGameById(id)),
         );
@@ -46,6 +60,7 @@ export class UsersService {
 
         const user = this.usersRepository.create({
             ...createUserDto,
+            password: hashedPwd,
             games,
             friends,
         });

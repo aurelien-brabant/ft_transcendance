@@ -60,6 +60,8 @@ services:
       - POSTGRES_USER=transcendance
       - POSTGRES_PASSWORD=transcendance
       - POSTGRES_HOST=postgres
+      - JWT_SECRET=dummy_secret
+      - JWT_LIFETIME=60s
 
     ports:
       - 6001:3000
