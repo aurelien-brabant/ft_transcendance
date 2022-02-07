@@ -21,6 +21,12 @@ export type ChatGroup = {
 	peopleCount: number;
 };
 
+export type DirectMessage = {
+	username: string;
+	avatar: string;
+	lastMessage: string;
+};
+
 export type ChatContextType = {
 	/* chat manipulation */
 	openChat: () => void;
@@ -35,6 +41,7 @@ export type ChatContextType = {
 	isChatOpened: boolean;
 
 	chatGroups: ChatGroup[];
+	directMessages: DirectMessage[];
 
 	/* data fetching */
 	//loadChatGroups: () => void;

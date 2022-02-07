@@ -6,6 +6,7 @@ import { BsArrowLeftShort } from 'react-icons/bs';
 import { MdPeopleAlt } from 'react-icons/md';
 import { AiOutlineClose, AiOutlineUser } from "react-icons/ai";
 import Tooltip from "../Tooltip";
+import {FiSend} from "react-icons/fi";
 
 export const DirectMessageHeader: React.FC<{ viewParams: any }> = ({ viewParams }) => {
 	const { setChatView, openChatView, closeChat } = useContext(chatContext) as ChatContextType;
@@ -33,6 +34,12 @@ const DirectMessage: React.FC<{ viewParams: { [key: string]: any } }> = ({
 	const [currentMessage, setCurrentMessage] = useState('');
 	const chatBottom = useRef<HTMLDivElement>(null);
 
+	const handleSubmit = () => {
+		if (currentMessage.length === 0) return;
+		setMessages([ ...messages, { isMe: true, content: currentMessage, id: faker.datatype.uuid(), author: 'me' } ]);
+		setCurrentMessage('');
+	};
+
 	useEffect(() => {
 		const messages: ChatMessage[] = [];
 
@@ -59,8 +66,8 @@ const DirectMessage: React.FC<{ viewParams: { [key: string]: any } }> = ({
 					key={msg.id}
 					className={`${
 						msg.isMe
-							? "self-end bg-green-400"
-							: "self-start bg-gray-300"
+								? "self-end bg-green-600"
+								: "self-start text-gray-900 bg-gray-300"
 					} max-w-[80%] p-2 my-2 rounded whitespace-wrap break-all`}
 				>
 					<p>
@@ -70,36 +77,20 @@ const DirectMessage: React.FC<{ viewParams: { [key: string]: any } }> = ({
 			))}
 			<div ref={chatBottom} />
 		</div>
-		<div className=" min-h-[13%] flex items-center px-8 py-2 bg-white drop-shadow-md">
-			<input
-				type="text"
-				placeholder="Your message"
-				className="p-2 rounded resize-none grow outline-0"
-				value={currentMessage}
-				onChange={(e) => {
-					setCurrentMessage(e.target.value);
-				}}
-			/>
-			<button
-				className="px-3 py-2 text-white uppercase bg-blue-500 rounded"
-				onClick={() => {
-					if (currentMessage.length === 0) return;
-					setMessages([
-						...messages,
-						{
-							isMe: true,
-							content: currentMessage,
-							id: faker.datatype.uuid(),
-							author: 'random'
-						},
-					]);
-					setCurrentMessage("");
-				}}
-			>
-				Send
-			</button>
-		</div>
-	</div>);
+<div className="border-t-2 border-gray-800 min-h-[13%] flex gap-x-2 items-center px-8 py-2 bg-gray-900 drop-shadow-md">
+				<textarea
+					placeholder="Your message"
+					className="p-2 bg-transparent border border-pink-600 resize-none grow outline-0"
+					value={currentMessage}
+					onChange={(e) => {
+						setCurrentMessage(e.target.value);
+					}}
+				/>
+				<button onClick={handleSubmit} className="self-stretch px-3 py-2 text-lg text-white uppercase bg-pink-600 rounded">
+					<FiSend />
+				</button>
+			</div>
+			</div>);
 };
 
 export default DirectMessage;
