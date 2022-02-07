@@ -7,6 +7,8 @@ import Link from 'next/link';
 import Head from 'next/head';
 import {Fragment} from "react";
 
+import { authorizationLink } from '../constants/authorize42';
+
 const formConfig: ProgressiveFormConfig = {
 	steps: [
 		{
@@ -56,13 +58,14 @@ const SignIn: React.FC<{}> = () => {
           <h2 className="py-2"><Link href="/signup"><a>Or sign up</a></Link></h2>
         </div>
         <div className="flex flex-col w-full gap-y-4">
-          <button
+          <a
+            href={authorizationLink}
             style={{ backgroundColor: "#00babc" }}
             className="flex items-center justify-center w-full px-8 py-2 text-xl font-bold text-white uppercase gap-x-4"
           >
             <Image src="/plain_logo.svg" width={35} height={35} alt="42 logo" />
             Continue with 42
-          </button>
+          </a>
           <hr className="self-stretch border-gray-600 border-1" />
         </div>
 
