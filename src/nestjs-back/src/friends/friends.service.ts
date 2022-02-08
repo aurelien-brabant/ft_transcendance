@@ -17,7 +17,7 @@ export class FriendsService {
         return this.friendsRepository.find();
     }
 
-    async findOne(id: string) { 
+    async findOne(id: number) { 
             const friendship =  await this.friendsRepository.findOne(id);
         if (!friendship)
             throw new NotFoundException(`Friendship [${id}] not found`);
@@ -29,7 +29,7 @@ export class FriendsService {
         return this.friendsRepository.save(friendship);
     }
  
-    async update(id: string, updateFriendDto: UpdateFriendDto) { 
+    async update(id: number, updateFriendDto: UpdateFriendDto) { 
         const friendship = await this.friendsRepository.preload({
             id: +id,
             ...updateFriendDto,
@@ -39,7 +39,7 @@ export class FriendsService {
         return this.friendsRepository.save(friendship);
     }
    
-    async remove(id: string) { 
+    async remove(id: number) { 
         const friendship = await this.findOne(id);
         return this.friendsRepository.remove(friendship);
     }

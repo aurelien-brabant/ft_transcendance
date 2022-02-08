@@ -1,14 +1,14 @@
-import { IsString, IsInt } from 'class-validator';
+import { IsString, IsOptional } from 'class-validator';
 import { Users } from 'src/users/entities/users.entity';
 
 export class CreateGameDto {
-    @IsInt()
-    readonly winner: number;  
-
+    @IsOptional()
     @IsString()
-    readonly startedAt: string;
+    readonly createdAt: string;
 
+    @IsOptional()
     readonly gameInviteSender: Users;
 
-    readonly gameInviteReceiver: Users
+    @IsOptional()
+    readonly gameInviteReceiver: Users;
 }

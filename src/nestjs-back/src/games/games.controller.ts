@@ -20,7 +20,7 @@ export class GamesController {
         console.log(createGameDto instanceof CreateGameDto);
         return this.gamesService.create(createGameDto);
     }
-/*
+
     @Patch(':id')
     update(@Param('id') id: string, @Body() updateGameDto: UpdateGameDto) {
         return this.gamesService.update(id, updateGameDto);
@@ -29,5 +29,5 @@ export class GamesController {
     @Delete(':id')
     remove(@Param('id') id: string) {
         return this.gamesService.remove(id);
-    }*/
+    }
 }

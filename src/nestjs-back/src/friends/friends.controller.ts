@@ -11,7 +11,7 @@ export class FriendsController {
         return this.friendsService.findAll();
     }
     @Get(':id')
-    findOne(@Param('id') id: string) {
+    findOne(@Param('id') id: number) {
         return this.friendsService.findOne(id);
     }
 
@@ -22,12 +22,12 @@ export class FriendsController {
     }
 
     @Patch(':id')
-    update(@Param('id') id: string, @Body() updateFriendDto: UpdateFriendDto) {
+    update(@Param('id') id: number, @Body() updateFriendDto: UpdateFriendDto) {
         return this.friendsService.update(id, updateFriendDto);
     }
 
     @Delete(':id')
-    remove(@Param('id') id: string) {
+    remove(@Param('id') id: number) {
         return this.friendsService.remove(id);
     }
 }

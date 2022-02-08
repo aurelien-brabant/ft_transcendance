@@ -1,7 +1,7 @@
-import { Friends } from "src/friends/entities/friends.entity";
+//import { Friends } from "src/friends/entities/friends.entity";
 import { Games } from "src/games/entities/games.entity";
 import { GamesInvites } from "src/gamesInvites/entities/gamesInvites.entity";
-import { Column, Entity, JoinTable, ManyToMany, PrimaryGeneratedColumn } from "typeorm";
+import { Column, Entity, JoinTable, ManyToMany, OneToMany, PrimaryGeneratedColumn } from "typeorm";
 
 @Entity()
 export class Users {
@@ -31,18 +31,35 @@ export class Users {
     rank: number;
 
     @JoinTable()
+//    @ManyToMany(() => Games)
     @ManyToMany(
         type => Games,
-        (games) => games.users,
+        (games) => games.players,
+//        {
+  //          cascade: true,
+    //    }
     )
     games: Games[];
 
-    @JoinTable()
-    @ManyToMany(
-        type => Friends,
-        (users) => users.friends,
+ /*   @JoinTable()
+    @OneToMany(
+        type => Games,
+        (games) => games.winner,
     )
-    friends: Friends[];
+    winner: Games[];
+*/
+//    @Column()
+//    @JoinTable()
+  //  @ManyToMany(
+    //    type => Friends,
+      //  (friends) => friends.friends,
+   // )
+    //friends: Friends[];
+//    friends: Users[];
+//    friends: number[]
+    @JoinTable()
+    @ManyToMany(() => Users)
+    friends: Users[];
 
     @JoinTable()
     @ManyToMany(
