@@ -7,11 +7,12 @@ import { ValidationPipe } from '@nestjs/common';
 import seed from './seed';
 
 async function bootstrap() {
-  const app = await NestFactory.create<NestExpressApplication>(AppModule);
-
-  console.log(__dirname);
+  const app = await NestFactory.create<NestExpressApplication>(AppModule, {
+    cors: true
+  });
 
   if (process.env.NODE_ENV === 'development') {
+
     const customOptions: SwaggerCustomOptions = {
       customCssUrl: '/material_swagger.css'
     }

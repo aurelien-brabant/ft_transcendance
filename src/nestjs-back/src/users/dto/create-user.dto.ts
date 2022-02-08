@@ -5,25 +5,14 @@ import { IsBoolean, IsInt, IsString, IsEmail, IsPhoneNumber, IsOptional } from '
 export class CreateUserDto {
     @IsOptional()
     @IsString()
-    readonly username: string;
-
-    @IsOptional()
-    @IsString()
     readonly password: string;
 
     @IsEmail()
     readonly email: string;
 
-    @IsBoolean()
-    readonly is_duoquadra: string;
-
     @IsOptional()
     @IsPhoneNumber()
     readonly phone: string;
-
-    @IsOptional()
-    @IsString()
-    readonly pic: string;
 
 //    @IsInt({ each: true })
   //  readonly games: number[];
