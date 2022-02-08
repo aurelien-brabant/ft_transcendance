@@ -6,9 +6,9 @@ import { Games } from 'src/games/entities/games.entity';
 import { Repository } from 'typeorm';
 import { CreateUserDto } from './dto/create-user.dto';
 import { UpdateUserDto } from './dto/update-user.dto';
+import { SeedUserDto } from './dto/seed-user.dto';
 import { hash as hashPassword } from 'bcrypt';
 import { CreateDuoQuadraDto } from './dto/create-duoquadra.dto';
-//import { faker } from '@faker-js/faker';
 import { prefixWithRandomAdjective } from 'src/utils/prefixWithRandomAdjective';
 import { PaginationQueryDto } from 'src/common/dto/pagination-query.dto';
 
@@ -163,4 +163,12 @@ export class UsersService {
             return existingFriend;
         return this.usersRepository.create({ name });
     }*/
+
+    async seed(seedUserDto: SeedUserDto) {
+        const user = this.usersRepository.create({
+            ...seedUserDto,
+        });
+
+        return this.usersRepository.save(user);
+    }
 }

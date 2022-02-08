@@ -20,7 +20,7 @@ export class CreateUserDto {
     //    readonly friends: number [];
         readonly friends: Users [];
 
-
+/*
     // Only for seeding...
         @IsOptional()
         @IsInt()
@@ -38,4 +38,4 @@ export class CreateUserDto {
         @IsString()
         readonly duoquadra_login: string;
     // ...Only for seeding
-}
+*/}

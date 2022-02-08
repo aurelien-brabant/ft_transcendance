@@ -24,13 +24,15 @@ export class SeederService {
     async seedFakeUsers()
     {
         for (let i = 0; i < 100; ++i) {
-            const user = await this.usersService.create({
+            let pseudo = faker.internet.userName();
+            const user = await this.usersService.seed({
                 email: faker.unique(faker.internet.email),
+                username: pseudo,
                 password: faker.internet.password(),
                 rank: faker.datatype.number(),
                 phone: faker.phone.phoneNumber(),
                 pic: faker.image.imageUrl(),
-                duoquadra_login: faker.internet.userName(),
+                duoquadra_login: pseudo + "_42",
                 games: [],
                 friends: [],
             });
