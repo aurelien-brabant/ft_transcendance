@@ -1,14 +1,16 @@
-import { IsString, IsOptional } from 'class-validator';
+import { IsString, IsOptional, IsDate } from 'class-validator';
 import { Users } from 'src/users/entities/users.entity';
 
 export class CreateGameDto {
     @IsOptional()
-    @IsString()
-    readonly createdAt: string;
+    @IsDate()
+    readonly createdAt: Date;
 
-    @IsOptional()
+  /*  @IsOptional()
     readonly gameInviteSender: Users;
 
     @IsOptional()
     readonly gameInviteReceiver: Users;
+*/
+
 }

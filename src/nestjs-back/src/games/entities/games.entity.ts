@@ -36,8 +36,8 @@ export class Games {
     winner: number;
 
     @Column({
-        type: 'timestamp',
-        default: () => 'CURRENT_TIMESTAMP',
+        type: 'date',
+        default: () => 'CURRENT_DATE',
     })
-    createdAt: string;
+    createdAt: Date;
 }
