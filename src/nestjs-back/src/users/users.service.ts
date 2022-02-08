@@ -1,8 +1,6 @@
 import { Injectable, NotFoundException } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Users } from './entities/users.entity';
-import { Friends } from 'src/friends/entities/friends.entity';
-import { Games } from 'src/games/entities/games.entity';
 import { Repository } from 'typeorm';
 import { CreateUserDto } from './dto/create-user.dto';
 import { UpdateUserDto } from './dto/update-user.dto';
@@ -19,8 +17,6 @@ export class UsersService {
         private readonly usersRepository: Repository<Users>,
     //    @InjectRepository(Games)
         //private readonly gamesRepository: Repository<Games>,
-        //@InjectRepository(Friends)
-      //  private readonly friendsRepository: Repository<Friends>,
     ) {}
 
     findAll(paginationQuery: PaginationQueryDto) {
@@ -86,10 +82,7 @@ export class UsersService {
           createUserDto.games.map(name => this.preloadGameByName(name)),
         );
 */
-       /*  const friends = await Promise.all(
-         createUserDto.friends.map(name => this.preloadFriendByName(name)),
-         );
-*/        let u: Users | null = null;
+        let u: Users | null = null;
 
         u = await this.usersRepository.findOne({
             email: createUserDto.email,
@@ -127,18 +120,11 @@ export class UsersService {
             (await Promise.all(
                 updateUserDto.games.map(name => this.preloadGameByName(name)),
             ));
-
-         const friends =
-            updateUserDto.friends &&
-            (await Promise.all(
-                updateUserDto.friends.map(name => this.preloadFriendByName(name)),
-            ));
 */
-        const user = await this.usersRepository.preload({
+         const user = await this.usersRepository.preload({
             id: +id,
             ...updateUserDto,
 //                      games,
-  //                    friends,
         });
         if (!user)
             throw new NotFoundException(`Cannot update user[${id}]: Not found`);
@@ -157,13 +143,7 @@ export class UsersService {
         return this.gamesRepository.create({ name });
     }
 
-    private async preloadFriendByName(name: string): Promise<Users> {
-        const existingFriend = await this.usersRepository.findOne({ name });
-        if (existingFriend)
-            return existingFriend;
-        return this.usersRepository.create({ name });
-    }*/
-
+  */
     async seed(seedUserDto: SeedUserDto) {
         const user = this.usersRepository.create({
             ...seedUserDto,

@@ -3,7 +3,6 @@ import { CreateUserDto } from './create-user.dto';
 import { IsInt, IsOptional, IsPhoneNumber, IsString } from 'class-validator';
 import { Games } from 'src/games/entities/games.entity';
 import { Users } from '../entities/users.entity';
-import { Friends } from 'src/friends/entities/friends.entity';
 
 export class UpdateUserDto extends PartialType(CreateUserDto) {
     @IsOptional()
@@ -13,6 +12,14 @@ export class UpdateUserDto extends PartialType(CreateUserDto) {
     @IsOptional()
     @IsInt()
     readonly rank: number;
+
+    @IsOptional()
+    @IsInt()
+    readonly win: number;
+
+    @IsOptional()
+    @IsInt()
+    readonly loose: number;
 
     @IsOptional()
     @IsPhoneNumber()

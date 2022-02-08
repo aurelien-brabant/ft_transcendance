@@ -23,7 +23,15 @@ export class SeedUserDto {
     @IsOptional()
     @IsInt()
     readonly rank: number;
-    
+
+    @IsOptional()
+    @IsInt()
+    readonly win: number;
+
+    @IsOptional()
+    @IsInt()
+    readonly loose: number;
+
     @IsOptional()
     @IsPhoneNumber()
     readonly phone: string;

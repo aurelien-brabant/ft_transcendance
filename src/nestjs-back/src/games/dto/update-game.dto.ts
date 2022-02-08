@@ -7,7 +7,7 @@ export class UpdateGameDto extends PartialType(CreateGameDto) {
     @IsOptional()
     @IsInt()
     readonly winner: number;
- //   readonly winner: Users;  
+//    readonly winner: Users;  
 
     @IsOptional()
     readonly players: Users[];

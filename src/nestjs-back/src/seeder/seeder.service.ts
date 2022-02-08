@@ -30,6 +30,8 @@ export class SeederService {
                 username: pseudo,
                 password: faker.internet.password(),
                 rank: faker.datatype.number(),
+                win: faker.datatype.number(),
+                loose: faker.datatype.number(),
                 phone: faker.phone.phoneNumber(),
                 pic: faker.image.imageUrl(),
                 duoquadra_login: pseudo + "_42",
@@ -44,10 +46,27 @@ export class SeederService {
     async seedFakeGames()
     {
         for (let i = 0; i < 100; ++i) {
-            const game = await this.gamesService.create({
-                createdAt: faker.date.past(),
-//                players: [],
-            });
+            //let pseudo = faker.internet.userName();
+            const game = await this.gamesService.seed({
+                createdAt: faker.datatype.datetime(),
+                players: [],
+                winner: 12,
+     /*           winner: {
+                    id: 1,
+                    email: faker.unique(faker.internet.email),
+                    username: pseudo,
+                    password: faker.internet.password(),
+                    rank: faker.datatype.number(),
+                    phone: faker.phone.phoneNumber(),
+                    pic: faker.image.imageUrl(),
+                    duoquadra_login: pseudo + "_42",
+                    games: [],
+                    friends: [],
+                    win: 12,
+                    gameInviteSender: [],
+                    gameInviteReceiver: [],
+               }
+            */            });
 
             console.log("Game [%s] created", game.id);
         }
