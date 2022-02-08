@@ -9,13 +9,17 @@ const ValidateFortyTwo = () => {
 
   useEffect(() => {
     const searchParams = new URLSearchParams(window.location.search);
-    const requestURI = `${
-      window.location.origin
-    }/api/auth/login42?code=${searchParams.get("code")}`;
+    const requestURI = `http://localhost/api/auth/login42`;
 
-    console.log(requestURI);
 
-    fetch(requestURI).then((res) => {
+
+    fetch(requestURI, {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json'
+      },
+      body: JSON.stringify({ apiCode: searchParams.get('code')})
+    }).then((res) => {
       if (res.status === 201) {
         res.json().then(({ access_token }) => {
           window.localStorage.setItem("bearer", access_token);
