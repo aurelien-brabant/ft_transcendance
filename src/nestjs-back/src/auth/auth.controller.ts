@@ -1,4 +1,4 @@
-import { Request, Body, UseGuards, Post, Controller, Get } from '@nestjs/common';
+import { Request, Body, UseGuards, Post, Controller, Get, UnauthorizedException } from '@nestjs/common';
 import { AuthGuard } from '@nestjs/passport';
 import {AuthService} from './auth.service';
 import { JwtAuthGuard } from './jwt-auth.guard';
@@ -19,8 +19,13 @@ export class AuthController {
 
   @Post('/login42')
   async loginDuoQuadra(@Body() login42Dto: Login42Dto) {
-    console.log(login42Dto);
-    this.authService.loginDuoQuadra(login42Dto.apiCode);
+    const accessToken = await this.authService.loginDuoQuadra(login42Dto.apiCode);
+
+    if (!accessToken) {
+      throw new UnauthorizedException;
+    }
+
+    return { access_token: accessToken };
   }
 
   @UseGuards(JwtAuthGuard)

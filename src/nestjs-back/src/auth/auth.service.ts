@@ -29,7 +29,7 @@ export class AuthService {
     };
   }
 
-  async loginDuoQuadra(apiCode: string): Promise<{ access_token: null }> {
+  async loginDuoQuadra(apiCode: string): Promise<string | null> {
     const tokenEndpoint = 'https://api.intra.42.fr/oauth/token/';
     const formData = new FormData();
 
@@ -55,30 +55,30 @@ export class AuthService {
 
     const { access_token: ft_access_token, refresh_token: ft_refresh_token } = await res.json();
 
-    const res2 = await fetch('https://api.intra.42.fr/v2/me', {
+    const duoQuadraProfile = await (await fetch('https://api.intra.42.fr/v2/me', {
       headers: {
         'Authorization': `Bearer ${ft_access_token}`
       }
-    });
+    })).json();
 
-    const login = (await res2.json()).login;
+    let duoQuadraUser = await this.usersServices.findOneByDuoQuadraLogin(duoQuadraProfile.login);
 
-    let user42Id: number | null = null;
+    // first login using 42 credentials, creating a ft_transcendance account
+    if (!duoQuadraUser) {
+      console.log('creating an account');
+      duoQuadraUser = await this.usersServices.createDuoQuadra({
+        phone: duoQuadraProfile.phone !== 'hidden' ? duoQuadraUser.phone : null,
+        email: duoQuadraProfile.email,
+        imageUrl: duoQuadraProfile.image_url,
+        login: duoQuadraProfile.login,
+      });
 
-    const existingUser = await this.usersServices.findByDuoquadra(login);
-
-    if (!existingUser) {
-      // create user
-      user42Id = newId;
+      console.log(duoQuadraUser);
     } else {
-      user42Id = existingUser.id;
+      console.log('Existing duoquadra', duoQuadraUser);
     }
 
-    return {
-      access_token: this.jwtService.sign({ sub: user42Id });
-    };
-
-
+    return this.jwtService.sign({ sub: duoQuadraUser.id });
   }
 
 }
