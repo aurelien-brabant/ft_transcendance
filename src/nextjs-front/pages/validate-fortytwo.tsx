@@ -11,8 +11,6 @@ const ValidateFortyTwo = () => {
     const searchParams = new URLSearchParams(window.location.search);
     const requestURI = `http://localhost/api/auth/login42`;
 
-
-
     fetch(requestURI, {
       method: 'POST',
       headers: {
