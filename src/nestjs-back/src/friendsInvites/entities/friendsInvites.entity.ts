@@ -14,6 +14,9 @@ export class FriendsInvites {
     @Column()
     status: string;
 
-    @Column()
-    requested_at: Date;
+    @Column({
+        type: 'timestamp',
+        default: () => 'CURRENT_TIMESTAMP',
+    })
+    requestedAt: string;
 }

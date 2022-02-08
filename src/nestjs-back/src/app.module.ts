@@ -12,11 +12,11 @@ import { AuthModule } from './auth/auth.module';
 @Module({
   imports: [UsersModule, GamesModule, GamesInvitesModule, FriendsModule, FriendsInvitesModule, TypeOrmModule.forRoot({
       type: 'postgres',
-      host: 'postgres',
+      host: `${process.env.POSTGRES_HOST}`,
       port: 5432,
-      username: 'transcendance',
-      password: 'transcendance',
-      database: 'postgres',
+      username: `${process.env.POSTGRES_USER}`,
+      password: `${process.env.POSTGRES_PASSWORD}`,
+      database: `${process.env.POSTGRES_HOST}`,
       autoLoadEntities: true,
       synchronize: true,         // true in Dev // false in production
     }), AuthModule,

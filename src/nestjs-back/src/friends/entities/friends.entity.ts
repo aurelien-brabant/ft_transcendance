@@ -1,14 +1,16 @@
-import { Users } from "src/users/entities/users.entity";
-import { Entity, ManyToMany, PrimaryGeneratedColumn } from "typeorm";
+//import { IsOptional } from "class-validator";
+//import { Users } from "src/users/entities/users.entity";
+import { Column, Entity, ManyToMany, PrimaryGeneratedColumn } from "typeorm";
 
 @Entity()
 export class Friends {
     @PrimaryGeneratedColumn()
     id: number;
 
-    @ManyToMany(
+ /*   @ManyToMany(
         type => Users,
         user => user.friends,
     )
-    users: Users[];
+    friends: Users[];*/
+    friends: number[];
 }

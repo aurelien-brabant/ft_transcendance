@@ -46,13 +46,12 @@ export class UsersService {
     }
 
     async create(createUserDto: CreateUserDto) {
+        //const games = await Promise.all(
+          //  createUserDto.games.map(id => this.preloadGameById(id)),
+        //);
+
         // hash the password with bcrypt using 10 salt rounds
         const hashedPwd = await hashPassword(createUserDto.password, 10);
-
-        // NOTE: determine how this proves useful
-        const games = await Promise.all(
-            createUserDto.games.map(id => this.preloadGameById(id)),
-        );
 
         const friends = await Promise.all(
             createUserDto.friends.map(id => this.preloadGameById(id)),
@@ -68,23 +67,23 @@ export class UsersService {
     }
  
     async update(id: string, updateUserDto: UpdateUserDto) { 
-        const games = 
+/*        const games = 
             updateUserDto.games &&
             (await Promise.all(
                 updateUserDto.games.map(id => this.preloadGameById(id)),
             ));
-
-        const friends =
+*/
+       /* const friends =
             updateUserDto.friends &&
             (await Promise.all(
                 updateUserDto.friends.map(id => this.preloadGameById(id)),
             ));
-
+*/
         const user = await this.usersRepository.preload({
             id: +id,
             ...updateUserDto,
-            games,
-            friends,
+  //          games,
+  //          friends,
         });
         if (!user)
             throw new NotFoundException(`Cannot update user[${id}]: Not found`);
