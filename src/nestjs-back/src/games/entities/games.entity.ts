@@ -1,5 +1,7 @@
+import { userInfo } from "os";
+import { GamesInvites } from "src/gamesInvites/entities/gamesInvites.entity";
 import { Users } from "src/users/entities/users.entity";
-import { Column, Entity, ManyToMany, PrimaryGeneratedColumn } from "typeorm";
+import { Column, Entity, JoinTable, ManyToMany, PrimaryGeneratedColumn } from "typeorm";
 
 @Entity()
 export class Games {
@@ -12,9 +14,24 @@ export class Games {
     )
     users: Users[];
 
+    @ManyToMany(
+        type => Users,
+        user => user.gamesInviteSender
+    )
+    gameInviteSender: Users;
+
+    @ManyToMany(
+        type => Users,
+        user => user.gamesInviteReceiver
+    )
+    gameInviteReceiver: Users;
+
     @Column( {nullable: true} )
     winner: number;
 
-    @Column( { nullable: true } ) //only for testing
-    started_at: Date;
+    @Column({
+        type: 'timestamp',
+        default: () => 'CURRENT_TIMESTAMP',
+    })
+    startedAt: string;
 }

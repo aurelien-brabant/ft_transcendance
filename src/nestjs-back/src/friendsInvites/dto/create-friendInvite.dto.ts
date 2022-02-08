@@ -1,4 +1,4 @@
-import { IsInt, IsDate, IsString } from 'class-validator';
+import { IsInt, IsString } from 'class-validator';
 
 export class CreateFriendInviteDto {
     @IsInt()
@@ -10,7 +10,7 @@ export class CreateFriendInviteDto {
     @IsString()
     readonly status: string;  
 
-    @IsDate()
-    readonly requested_at: Date; 
+    @IsString()
+    readonly requestedAt: string; 
 
 }

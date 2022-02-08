@@ -4,6 +4,7 @@ import { DocumentBuilder, SwaggerCustomOptions, SwaggerModule } from '@nestjs/sw
 import { AppModule } from './app.module';
 import { join } from 'path';
 import { ValidationPipe } from '@nestjs/common';
+import seed from './seed';
 
 async function bootstrap() {
   const app = await NestFactory.create<NestExpressApplication>(AppModule);
@@ -37,6 +38,8 @@ async function bootstrap() {
     }),
   );
 
+  seed();
+  
   await app.listen(3000);
 }
 
