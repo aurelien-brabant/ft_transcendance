@@ -130,6 +130,8 @@ const SignIn: NextPageWithLayout = () => {
             inputClassName="transition w-full px-6 py-2 border-2 focus:border-pink-600 "
             invalidInputClassName="px-2 py-1 bg-red-200 text-red-600 text-lg flex justify-center"
             submitClassName="w-full py-3 text-xl font-bold text-white uppercase bg-pink-600"
+            loaderColor="#ffffff"
+            isLoading={isLoading}
             config={formConfig}
           />
         </main>

@@ -1,4 +1,5 @@
 import { useEffect, useRef, useState } from "react";
+import { PulseLoader } from "react-spinners";
 
 export type ProgressiveFormField = {
 	name: string;
@@ -91,6 +92,8 @@ export type ProgressiveFormProps = {
 	inputGroupClassName?: string;
 	inputBoxClassName?: string;
 	onSubmit: (formData: any) => void;
+	isLoading?: boolean;
+	loaderColor?: string;
 };
 
 const ProgressiveForm: React.FC<ProgressiveFormProps> = ({
@@ -103,6 +106,8 @@ const ProgressiveForm: React.FC<ProgressiveFormProps> = ({
 	invalidInputClassName,
 	inputBoxClassName,
 	invalidInputBoxClassName,
+	isLoading,
+	loaderColor
 }) => {
 	const [formData, setFormData] = useState(initializeFields(config));
 	const [currentStep, setCurrentStep] = useState(0);
@@ -207,10 +212,14 @@ const ProgressiveForm: React.FC<ProgressiveFormProps> = ({
 		<form className={className} onSubmit={handleFormSubmit}>
 			{renderInputs()}
 			<button type="submit" className={submitClassName}>
-				{config.steps[currentStep].submitCta}
+				{isLoading ? <PulseLoader color={loaderColor} /> : config.steps[currentStep].submitCta}
 			</button>
 		</form>
 	);
+};
+
+ProgressiveForm.defaultProps = {
+	isLoading: false
 };
 
 export default ProgressiveForm;
