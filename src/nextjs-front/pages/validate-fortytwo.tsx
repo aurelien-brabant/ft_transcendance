@@ -8,14 +8,16 @@ import withWildLayout from "../components/hoc/withWildLayout";
 import Head from "next/head";
 
 import { authorizationLink } from "../constants/authorize42";
+import {NextPageWithLayout} from "./_app";
 
-const ValidateFortyTwo = () => {
+const ValidateFortyTwo: NextPageWithLayout = () => {
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState<null | string>(null);
 
   const router = useRouter();
 
   useEffect(() => {
+    console.log('Validating');
     const searchParams = new URLSearchParams(window.location.search);
     const requestURI = `http://localhost/api/auth/login42`;
 
@@ -101,4 +103,6 @@ const ValidateFortyTwo = () => {
   );
 };
 
-export default withWildLayout(ValidateFortyTwo);
+//ValidateFortyTwo.getLayout = withWildLayout;
+
+export default ValidateFortyTwo;

@@ -1,13 +1,10 @@
+import {ReactElement} from 'react';
 import WildLayout from '../WildLayout';
 
-const withWildLayout = (Component: React.FC) => {
-	const ComponentWithWildLayout = () => (
+const withWildLayout = (element: ReactElement) => (
 		<WildLayout>
-			<Component />
+			{element}
 		</WildLayout>
 	);
-
-	return ComponentWithWildLayout;
-}
 
 export default withWildLayout;

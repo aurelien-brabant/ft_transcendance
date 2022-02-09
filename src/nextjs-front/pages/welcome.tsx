@@ -1,11 +1,13 @@
 import Link from 'next/link';
-import { useMemo } from "react";
+import { useContext, useEffect, useMemo } from "react";
 import withDashboardLayout from "../components/hoc/withDashboardLayout";
 import { FiEdit2 } from "react-icons/fi";
 import { useState } from "react";
 import isEmail from "validator/lib/isEmail";
 import isMobilePhone from "validator/lib/isMobilePhone";
 import {NextPageWithLayout} from './_app';
+import withAuth from '../components/hoc/withAuth';
+import authContext, {AuthContextType} from '../context/auth/authContext';
 
 const labelClassName = "grow uppercase text-neutral-400";
 const inputClassName =
@@ -48,9 +50,19 @@ const baseObject: FormData = {
 };
 
 const Welcome: NextPageWithLayout = () => {
-  const [formData, setFormData] = useState<FormData>(baseObject);
+  const { getUserData } = useContext(authContext) as AuthContextType;
+  const [formData, setFormData] = useState<FormData>({
+    nickname: getUserData().username,
+    email: getUserData().email,
+    phone: getUserData().phone ? getUserData().phone : '',
+    tfa: false
+  });
 
   const [invalidInputs, setInvalidInputs] = useState<InvalidInputs>({});
+
+  useEffect(() => {
+    console.log(getUserData());
+  }, [])
 
   // recompute this only when formData changes
   const hasPendingChanges = useMemo(
@@ -73,8 +85,8 @@ const Welcome: NextPageWithLayout = () => {
 
     const tmp: InvalidInputs = {};
 
-    if (formData.nickname.length < 5 || formData.nickname.length > 15) {
-      tmp.nickname = "nickname can contain between 5 and 20 characters";
+    if (formData.nickname.length < 5 || formData.nickname.length > 50) {
+      tmp.nickname = "nickname can contain between 5 and 50 characters";
     }
 
     if (!isEmail(formData.email)) {
@@ -109,14 +121,14 @@ const Welcome: NextPageWithLayout = () => {
           <div className="relative w-48 h-48">
             <img
               className="object-cover object-center w-full h-full rounded drop-shadow-md"
-              src="/norminet.webp"
+              src={`/api/users/${getUserData().id}/photo`}
             />
             <div className="absolute p-2 bg-white border-2 border-gray-900 rounded-full -top-4 -right-4">
               <FiEdit2 className="text-gray-900" />
             </div>
           </div>
           <div className="text-center">
-          <h2 className="text-xl font-bold text-pink-600">{"Lord Norminet"}</h2>
+          <h2 className="text-xl font-bold text-pink-600">{getUserData().username}</h2>
             <Link href={`/users/lordnorminet`}><a className="block py-1 text-sm uppercase text-neutral-200">See public profile</a></Link>
           </div>
         </div>
@@ -220,6 +232,6 @@ const Welcome: NextPageWithLayout = () => {
 };
 
 Welcome.getLayout = withDashboardLayout;
-
+Welcome.isAuthRestricted = true;
 
 export default Welcome;

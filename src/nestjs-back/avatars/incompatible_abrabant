@@ -1,0 +1,140 @@
+<!DOCTYPE html>
+<html lang='en'>
+<head>
+<meta charset='utf-8'>
+<meta content='IE=Edge,chrome=1' http-equiv='X-UA-Compatible'>
+<meta content='width=device-width,height=device-height,user-scalable=no,initial-scale=1.0,maximum-scale=1.0,minimum-scale=1.0' name='viewport'>
+<meta content='yes' name='mobile-web-app-capable'>
+<meta content='yes' name='apple-mobile-web-app-capable'>
+<meta content='translucent-black' name='apple-mobile-web-app-status-bar-style'>
+<meta content='Intranet 42' name='apple-mobile-web-app-title'>
+<meta content='on' http-equiv='cleartype'>
+<link href='https://cdn.intra.42.fr/' rel='preconnect'>
+<link href='https://signin.intra.42.fr/assets/42_logo_black-684989d43d629b3c0ff6fd7e1157ee04db9bb7a73fba8ec4e01543d650a1c607.png' rel='icon' type='image/png'>
+<link href='https://signin.intra.42.fr/assets/42_logo_black-684989d43d629b3c0ff6fd7e1157ee04db9bb7a73fba8ec4e01543d650a1c607.png' rel='shortcut icon' type='image/png'>
+<title>Intra Signin  New</title>
+<meta name="csrf-param" content="authenticity_token" />
+<meta name="csrf-token" content="yQ3wv1VTa0TU+PRZqgVcTKlin5Iz4/ib4roLdKjhjFou4D7VwK8GiY1av5lKAG+I5irrHJxGkBFOdWfPPEc7oQ==" />
+<link rel="stylesheet" media="all" href="/assets/application-ad3591db097ed647e9405f3182cf7d49565cd832c3cc54678d2b6e9c9e39dd37.css" />
+<style>
+  .deprecated {
+    -webkit-filter: grayscale(100%);
+    filter: grayscale(100%); }
+</style>
+<script>
+  (function() {
+    this._environment = "production";
+  
+    this._git_commit = "";
+  
+    this._release = this._git_commit;
+  
+  }).call(this);
+</script>
+
+<body class=' '>
+<div class='notifications-flash-top-bar'>
+
+</div>
+<div class='page'>
+<div class='page-sidebar left-main-container page-sidebar-fixed-left under-main-navbar'></div>
+<div class='login-page page-content page-content-fluid' data-turbolinks-scaffold>
+<div class='row'>
+<div class='main-top-menu'>
+
+</div>
+<div class='col-lg-12'>
+<div class='login-container'>
+<div class='login-logo'>
+<img src="/assets/42_logo-7dfc9110a5319a308863b96bda33cea995046d1731cebb735e41b16255106c12.svg" alt="42 logo" />
+</div>
+<div class='login-between'></div>
+<div class='login-main'>
+<form novalidate="novalidate" class="simple_form form-horizontal new_user" id="new_user" action="/users/sign_in" accept-charset="UTF-8" method="post"><input name="utf8" type="hidden" value="&#x2713;" /><input type="hidden" name="authenticity_token" value="IEiIWbRcUpbVQRb9r1MbjfumWbV/a4zlUM2Ius5UJoXHpUYzIaA/W4zjXT1PVihJtO4tO9DO5G/8AuQBWvKRfg==" /><div class='form-inputs'>
+<div class="input-login login-input-group string optional user_login"><input class="login-control string optional" autofocus="autofocus" placeholder="Login" type="text" value="" name="user[login]" id="user_login" /></div>
+<div class="input-login login-input-group password optional user_password"><input class="login-control password optional" placeholder="Password" type="password" name="user[password]" id="user_password" /></div>
+</div>
+<div class='form-actions'>
+<input class='btn btn-login' data-disable-with='Signing in...' name='commit' type='submit' value='Sign in'>
+</div>
+</form>
+
+
+  <a class="forgot-password-link" href="/users/password/new">Forgot or change your password?</a><br />
+
+
+
+
+  <a class="forgot-password-link" href="/legal">Read our terms and conditions</a><br />
+
+</div>
+</div>
+</div>
+
+</div>
+</div>
+</div>
+<div aria-hidden='true' aria-labelledby='smartModalLabel' class='modal fade' id='smartModal' role='dialog' tabindex='-1'>
+<div class='modal-dialog'>
+<div class='modal-content'>
+<div class='modal-header'>
+<button aria-hidden='true' class='close' data-dismiss='modal' type='button'>
+x
+</button>
+<h3 id='smartModalLabel'>
+
+</h3>
+</div>
+<div class='modal-body'>
+<h4 class='note-title'></h4>
+</div>
+<div class='modal-footer'>
+<button aria-hidden='true' class='btn' data-dismiss='modal'>Cancel</button>
+<button class='send btn btn-primary'>Send</button>
+</div>
+</div>
+</div>
+</div>
+<div aria-hidden='true' aria-labelledby='flashModalLabel' class='modal fade' id='flashModal' role='dialog' tabindex='-1'>
+<div class='modal-dialog modal-lg'>
+<div class='modal-content'>
+<div class='modal-header'>
+<button aria-hidden='true' class='close' data-dismiss='modal' type='button'>
+x
+</button>
+<h3 id='flashModalLabel'></h3>
+</div>
+<div class='modal-body'>
+<h4 class='note-title'>Flash modal content (raw)</h4>
+</div>
+<div class='modal-footer'>
+<button aria-hidden='true' class='btn btn-block btn-default' data-dismiss='modal'>Close</button>
+</div>
+</div>
+</div>
+</div>
+
+<div data-cache="true" class="hide"></div>
+</body>
+<script async await src='https://www.googletagmanager.com/gtag/js?id=G-BJ34XNRJCV'></script>
+<script>
+  window.dataLayer = window.dataLayer || [];
+  function gtag(){dataLayer.push(arguments);}
+  gtag('js', new Date());
+  
+  gtag('config', 'G-BJ34XNRJCV');
+</script>
+
+<script>
+  var jsClasses = ["new_message", "topic-reply"];
+  jsClasses.forEach(function(className) {
+    Array.prototype.forEach.call(document.getElementsByClassName(className), function (e) {
+      e.classList.add("js-hidden");
+    });
+  });
+</script>
+<script src="/assets/application-85a7994a61aeb69844add3dbf3c48b84e82b54ddcd77d5b06486e318fee00be3.js"></script>
+
+</head>
+</html>
+
