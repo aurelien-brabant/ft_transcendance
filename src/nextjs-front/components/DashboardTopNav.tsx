@@ -150,12 +150,13 @@ const DashboardTopNav: React.FC<DashboardTopNavProps> = ({
 	const [isUserMenuOpened, setIsUserMenuOpened] = useState(false);
 	const { notifications, notify, markAllAsRead } =
 		useContext(notificationsContext);
-  	const { getUserData, logout } = useContext(authContext) as AuthContextType;
+  	const { getUserData, logout, clearUser } = useContext(authContext) as AuthContextType;
 	const router = useRouter();
 
 	const handleLogout = async () => {
 		logout();
 		await router.push('/signin');
+		clearUser();
 	}
 
 	return (
@@ -243,7 +244,7 @@ const DashboardTopNav: React.FC<DashboardTopNavProps> = ({
 							className="hidden rounded-full sm:block"
 							height="45px"
 							width="45px"
-							src={getUserData().pic}
+							src={`/api/users/${getUserData().id}/photo`}
 							alt="user's avatar"
 						/>
 

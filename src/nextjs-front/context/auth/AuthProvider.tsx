@@ -12,6 +12,8 @@ const AuthProvider: React.FC = ({ children }) => {
 		setIsAuthenticated(false);
 	}
 
+	const clearUser = () => { setUserData(null); }
+
 	const getUserData = (): any => userData;
 
 	/**
@@ -60,7 +62,8 @@ const AuthProvider: React.FC = ({ children }) => {
 				getUserData,
 				authenticateUser,
 				logout,
-				isAuthenticated
+				isAuthenticated,
+				clearUser
 			}}
 		>
 			{children}

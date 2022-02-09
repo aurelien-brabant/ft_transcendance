@@ -36,6 +36,7 @@ const Authenticator: React.FC<{ authConfig?: Partial<AuthConfig> }> = ({
 		setIsLoading(true);
 		(async () => {
 			if (!isAuthenticated) {
+				console.log('Authenticating...');
 				const success = await authenticateUser();
 
 				/* could not authenticate, try to sign in again */

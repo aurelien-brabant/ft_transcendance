@@ -6,6 +6,7 @@ export type AuthContextType = {
 	authenticateUser: () => Promise<boolean>;
 	logout: () => void;
 	isAuthenticated: boolean;
+	clearUser: () => void
 }
 
 const authContext = createContext<AuthContextType | null>(null);

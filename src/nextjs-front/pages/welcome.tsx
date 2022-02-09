@@ -121,7 +121,7 @@ const Welcome: NextPageWithLayout = () => {
           <div className="relative w-48 h-48">
             <img
               className="object-cover object-center w-full h-full rounded drop-shadow-md"
-              src={getUserData().pic}
+              src={`/api/users/${getUserData().id}/photo`}
             />
             <div className="absolute p-2 bg-white border-2 border-gray-900 rounded-full -top-4 -right-4">
               <FiEdit2 className="text-gray-900" />
