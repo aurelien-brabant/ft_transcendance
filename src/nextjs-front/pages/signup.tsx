@@ -8,7 +8,8 @@ import ProgressiveFrom, {
 import Image from "next/image";
 import Link from "next/link";
 import Head from "next/head";
-import { authorizationLink } from '../constants/authorize42';
+import { authorizationLink } from "../constants/authorize42";
+import {useRouter} from "next/router";
 
 const formConfig: ProgressiveFormConfig = {
   steps: [
@@ -45,9 +46,40 @@ const formConfig: ProgressiveFormConfig = {
   ],
 };
 
-const SignIn: React.FC<{}> = () => {
-  const handleFormSubmit = (data: any) => {
-    console.log(data);
+const SignUp: React.FC<{}> = () => {
+  const router = useRouter();
+
+  const handleFormSubmit = async (data: any) => {
+    // register the account
+    const reqMeta = {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+      },
+      body: JSON.stringify({ email: data.email, password: data.password })
+    };
+
+
+    const { status: createUserStatus } = await fetch("/api/users/", reqMeta);
+
+    if (createUserStatus != 201) {
+      if (createUserStatus === 409) {
+        console.error('User already exist!');
+      }
+      return ;
+    }
+
+    const userLoginRes = await fetch("/api/auth/login", reqMeta);
+
+    if (userLoginRes.status != 201) {
+      console.error('Could not login with created user for some reason!');
+    }
+
+    const { access_token } = await userLoginRes.json();
+
+    window.localStorage.setItem('bearer', access_token);
+
+    router.push('/welcome');
   };
 
   return (
@@ -106,4 +138,4 @@ const SignIn: React.FC<{}> = () => {
   );
 };
 
-export default withWildLayout(SignIn);
+export default SignUp;
