@@ -62,7 +62,7 @@ services:
       - POSTGRES_PASSWORD=transcendance
       - POSTGRES_HOST=postgres
       - JWT_SECRET=dummy_secret
-      - JWT_LIFETIME=60s
+      - JWT_LIFETIME=15m
       - FT_CLIENT_ID=6d337c8d60d5c87552bcb2d9a72a26ea8cc4a531808b2a0d1902a91e311f3b4e
       - FT_SECRET=435863e7eba04ceac9f37dda1ae1b0db54b1ca7aff02189e81b9177299b2b8d7
 

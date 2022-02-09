@@ -78,7 +78,7 @@ export class AuthService {
       console.log('Existing duoquadra', duoQuadraUser);
     }
 
-    return this.jwtService.sign({ sub: duoQuadraUser.id });
+    return this.jwtService.sign({ sub: ''+duoQuadraUser.id });
   }
 
 }
