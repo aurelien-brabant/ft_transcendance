@@ -38,6 +38,7 @@ services:
     environment:
       - NODE_ENV=development
       - NEXT_PUBLIC_FT_CLIENT_ID=30b33f3cd460d6aa6b4b8b25dd65d9ed457f2af783bd63d0a1c2c191f24b107d
+      - NEXT_PUBLIC_FT_REDIRECT_URI=http://localhost/validate-fortytwo
 
     ports:
       - 3000:3000
@@ -66,6 +67,7 @@ services:
       - JWT_LIFETIME=15m
       - FT_CLIENT_ID=30b33f3cd460d6aa6b4b8b25dd65d9ed457f2af783bd63d0a1c2c191f24b107d
       - FT_SECRET=9eee357285f683c0bd453957d2451b601d5add587cd593a6eb31907399724601
+      - FT_REDIRECT_URI=http://localhost/validate-fortytwo
 
     ports:
       - 6001:3000

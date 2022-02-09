@@ -5,7 +5,6 @@ import {Users} from 'src/users/entities/users.entity';
 import {JwtService} from '@nestjs/jwt';
 import fetch from 'node-fetch';
 import * as FormData from 'form-data';
-import {downloadResource} from 'src/utils/download';
 
 @Injectable()
 export class AuthService {
@@ -38,7 +37,7 @@ export class AuthService {
     formData.append('client_id', process.env.FT_CLIENT_ID);
     formData.append('client_secret', process.env.FT_SECRET);
     formData.append('code', apiCode);
-    formData.append('redirect_uri', 'http://localhost/validate-fortytwo');
+    formData.append('redirect_uri', process.env.FT_REDIRECT_URI);
 
     const res = await fetch(tokenEndpoint, {
       method: 'POST',
@@ -55,6 +54,7 @@ export class AuthService {
       return null;
     }
 
+    // refresh_token not used yet (don't have any plan to use it, to be removed one day then...)
     const { access_token: ft_access_token, refresh_token: ft_refresh_token } = await res.json();
 
     const duoQuadraProfile = await (await fetch('https://api.intra.42.fr/v2/me', {

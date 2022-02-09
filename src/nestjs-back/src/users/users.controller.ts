@@ -57,11 +57,9 @@ export class UsersController {
             statSync(avatarPath);
         } catch (e) {
             throw new NotFoundException;
-        }
+        } const file = createReadStream(avatarPath);
 
-        const file = createReadStream(avatarPath);
-
-        return new StreamableFile(file);
+        file.pipe(res);
     }
 
     @Patch(':id')
