@@ -37,7 +37,7 @@ services:
 
     environment:
       - NODE_ENV=development
-      - NEXT_PUBLIC_FT_CLIENT_ID=6d337c8d60d5c87552bcb2d9a72a26ea8cc4a531808b2a0d1902a91e311f3b4e
+      - NEXT_PUBLIC_FT_CLIENT_ID=30b33f3cd460d6aa6b4b8b25dd65d9ed457f2af783bd63d0a1c2c191f24b107d
 
     ports:
       - 3000:3000
@@ -55,6 +55,7 @@ services:
 
     volumes:
       - ./nestjs-back:/usr/app
+      - ./nestjs-back/avatars:/upload/avatars
 
     environment:
       - NODE_ENV=development
@@ -63,8 +64,8 @@ services:
       - POSTGRES_HOST=postgres
       - JWT_SECRET=dummy_secret
       - JWT_LIFETIME=15m
-      - FT_CLIENT_ID=6d337c8d60d5c87552bcb2d9a72a26ea8cc4a531808b2a0d1902a91e311f3b4e
-      - FT_SECRET=435863e7eba04ceac9f37dda1ae1b0db54b1ca7aff02189e81b9177299b2b8d7
+      - FT_CLIENT_ID=30b33f3cd460d6aa6b4b8b25dd65d9ed457f2af783bd63d0a1c2c191f24b107d
+      - FT_SECRET=9eee357285f683c0bd453957d2451b601d5add587cd593a6eb31907399724601
 
     ports:
       - 6001:3000
