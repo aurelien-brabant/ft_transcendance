@@ -1,7 +1,9 @@
-import { Controller, Get, Param, Post, Patch, Delete, Body, ConflictException } from '@nestjs/common';
+import { Controller, Get, Param, Post, NotFoundException, Patch, Delete, Body, ConflictException, Response } from '@nestjs/common';
 import { UsersService } from './users.service';
 import { CreateUserDto } from './dto/create-user.dto';
 import { UpdateUserDto } from './dto/update-user.dto';
+import {createReadStream, statSync } from 'fs';
+import path, {join} from 'path/posix';
 
 @Controller('users')
 export class UsersController {
@@ -27,6 +29,26 @@ export class UsersController {
         const { password, ...userData } = createdUser;
 
         return userData;
+    }
+
+    @Get('/:id/photo')
+    async findPhoto(@Param('id') id: string, @Response() res: any) {
+        const user = await this.usersService.findOne(id);
+
+        if (!user) {
+            throw new NotFoundException;
+        }
+
+        const avatarPath = join('/upload', 'avatars', user.username);
+
+        try {
+            const file = createReadStream(avatarPath);
+            file.pipe(res);
+        } catch (e) {
+            // the user doesn't have an avatar for some reason! (should never happen in practice)
+            // TODO: regenerate a random one from here?
+            throw new NotFoundException;
+        }
     }
 
     @Patch(':id')

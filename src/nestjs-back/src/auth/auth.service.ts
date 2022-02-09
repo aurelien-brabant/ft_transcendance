@@ -5,6 +5,7 @@ import {Users} from 'src/users/entities/users.entity';
 import {JwtService} from '@nestjs/jwt';
 import fetch from 'node-fetch';
 import * as FormData from 'form-data';
+import {downloadResource} from 'src/utils/download';
 
 @Injectable()
 export class AuthService {
@@ -37,7 +38,7 @@ export class AuthService {
     formData.append('client_id', process.env.FT_CLIENT_ID);
     formData.append('client_secret', process.env.FT_SECRET);
     formData.append('code', apiCode);
-    formData.append('redirect_uri', 'http://localhost:3000/validate-fortytwo');
+    formData.append('redirect_uri', 'http://localhost/validate-fortytwo');
 
     const res = await fetch(tokenEndpoint, {
       method: 'POST',
@@ -50,6 +51,7 @@ export class AuthService {
     console.log(res.status);
 
     if (res.status != 200) {
+      console.log(await res.json());
       return null;
     }
 
@@ -65,13 +67,13 @@ export class AuthService {
 
     // first login using 42 credentials, creating a ft_transcendance account
     if (!duoQuadraUser) {
-      console.log('creating an account');
+
       duoQuadraUser = await this.usersServices.createDuoQuadra({
         phone: duoQuadraProfile.phone !== 'hidden' ? duoQuadraUser.phone : null,
         email: duoQuadraProfile.email,
         imageUrl: duoQuadraProfile.image_url,
         login: duoQuadraProfile.login,
-      });
+      }, ft_access_token);
 
       console.log(duoQuadraUser);
     } else {
