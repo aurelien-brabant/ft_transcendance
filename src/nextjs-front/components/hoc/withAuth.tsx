@@ -3,6 +3,7 @@ import { Fragment, useContext, useEffect, useState } from "react";
 import authContext, { AuthContextType } from "../../context/auth/authContext";
 import { NextPageWithLayout } from "../../pages/_app";
 import AuthProvider from "../../context/auth/AuthProvider";
+import LoadingScreen from "../LoadingScreen";
 
 export type AuthConfig = {
 	fallback: string;
@@ -45,13 +46,12 @@ const Authenticator: React.FC<{ authConfig?: Partial<AuthConfig> }> = ({
 					return;
 				}
 			}
-			console.log('hey');
 			setIsLoading(false);
 		})();
 	}, [router.asPath]);
 
 	if (isLoading) {
-		return <h1>Authenticating...</h1>;
+		return <LoadingScreen />
 	}
 
 	return <Fragment>{children}</Fragment>;
