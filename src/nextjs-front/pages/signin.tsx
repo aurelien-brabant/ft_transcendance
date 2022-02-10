@@ -1,27 +1,26 @@
 import isEmail from "validator/lib/isEmail";
 import withWildLayout from "../components/hoc/withWildLayout";
 import ProgressiveFrom, {
-  defaultConfig,
   ProgressiveFormConfig,
 } from "../components/ProgressiveForm";
-
-import { CircleLoader } from "react-spinners";
 
 import Image from "next/image";
 import Link from "next/link";
 import Head from "next/head";
-import { Fragment, useContext, useEffect, useRef, useState } from "react";
+import { Fragment, useContext, useEffect, useState } from "react";
 
 import { authorizationLink } from "../constants/authorize42";
 import { NextPageWithLayout } from "./_app";
 import authContext, {AuthContextType} from "../context/auth/authContext";
 import {useRouter} from "next/router";
+import alertContext, {AlertContextType} from "../context/alert/alertContext";
 
 
 
 const SignIn: NextPageWithLayout = () => {
   const [ isLoading, setIsLoading ] = useState(false);
   const { isAuthenticated } = useContext(authContext) as AuthContextType;
+  const { setAlert } = useContext(alertContext) as AlertContextType;
   const router = useRouter();
   
   const formConfig: ProgressiveFormConfig = {
@@ -70,6 +69,11 @@ const SignIn: NextPageWithLayout = () => {
       window.localStorage.setItem('bearer', access_token);
       await router.push('/welcome');
       return;
+    } else {
+      setAlert({
+        content: 'Invalid credentials',
+        type: 'error'
+      });
     }
 
     setIsLoading(false);
