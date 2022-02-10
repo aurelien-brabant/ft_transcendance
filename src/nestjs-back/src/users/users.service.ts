@@ -12,6 +12,7 @@ import { PaginationQueryDto } from 'src/common/dto/pagination-query.dto';
 import {downloadResource} from 'src/utils/download';
 import { join } from 'path';
 import { readFileSync } from 'fs';
+import { faker } from '@faker-js/faker';
 
 @Injectable()
 export class UsersService {
