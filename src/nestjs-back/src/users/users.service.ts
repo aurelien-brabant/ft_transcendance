@@ -9,6 +9,9 @@ import { hash as hashPassword } from 'bcrypt';
 import { CreateDuoQuadraDto } from './dto/create-duoquadra.dto';
 import { prefixWithRandomAdjective } from 'src/utils/prefixWithRandomAdjective';
 import { PaginationQueryDto } from 'src/common/dto/pagination-query.dto';
+import {downloadResource} from 'src/utils/download';
+import { join } from 'path';
+import { readFileSync } from 'fs';
 
 @Injectable()
 export class UsersService {
@@ -53,7 +56,7 @@ export class UsersService {
         phone,
         imageUrl,
         login,
-    }: CreateDuoQuadraDto): Promise<Users> {
+    }: CreateDuoQuadraDto, ftBearer: string): Promise<Users> {
         // we need to generate an username for the duoquadra. However, we can't guarantee that another user
         // isn't using the duoquadra's login as username currently. Thus we need to check for that possiblity and
         // generate a random prefix in case the login is already taken.
@@ -66,11 +69,15 @@ export class UsersService {
             u = await this.usersRepository.findOne({ username: actualLogin });
         } while (u);
 
+        const imageLoc= join('/upload', 'avatars', actualLogin);
+
+        /* explictly fetch from CDN, since for some reason the API provides a private link lol */
+        await downloadResource(`https://cdn.intra.42.fr/users/${login}.jpg`, imageLoc);
+
         const user = this.usersRepository.create({
             username: actualLogin,
             email,
             phone,
-            pic: imageUrl,
             duoquadra_login: login,
         });
 
@@ -104,6 +111,10 @@ export class UsersService {
 
         // hash the password with bcrypt using 10 salt rounds
         const hashedPwd = await hashPassword(createUserDto.password, 10);
+
+        const randomPic = faker.image.nature();
+
+        await downloadResource(randomPic, join('/upload', 'avatars', username));
 
         const user = this.usersRepository.create({
             ...createUserDto,

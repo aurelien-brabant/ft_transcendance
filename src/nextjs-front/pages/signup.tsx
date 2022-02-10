@@ -1,4 +1,4 @@
-import { Fragment } from "react";
+import { Fragment, useState } from "react";
 import isEmail from "validator/lib/isEmail";
 import withWildLayout from "../components/hoc/withWildLayout";
 import ProgressiveFrom, {
@@ -8,7 +8,9 @@ import ProgressiveFrom, {
 import Image from "next/image";
 import Link from "next/link";
 import Head from "next/head";
-import { authorizationLink } from '../constants/authorize42';
+import { authorizationLink } from "../constants/authorize42";
+import { useRouter } from "next/router";
+import {NextPageWithLayout} from "./_app";
 
 const formConfig: ProgressiveFormConfig = {
   steps: [
@@ -45,9 +47,42 @@ const formConfig: ProgressiveFormConfig = {
   ],
 };
 
-const SignIn: React.FC<{}> = () => {
-  const handleFormSubmit = (data: any) => {
-    console.log(data);
+const SignUp: NextPageWithLayout = () => {
+  const [isLoading, setIsLoading] = useState(false);
+  const router = useRouter();
+
+  const handleFormSubmit = async (data: any) => {
+    if (isLoading) return ;
+    // register the account
+    setIsLoading(true);
+    const reqMeta = {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+      },
+      body: JSON.stringify({ email: data.email, password: data.password }),
+    };
+
+    const { status: createUserStatus } = await fetch("/api/users/", reqMeta);
+
+    if (createUserStatus != 201) {
+      if (createUserStatus === 409) {
+        console.error("User already exist!");
+      }
+    } else {
+      const userLoginRes = await fetch("/api/auth/login", reqMeta);
+
+      if (userLoginRes.status != 201) {
+        console.error("Could not login with created user for some reason!");
+      } else {
+        const { access_token } = await userLoginRes.json();
+
+        window.localStorage.setItem("bearer", access_token);
+
+        await router.push("/welcome");
+      }
+    }
+    setIsLoading(false);
   };
 
   return (
@@ -98,7 +133,9 @@ const SignIn: React.FC<{}> = () => {
             inputClassName="transition w-full px-6 py-2 border-2 focus:border-pink-600 "
             invalidInputClassName="px-2 py-1 bg-red-200 text-red-600 text-lg flex justify-center"
             submitClassName="w-full py-3 text-xl font-bold text-white uppercase bg-pink-600"
+            loaderColor="#ffffff"
             config={formConfig}
+            isLoading={isLoading}
           />
         </main>
       </div>
@@ -106,4 +143,6 @@ const SignIn: React.FC<{}> = () => {
   );
 };
 
-export default withWildLayout(SignIn);
+SignUp.getLayout = withWildLayout;
+
+export default SignUp;

@@ -1,8 +1,10 @@
 import { Controller, Get, Param, Post, Patch, Delete, Body, ConflictException, Query } from '@nestjs/common';
+import { PaginationQueryDto } from 'src/common/dto/pagination-query.dto';
 import { UsersService } from './users.service';
 import { CreateUserDto } from './dto/create-user.dto';
 import { UpdateUserDto } from './dto/update-user.dto';
-import { PaginationQueryDto } from 'src/common/dto/pagination-query.dto';
+import { createReadStream, statSync } from 'fs';
+import path, { join } from 'path/posix';
 
 @Controller('users')
 export class UsersController {
@@ -30,6 +32,25 @@ export class UsersController {
         const { password, ...userData } = createdUser;
 
         return userData;
+    }
+
+    @Get('/:id/photo')
+    async findPhoto(@Param('id') id: string, @Response() res: any) {
+        const user = await this.usersService.findOne(id);
+
+        if (!user) {
+            throw new NotFoundException();
+        }
+
+        const avatarPath = join('/upload', 'avatars', user.username);
+
+        try {
+            statSync(avatarPath);
+        } catch (e) {
+            throw new NotFoundException;
+        } const file = createReadStream(avatarPath);
+
+        file.pipe(res);
     }
 
     @Patch(':id')

@@ -9,6 +9,7 @@ import Link from "next/link";
 import { faker } from "@faker-js/faker";
 import { dashboardNavItems } from "../constants/nav";
 import notificationsContext from "../context/notifications/notificationsContext";
+import authContext, {AuthContextType} from "../context/auth/authContext";
 
 const user = genUser();
 
@@ -42,6 +43,7 @@ const SearchBar: React.FC<SearchBarProps> = ({ className }) => {
 	const [searchResults, setSearchResults] = useState<Searchable[]>([]);
 	const [searchValue, setSearchValue] = useState("");
 	const [selected, setSelected] = useState(0);
+
 
 	const router = useRouter();
 
@@ -114,7 +116,7 @@ const SearchBar: React.FC<SearchBarProps> = ({ className }) => {
 			<div className="absolute left-0 right-0 flex flex-col overflow-y-auto max-h-[800px] bg-neutral-100 translate-y-2 max-w-[50rem]">
 				{searchValue &&
 					searchResults.map((searchable, index) => (
-						<Fragment>
+						<Fragment key={searchable.content}>
 							<hr />
 							<article
 								className={`flex justify-between px-4 py-3 ${
@@ -148,6 +150,14 @@ const DashboardTopNav: React.FC<DashboardTopNavProps> = ({
 	const [isUserMenuOpened, setIsUserMenuOpened] = useState(false);
 	const { notifications, notify, markAllAsRead } =
 		useContext(notificationsContext);
+  	const { getUserData, logout, clearUser } = useContext(authContext) as AuthContextType;
+	const router = useRouter();
+
+	const handleLogout = async () => {
+		logout();
+		await router.push('/signin');
+		clearUser();
+	}
 
 	return (
 		<div className="sticky top-0 z-20 z-30 flex items-center gap-x-8 bg-neutral-100 h-14 drop-shadow-lg">
@@ -200,7 +210,7 @@ const DashboardTopNav: React.FC<DashboardTopNavProps> = ({
 							</h6>
 							<hr />
 							{notifications.map((notif, index, arr) => (
-								<Fragment>
+								<Fragment key={notif.issuedAt.toString()}>
 									<article
 										key={notif.issuedAt.toString()}
 										className={`px-2 py-3 ${
@@ -227,14 +237,14 @@ const DashboardTopNav: React.FC<DashboardTopNavProps> = ({
 							setIsUserMenuOpened(!isUserMenuOpened);
 						}}
 					>
-						<span className="w-[7em] text-sm text-center font-bold">
-							Username
+						<span className="text-sm font-bold text-center ">
+							{getUserData().username}
 						</span>
 						<img
 							className="hidden rounded-full sm:block"
 							height="45px"
 							width="45px"
-							src={user.avatar}
+							src={`/api/users/${getUserData().id}/photo`}
 							alt="user's avatar"
 						/>
 
@@ -250,24 +260,15 @@ const DashboardTopNav: React.FC<DashboardTopNavProps> = ({
 										See profile
 									</a>
 								</Link>
-								<Link href="#">
-									<a className="block p-2 text-sm text-pink-600 transition hover:bg-neutral-200">
+									<button className="block p-2 text-sm text-pink-600 transition hover:bg-neutral-200" onClick={handleLogout}>
 										Logout
-									</a>
-								</Link>
+									</button>
 							</nav>
 						)}
 					</div>
 					<button
 						className="self-center hidden px-6 py-2 text-sm font-bold text-white uppercase bg-pink-600 rounded md:block"
-						onClick={() => {
-							notify({
-								category: faker.lorem.sentence(),
-								content: faker.lorem.lines(3),
-								isRead: false,
-								issuedAt: new Date(Date.now()),
-							});
-						}}
+						onClick={handleLogout}
 					>
 						Logout
 					</button>

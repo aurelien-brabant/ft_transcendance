@@ -37,7 +37,7 @@ export class AuthService {
     formData.append('client_id', process.env.FT_CLIENT_ID);
     formData.append('client_secret', process.env.FT_SECRET);
     formData.append('code', apiCode);
-    formData.append('redirect_uri', 'http://localhost:3000/validate-fortytwo');
+    formData.append('redirect_uri', process.env.FT_REDIRECT_URI);
 
     const res = await fetch(tokenEndpoint, {
       method: 'POST',
@@ -50,9 +50,11 @@ export class AuthService {
     console.log(res.status);
 
     if (res.status != 200) {
+      console.log(await res.json());
       return null;
     }
 
+    // refresh_token not used yet (don't have any plan to use it, to be removed one day then...)
     const { access_token: ft_access_token, refresh_token: ft_refresh_token } = await res.json();
 
     const duoQuadraProfile = await (await fetch('https://api.intra.42.fr/v2/me', {
@@ -65,20 +67,20 @@ export class AuthService {
 
     // first login using 42 credentials, creating a ft_transcendance account
     if (!duoQuadraUser) {
-      console.log('creating an account');
+
       duoQuadraUser = await this.usersServices.createDuoQuadra({
         phone: duoQuadraProfile.phone !== 'hidden' ? duoQuadraUser.phone : null,
         email: duoQuadraProfile.email,
         imageUrl: duoQuadraProfile.image_url,
         login: duoQuadraProfile.login,
-      });
+      }, ft_access_token);
 
       console.log(duoQuadraUser);
     } else {
       console.log('Existing duoquadra', duoQuadraUser);
     }
 
-    return this.jwtService.sign({ sub: duoQuadraUser.id });
+    return this.jwtService.sign({ sub: ''+duoQuadraUser.id });
   }
 
 }

@@ -9,6 +9,7 @@ import { VscGithub } from "react-icons/vsc";
 import { SiLinkedin } from "react-icons/si";
 import ResponsiveFade from "../components/ResponsiveFade";
 import Head from "next/head";
+import {NextPageWithLayout} from "./_app";
 
 const FeatureItem: React.FC<Feature> = ({ label, description, Icon }) => (
   <div className="flex flex-col items-center justify-between h-full text-xl text-center text-neutral-200 gap-y-8">
@@ -101,7 +102,7 @@ const TeamMemberItem: React.FC<TeamMemberProps> = ({
   </ResponsiveFade>
 );
 
-const HomePage: React.FC = () => {
+const HomePage: NextPageWithLayout = () => {
   return (
     <Fragment>
 
@@ -311,4 +312,6 @@ const HomePage: React.FC = () => {
   );
 };
 
-export default withWildLayout(HomePage);
+HomePage.getLayout = withWildLayout;
+
+export default HomePage;
