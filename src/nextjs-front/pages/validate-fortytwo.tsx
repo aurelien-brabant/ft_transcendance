@@ -38,7 +38,7 @@ const ValidateFortyTwo: NextPageWithLayout = () => {
         setIsLoading(false);
       }
     });
-  }, []);
+  }, [router]);
 
   return (
     <Fragment>

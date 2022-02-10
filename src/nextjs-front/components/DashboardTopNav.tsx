@@ -116,7 +116,7 @@ const SearchBar: React.FC<SearchBarProps> = ({ className }) => {
 			<div className="absolute left-0 right-0 flex flex-col overflow-y-auto max-h-[800px] bg-neutral-100 translate-y-2 max-w-[50rem]">
 				{searchValue &&
 					searchResults.map((searchable, index) => (
-						<Fragment>
+						<Fragment key={searchable.content}>
 							<hr />
 							<article
 								className={`flex justify-between px-4 py-3 ${
@@ -210,7 +210,7 @@ const DashboardTopNav: React.FC<DashboardTopNavProps> = ({
 							</h6>
 							<hr />
 							{notifications.map((notif, index, arr) => (
-								<Fragment>
+								<Fragment key={notif.issuedAt.toString()}>
 									<article
 										key={notif.issuedAt.toString()}
 										className={`px-2 py-3 ${
