@@ -4,7 +4,7 @@ import { Users } from 'src/users/entities/users.entity';
 import { getConnection, Repository } from 'typeorm';
 import { UsersService } from '../users/users.service';
 import { GamesService } from '../games/games.service';
-const { faker } = require('@faker-js/faker');
+import { faker } from '@faker-js/faker';
 
 @Injectable()
 export class SeederService {
@@ -26,7 +26,7 @@ export class SeederService {
         for (let i = 0; i < 100; ++i) {
             let pseudo = faker.internet.userName();
             const user = await this.usersService.seed({
-                email: faker.unique(faker.internet.email),
+                email: (faker.unique as any)(faker.internet.email),
                 username: pseudo,
                 password: faker.internet.password(),
                 rank: faker.datatype.number(),
