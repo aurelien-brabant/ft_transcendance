@@ -4,7 +4,7 @@ import { Injectable } from '@nestjs/common';
 export class AppService {
   getHello(): { msg: string } {
   	return {
-		msg: 'Hello world from NestJS!'
+		msg: 'Welcome to ft_transcendance'
 	};
   }
 }

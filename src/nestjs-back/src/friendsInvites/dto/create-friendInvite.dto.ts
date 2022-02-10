@@ -1,16 +1,19 @@
-import { IsInt, IsString } from 'class-validator';
+import { IsDate, IsInt, IsOptional, IsString } from 'class-validator';
 
 export class CreateFriendInviteDto {
+    @IsOptional()
     @IsInt()
     readonly sender: number; 
 
+    @IsOptional()
     @IsInt()
     readonly receiver: number;  
 
+    @IsOptional()
     @IsString()
     readonly status: string;  
 
-    @IsString()
-    readonly requestedAt: string; 
+    @IsDate()
+    readonly requestedAt: Date; 
 
 }

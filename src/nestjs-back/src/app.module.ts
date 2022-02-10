@@ -6,11 +6,11 @@ import { GamesModule } from './games/games.module';
 import { GamesInvitesModule } from './gamesInvites/gamesInvites.module';
 import { FriendsInvitesModule } from './friendsInvites/friendsInvites.module';
 import { TypeOrmModule } from '@nestjs/typeorm';
-import { FriendsModule } from './friends/friends.module';
 import { AuthModule } from './auth/auth.module';
+import { SeederModule } from './seeder/seeder.module';
 
 @Module({
-  imports: [UsersModule, GamesModule, GamesInvitesModule, FriendsModule, FriendsInvitesModule, TypeOrmModule.forRoot({
+  imports: [SeederModule, UsersModule, GamesModule, GamesInvitesModule, FriendsInvitesModule, TypeOrmModule.forRoot({
       type: 'postgres',
       host: `${process.env.POSTGRES_HOST}`,
       port: 5432,
@@ -19,6 +19,7 @@ import { AuthModule } from './auth/auth.module';
       database: `${process.env.POSTGRES_HOST}`,
       autoLoadEntities: true,
       synchronize: true,         // true in Dev // false in production
+      keepConnectionAlive: true,
     }), AuthModule,
   ],
   controllers: [AppController],
