@@ -17,6 +17,20 @@ const AuthProvider: React.FC = ({ children }) => {
 	const getUserData = (): any => userData;
 
 	/**
+	 * Merge the object passed as an argument with the current userData object.
+	 * Updated data is NOT fetched from the API. It's arbitrarily updated on the
+	 * front-end side. DON'T use that if you're not sure changes have been applied
+	 * correctly.
+	 */
+
+	const mergeUserData = (data: any) => {
+		const mergedData = { ...userData, ...data };
+		setUserData(mergedData);
+		
+		return mergedData;
+	}
+
+	/**
 	 * Wrapper around the standard fetch API that automatically
 	 * sets the bearer token.
 	 */
@@ -36,19 +50,31 @@ const AuthProvider: React.FC = ({ children }) => {
 	};
 
 	/**
-	 * Authenticate the user using the currently set bearer token, loading the userData
-	 * that can be obtained with a call to getUserData (only if authentication succeeds, otherwise this function returns null).
-	 * Returns whether or not the user has successfully been authenticated.
+	 * Authenticate the user by calling the API diretly, using the currently set bearer token.
+	 *
+	 * If no bearer token is available, no call is made and this function returns false.
+	 * Otherwise, a request to the /api/auth/login endpoint is made in order to authenticate
+	 * the user. If the response's status code is not 200, the authentication process is aborted
+	 * and the bearer is deleted from the local storage.
+	 *
+	 * An optional 'refresh' parameter can be passed to this function, which is set to false
+	 * by default. If set to true, authenticateUser can be used to refresh the userData by
+	 * making a new call to the same API endpoint. This can be used to fetch changed user data.
+	 * HOWEVER, consider updating it dynamically on the front-end side if possible since it doesn't
+	 * require an extra API call.
 	 */
 
-	const authenticateUser = async (): Promise<boolean> => {
-		if (userData !== null) return true; /* already authenticated */
+	const authenticateUser = async (refresh: boolean = false): Promise<boolean> => {
+		if (isAuthenticated && !refresh) return true; /* already authenticated */
 		const bearer = loadBearer();
 		if (bearer === null) return false;
 
 		const res = await fetchAsLoggedUser('/api/auth/login');
 
-		if (res.status != 200) return false;
+		if (res.status != 200) {
+			logout();
+			return false;
+		}
 
 		setUserData(await res.json());
 		setIsAuthenticated(true);
@@ -63,7 +89,8 @@ const AuthProvider: React.FC = ({ children }) => {
 				authenticateUser,
 				logout,
 				isAuthenticated,
-				clearUser
+				clearUser,
+				mergeUserData
 			}}
 		>
 			{children}

@@ -7,6 +7,7 @@ export type AuthContextType = {
 	logout: () => void;
 	isAuthenticated: boolean;
 	clearUser: () => void
+	mergeUserData: (data: any) => any;
 }
 
 const authContext = createContext<AuthContextType | null>(null);
