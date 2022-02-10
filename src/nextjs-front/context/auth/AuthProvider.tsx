@@ -46,7 +46,7 @@ const AuthProvider: React.FC = ({ children }) => {
 		const bearer = loadBearer();
 		if (bearer === null) return false;
 
-		const res = await fetchAsLoggedUser('http://localhost/api/auth/login');
+		const res = await fetchAsLoggedUser('/api/auth/login');
 
 		if (res.status != 200) return false;
 

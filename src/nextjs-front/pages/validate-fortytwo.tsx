@@ -19,7 +19,7 @@ const ValidateFortyTwo: NextPageWithLayout = () => {
   useEffect(() => {
     console.log('Validating');
     const searchParams = new URLSearchParams(window.location.search);
-    const requestURI = `http://localhost/api/auth/login42`;
+    const requestURI = `/api/auth/login42`;
 
     fetch(requestURI, {
       method: "POST",
