@@ -9,7 +9,7 @@ jobs:
         - run:
             name: Build NextJS
             command: |
-              docker build ./src/nextjs-front -t aurelienbrabant/transcendance_front
+              docker build --build-arg NEXT_PUBLIC_FT_CLIENT_ID=$FT_CLIENT_ID --build-arg NEXT_PUBLIC_FT_REDIRECT_URI=$FT_REDIRECT_URI ./src/nextjs-front -t aurelienbrabant/transcendance_front
         - run:
             name: Build NestJS
             command: |
