@@ -18,8 +18,8 @@ jobs:
             name: Push images to docker hub
             command: |
               echo "$DOCKERHUB_PASSWORD" | docker login --username $DOCKERHUB_LOGIN --password-stdin
-              docker push transcendance_front:latest
-              docker push transcendance_back:latest
+              docker push aurelienbrabant/transcendance_front:latest
+              docker push aurelienbrabant/transcendance_back:latest
     deploy:
       machine: true
       steps:
