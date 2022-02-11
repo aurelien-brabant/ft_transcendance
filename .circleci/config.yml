@@ -10,16 +10,17 @@ jobs:
         - run:
             name: Build NextJS
             command: |
-              docker build ./src/nextjs-front -t transcendance/front
+              docker build ./src/nextjs-front -t aurelienbrabant/transcendance_front
         - run:
             name: Build NestJS
             command: |
-              docker build ./src/nestjs-back -t transcendance/back
+              docker build ./src/nestjs-back -t aurelienbrabant/transcendance_back
         - run:
-            name: Transfer images over SSH
+            name: Push images to docker hub
             command: |
-              docker save transcendance/front | ssh -C -p $SSH_PORT $SSH_USER@$SSH_HOST "docker load"
-              docker save transcendance/back | ssh -C -p $SSH_PORT $SSH_USER@$SSH_HOST "docker load"
+              echo “$DOCKERHUB_PASSWORD” | docker login -u “$DOCKERHUB_LOGIN” -- password-stdin
+              docker push transcendance_front:latest
+              docker push transcendance_back:latest
     deploy:
       machine:
         enabled: true
