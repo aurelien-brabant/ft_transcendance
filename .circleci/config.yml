@@ -4,8 +4,8 @@ jobs:
    #build:
      #...
    deploy:
-     #machine:
-     #  enabled: true
+     machine:
+       enabled: true
      steps:
        - run:
            name: Deploy Over SSH
