@@ -2,12 +2,10 @@ version: 2
 
 jobs:
     build:
-      machine:
-        enabled: true
+      machine: true
       resource_class: arm.medium
       steps:
         - checkout
-        - setup_remote_docker
         #- run:
         #    name: Build NextJS
         #    command: |
@@ -19,12 +17,11 @@ jobs:
         - run:
             name: Push images to docker hub
             command: |
-              echo "$DOCKERHUB_PASSWORD" | docker login -u “$DOCKERHUB_LOGIN” --password-stdin
+              echo "$DOCKERHUB_PASSWORD" | docker login --username $DOCKERHUB_LOGIN --password-stdin
               docker push transcendance_front:latest
               docker push transcendance_back:latest
     deploy:
-      machine:
-        enabled: true
+      machine: true
       steps:
         - run:
             name: Deploy Over SSH
