@@ -4,7 +4,8 @@ import { NextPage } from "next";
 import { ReactElement, ReactNode, useEffect } from "react";
 import Authenticator, { AuthConfig } from "../components/hoc/withAuth";
 import AuthProvider from "../context/auth/AuthProvider";
-import {useRouter} from "next/router";
+import AlertProvider from "../context/alert/AlertProvider";
+import { useRouter } from "next/router";
 
 export type NextPageWithLayout<T = {}> = NextPage<T> & {
   getLayout?: (page: ReactElement) => ReactNode;
@@ -21,11 +22,20 @@ function MyApp({ Component, pageProps, ...rest }: AppPropsWithLayout) {
   const router = useRouter();
 
   return (
-    <AuthProvider>
-      <Authenticator key={router.asPath} authConfig={Component.isAuthRestricted ? Component.authConfig : { shouldBeAuthenticated: false }}>
+    <AlertProvider>
+      <AuthProvider>
+        <Authenticator
+          key={router.asPath}
+          authConfig={
+            Component.isAuthRestricted
+              ? Component.authConfig
+              : { shouldBeAuthenticated: false }
+          }
+        >
           {getLayout(<Component {...pageProps} />)}
         </Authenticator>
-    </AuthProvider>
+      </AuthProvider>
+    </AlertProvider>
   );
 }
 

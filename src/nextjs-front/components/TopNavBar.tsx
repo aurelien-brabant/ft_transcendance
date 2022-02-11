@@ -74,7 +74,7 @@ const TopNavBar: React.FC<TopNavBarProps> = ({ items }) => {
 				</nav>
 			</div>
 			<header
-				className={`fixed top-0 left-0 right-0 z-50 flex items-center justify-between h-24 lg:h-32 px-8 md:px-24 text-white ${
+				className={`fixed top-0 left-0 right-0 z-40 flex items-center justify-between h-24 lg:h-32 px-8 md:px-24 text-white ${
 					isScrolling || isMobileMenuOpened ? "bg-gray-900 md:bg-gray-900/[.99]" : ""
 				} ${isScrolling ? "drop-shadow-lg" : ""}`}
 				style={{ transition: "all .4s" }}

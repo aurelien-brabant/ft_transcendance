@@ -10,6 +10,7 @@ import { faker } from "@faker-js/faker";
 import { dashboardNavItems } from "../constants/nav";
 import notificationsContext from "../context/notifications/notificationsContext";
 import authContext, {AuthContextType} from "../context/auth/authContext";
+import alertContext, {AlertContextType} from "../context/alert/alertContext";
 
 const user = genUser();
 
@@ -148,12 +149,14 @@ const DashboardTopNav: React.FC<DashboardTopNavProps> = ({
 }) => {
 	const [hasNotificationsOpened, setHasNotificationsOpened] = useState(false);
 	const [isUserMenuOpened, setIsUserMenuOpened] = useState(false);
-	const { notifications, notify, markAllAsRead } =
+	const { notifications, markAllAsRead } =
 		useContext(notificationsContext);
   	const { getUserData, logout, clearUser } = useContext(authContext) as AuthContextType;
+	const { setAlert } = useContext(alertContext) as AlertContextType;
 	const router = useRouter();
 
 	const handleLogout = async () => {
+		setAlert({type: 'success', content: 'Logged out'});
 		logout();
 		await router.push('/signin');
 		clearUser();
@@ -177,6 +180,7 @@ const DashboardTopNav: React.FC<DashboardTopNavProps> = ({
 			</div>
 
 			<SearchBar className="hidden text-gray-900 md:block grow" />
+			
 
 			<div className="flex items-center justify-center pr-4 md:pr-8 lg:pr-16 xl:pr-32 gap-x-8">
 				<div
