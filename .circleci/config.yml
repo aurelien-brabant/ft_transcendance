@@ -7,14 +7,14 @@ jobs:
       resource_class: arm.medium
       steps:
         - checkout
-        - run:
-            name: Build NextJS
-            command: |
-              docker build ./src/nextjs-front -t aurelienbrabant/transcendance_front
-        - run:
-            name: Build NestJS
-            command: |
-              docker build ./src/nestjs-back -t aurelienbrabant/transcendance_back
+        #- run:
+        #    name: Build NextJS
+        #    command: |
+        #      docker build ./src/nextjs-front -t aurelienbrabant/transcendance_front
+        #- run:
+        #    name: Build NestJS
+        #    command: |
+        #      docker build ./src/nestjs-back -t aurelienbrabant/transcendance_back
         - run:
             name: Push images to docker hub
             command: |
