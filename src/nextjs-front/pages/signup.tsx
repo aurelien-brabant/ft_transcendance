@@ -1,4 +1,4 @@
-import { Fragment, useState } from "react";
+import { Fragment, useContext, useState } from "react";
 import isEmail from "validator/lib/isEmail";
 import withWildLayout from "../components/hoc/withWildLayout";
 import ProgressiveFrom, {
@@ -10,7 +10,8 @@ import Link from "next/link";
 import Head from "next/head";
 import { authorizationLink } from "../constants/authorize42";
 import { useRouter } from "next/router";
-import {NextPageWithLayout} from "./_app";
+import { NextPageWithLayout } from "./_app";
+import alertContext, { AlertContextType } from "../context/alert/alertContext";
 
 const formConfig: ProgressiveFormConfig = {
   steps: [
@@ -49,10 +50,11 @@ const formConfig: ProgressiveFormConfig = {
 
 const SignUp: NextPageWithLayout = () => {
   const [isLoading, setIsLoading] = useState(false);
+  const { setAlert } = useContext(alertContext) as AlertContextType;
   const router = useRouter();
 
   const handleFormSubmit = async (data: any) => {
-    if (isLoading) return ;
+    if (isLoading) return;
     // register the account
     setIsLoading(true);
     const reqMeta = {
@@ -67,19 +69,27 @@ const SignUp: NextPageWithLayout = () => {
 
     if (createUserStatus != 201) {
       if (createUserStatus === 409) {
-        console.error("User already exist!");
+        setAlert({
+          type: "error",
+          content: "A user with that email address already exist",
+        });
       }
     } else {
       const userLoginRes = await fetch("/api/auth/login", reqMeta);
+      let tmp = setAlert({ type: "info", content: "Account created" });
 
       if (userLoginRes.status != 201) {
-        console.error("Could not login with created user for some reason!");
+        setAlert({ type: "error", content: "Could not login" }, tmp);
       } else {
         const { access_token } = await userLoginRes.json();
+        setAlert({
+          type: "success",
+          content: "Logged in successfully. Redirecting...",
+        }, tmp);
 
         window.localStorage.setItem("bearer", access_token);
-
         await router.push("/welcome");
+        return;
       }
     }
     setIsLoading(false);

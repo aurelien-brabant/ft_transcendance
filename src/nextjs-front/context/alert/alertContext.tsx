@@ -8,7 +8,7 @@ export type Alert = {
 };
 
 export type AlertContextType = {
-	setAlert: (alert: Alert) => void;
+	setAlert: (alert: Alert, previousStack?: any) => void;
 	getCurrentContent: () => string;
 };
 

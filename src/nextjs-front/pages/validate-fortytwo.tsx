@@ -1,5 +1,5 @@
 import { useRouter } from "next/router";
-import { Fragment, useEffect, useState } from "react";
+import { Fragment, useContext, useEffect, useState } from "react";
 import HashLoader from "react-spinners/HashLoader";
 import { BiSad } from "react-icons/bi";
 import Image from "next/image";
@@ -9,15 +9,16 @@ import Head from "next/head";
 
 import { authorizationLink } from "../constants/authorize42";
 import {NextPageWithLayout} from "./_app";
+import alertContext, {AlertContextType} from "../context/alert/alertContext";
 
 const ValidateFortyTwo: NextPageWithLayout = () => {
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState<null | string>(null);
+  const { setAlert } = useContext(alertContext) as AlertContextType;
 
   const router = useRouter();
 
   useEffect(() => {
-    console.log('Validating');
     const searchParams = new URLSearchParams(window.location.search);
     const requestURI = `/api/auth/login42`;
 
@@ -29,16 +30,18 @@ const ValidateFortyTwo: NextPageWithLayout = () => {
       body: JSON.stringify({ apiCode: searchParams.get("code") }),
     }).then((res) => {
       if (res.status === 201) {
+        setAlert({ type: 'success', content: 'The 42 API authorized the connexion. Redirecting...' });
         res.json().then(({ access_token }) => {
           window.localStorage.setItem("bearer", access_token);
           router.push("/welcome");
         });
       } else {
+        setAlert({ type: 'error', content: 'Could not log in using 42 API' });
         setError("An error occured");
         setIsLoading(false);
       }
     });
-  }, [router]);
+  }, []);
 
   return (
     <Fragment>

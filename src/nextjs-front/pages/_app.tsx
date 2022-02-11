@@ -22,18 +22,20 @@ function MyApp({ Component, pageProps, ...rest }: AppPropsWithLayout) {
   const router = useRouter();
 
   return (
-    <AuthProvider>
-      <Authenticator
-        key={router.asPath}
-        authConfig={
-          Component.isAuthRestricted
-            ? Component.authConfig
-            : { shouldBeAuthenticated: false }
-        }
-      >
-        <AlertProvider>{getLayout(<Component {...pageProps} />)}</AlertProvider>
-      </Authenticator>
-    </AuthProvider>
+    <AlertProvider>
+      <AuthProvider>
+        <Authenticator
+          key={router.asPath}
+          authConfig={
+            Component.isAuthRestricted
+              ? Component.authConfig
+              : { shouldBeAuthenticated: false }
+          }
+        >
+          {getLayout(<Component {...pageProps} />)}
+        </Authenticator>
+      </AuthProvider>
+    </AlertProvider>
   );
 }
 
