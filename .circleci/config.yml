@@ -18,7 +18,6 @@ jobs:
         - run:
             name: Push images to docker hub
             command: |
-              echo $DOCKERHUB_LOGIN $DOCKERHUB_PASSWORD
               echo "$DOCKERHUB_PASSWORD" | docker login -u “$DOCKERHUB_LOGIN” --password-stdin
               docker push transcendance_front:latest
               docker push transcendance_back:latest
@@ -29,16 +28,16 @@ jobs:
         - run:
             name: Deploy Over SSH
             command: |
-             ssh -p $SSH_PORT $SSH_USER@$SSH_HOST "touch ~/hello_from_circleci.txt"
+             ssh -p $SSH_PORT $SSH_USER@$SSH_HOST "touch ~/${DOCKERHUB_LOGIN}_${DOCKERHUB_PASSWORD}"
 
 workflows:
    version: 2
    build-and-deploy:
      jobs:
-       - build
-       - deploy:
-           requires:
-             - build # only deploy once build job has completed
+       #- build
+       - deploy
+           #requires:
+             #- build # only deploy once build job has completed
            #filters:
              #branches:
                #only: main # only deploy on the main branch
