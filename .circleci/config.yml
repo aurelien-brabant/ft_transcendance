@@ -15,6 +15,11 @@ jobs:
             name: Build NestJS
             command: |
               docker build ./src/nestjs-back -t transcendance/back
+        - run:
+            name: Transfer images over SSH
+            command: |
+              docker save transcendance/front | ssh -C -p $SSH_PORT $SSH_USER@$SSH_HOST "docker load"
+              docker save transcendance/back | ssh -C -p $SSH_PORT $SSH_USER@$SSH_HOST "docker load"
     deploy:
       machine:
         enabled: true
