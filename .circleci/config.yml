@@ -1,25 +1,37 @@
 version: 2
 
 jobs:
-   #build:
-     #...
-   deploy:
-     machine:
-       enabled: true
-     steps:
-       - run:
-           name: Deploy Over SSH
-           command: |
+    build:
+      machine:
+        enabled: true
+      resource_class: arm.medium
+      steps:
+        - checkout
+        - run:
+            name: Build NextJS
+            command: |
+              docker build ./src/nextjs-front -t transcendance/front
+        - run:
+            name: Build NestJS
+            command: |
+              docker build ./src/nestjs-back -t transcendance/back
+    deploy:
+      machine:
+        enabled: true
+      steps:
+        - run:
+            name: Deploy Over SSH
+            command: |
              ssh -p $SSH_PORT $SSH_USER@$SSH_HOST "touch ~/hello_from_circleci.txt"
 
 workflows:
    version: 2
    build-and-deploy:
      jobs:
-       #- build
-       - deploy
-           #requires:
-            # - build # only deploy once build job has completed
+       - build
+       - deploy:
+           requires:
+             - build # only deploy once build job has completed
            #filters:
              #branches:
                #only: main # only deploy on the main branch
