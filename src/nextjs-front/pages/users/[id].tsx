@@ -67,7 +67,6 @@ const UnrankedHistoryTable: React.FC<{ history: SeedGameSummary[] }> = ({
 }) => (
   <table
     className="w-full my-4 text-left"
-    style={{ borderSpacing: "2px", borderCollapse: "separate" }}
   >
     <thead>
       <tr className="text-pink-600 bg-gray-800">
@@ -109,7 +108,6 @@ const RankedHistoryTable: React.FC<{ history: SeedRankedGameSummary[] }> = ({
 }) => (
   <table
     className="w-full my-4 text-left"
-    style={{ borderSpacing: "2px", borderCollapse: "separate" }}
   >
     <thead>
       <tr className="text-pink-600 bg-gray-800">
@@ -175,7 +173,9 @@ const UserProfilePage: NextPageWithLayout<UserProfilePageProps> = ({
   const actionTooltipStyles = 'font-bold bg-gray-900 text-neutral-200';
 
   return (
-    <div className="min-h-screen overflow-x-auto text-white bg-gray-900 grow">
+    <div className="min-h-screen overflow-x-auto text-white bg-fixed bg-center bg-fill grow" style={{
+        backgroundImage: "url('/triangles.png')"
+      }}>
       <div style={{ maxWidth: "800px" }} className="px-2 py-16 mx-auto">
         <div className="flex flex-col items-center gap-y-10">
           <div className="relative w-48 h-48">

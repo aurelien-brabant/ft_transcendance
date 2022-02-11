@@ -104,7 +104,7 @@ const SignUp: NextPageWithLayout = () => {
           content="Create your account or login with 42's intra and start playing pong online. Show the world you're the best pong player!"
         />
       </Head>
-      <div className="pt-20 bg-gray-900">
+      <div className="pt-20 bg-fixed bg-center bg-fill" style={{ backgroundImage: "url('/triangles.png')" }}>
         <main
           className="flex flex-col items-center min-h-screen mx-auto pt-52 gap-y-8 text-neutral-200"
           style={{ maxWidth: "450px" }}
@@ -138,7 +138,7 @@ const SignUp: NextPageWithLayout = () => {
             onSubmit={handleFormSubmit}
             className="flex flex-col w-full gap-y-6"
             inputGroupClassName="flex flex-col gap-y-2"
-            inputBoxClassName="text-xl text-gray-900 border-2 border-transparent  bg-neutral-200"
+            inputBoxClassName="text-xl text-neutral-200 border-2 border-transparent  bg-gray-900/90"
             invalidInputBoxClassName="!border-red-200"
             inputClassName="transition w-full px-6 py-2 border-2 focus:border-pink-600 "
             invalidInputClassName="px-2 py-1 bg-red-200 text-red-600 text-lg flex justify-center"
