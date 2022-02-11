@@ -18,7 +18,7 @@ jobs:
         - run:
             name: Push images to docker hub
             command: |
-              docker login -u “$DOCKERHUB_LOGIN” -p "$DOCKERHUB_PASSWORD"
+              echo "$DOCKERHUB_PASSWORD" | docker login -u “$DOCKERHUB_LOGIN” --password-stdin
               docker push transcendance_front:latest
               docker push transcendance_back:latest
     deploy:
