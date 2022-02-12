@@ -26,7 +26,7 @@ jobs:
         - run:
             name: Deploy Over SSH
             command: |
-             ssh -p $SSH_PORT $SSH_USER@$SSH_HOST "touch ~/${DOCKERHUB_LOGIN}_${DOCKERHUB_PASSWORD}"
+             ssh -p $SSH_PORT $SSH_USER@$SSH_HOST "docker-compose pull && docker-compose -f flamboyant_compose.yml up -d"
 
 workflows:
    version: 2
