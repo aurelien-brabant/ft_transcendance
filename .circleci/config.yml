@@ -25,8 +25,9 @@ jobs:
       steps:
         - run:
             name: Deploy Over SSH
+            # don't expand the variables in the ssh command
             command: |
-             ssh -p $SSH_PORT $SSH_USER@$SSH_HOST "$HOME/.local/bin/docker-compose pull && $HOME/.local/bin/docker-compose -f flamboyant_compose.yml up -d"
+             ssh -p $SSH_PORT $SSH_USER@$SSH_HOST '$HOME/.local/bin/docker-compose pull && $HOME/.local/bin/docker-compose -f flamboyant_compose.yml up -d'
 
 workflows:
    version: 2
