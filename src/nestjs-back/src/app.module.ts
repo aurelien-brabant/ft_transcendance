@@ -8,7 +8,6 @@ import { FriendsInvitesModule } from './friendsInvites/friendsInvites.module';
 import { TypeOrmModule } from '@nestjs/typeorm';
 import { AuthModule } from './auth/auth.module';
 import { SeederModule } from './seeder/seeder.module';
-import { ChannelsController } from './channels/channels.controller';
 import { ChannelsModule } from './channels/channels.module';
 
 @Module({

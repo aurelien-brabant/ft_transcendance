@@ -1,24 +1,49 @@
 import { Injectable, NotFoundException } from '@nestjs/common';
-// import { InjectRepository } from '@nestjs/typeorm';
-// import { Repository } from 'typeorm';
-// import { CreateChannelDto } from './dto/create-channel.dto';
-// import { UpdateChannelDto } from './dto/update-channel.dto';
-// import { SeedChannelDto } from './dto/seed-channel.dto';
-// import { Channels } from './entities/channels.entity';
+import { InjectRepository } from '@nestjs/typeorm';
+import { Repository } from 'typeorm';
+import { CreateChannelDto } from './dto/create-channel.dto';
+import { UpdateChannelDto } from './dto/update-channel.dto';
+import { Channels } from './entities/channels.entity';
 
 @Injectable()
 export class ChannelsService {
 
-    // constructor(
-    // ) {}
+    constructor(
+        @InjectRepository(Channels)
+        private readonly channelsRepository: Repository<Channels>,
+    ) {}
 
-    // findAll
+    findAll() {
+        return this.channelsRepository.find();
+    }
 
-    // async findOne
+    async findOne(id: string) {
+        const channel =  await this.channelsRepository.findOne(id);
+        if (!channel)
+            throw new NotFoundException(`Channel [${id}] not found`);
+        return channel;
+    }
 
-    // create
+    create(createChannelDto: CreateChannelDto) {
+        const channel = this.channelsRepository.create(createChannelDto);
+        return this.channelsRepository.save(channel);
+    }
 
-    // async update
+    async update(id: string, updateChannelDto: UpdateChannelDto) { 
+        const channel = await this.channelsRepository.preload({
+            id: +id,
+            ...updateChannelDto,
+        });
+        if (!channel)
+            throw new NotFoundException(`Cannot update Channel [${id}] not found`);
+        return this.channelsRepository.save(channel);
+    }
 
-    // async remove
+    async remove(id: string) { 
+        const channel = await this.findOne(id);
+        // check owner rights?
+        if (!channel)
+            throw new NotFoundException(`Channel [${id}] not found`);
+        return this.channelsRepository.remove(channel);
+    }
 }
