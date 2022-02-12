@@ -79,4 +79,13 @@ export class Users {
         (invites) => invites.receiver,
     )
     gamesInviteReceiver: GamesInvites[];
-    */}
+    */
+
+    // Channels the user owns
+    // @OneToMany(() => Channels, channel => channel.owner)
+    // ownedChannels: Channels[];
+
+    // @ManyToMany(() => Channels)
+    // @JoinTable()
+    // channels: Channels[];
+}
