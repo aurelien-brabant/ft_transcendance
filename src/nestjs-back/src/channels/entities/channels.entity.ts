@@ -1,13 +1,12 @@
 import { IsOptional } from "class-validator";
-// import { Users } from "src/users/entities/users.entity";
-import { Column, Entity, ManyToMany, PrimaryGeneratedColumn } from "typeorm";
+import { Column, Entity, PrimaryGeneratedColumn } from "typeorm";
 
 @Entity()
 export class Channels {
     @PrimaryGeneratedColumn()
     id: number;
 
-    @Column({ unique: true })
+    @Column({ length: 50, unique: true })
     name: string;
 
     @Column()
@@ -20,6 +19,6 @@ export class Channels {
     isProtected: boolean;
 
     @IsOptional()
-    @Column({ nullable: true })
+    @Column({ length: 255, nullable: true })
     password: string;
 }
