@@ -3,7 +3,7 @@ import { IsOptional } from "class-validator";
 import { Column, Entity, ManyToMany, PrimaryGeneratedColumn } from "typeorm";
 
 @Entity()
-export class Channel {
+export class Channels {
     @PrimaryGeneratedColumn()
     id: number;
 
