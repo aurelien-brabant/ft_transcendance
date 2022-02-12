@@ -1,6 +1,6 @@
 import { IsOptional } from "class-validator";
 import { Users } from "src/users/entities/users.entity";
-import { Column, Entity, JoinTable, ManyToMany, PrimaryGeneratedColumn } from "typeorm";
+import { Column, Entity, JoinTable, ManyToMany, ManyToOne, PrimaryGeneratedColumn } from "typeorm";
 
 @Entity()
 export class Channels {
@@ -10,11 +10,8 @@ export class Channels {
     @Column({ length: 50, unique: true })
     name: string;
 
-    @Column()
-    owner: number;
-
-    // @ManyToOne(type => Users, owner => owner.ownedChannels)
-    // owner: Users;
+    @ManyToOne(() => Users, owner => owner.ownedChannels)
+    owner: Users;
 
     @Column({ default: true })
     isPublic: boolean;
@@ -23,7 +20,7 @@ export class Channels {
     isProtected: boolean;
 
     @IsOptional()
-    @Column({ length: 255, nullable: true })
+    @Column({ length: 50, nullable: true })
     password: string;
 
     @ManyToMany(() => Users)

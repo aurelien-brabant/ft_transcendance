@@ -1,6 +1,7 @@
 import { Games } from "src/games/entities/games.entity";
 //import { GamesInvites } from "src/gamesInvites/entities/gamesInvites.entity";
-import { Column, Entity, JoinTable, ManyToMany, PrimaryGeneratedColumn } from "typeorm";
+import { Channels } from 'src/channels/entities/channels.entity';
+import { Column, Entity, JoinTable, ManyToMany, OneToMany, PrimaryGeneratedColumn } from "typeorm";
 
 @Entity()
 export class Users {
@@ -81,11 +82,10 @@ export class Users {
     gamesInviteReceiver: GamesInvites[];
     */
 
-    // Channels the user owns
-    // @OneToMany(() => Channels, channel => channel.owner)
-    // ownedChannels: Channels[];
+    @OneToMany(() => Channels, channel => channel.owner)
+    ownedChannels: Channels[];
 
-    // @ManyToMany(() => Channels)
-    // @JoinTable()
-    // channels: Channels[];
+    @ManyToMany(() => Channels)
+    @JoinTable()
+    channels: Channels[];
 }
