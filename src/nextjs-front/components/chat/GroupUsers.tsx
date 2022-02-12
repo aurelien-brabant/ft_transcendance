@@ -51,7 +51,7 @@ const GroupUsers: React.FC<{ viewParams: any }> = ({ viewParams }) => {
 	return (
 		<div className="flex flex-col h-full py-4 overflow-auto ">
 			{users.map((user) => (
-				<div className="flex items-center justify-between px-4 py-2 border-b-2 border-gray-800 gap-x-2">
+				<div key={user.username} className="flex items-center justify-between px-4 py-2 border-b-2 border-gray-800 gap-x-2">
 					<div className="flex items-center gap-x-4">
 						<img
 							src={user.avatar}
