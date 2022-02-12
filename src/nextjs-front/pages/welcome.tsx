@@ -6,7 +6,6 @@ import { useState } from "react";
 import isEmail from "validator/lib/isEmail";
 import isMobilePhone from "validator/lib/isMobilePhone";
 import {NextPageWithLayout} from './_app';
-import withAuth from '../components/hoc/withAuth';
 import authContext, {AuthContextType} from '../context/auth/authContext';
 
 const labelClassName = "grow uppercase text-neutral-400";
@@ -54,7 +53,7 @@ const Welcome: NextPageWithLayout = () => {
   const [formData, setFormData] = useState<FormData>({
     nickname: getUserData().username,
     email: getUserData().email,
-    phone: getUserData().phone ? getUserData().phone : '',
+    phone: getUserData().phone ? getUserData().phone as string : '',
     tfa: false
   });
 
