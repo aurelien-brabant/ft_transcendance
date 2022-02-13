@@ -34,7 +34,7 @@ export class MessagesService {
             ...updateMessageDto,
         });
         if (!message)
-            throw new NotFoundException(`Cannot update Message [${id}] not found`);
+            throw new NotFoundException(`Cannot update Message [${id}]: Not found`);
         return this.messagesRepository.save(message);
     }
 

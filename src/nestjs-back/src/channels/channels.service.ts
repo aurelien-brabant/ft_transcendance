@@ -34,7 +34,7 @@ export class ChannelsService {
             ...updateChannelDto,
         });
         if (!channel)
-            throw new NotFoundException(`Cannot update Channel [${id}] not found`);
+            throw new NotFoundException(`Cannot update Channel [${id}]: Not found`);
         return this.channelsRepository.save(channel);
     }
 
