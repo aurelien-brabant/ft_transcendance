@@ -1,9 +1,10 @@
 import { Injectable, NotFoundException } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Repository } from 'typeorm';
+import { Channels } from './entities/channels.entity';
 import { CreateChannelDto } from './dto/create-channel.dto';
 import { UpdateChannelDto } from './dto/update-channel.dto';
-import { Channels } from './entities/channels.entity';
+import { SeedChannelDto } from './dto/seed-channel.dto';
 
 @Injectable()
 export class ChannelsService {
@@ -44,5 +45,12 @@ export class ChannelsService {
         if (!channel)
             throw new NotFoundException(`Channel [${id}] not found`);
         return this.channelsRepository.remove(channel);
+    }
+
+    async seed(seedChannelDto: SeedChannelDto) {
+        const channel = this.channelsRepository.create({
+            ...seedChannelDto,
+        });
+        return this.channelsRepository.save(channel);
     }
 }
