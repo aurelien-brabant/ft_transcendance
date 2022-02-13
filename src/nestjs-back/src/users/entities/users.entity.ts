@@ -87,5 +87,5 @@ export class Users {
 
     @ManyToMany(() => Channels)
     @JoinTable()
-    channels: Channels[];
+    joinedChannels: Channels[];
 }
