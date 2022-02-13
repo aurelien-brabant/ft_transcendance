@@ -1,11 +1,21 @@
-import { Controller, Get, Param, Patch, Post, Delete, Body } from '@nestjs/common';
+import {
+    Body,
+    Controller,
+    Delete,
+    Get,
+    Param,
+    Patch,
+    Post
+} from '@nestjs/common';
 import { ChannelsService } from './channels.service';
 import { CreateChannelDto } from './dto/create-channel.dto';
 import { UpdateChannelDto } from './dto/update-channel.dto';
 
 @Controller('channels')
 export class ChannelsController {
-    constructor(private readonly channelsService: ChannelsService) {}
+    constructor(
+        private readonly channelsService: ChannelsService
+    ) {}
 
     @Get()
     findAll() {

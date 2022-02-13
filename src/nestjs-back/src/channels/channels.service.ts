@@ -7,7 +7,6 @@ import { Channels } from './entities/channels.entity';
 
 @Injectable()
 export class ChannelsService {
-
     constructor(
         @InjectRepository(Channels)
         private readonly channelsRepository: Repository<Channels>,

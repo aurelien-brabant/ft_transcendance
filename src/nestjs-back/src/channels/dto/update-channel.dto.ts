@@ -1,6 +1,14 @@
+import {
+    IsBoolean,
+    IsNotEmpty,
+    IsOptional,
+    IsString,
+    MinLength,
+    MaxLength
+} from 'class-validator';
 import { PartialType } from '@nestjs/mapped-types';
 import { CreateChannelDto } from './create-channel.dto';
-import { IsBoolean, IsNotEmpty, IsString, MinLength, MaxLength, IsOptional } from 'class-validator';
+import { Messages } from 'src/messages/entities/messages.entity';
 import { Users } from 'src/users/entities/users.entity';
 
 export class UpdateChannelDto extends PartialType(CreateChannelDto) {
@@ -31,4 +39,7 @@ export class UpdateChannelDto extends PartialType(CreateChannelDto) {
 
     @IsOptional()
     readonly users: Users [];
+
+    @IsOptional()
+    readonly messages: Messages[];
 }

@@ -1,6 +1,15 @@
+import {
+    Column,
+    Entity,
+    JoinTable,
+    ManyToMany,
+    ManyToOne,
+    OneToMany,
+    PrimaryGeneratedColumn
+} from "typeorm";
 import { IsOptional } from "class-validator";
+import { Messages } from 'src/messages/entities/messages.entity';
 import { Users } from "src/users/entities/users.entity";
-import { Column, Entity, JoinTable, ManyToMany, ManyToOne, PrimaryGeneratedColumn } from "typeorm";
 
 @Entity()
 export class Channels {
@@ -26,4 +35,7 @@ export class Channels {
     @ManyToMany(() => Users)
     @JoinTable()
     users: Users[];
+
+    @OneToMany(() => Messages, message => message.channel)
+    messages: Messages[];
 }

@@ -9,6 +9,7 @@ import { TypeOrmModule } from '@nestjs/typeorm';
 import { AuthModule } from './auth/auth.module';
 import { SeederModule } from './seeder/seeder.module';
 import { ChannelsModule } from './channels/channels.module';
+import { MessagesModule } from './messages/messages.module';
 
 @Module({
   imports: [SeederModule, UsersModule, GamesModule, GamesInvitesModule, FriendsInvitesModule, TypeOrmModule.forRoot({
@@ -21,7 +22,7 @@ import { ChannelsModule } from './channels/channels.module';
       autoLoadEntities: true,
       synchronize: true,         // true in Dev // false in production
       keepConnectionAlive: true,
-    }), AuthModule, ChannelsModule,
+    }), AuthModule, ChannelsModule, MessagesModule,
   ],
   controllers: [AppController],
   providers: [AppService],

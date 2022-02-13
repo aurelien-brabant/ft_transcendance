@@ -1,4 +1,11 @@
-import { IsBoolean, IsNotEmpty, IsString, MinLength, MaxLength, IsOptional } from 'class-validator';
+import {
+    IsBoolean,
+    IsNotEmpty,
+    IsOptional,
+    IsString,
+    MinLength,
+    MaxLength
+} from 'class-validator';
 import { Users } from 'src/users/entities/users.entity';
 
 export class CreateChannelDto {

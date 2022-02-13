@@ -1,6 +1,7 @@
 import { Games } from "src/games/entities/games.entity";
 //import { GamesInvites } from "src/gamesInvites/entities/gamesInvites.entity";
 import { Channels } from 'src/channels/entities/channels.entity';
+import { Messages } from 'src/messages/entities/messages.entity';
 import { Column, Entity, JoinTable, ManyToMany, OneToMany, PrimaryGeneratedColumn } from "typeorm";
 
 @Entity()
@@ -88,4 +89,7 @@ export class Users {
     @ManyToMany(() => Channels)
     @JoinTable()
     joinedChannels: Channels[];
+
+    @OneToMany(() => Messages, message => message.sender)
+    sentMessages: Messages[];
 }
