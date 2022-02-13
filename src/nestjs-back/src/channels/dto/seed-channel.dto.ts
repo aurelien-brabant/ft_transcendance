@@ -35,6 +35,7 @@ export class SeedChannelDto {
     readonly password: string;
 
     @IsOptional()
+    // @ArrayContains(owner)
     readonly users: Users[];
 
     @IsOptional()
