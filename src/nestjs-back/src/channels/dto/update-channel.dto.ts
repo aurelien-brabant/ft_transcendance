@@ -6,12 +6,10 @@ import {
     MinLength,
     MaxLength
 } from 'class-validator';
-import { PartialType } from '@nestjs/mapped-types';
-import { CreateChannelDto } from './create-channel.dto';
 import { Messages } from 'src/messages/entities/messages.entity';
 import { Users } from 'src/users/entities/users.entity';
 
-export class UpdateChannelDto extends PartialType(CreateChannelDto) {
+export class UpdateChannelDto {
     @IsOptional()
     @IsNotEmpty()
     @IsString()
