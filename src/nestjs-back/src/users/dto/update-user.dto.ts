@@ -1,7 +1,9 @@
 import { PartialType } from '@nestjs/mapped-types';
 import { CreateUserDto } from './create-user.dto';
 import { IsInt, IsOptional, IsPhoneNumber, IsString } from 'class-validator';
+import { Channels } from 'src/channels/entities/channels.entity';
 import { Games } from 'src/games/entities/games.entity';
+import { Messages } from 'src/messages/entities/messages.entity';
 import { Users } from '../entities/users.entity';
 
 export class UpdateUserDto extends PartialType(CreateUserDto) {
@@ -46,4 +48,13 @@ export class UpdateUserDto extends PartialType(CreateUserDto) {
  //   @IsOptional()
 //    @IsInt({ each: true })
    // readonly winner: Games [];
+
+    @IsOptional()
+    readonly ownedChannels: Channels[];
+
+    @IsOptional()
+    readonly joinedChannels: Channels[];
+
+    @IsOptional()
+    readonly sentMessages: Messages[];
 }
