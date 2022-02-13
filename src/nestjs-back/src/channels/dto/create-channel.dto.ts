@@ -31,5 +31,5 @@ export class CreateChannelDto {
     readonly password: string;
 
     // @ArrayContains(owner)
-    // readonly users: Users [];
+    // readonly users: Users[];
 }

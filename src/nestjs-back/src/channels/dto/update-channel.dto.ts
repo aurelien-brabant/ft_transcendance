@@ -36,7 +36,7 @@ export class UpdateChannelDto {
     readonly password: string;
 
     @IsOptional()
-    readonly users: Users [];
+    readonly users: Users[];
 
     @IsOptional()
     readonly messages: Messages[];
