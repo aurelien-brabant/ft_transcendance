@@ -6,7 +6,7 @@ import {
 import { Channels } from "src/channels/entities/channels.entity";
 import { Users } from "src/users/entities/users.entity";
 
-export class CreateMessageDto {
+export class SeedMessageDto {
     @IsNotEmpty()
     @IsString()
     @MaxLength(640)
