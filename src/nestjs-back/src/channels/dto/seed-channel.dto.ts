@@ -1,5 +1,6 @@
 import {
     IsBoolean,
+    IsInt,
     IsNotEmpty,
     IsOptional,
     IsString,
@@ -17,8 +18,10 @@ export class SeedChannelDto {
     @MaxLength(50)
     readonly name: string;
 
+    @IsOptional()
     @IsNotEmpty()
-    readonly owner: Users;
+    @IsInt()
+    readonly owner: number;
 
     @IsOptional()
     @IsBoolean()

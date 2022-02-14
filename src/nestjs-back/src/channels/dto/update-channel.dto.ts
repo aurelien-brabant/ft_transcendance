@@ -1,5 +1,6 @@
 import {
     IsBoolean,
+    IsInt,
     IsNotEmpty,
     IsOptional,
     IsString,
@@ -19,7 +20,8 @@ export class UpdateChannelDto {
 
     @IsOptional()
     @IsNotEmpty()
-    readonly owner: Users;
+    @IsInt()
+    readonly owner: number;
 
     @IsOptional()
     @IsBoolean()

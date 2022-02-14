@@ -97,8 +97,8 @@ export class SeederService {
     }
 
     async seedFakeMessages(dstChannel: Channels) {
+        const fakeSender = await this.createFakeUser("fakeSender");
         for (let i = 0; i < 10; ++i) {
-            let fakeSender = await this.createFakeUser("fakeSender");
             const message = await this.messagesService.seed({
                 createdAt: faker.datatype.datetime(),
                 content: faker.lorem.sentence(),
@@ -111,11 +111,11 @@ export class SeederService {
     }
 
     async seedFakeChannels() {
-        for (let i = 0; i < 100; ++i) {
-            let fakeOwner = await this.createFakeUser("fakeOwner");
+        const fakeOwner = await this.createFakeUser("fakeOwner");
+        for (let i = 0; i < 10; ++i) {
             const channel = await this.channelsService.seed({
-                name: faker.hacker.noun(),
-                owner: fakeOwner,
+                name: (faker.unique as any)(faker.hacker.noun),
+                owner: fakeOwner.id,
                 isPublic: true,
                 isProtected: false,
                 password: faker.internet.password(),
@@ -125,8 +125,8 @@ export class SeederService {
 
             console.log("Channel [%s] => [%s] created by [%s]", channel.id, channel.name, channel.owner);
 
-            console.log('[+] Seeding fake messages...');
-            await this.seedFakeMessages(channel);
+            // console.log('[+] Seeding fake messages...');
+            // await this.seedFakeMessages(channel);
         }
     }
 }
