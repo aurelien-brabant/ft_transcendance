@@ -1,5 +1,7 @@
 import { IsString, IsEmail, IsOptional, IsInt, IsPhoneNumber } from 'class-validator';
+import { Channels } from 'src/channels/entities/channels.entity';
 import { Games } from 'src/games/entities/games.entity';
+import { Messages } from 'src/messages/entities/messages.entity';
 import { Users } from '../entities/users.entity';
 
 export class SeedUserDto {
@@ -43,4 +45,13 @@ export class SeedUserDto {
     @IsOptional()
     @IsString()
     readonly duoquadra_login: string;
+
+    @IsOptional()
+    readonly ownedChannels: Channels[];
+
+    @IsOptional()
+    readonly joinedChannels: Channels[];
+
+    @IsOptional()
+    readonly sentMessages: Messages[];
 }

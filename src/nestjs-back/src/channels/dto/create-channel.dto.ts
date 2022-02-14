@@ -1,13 +1,12 @@
 import {
     IsBoolean,
-    IsInt,
     IsNotEmpty,
     IsOptional,
     IsString,
-    MinLength,
-    MaxLength
+    MaxLength,
+    MinLength
 } from 'class-validator';
-// import { Users } from 'src/users/entities/users.entity';
+import { Users } from 'src/users/entities/users.entity';
 
 export class CreateChannelDto {
     @IsNotEmpty()
@@ -17,8 +16,7 @@ export class CreateChannelDto {
     readonly name: string;
 
     @IsNotEmpty()
-    @IsInt()
-    readonly owner: number;
+    readonly owner: Users;
 
     @IsBoolean()
     readonly isPublic: boolean;

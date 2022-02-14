@@ -30,7 +30,10 @@ export class SeederService {
             pic: faker.image.imageUrl(),
             duoquadra_login: username + "_42",
             games: [],
-            friends: []
+            friends: [],
+            ownedChannels: [],
+            joinedChannels: [],
+            sentMessages: []
         });
         return user;
     }
@@ -61,6 +64,9 @@ export class SeederService {
                 duoquadra_login: pseudo + "_42",
                 games: [],
                 friends: [],
+                ownedChannels: [],
+                joinedChannels: [],
+                sentMessages: []
             });
 
             console.log("User [%s] => [%s] [%s] created", user.id, user.duoquadra_login, user.email);
@@ -115,7 +121,7 @@ export class SeederService {
         for (let i = 0; i < 10; ++i) {
             const channel = await this.channelsService.seed({
                 name: (faker.unique as any)(faker.hacker.noun),
-                owner: fakeOwner.id,
+                owner: fakeOwner,
                 isPublic: true,
                 isProtected: false,
                 password: faker.internet.password(),
@@ -123,7 +129,7 @@ export class SeederService {
                 messages: []
             });
 
-            console.log("Channel [%s] => [%s] created by [%s]", channel.id, channel.name, channel.owner);
+            console.log("Channel [%s] => [%s] created by [%s]", channel.id, channel.name, channel.owner.username);
 
             // console.log('[+] Seeding fake messages...');
             // await this.seedFakeMessages(channel);

@@ -19,10 +19,8 @@ export class Channels {
     @Column({ length: 50, unique: true })
     name: string;
 
-    // @ManyToOne(() => Users, owner => owner.ownedChannels)
-    // owner: Users;
-    @Column()
-    owner: number;
+    @ManyToOne(() => Users, owner => owner.ownedChannels)
+    owner: Users;
 
     @Column({ default: true })
     isPublic: boolean;

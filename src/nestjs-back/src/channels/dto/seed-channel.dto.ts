@@ -1,11 +1,10 @@
 import {
     IsBoolean,
-    IsInt,
     IsNotEmpty,
     IsOptional,
     IsString,
-    MinLength,
-    MaxLength
+    MaxLength,
+    MinLength
 } from 'class-validator';
 import { Messages } from 'src/messages/entities/messages.entity';
 import { Users } from 'src/users/entities/users.entity';
@@ -20,8 +19,7 @@ export class SeedChannelDto {
 
     @IsOptional()
     @IsNotEmpty()
-    @IsInt()
-    readonly owner: number;
+    readonly owner: Users;
 
     @IsOptional()
     @IsBoolean()
