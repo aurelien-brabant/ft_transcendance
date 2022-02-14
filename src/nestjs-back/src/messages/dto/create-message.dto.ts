@@ -8,8 +8,8 @@ import { Channels } from "src/channels/entities/channels.entity";
 import { Users } from "src/users/entities/users.entity";
 
 export class CreateMessageDto {
-    @IsDate()
     @IsNotEmpty()
+    @IsDate()
     readonly createdAt: Date;
 
     @IsNotEmpty()
