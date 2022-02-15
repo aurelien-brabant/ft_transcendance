@@ -1,7 +1,6 @@
 import { Injectable } from '@nestjs/common';
-import { InjectRepository } from '@nestjs/typeorm';
+import { getConnection } from 'typeorm';
 import { Users } from 'src/users/entities/users.entity';
-import { getConnection, Repository } from 'typeorm';
 import { UsersService } from '../users/users.service';
 import { GamesService } from '../games/games.service';
 import { Channels } from "src/channels/entities/channels.entity";
@@ -48,8 +47,7 @@ export class SeederService {
         await this.seedFakeChannels();
     }
 
-    async seedFakeUsers()
-    {
+    async seedFakeUsers() {
         for (let i = 0; i < 100; ++i) {
             let pseudo = faker.internet.userName();
             const user = await this.usersService.seed({
@@ -73,8 +71,7 @@ export class SeederService {
         }
     }
 
-    async seedFakeGames()
-    {
+    async seedFakeGames() {
         for (let i = 0; i < 100; ++i) {
             //let pseudo = faker.internet.userName();
             const game = await this.gamesService.seed({
@@ -102,12 +99,12 @@ export class SeederService {
         }
     }
 
-    async seedFakeMessages(dstChannel: Channels, fakeOwner: Users) {
-        for (let i = 0; i < 50; ++i) {
+    async seedFakeMessages(dstChannel: Channels, fakeSender: Users) {
+        for (let i = 0; i < 10; ++i) {
             const message = await this.messagesService.seed({
                 createdAt: faker.datatype.datetime(),
                 content: faker.lorem.sentence(5),
-                sender: fakeOwner,
+                sender: fakeSender,
                 channel: dstChannel
             });
             console.log("Message [%s] => ['%s'] sent by User [%s]", message.id, message.content, message.sender.id);
