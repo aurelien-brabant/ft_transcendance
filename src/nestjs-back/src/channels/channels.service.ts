@@ -30,6 +30,25 @@ export class ChannelsService {
         return channel.peopleCount;
     }
 
+    async findAllByOwner(ownerId: number) {
+        const channels = this.channelsRepository.createQueryBuilder("channel")
+            .where("channel.owner.id = :id", {id: ownerId})
+            .execute();
+        return channels;
+    }
+
+    async findAllByPublic(isPublic: boolean) {
+        return this.channelsRepository.find({
+            isPublic: isPublic
+        });
+    }
+
+    async findAllByProtected(isProtected: boolean) {
+        return this.channelsRepository.find({
+            isProtected: isProtected
+        });
+    }
+
     create(createChannelDto: CreateChannelDto) {
         const channel = this.channelsRepository.create(createChannelDto);
         return this.channelsRepository.save(channel);

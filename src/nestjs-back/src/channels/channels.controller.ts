@@ -32,6 +32,21 @@ export class ChannelsController {
         return this.channelsService.findPeopleCount(id);
     }
 
+    @Get('/owner/:ownerId')
+    findAllByOwner(@Param('ownerId') ownerId: number) {
+        return this.channelsService.findAllByOwner(ownerId);
+    }
+
+    @Get('/public/:isPublic')
+    findAllByPublic(@Param('isPublic') isPublic: boolean) {
+        return this.channelsService.findAllByPublic(isPublic);
+    }
+
+    @Get('/protected/:isProtected')
+    findAllByProtected(@Param('isProtected') isProtected: boolean) {
+        return this.channelsService.findAllByProtected(isProtected);
+    }
+
     @Post()
     create(@Body() createChannelDto: CreateChannelDto) {
         console.log(createChannelDto instanceof CreateChannelDto);
