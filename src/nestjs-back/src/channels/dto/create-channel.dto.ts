@@ -6,6 +6,7 @@ import {
     MaxLength,
     MinLength
 } from 'class-validator';
+import { Messages } from 'src/messages/entities/messages.entity';
 import { Users } from 'src/users/entities/users.entity';
 
 export class CreateChannelDto {
@@ -31,5 +32,8 @@ export class CreateChannelDto {
     readonly password: string;
 
     // @ArrayContains(owner)
-    // readonly users: Users[];
+    readonly users: Users[];
+
+    @IsOptional()
+    readonly messages: Messages[];
 }

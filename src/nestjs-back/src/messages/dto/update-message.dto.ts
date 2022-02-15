@@ -20,5 +20,5 @@ export class UpdateMessageDto {
 
     @IsOptional()
     @IsNotEmpty()
-    sender: Users;
+    readonly sender: Users;
 }

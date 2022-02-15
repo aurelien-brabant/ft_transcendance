@@ -6,7 +6,7 @@ import { ChannelsService } from './channels.service';
 
 @Module({
     imports: [TypeOrmModule.forFeature([Channels])],
-    controllers: [ChannelsController ],
+    controllers: [ChannelsController],
     providers: [ChannelsService]
 })
 export class ChannelsModule {}

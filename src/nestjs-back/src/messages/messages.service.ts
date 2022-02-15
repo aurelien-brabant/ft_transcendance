@@ -4,7 +4,6 @@ import { Repository } from 'typeorm';
 import { Messages } from './entities/messages.entity';
 import { CreateMessageDto } from './dto/create-message.dto';
 import { UpdateMessageDto } from './dto/update-message.dto';
-import { SeedMessageDto } from './dto/seed-message.dto';
 
 @Injectable()
 export class MessagesService {
@@ -44,12 +43,5 @@ export class MessagesService {
         if (!message)
             throw new NotFoundException(`Message [${id}] not found`);
         return this.messagesRepository.remove(message);
-    }
-
-    async seed(seedMessageDto: SeedMessageDto) {
-        const message = this.messagesRepository.create({
-            ...seedMessageDto,
-        });
-        return this.messagesRepository.save(message);
     }
 }
