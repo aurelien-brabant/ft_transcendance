@@ -22,14 +22,14 @@ export class MessagesController {
         return this.messagesService.findAll();
     }
 
-    @Get(':id')
-    findOne(@Param('id') id: string) {
-        return this.messagesService.findOne(id);
-    }
-
     @Get('/channel/:channelId')
     findAllByChannel(@Param('channelId') channelId: string) {
         return this.messagesService.findAllByChannel(channelId);
+    }
+
+    @Get(':id')
+    findOne(@Param('id') id: string) {
+        return this.messagesService.findOne(id);
     }
 
     @Post()

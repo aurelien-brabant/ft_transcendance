@@ -16,20 +16,6 @@ export class ChannelsService {
         return this.channelsRepository.find();
     }
 
-    async findOne(id: string) {
-        const channel =  await this.channelsRepository.findOne(id);
-        if (!channel)
-            throw new NotFoundException(`Channel [${id}] not found`);
-        return channel;
-    }
-
-    async findPeopleCount(id: string) {
-        const channel = await this.channelsRepository.findOne(id);
-        if (!channel)
-            throw new NotFoundException(`Channel [${id}] not found`);
-        return channel.peopleCount;
-    }
-
     async findAllByOwner(ownerId: string) {
         const channels = this.channelsRepository.createQueryBuilder("channel")
             .where("channel.owner.id = :id", {id: ownerId})
@@ -47,6 +33,20 @@ export class ChannelsService {
         return this.channelsRepository.find({
             isProtected: isProtected
         });
+    }
+
+    async findOne(id: string) {
+        const channel =  await this.channelsRepository.findOne(id);
+        if (!channel)
+            throw new NotFoundException(`Channel [${id}] not found`);
+        return channel;
+    }
+
+    async findPeopleCount(id: string) {
+        const channel = await this.channelsRepository.findOne(id);
+        if (!channel)
+            throw new NotFoundException(`Channel [${id}] not found`);
+        return channel.peopleCount;
     }
 
     create(createChannelDto: CreateChannelDto) {

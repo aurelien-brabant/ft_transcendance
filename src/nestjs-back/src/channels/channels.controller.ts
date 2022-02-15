@@ -22,11 +22,6 @@ export class ChannelsController {
         return this.channelsService.findAll();
     }
 
-    @Get(':id')
-    findOne(@Param('id') id: string) {
-        return this.channelsService.findOne(id);
-    }
-
     @Get('/:id/peopleCount')
     findPeopleCount(@Param('id') id: string) {
         return this.channelsService.findPeopleCount(id);
@@ -45,6 +40,11 @@ export class ChannelsController {
     @Get('/protected/:isProtected')
     findAllByProtected(@Param('isProtected') isProtected: boolean) {
         return this.channelsService.findAllByProtected(isProtected);
+    }
+
+    @Get(':id')
+    findOne(@Param('id') id: string) {
+        return this.channelsService.findOne(id);
     }
 
     @Post()

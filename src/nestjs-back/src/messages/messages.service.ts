@@ -16,18 +16,18 @@ export class MessagesService {
         return this.messagesRepository.find();
     }
 
+    async findAllByChannel(channelId: string) {
+        const messages = this.messagesRepository.createQueryBuilder("message")
+            .where("message.channel.id = :id", {id: channelId})
+            .execute();
+        return messages;
+    }
+
     async findOne(id: string) {
         const message =  await this.messagesRepository.findOne(id);
         if (!message)
             throw new NotFoundException(`Message [${id}] not found`);
         return message;
-    }
-
-    findAllByChannel(channelId: string) {
-        const messages = this.messagesRepository.createQueryBuilder("message")
-            .where("message.channel.id = :id", {id: channelId})
-            .execute();
-        return messages;
     }
 
     create(createMessageDto: CreateMessageDto) {
