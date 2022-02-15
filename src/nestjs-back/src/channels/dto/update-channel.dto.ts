@@ -1,10 +1,12 @@
 import {
     IsBoolean,
+    IsInt,
     IsNotEmpty,
     IsOptional,
     IsString,
     MaxLength,
-    MinLength
+    MinLength,
+    Min
 } from 'class-validator';
 import { Messages } from 'src/messages/entities/messages.entity';
 import { Users } from 'src/users/entities/users.entity';
@@ -34,6 +36,11 @@ export class UpdateChannelDto {
     @MinLength(8)
     @MaxLength(50)
     readonly password: string;
+
+    @IsOptional()
+    @IsInt()
+    @Min(0)
+    readonly peopleCount: number;
 
     @IsOptional()
     readonly users: Users[];

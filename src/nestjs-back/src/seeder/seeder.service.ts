@@ -15,6 +15,7 @@ type seedChannel = {
     isPublic: boolean;
     isProtected: boolean;
     password: string;
+    peopleCount: number;
     users: Users[];
     messages: Messages[];
 };
@@ -138,6 +139,7 @@ export class SeederService {
                 isPublic: true,
                 isProtected: false,
                 password: faker.internet.password(),
+                peopleCount: 1,
                 users: [],
                 messages: []
             } as seedChannel);
