@@ -5,8 +5,26 @@ import { UsersService } from '../users/users.service';
 import { GamesService } from '../games/games.service';
 import { Channels } from "src/channels/entities/channels.entity";
 import { ChannelsService } from '../channels/channels.service';
+import { Messages } from '../messages/entities/messages.entity';
 import { MessagesService } from '../messages/messages.service';
 import { faker } from '@faker-js/faker';
+
+type seedChannel = {
+    name: string;
+    owner: Users;
+    isPublic: boolean;
+    isProtected: boolean;
+    password: string;
+    users: Users[];
+    messages: Messages[];
+};
+
+type seedMessage = {
+    createdAt: Date;
+    content: string;
+    sender: Users;
+    channel: Channels;
+};
 
 @Injectable()
 export class SeederService {
@@ -101,12 +119,12 @@ export class SeederService {
 
     async seedFakeMessages(dstChannel: Channels, fakeSender: Users) {
         for (let i = 0; i < 10; ++i) {
-            const message = await this.messagesService.seed({
+            const message = await this.messagesService.create({
                 createdAt: faker.datatype.datetime(),
                 content: faker.lorem.sentence(5),
                 sender: fakeSender,
                 channel: dstChannel
-            });
+            } as seedMessage);
             console.log("Message [%s] => ['%s'] sent by User [%s]", message.id, message.content, message.sender.id);
         }
     }
@@ -114,7 +132,7 @@ export class SeederService {
     async seedFakeChannels() {
         const fakeOwner = await this.createFakeUser("fakeOwner");
         for (let i = 0; i < 100; ++i) {
-            const channel = await this.channelsService.seed({
+            const channel = await this.channelsService.create({
                 name: (faker.unique as any)(faker.company.companyName),
                 owner: fakeOwner,
                 isPublic: true,
@@ -122,7 +140,7 @@ export class SeederService {
                 password: faker.internet.password(),
                 users: [],
                 messages: []
-            });
+            } as seedChannel);
 
             console.log("Channel [%s] => [%s] created", channel.id, channel.name);
 
