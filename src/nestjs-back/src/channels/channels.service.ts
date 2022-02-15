@@ -23,6 +23,13 @@ export class ChannelsService {
         return channel;
     }
 
+    async findPeopleCount(id: string) {
+        const channel = await this.channelsRepository.findOne(id);
+        if (!channel)
+            throw new NotFoundException(`Channel [${id}] not found`);
+        return channel.peopleCount;
+    }
+
     create(createChannelDto: CreateChannelDto) {
         const channel = this.channelsRepository.create(createChannelDto);
         return this.channelsRepository.save(channel);

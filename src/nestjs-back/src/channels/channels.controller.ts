@@ -27,6 +27,11 @@ export class ChannelsController {
         return this.channelsService.findOne(id);
     }
 
+    @Get('/:id/peopleCount')
+    findPeopleCount(@Param('id') id: string) {
+        return this.channelsService.findPeopleCount(id);
+    }
+
     @Post()
     create(@Body() createChannelDto: CreateChannelDto) {
         console.log(createChannelDto instanceof CreateChannelDto);
