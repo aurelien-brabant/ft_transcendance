@@ -23,6 +23,13 @@ export class MessagesService {
         return message;
     }
 
+    findAllByChannel(channelId: string) {
+        const messages = this.messagesRepository.createQueryBuilder("message")
+            .where("message.channel.id = :id", {id: channelId})
+            .execute();
+        return messages;
+    }
+
     create(createMessageDto: CreateMessageDto) {
         const message = this.messagesRepository.create(createMessageDto);
         return this.messagesRepository.save(message);

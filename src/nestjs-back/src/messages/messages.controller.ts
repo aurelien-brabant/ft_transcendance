@@ -27,6 +27,11 @@ export class MessagesController {
         return this.messagesService.findOne(id);
     }
 
+    @Get('/channel/:channelId')
+    findAllByChannel(@Param('channelId') channelId: string) {
+        return this.messagesService.findAllByChannel(channelId);
+    }
+
     @Post()
     create(@Body() createMessageDto: CreateMessageDto) {
         console.log(createMessageDto instanceof CreateMessageDto);
