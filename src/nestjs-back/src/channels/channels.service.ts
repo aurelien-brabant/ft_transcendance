@@ -30,7 +30,7 @@ export class ChannelsService {
         return channel.peopleCount;
     }
 
-    async findAllByOwner(ownerId: number) {
+    async findAllByOwner(ownerId: string) {
         const channels = this.channelsRepository.createQueryBuilder("channel")
             .where("channel.owner.id = :id", {id: ownerId})
             .execute();

@@ -33,7 +33,7 @@ export class ChannelsController {
     }
 
     @Get('/owner/:ownerId')
-    findAllByOwner(@Param('ownerId') ownerId: number) {
+    findAllByOwner(@Param('ownerId') ownerId: string) {
         return this.channelsService.findAllByOwner(ownerId);
     }
 
