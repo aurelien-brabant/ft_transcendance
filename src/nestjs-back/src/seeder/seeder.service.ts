@@ -9,18 +9,17 @@ import { Messages } from '../messages/entities/messages.entity';
 import { MessagesService } from '../messages/messages.service';
 import { faker } from '@faker-js/faker';
 
-type seedChannel = {
+type SeedChannel = {
     name: string;
     owner: Users;
     isPublic: boolean;
     isProtected: boolean;
     password: string;
-    peopleCount: number;
     users: Users[];
     messages: Messages[];
 };
 
-type seedMessage = {
+type SeedMessage = {
     createdAt: Date;
     content: string;
     sender: Users;
@@ -125,7 +124,7 @@ export class SeederService {
                 content: faker.lorem.sentence(5),
                 sender: fakeSender,
                 channel: dstChannel
-            } as seedMessage);
+            } as SeedMessage);
             console.log("Message [%s] => ['%s'] sent by User [%s]", message.id, message.content, message.sender.id);
         }
     }
@@ -141,7 +140,7 @@ export class SeederService {
                 password: faker.internet.password(),
                 users: [],
                 messages: []
-            } as seedChannel);
+            } as SeedChannel);
 
             console.log("Channel [%s] => [%s] created", channel.id, channel.name);
 
