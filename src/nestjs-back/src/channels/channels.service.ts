@@ -4,6 +4,8 @@ import { Repository } from 'typeorm';
 import { Channels } from './entities/channels.entity';
 import { CreateChannelDto } from './dto/create-channel.dto';
 import { UpdateChannelDto } from './dto/update-channel.dto';
+import { count } from 'console';
+import { Users } from 'src/users/entities/users.entity';
 
 @Injectable()
 export class ChannelsService {
@@ -17,9 +19,10 @@ export class ChannelsService {
     }
 
     async findAllByOwner(ownerId: string) {
-        const channels = this.channelsRepository.createQueryBuilder("channel")
+        const channels = await this.channelsRepository
+            .createQueryBuilder("channel")
             .where("channel.owner.id = :id", {id: ownerId})
-            .execute();
+            .getMany();
         return channels;
     }
 
@@ -42,12 +45,19 @@ export class ChannelsService {
         return channel;
     }
 
-    async findPeopleCount(id: string) {
+    async findUsers(id: string) {
         const channel = await this.channelsRepository.findOne(id);
         if (!channel)
             throw new NotFoundException(`Channel [${id}] not found`);
-        return channel.peopleCount;
+        return channel.users;
     }
+
+    // async countPeople(id: string) {
+    //     const channel = await this.channelsRepository.findOne(id);
+    //     if (!channel)
+    //         throw new NotFoundException(`Channel [${id}] not found`);
+    //     TODO
+    // }
 
     create(createChannelDto: CreateChannelDto) {
         const channel = this.channelsRepository.create(createChannelDto);
@@ -66,7 +76,6 @@ export class ChannelsService {
 
     async remove(id: string) { 
         const channel = await this.findOne(id);
-        // check owner rights?
         if (!channel)
             throw new NotFoundException(`Channel [${id}] not found`);
         return this.channelsRepository.remove(channel);

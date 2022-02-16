@@ -22,10 +22,15 @@ export class ChannelsController {
         return this.channelsService.findAll();
     }
 
-    @Get('/:id/peopleCount')
-    findPeopleCount(@Param('id') id: string) {
-        return this.channelsService.findPeopleCount(id);
+    @Get('/:id/users')
+    findUsers(@Param('id') id: string) {
+        return this.channelsService.findUsers(id);
     }
+
+    // @Get('/:id/peopleCount')
+    // countPeople(@Param('id') id: string) {
+    //     return this.channelsService.countPeople(id);
+    // }
 
     @Get('/owner/:ownerId')
     findAllByOwner(@Param('ownerId') ownerId: string) {

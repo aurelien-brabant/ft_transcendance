@@ -139,7 +139,6 @@ export class SeederService {
                 isPublic: true,
                 isProtected: false,
                 password: faker.internet.password(),
-                peopleCount: 1,
                 users: [],
                 messages: []
             } as seedChannel);
