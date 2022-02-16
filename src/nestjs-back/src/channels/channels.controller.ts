@@ -22,16 +22,6 @@ export class ChannelsController {
         return this.channelsService.findAll();
     }
 
-    @Get('/:id/users')
-    findUsers(@Param('id') id: string) {
-        return this.channelsService.findUsers(id);
-    }
-
-    // @Get('/:id/peopleCount')
-    // countPeople(@Param('id') id: string) {
-    //     return this.channelsService.countPeople(id);
-    // }
-
     @Get('/owner/:ownerId')
     findAllByOwner(@Param('ownerId') ownerId: string) {
         return this.channelsService.findAllByOwner(ownerId);
@@ -50,6 +40,21 @@ export class ChannelsController {
     @Get(':id')
     findOne(@Param('id') id: string) {
         return this.channelsService.findOne(id);
+    }
+
+    @Get('/:id/users')
+    findUsers(@Param('id') id: string) {
+        return this.channelsService.findUsers(id);
+    }
+
+    // @Get('/:id/peopleCount')
+    // countPeople(@Param('id') id: string) {
+    //     return this.channelsService.countPeople(id);
+    // }
+
+    @Get('/:id/messages')
+    findMessages(@Param('id') id: string) {
+        return this.channelsService.findMessages(id);
     }
 
     @Post()

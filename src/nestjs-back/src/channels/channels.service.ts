@@ -59,6 +59,13 @@ export class ChannelsService {
     //     TODO
     // }
 
+    async findMessages(id: string) {
+        const channel =  await this.channelsRepository.findOne(id);
+        if (!channel)
+            throw new NotFoundException(`Channel [${id}] not found`);
+        return channel.messages;
+    }
+
     create(createChannelDto: CreateChannelDto) {
         const channel = this.channelsRepository.create(createChannelDto);
         return this.channelsRepository.save(channel);
