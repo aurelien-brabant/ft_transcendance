@@ -57,6 +57,11 @@ export class ChannelsController {
         return this.channelsService.getUsers(id);
     }
 
+    @Get('/:id/userCount')
+    getUserCount(@Param('id') id: string) {
+        return this.channelsService.getUserCount(id);
+    }
+
     @Get('/:id/messages')
     getMessages(@Param('id') id: string) {
         return this.channelsService.getMessages(id);

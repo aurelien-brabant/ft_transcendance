@@ -74,6 +74,11 @@ export class ChannelsService {
         return channel.users;
     }
 
+    async getUserCount(id: string) {
+        const users = await this.getUsers(id);
+        return users.length;
+    }
+
     async getMessages(id: string) {
         const channel = await this.channelsRepository
             .createQueryBuilder("channel")
