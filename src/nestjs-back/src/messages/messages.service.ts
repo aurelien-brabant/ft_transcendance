@@ -23,11 +23,42 @@ export class MessagesService {
         return messages;
     }
 
+    async findAllBySender(senderId: string) {
+        const messages = this.messagesRepository.createQueryBuilder("message")
+            .where("message.sender.id = :id", {id: senderId})
+            .execute();
+        return messages;
+    }
+
     async findOne(id: string) {
         const message =  await this.messagesRepository.findOne(id);
         if (!message)
             throw new NotFoundException(`Message [${id}] not found`);
         return message;
+    }
+
+    async getSender(id: string) {
+        const message = await this.messagesRepository
+            .createQueryBuilder("message")
+            .innerJoinAndSelect("message.sender", "sender")
+            .where("message.id = :id", { id: id })
+            .getOne();
+
+        if (!message)
+            throw new NotFoundException(`Message [${id}] not found`);
+        return message.sender;
+    }
+
+    async getChannel(id: string) {
+        const message = await this.messagesRepository
+            .createQueryBuilder("message")
+            .innerJoinAndSelect("message.channel", "channel")
+            .where("message.id = :id", { id: id })
+            .getOne();
+
+        if (!message)
+            throw new NotFoundException(`Message [${id}] not found`);
+        return message.channel;
     }
 
     create(createMessageDto: CreateMessageDto) {

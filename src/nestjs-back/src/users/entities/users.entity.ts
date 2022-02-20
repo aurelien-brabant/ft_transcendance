@@ -83,7 +83,9 @@ export class Users {
     gamesInviteReceiver: GamesInvites[];
     */
 
-    @OneToMany(() => Channels, channel => channel.owner)
+    @OneToMany(() => Channels, channel => channel.owner, {
+        cascade: true,
+    })
     ownedChannels: Channels[];
 
     @ManyToMany(() => Channels, joinedChannels => joinedChannels.users)

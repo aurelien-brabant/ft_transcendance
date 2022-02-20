@@ -27,6 +27,8 @@ export class Messages {
     })
     sender: Users;
 
-    @ManyToOne(() => Channels, channel => channel.messages)
+    @ManyToOne(() => Channels, channel => channel.messages, {
+        onDelete: "CASCADE",
+    })
     channel: Channels;
 }

@@ -1,29 +1,29 @@
 import { Injectable } from '@nestjs/common';
-import { getConnection } from 'typeorm';
+import { getConnection, getRepository } from 'typeorm';
 import { Users } from 'src/users/entities/users.entity';
 import { UsersService } from '../users/users.service';
 import { GamesService } from '../games/games.service';
-import { Channels } from "src/channels/entities/channels.entity";
 import { ChannelsService } from '../channels/channels.service';
-import { Messages } from '../messages/entities/messages.entity';
 import { MessagesService } from '../messages/messages.service';
 import { faker } from '@faker-js/faker';
 
-type SeedChannel = {
+type SeedChannels = {
+    id: number;
     name: string;
     owner: Users;
     isPublic: boolean;
     isProtected: boolean;
     password: string;
     users: Users[];
-    messages: Messages[];
+    messages: SeedMessages[];
 };
 
-type SeedMessage = {
+type SeedMessages = {
+    id: number;
     createdAt: Date;
     content: string;
     sender: Users;
-    channel: Channels;
+    channel: SeedChannels;
 };
 
 @Injectable()
@@ -85,7 +85,7 @@ export class SeederService {
                 sentMessages: []
             });
 
-            console.log("User [%s] => [%s] [%s] created", user.id, user.duoquadra_login, user.email);
+            // console.log("User [%s] => [%s] [%s] created", user.id, user.duoquadra_login, user.email);
         }
     }
 
@@ -113,24 +113,26 @@ export class SeederService {
                }
             */            });
 
-            console.log("Game [%s] created", game.id);
+            // console.log("Game [%s] created", game.id);
         }
     }
 
-    async seedFakeMessages(dstChannel: Channels, fakeSender: Users) {
+    async seedFakeMessages(dstChannel: SeedChannels, fakeSender: Users) {
         for (let i = 0; i < 10; ++i) {
             const message = await this.messagesService.create({
                 createdAt: faker.datatype.datetime(),
                 content: faker.lorem.sentence(5),
                 sender: fakeSender,
                 channel: dstChannel
-            } as SeedMessage);
+            } as SeedMessages);
+
             console.log("Message [%s] => ['%s'] sent by User [%s]", message.id, message.content, message.sender.id);
         }
     }
 
     async seedFakeChannels() {
         const fakeOwner = await this.createFakeUser("fakeOwner");
+
         for (let i = 0; i < 100; ++i) {
             const channel = await this.channelsService.create({
                 name: (faker.unique as any)(faker.company.companyName),
@@ -138,11 +140,9 @@ export class SeederService {
                 isPublic: true,
                 isProtected: false,
                 password: faker.internet.password(),
-                users: [],
+                users: [fakeOwner],
                 messages: []
-            } as SeedChannel);
-
-            console.log("Channel [%s] => [%s] created", channel.id, channel.name);
+            } as SeedChannels);
 
             console.log('[+] Seeding fake messages in channel [%s]...', channel.id);
             await this.seedFakeMessages(channel, fakeOwner);

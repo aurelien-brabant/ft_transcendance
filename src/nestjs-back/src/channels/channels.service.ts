@@ -4,8 +4,6 @@ import { Repository } from 'typeorm';
 import { Channels } from './entities/channels.entity';
 import { CreateChannelDto } from './dto/create-channel.dto';
 import { UpdateChannelDto } from './dto/update-channel.dto';
-import { count } from 'console';
-import { Users } from 'src/users/entities/users.entity';
 
 @Injectable()
 export class ChannelsService {
@@ -21,7 +19,7 @@ export class ChannelsService {
     async findAllByOwner(ownerId: string) {
         const channels = await this.channelsRepository
             .createQueryBuilder("channel")
-            .where("channel.owner.id = :id", {id: ownerId})
+            .where("channel.owner.id = :id", { id: ownerId })
             .getMany();
         return channels;
     }
@@ -45,22 +43,44 @@ export class ChannelsService {
         return channel;
     }
 
-    async findUsers(id: string) {
+    async getName(id: string) {
         const channel = await this.channelsRepository.findOne(id);
+        if (!channel)
+            throw new NotFoundException(`Channel [${id}] not found`);
+        return channel.name;
+    }
+
+    async getOwner(id: string) {
+        const channel = await this.channelsRepository
+            .createQueryBuilder("channel")
+            .innerJoinAndSelect("channel.owner", "owner")
+            .where("channel.id = :id", { id: id })
+            .getOne();
+
+        if (!channel)
+            throw new NotFoundException(`Channel [${id}] not found`);
+        return channel.owner;
+    }
+
+    async getUsers(id: string) {
+        const channel = await this.channelsRepository
+            .createQueryBuilder("channel")
+            .innerJoinAndSelect("channel.users", "user")
+            .where("channel.id = :id", { id: id })
+            .getOne();
+
         if (!channel)
             throw new NotFoundException(`Channel [${id}] not found`);
         return channel.users;
     }
 
-    // async countPeople(id: string) {
-    //     const channel = await this.channelsRepository.findOne(id);
-    //     if (!channel)
-    //         throw new NotFoundException(`Channel [${id}] not found`);
-    //     TODO
-    // }
+    async getMessages(id: string) {
+        const channel = await this.channelsRepository
+            .createQueryBuilder("channel")
+            .innerJoinAndSelect("channel.messages", "message")
+            .where("channel.id = :id", { id: id })
+            .getOne();
 
-    async findMessages(id: string) {
-        const channel =  await this.channelsRepository.findOne(id);
         if (!channel)
             throw new NotFoundException(`Channel [${id}] not found`);
         return channel.messages;

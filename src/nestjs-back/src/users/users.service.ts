@@ -52,6 +52,42 @@ export class UsersService {
         return user;
     }
 
+    async getOwnedChannels(id: string) {
+        const user = await this.usersRepository
+            .createQueryBuilder("user")
+            .innerJoinAndSelect("user.ownedChannels", "channel")
+            .where("user.id = :id", { id: id })
+            .getOne();
+
+        if (!user)
+            throw new NotFoundException(`User [${id}] not found`);
+        return user.ownedChannels;
+    }
+
+    async getJoinedChannels(id: string) {
+        const user = await this.usersRepository
+            .createQueryBuilder("user")
+            .innerJoinAndSelect("user.joinedChannels", "channel")
+            .where("user.id = :id", { id: id })
+            .getOne();
+
+        if (!user)
+            throw new NotFoundException(`User [${id}] not found`);
+        return user.joinedChannels;
+    }
+
+    async getSentMessages(id: string) {
+        const user = await this.usersRepository
+            .createQueryBuilder("user")
+            .innerJoinAndSelect("user.sentMessages", "message")
+            .where("user.id = :id", { id: id })
+            .getOne();
+
+        if (!user)
+            throw new NotFoundException(`User [${id}] not found`);
+        return user.sentMessages;
+    }
+
     async createDuoQuadra({
         email,
         phone,
