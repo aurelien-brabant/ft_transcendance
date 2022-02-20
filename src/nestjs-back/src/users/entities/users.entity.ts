@@ -86,10 +86,11 @@ export class Users {
     @OneToMany(() => Channels, channel => channel.owner)
     ownedChannels: Channels[];
 
-    @ManyToMany(() => Channels, joinedChannels => joinedChannels.users, { cascade: true })
-    @JoinTable()
+    @ManyToMany(() => Channels, joinedChannels => joinedChannels.users)
     joinedChannels: Channels[];
 
-    @OneToMany(() => Messages, message => message.sender, { cascade: true })
+    @OneToMany(() => Messages, message => message.sender, {
+        cascade: true,
+    })
     sentMessages: Messages[];
 }

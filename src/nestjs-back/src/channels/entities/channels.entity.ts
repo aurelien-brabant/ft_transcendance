@@ -19,7 +19,7 @@ export class Channels {
     @Column({ length: 50, unique: true })
     name: string;
 
-    @ManyToOne(() => Users, owner => owner.ownedChannels, { cascade: true })
+    @ManyToOne(() => Users, owner => owner.ownedChannels)
     owner: Users;
 
     @Column({ default: true })
@@ -32,7 +32,8 @@ export class Channels {
     @Column({ length: 50, nullable: true })
     password: string;
 
-    @ManyToMany(() => Users)
+    @ManyToMany(() => Users, user => user.joinedChannels)
+    @JoinTable()
     users: Users[];
 
     @OneToMany(() => Messages, message => message.channel)

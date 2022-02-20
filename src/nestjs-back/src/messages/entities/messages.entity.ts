@@ -22,7 +22,9 @@ export class Messages {
     @Column({ length: 640 })
     content: string;
 
-    @ManyToOne(() => Users, owner => owner.sentMessages)
+    @ManyToOne(() => Users, sender => sender.sentMessages, {
+        onDelete: "CASCADE",
+    })
     sender: Users;
 
     @ManyToOne(() => Channels, channel => channel.messages)

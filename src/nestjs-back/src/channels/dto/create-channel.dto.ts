@@ -31,7 +31,6 @@ export class CreateChannelDto {
     @MaxLength(50)
     readonly password: string;
 
-    // @ArrayContains(owner)
     readonly users: Users[];
 
     @IsOptional()
