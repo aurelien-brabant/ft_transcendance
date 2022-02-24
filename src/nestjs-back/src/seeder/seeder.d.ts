@@ -9,9 +9,9 @@ export type SeedUsers = {
     pic: string;
     duoquadra_login: string;
     rank: number;
-    win: number;
-    loose: number;
     games: SeedGames[];
+    wins: SeedGames[];
+    losses: number;
     friends: SeedUsers[];
     ownedChannels: SeedChannels[];
     joinedChannels: SeedChannels[];
@@ -23,7 +23,7 @@ export type SeedUsers = {
 export type SeedGames = {
     id: number;
     players: SeedUsers[];
-    winner: number;
+    winner: SeedUsers;
     createdAt: Date;
 };
 

@@ -23,15 +23,14 @@ export class SeederService {
             games: [],
             friends: []
         });
-
         user = await this.usersService.update(user.id.toString(), {
             username: username,
-            rank: faker.datatype.number(),
-            win: faker.datatype.number(),
-            loose: faker.datatype.number(),
             phone: faker.phone.phoneNumber(),
             pic: faker.image.imageUrl(),
             duoquadra_login: username + "_42",
+            rank: faker.datatype.number(),
+            wins: [],
+            losses: faker.datatype.number(),
             ownedChannels: [],
             joinedChannels: [],
             sentMessages: []
@@ -59,30 +58,14 @@ export class SeederService {
     }
 
     async seedFakeGames() {
+        const user = await this.usersService.findOne("12");
         for (let i = 0; i < 100; ++i) {
-            //let pseudo = faker.internet.userName();
             let game = await this.gamesService.create({
                 createdAt: faker.datatype.datetime(),
             });
-
             game = await this.gamesService.update(game.id.toString(), {
                 players: [],
-                winner: 12,
-                /* winner: {
-                    id: 1,
-                    email: faker.unique(faker.internet.email),
-                    username: pseudo,
-                    password: faker.internet.password(),
-                    rank: faker.datatype.number(),
-                    phone: faker.phone.phoneNumber(),
-                    pic: faker.image.imageUrl(),
-                    duoquadra_login: pseudo + "_42",
-                    games: [],
-                    friends: [],
-                    win: 12,
-                    gameInviteSender: [],
-                    gameInviteReceiver: [],
-                } */
+                winner: user
             } as SeedGames);
 
             console.log("Game [%s] created", game.id);
