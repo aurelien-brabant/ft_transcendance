@@ -85,7 +85,7 @@ export class SeederService {
                 sentMessages: []
             });
 
-            // console.log("User [%s] => [%s] [%s] created", user.id, user.duoquadra_login, user.email);
+            console.log("User [%s] => [%s] [%s] created", user.id, user.duoquadra_login, user.email);
         }
     }
 
@@ -96,7 +96,7 @@ export class SeederService {
                 createdAt: faker.datatype.datetime(),
                 players: [],
                 winner: 12,
-     /*           winner: {
+                /* winner: {
                     id: 1,
                     email: faker.unique(faker.internet.email),
                     username: pseudo,
@@ -110,10 +110,10 @@ export class SeederService {
                     win: 12,
                     gameInviteSender: [],
                     gameInviteReceiver: [],
-               }
-            */            });
+                } */
+            });
 
-            // console.log("Game [%s] created", game.id);
+            console.log("Game [%s] created", game.id);
         }
     }
 
