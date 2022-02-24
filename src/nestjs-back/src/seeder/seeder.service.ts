@@ -59,6 +59,7 @@ export class SeederService {
 
     async seedFakeGames() {
         const user = await this.usersService.findOne("12");
+
         for (let i = 0; i < 100; ++i) {
             let game = await this.gamesService.create({
                 createdAt: faker.datatype.datetime(),

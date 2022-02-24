@@ -51,6 +51,33 @@ export class UsersService {
         return user;
     }
 
+    async getWinCount(id: string) {
+        const user = await this.usersRepository
+            .createQueryBuilder("user")
+            .innerJoinAndSelect("user.wins", "game")
+            .where("user.id = :id", { id: id })
+            .getOne();
+
+        if (!user)
+            throw new NotFoundException(`User [${id}] not found`);
+        return user.wins.length;
+    }
+
+    async getLossCount(id: string) {
+        const user = await this.usersRepository.findOne(id);
+        if (!user)
+            throw new NotFoundException(`User [${id}] not found`);
+        return user.losses;
+    }
+
+    async getFriends(id: string) {
+        const user = await this.usersRepository.findOne(id);
+
+        if (!user)
+            throw new NotFoundException(`User [${id}] not found`);
+        return user.friends;
+    }
+
     async getOwnedChannels(id: string) {
         const user = await this.usersRepository
             .createQueryBuilder("user")
