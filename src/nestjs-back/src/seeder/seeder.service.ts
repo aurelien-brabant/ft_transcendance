@@ -1,54 +1,11 @@
 import { Injectable } from '@nestjs/common';
 import { getConnection } from 'typeorm';
+import { SeedChannels, SeedGames, SeedMessages, SeedUsers } from './seeder';
 import { UsersService } from '../users/users.service';
 import { GamesService } from '../games/games.service';
 import { ChannelsService } from '../channels/channels.service';
 import { MessagesService } from '../messages/messages.service';
 import { faker } from '@faker-js/faker';
-
-type SeedUsers = {
-    id: number;
-    username: string;
-    password: string;
-    email: string;
-    phone: string;
-    pic: string;
-    duoquadra_login: string;
-    rank: number;
-    win: number;
-    loose: number;
-    games: SeedGames[];
-    friends: SeedUsers[];
-    ownedChannels: SeedChannels[];
-    joinedChannels: SeedChannels[];
-    sentMessages: SeedMessages[];
-};
-
-type SeedGames = {
-    id: number;
-    players: SeedUsers[];
-    winner: number;
-    createdAt: Date;
-};
-
-type SeedChannels = {
-    id: number;
-    name: string;
-    owner: SeedUsers;
-    isPublic: boolean;
-    isProtected: boolean;
-    password: string;
-    users: SeedUsers[];
-    messages: SeedMessages[];
-};
-
-type SeedMessages = {
-    id: number;
-    createdAt: Date;
-    content: string;
-    sender: SeedUsers;
-    channel: SeedChannels;
-};
 
 @Injectable()
 export class SeederService {
