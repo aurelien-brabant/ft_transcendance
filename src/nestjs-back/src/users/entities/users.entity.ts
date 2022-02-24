@@ -1,8 +1,15 @@
+import {
+    Column,
+    Entity,
+    JoinTable,
+    ManyToMany,
+    OneToMany,
+    PrimaryGeneratedColumn
+} from "typeorm";
+import { Channels } from 'src/channels/entities/channels.entity';
 import { Games } from "src/games/entities/games.entity";
 //import { GamesInvites } from "src/gamesInvites/entities/gamesInvites.entity";
-import { Channels } from 'src/channels/entities/channels.entity';
 import { Messages } from 'src/messages/entities/messages.entity';
-import { Column, Entity, JoinTable, ManyToMany, OneToMany, PrimaryGeneratedColumn } from "typeorm";
 
 @Entity()
 export class Users {
@@ -31,43 +38,32 @@ export class Users {
     @Column({ nullable: true })
     rank: number;
 
-    @Column({ default: 0 })
-    win: number;
-
-    @Column({ default: 0 })
-    loose: number;
-
-    @JoinTable()
-    @ManyToMany(() => Games)
-//    @ManyToMany(
-  //      type => Games,
-    //    (games) => games.players,
-//        {
-  //          cascade: true,
-    //    }
-    //)
+    @ManyToMany(() => Games, games => games.players)
     games: Games[];
 
-   /* @JoinTable()
-    @OneToMany(
-        type => Games,
-        (games) => games.winner,
-    )
-    win: Games;
-*/
-//    @Column()
-//    @JoinTable()
-  //  @ManyToMany(
-    //    type => Friends,
-      //  (friends) => friends.friends,
-   // )
-    //friends: Friends[];
-//    friends: Users[];
-//    friends: number[]
-    @JoinTable()
+    @OneToMany(() => Games, game => game.winner, {
+        cascade: true,
+    })
+    wins: Games[];
+
+    @Column({ default: 0 })
+    losses: number;
+
     @ManyToMany(() => Users)
+    @JoinTable()
     friends: Users[];
-/*
+
+    /*
+    @Column()
+    @JoinTable()
+    @ManyToMany(
+        type => Friends,
+        (friends) => friends.friends,
+    )
+    friends: Friends[];
+    friends: Users[];
+    friends: number[]
+
     @JoinTable()
     @ManyToMany(
         type => GamesInvites,

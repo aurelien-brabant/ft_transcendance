@@ -13,10 +13,10 @@ export class CreateUserDto {
     @IsOptional()
     //    @IsInt({ each: true })
       //  readonly games: number[];
-    readonly games: Games [];
+    readonly games: Games[];
     
     @IsOptional()
     //    @IsInt({ each: true })
     //    readonly friends: number [];
-    readonly friends: Users [];
+    readonly friends: Users[];
 }
