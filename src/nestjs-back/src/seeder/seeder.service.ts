@@ -104,8 +104,11 @@ export class SeederService {
     async seedFakeGames() {
         for (let i = 0; i < 100; ++i) {
             //let pseudo = faker.internet.userName();
-            const game = await this.gamesService.seed({
+            let game = await this.gamesService.create({
                 createdAt: faker.datatype.datetime(),
+            });
+
+            game = await this.gamesService.update(game.id.toString(), {
                 players: [],
                 winner: 12,
                 /* winner: {
