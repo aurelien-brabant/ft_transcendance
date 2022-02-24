@@ -4,7 +4,6 @@ import { Users } from './entities/users.entity';
 import { Repository } from 'typeorm';
 import { CreateUserDto } from './dto/create-user.dto';
 import { UpdateUserDto } from './dto/update-user.dto';
-import { SeedUserDto } from './dto/seed-user.dto';
 import { hash as hashPassword } from 'bcrypt';
 import { CreateDuoQuadraDto } from './dto/create-duoquadra.dto';
 import { prefixWithRandomAdjective } from 'src/utils/prefixWithRandomAdjective';
@@ -192,11 +191,4 @@ export class UsersService {
     }
 
   */
-    async seed(seedUserDto: SeedUserDto) {
-        const user = this.usersRepository.create({
-            ...seedUserDto,
-        });
-
-        return this.usersRepository.save(user);
-    }
 }
