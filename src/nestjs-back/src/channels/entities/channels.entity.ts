@@ -20,7 +20,7 @@ export class Channels {
     name: string;
 
     @ManyToOne(() => Users, owner => owner.ownedChannels, {
-        onDelete: "CASCADE",
+        onDelete: "CASCADE"
     })
     owner: Users;
 
@@ -39,7 +39,7 @@ export class Channels {
     users: Users[];
 
     @OneToMany(() => Messages, message => message.channel, {
-        cascade: true,
+        cascade: true
     })
     messages: Messages[];
 }
