@@ -1,6 +1,5 @@
 import { Injectable } from '@nestjs/common';
 import { getConnection } from 'typeorm';
-import { Users } from 'src/users/entities/users.entity';
 import { UsersService } from '../users/users.service';
 import { GamesService } from '../games/games.service';
 import { ChannelsService } from '../channels/channels.service';
@@ -130,7 +129,7 @@ export class SeederService {
         }
     }
 
-    async seedFakeMessages(dstChannel: SeedChannels, fakeSender: Users) {
+    async seedFakeMessages(dstChannel: SeedChannels, fakeSender: SeedUsers) {
         for (let i = 0; i < 10; ++i) {
             const message = await this.messagesService.create({
                 createdAt: faker.datatype.datetime(),
