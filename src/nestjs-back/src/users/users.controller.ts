@@ -20,21 +20,6 @@ export class UsersController {
         return this.usersService.findOne(id);
     }
 
-    @Get('/:id/wins')
-    getWinCount(@Param('id') id: string) {
-        return this.usersService.getWinCount(id);
-    }
-
-    @Get('/:id/losses')
-    getLossCount(@Param('id') id: string) {
-        return this.usersService.getLossCount(id);
-    }
-
-    @Get('/:id/friends')
-    getFriends(@Param('id') id: string) {
-        return this.usersService.getFriends(id);
-    }
-
     @Get('/:id/ownedChannels')
     getOwnedChannels(@Param('id') id: string) {
         return this.usersService.getOwnedChannels(id);

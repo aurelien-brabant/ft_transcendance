@@ -22,34 +22,13 @@ export class MessagesController {
         return this.messagesService.findAll();
     }
 
-    @Get('/channel/:channelId')
-    findAllByChannel(@Param('channelId') channelId: string) {
-        return this.messagesService.findAllByChannel(channelId);
-    }
-
-    @Get('/sender/:senderId')
-    findAllBySender(@Param('senderId') senderId: string) {
-        return this.messagesService.findAllBySender(senderId);
-    }
-
     @Get(':id')
     findOne(@Param('id') id: string) {
         return this.messagesService.findOne(id);
     }
 
-    @Get(':id/sender')
-    getSender(@Param('id') id: string) {
-        return this.messagesService.getSender(id);
-    }
-
-    @Get(':id/channel')
-    getChannel(@Param('id') id: string) {
-        return this.messagesService.getChannel(id);
-    }
-
     @Post()
     create(@Body() createMessageDto: CreateMessageDto) {
-        console.log(createMessageDto instanceof CreateMessageDto);
         return this.messagesService.create(createMessageDto);
     }
 

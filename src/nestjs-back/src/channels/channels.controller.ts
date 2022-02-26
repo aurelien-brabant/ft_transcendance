@@ -22,54 +22,13 @@ export class ChannelsController {
         return this.channelsService.findAll();
     }
 
-    @Get('/owner/:ownerId')
-    findAllByOwner(@Param('ownerId') ownerId: string) {
-        return this.channelsService.findAllByOwner(ownerId);
-    }
-
-    @Get('/public/:isPublic')
-    findAllByPublic(@Param('isPublic') isPublic: boolean) {
-        return this.channelsService.findAllByPublic(isPublic);
-    }
-
-    @Get('/protected/:isProtected')
-    findAllByProtected(@Param('isProtected') isProtected: boolean) {
-        return this.channelsService.findAllByProtected(isProtected);
-    }
-
     @Get(':id')
     findOne(@Param('id') id: string) {
         return this.channelsService.findOne(id);
     }
 
-    @Get('/:id/name')
-    getName(@Param('id') id: string) {
-        return this.channelsService.getName(id);
-    }
-
-    @Get('/:id/owner')
-    getOwner(@Param('id') id: string) {
-        return this.channelsService.getOwner(id);
-    }
-
-    @Get('/:id/users')
-    getUsers(@Param('id') id: string) {
-        return this.channelsService.getUsers(id);
-    }
-
-    @Get('/:id/userCount')
-    getUserCount(@Param('id') id: string) {
-        return this.channelsService.getUserCount(id);
-    }
-
-    @Get('/:id/messages')
-    getMessages(@Param('id') id: string) {
-        return this.channelsService.getMessages(id);
-    }
-
     @Post()
     create(@Body() createChannelDto: CreateChannelDto) {
-        console.log(createChannelDto instanceof CreateChannelDto);
         return this.channelsService.create(createChannelDto);
     }
 
