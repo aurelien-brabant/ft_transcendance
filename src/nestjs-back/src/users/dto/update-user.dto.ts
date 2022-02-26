@@ -12,18 +12,6 @@ export class UpdateUserDto extends PartialType(CreateUserDto) {
     readonly username: string;
 
     @IsOptional()
-    @IsInt()
-    readonly rank: number;
-
-    @IsOptional()
-    @IsInt()
-    readonly win: number;
-
-    @IsOptional()
-    @IsInt()
-    readonly loose: number;
-
-    @IsOptional()
     @IsPhoneNumber()
     readonly phone: string;
 
@@ -36,18 +24,23 @@ export class UpdateUserDto extends PartialType(CreateUserDto) {
     readonly duoquadra_login: string;
 
     @IsOptional()
+    @IsInt()
+    readonly rank: number;
+
+    @IsOptional()
 //    @IsInt({ each: true })
   //  readonly games: number[];
     readonly games: Games [];
 
     @IsOptional()
-//    @IsInt({ each: true })
-//    readonly friends: number [];
-    readonly friends: Users [];
+    readonly wins: Games[];
 
- //   @IsOptional()
-//    @IsInt({ each: true })
-   // readonly winner: Games [];
+    @IsOptional()
+    @IsInt()
+    readonly losses: number;
+
+    @IsOptional()
+    readonly friends: Users[];
 
     @IsOptional()
     readonly ownedChannels: Channels[];

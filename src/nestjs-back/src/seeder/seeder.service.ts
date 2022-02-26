@@ -1,30 +1,11 @@
 import { Injectable } from '@nestjs/common';
-import { getConnection, getRepository } from 'typeorm';
-import { Users } from 'src/users/entities/users.entity';
+import { getConnection } from 'typeorm';
+import { SeedChannels, SeedGames, SeedMessages, SeedUsers } from './seeder';
 import { UsersService } from '../users/users.service';
 import { GamesService } from '../games/games.service';
 import { ChannelsService } from '../channels/channels.service';
 import { MessagesService } from '../messages/messages.service';
 import { faker } from '@faker-js/faker';
-
-type SeedChannels = {
-    id: number;
-    name: string;
-    owner: Users;
-    isPublic: boolean;
-    isProtected: boolean;
-    password: string;
-    users: Users[];
-    messages: SeedMessages[];
-};
-
-type SeedMessages = {
-    id: number;
-    createdAt: Date;
-    content: string;
-    sender: Users;
-    channel: SeedChannels;
-};
 
 @Injectable()
 export class SeederService {
@@ -36,22 +17,24 @@ export class SeederService {
     ) {}
 
     async createFakeUser(username: string) {
-        const user = await this.usersService.seed({
+        let user = await this.usersService.create({
             email: (faker.unique as any)(faker.internet.email),
-            username: username,
             password: faker.internet.password(),
-            rank: faker.datatype.number(),
-            win: faker.datatype.number(),
-            loose: faker.datatype.number(),
+            games: [],
+            friends: []
+        });
+        user = await this.usersService.update(user.id.toString(), {
+            username: username,
             phone: faker.phone.phoneNumber(),
             pic: faker.image.imageUrl(),
             duoquadra_login: username + "_42",
-            games: [],
-            friends: [],
+            rank: faker.datatype.number(),
+            wins: [],
+            losses: faker.datatype.number(),
             ownedChannels: [],
             joinedChannels: [],
             sentMessages: []
-        });
+        } as SeedUsers);
         return user;
     }
 
@@ -68,56 +51,29 @@ export class SeederService {
     async seedFakeUsers() {
         for (let i = 0; i < 100; ++i) {
             let pseudo = faker.internet.userName();
-            const user = await this.usersService.seed({
-                email: (faker.unique as any)(faker.internet.email),
-                username: pseudo,
-                password: faker.internet.password(),
-                rank: faker.datatype.number(),
-                win: faker.datatype.number(),
-                loose: faker.datatype.number(),
-                phone: faker.phone.phoneNumber(),
-                pic: faker.image.imageUrl(),
-                duoquadra_login: pseudo + "_42",
-                games: [],
-                friends: [],
-                ownedChannels: [],
-                joinedChannels: [],
-                sentMessages: []
-            });
+            const user = await this.createFakeUser(pseudo);
 
             console.log("User [%s] => [%s] [%s] created", user.id, user.duoquadra_login, user.email);
         }
     }
 
     async seedFakeGames() {
+        const user = await this.usersService.findOne("12");
+
         for (let i = 0; i < 100; ++i) {
-            //let pseudo = faker.internet.userName();
-            const game = await this.gamesService.seed({
+            let game = await this.gamesService.create({
                 createdAt: faker.datatype.datetime(),
-                players: [],
-                winner: 12,
-                /* winner: {
-                    id: 1,
-                    email: faker.unique(faker.internet.email),
-                    username: pseudo,
-                    password: faker.internet.password(),
-                    rank: faker.datatype.number(),
-                    phone: faker.phone.phoneNumber(),
-                    pic: faker.image.imageUrl(),
-                    duoquadra_login: pseudo + "_42",
-                    games: [],
-                    friends: [],
-                    win: 12,
-                    gameInviteSender: [],
-                    gameInviteReceiver: [],
-                } */
             });
+            game = await this.gamesService.update(game.id.toString(), {
+                players: [],
+                winner: user
+            } as SeedGames);
 
             console.log("Game [%s] created", game.id);
         }
     }
 
-    async seedFakeMessages(dstChannel: SeedChannels, fakeSender: Users) {
+    async seedFakeMessages(dstChannel: SeedChannels, fakeSender: SeedUsers) {
         for (let i = 0; i < 10; ++i) {
             const message = await this.messagesService.create({
                 createdAt: faker.datatype.datetime(),

@@ -23,12 +23,12 @@ export class Messages {
     content: string;
 
     @ManyToOne(() => Users, sender => sender.sentMessages, {
-        onDelete: "CASCADE",
+        onDelete: "CASCADE"
     })
     sender: Users;
 
     @ManyToOne(() => Channels, channel => channel.messages, {
-        onDelete: "CASCADE",
+        onDelete: "CASCADE"
     })
     channel: Channels;
 }
