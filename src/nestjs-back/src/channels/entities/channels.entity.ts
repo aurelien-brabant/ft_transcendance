@@ -24,11 +24,9 @@ export class Channels {
     })
     owner: Users;
 
-    @Column({ default: true })
-    isPublic: boolean;
-
-    @Column({ default: false })
-    isProtected: boolean;
+    /* public, private, protexted */
+    @Column({ default: "public" })
+    visibility: string
 
     @IsOptional()
     @Column({ length: 50, nullable: true })

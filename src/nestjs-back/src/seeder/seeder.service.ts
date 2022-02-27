@@ -93,8 +93,7 @@ export class SeederService {
             const channel = await this.channelsService.create({
                 name: (faker.unique as any)(faker.company.companyName),
                 owner: fakeOwner,
-                isPublic: true,
-                isProtected: false,
+                visibility: "protected",
                 password: faker.internet.password(),
                 users: [fakeOwner],
                 messages: []

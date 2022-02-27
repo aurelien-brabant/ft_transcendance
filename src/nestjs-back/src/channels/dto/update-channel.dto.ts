@@ -1,5 +1,4 @@
 import {
-    IsBoolean,
     IsNotEmpty,
     IsOptional,
     IsString,
@@ -22,12 +21,8 @@ export class UpdateChannelDto {
     readonly owner: Users;
 
     @IsOptional()
-    @IsBoolean()
-    readonly isPublic: boolean;
-
-    @IsOptional()
-    @IsBoolean()
-    readonly isProtected: boolean;
+    @IsString()
+    readonly visibility: string
 
     @IsOptional()
     @IsString()
