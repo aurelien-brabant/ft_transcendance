@@ -1,4 +1,5 @@
 import {
+    IsIn,
     IsNotEmpty,
     IsOptional,
     IsString,
@@ -11,20 +12,21 @@ import { Users } from 'src/users/entities/users.entity';
 export class CreateChannelDto {
     @IsNotEmpty()
     @IsString()
-    @MinLength(2)
     @MaxLength(50)
+    @MinLength(2)
     readonly name: string;
 
     @IsNotEmpty()
     readonly owner: Users;
 
     @IsString()
+    @IsIn(["public", "private", "protected"])
     readonly visibility: string
 
     @IsOptional()
     @IsString()
-    @MinLength(8)
     @MaxLength(50)
+    @MinLength(8)
     readonly password: string;
 
     readonly users: Users[];

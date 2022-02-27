@@ -24,8 +24,8 @@ export class Channels {
     })
     owner: Users;
 
-    /* public, private, protexted */
-    @Column({ default: "public" })
+    /* public, private, protected */
+    @Column({ default: "private" })
     visibility: string
 
     @IsOptional()

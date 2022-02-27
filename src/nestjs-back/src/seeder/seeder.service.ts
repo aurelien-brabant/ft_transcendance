@@ -21,19 +21,19 @@ export class SeederService {
             email: (faker.unique as any)(faker.internet.email),
             password: faker.internet.password(),
             games: [],
-            friends: []
+            wins: [],
+            losses: faker.datatype.number(),
+            friends: [],
+            ownedChannels: [],
+            joinedChannels: [],
+            sentMessages: []
         });
         user = await this.usersService.update(user.id.toString(), {
             username: username,
             phone: faker.phone.phoneNumber(),
             pic: faker.image.imageUrl(),
             duoquadra_login: username + "_42",
-            rank: faker.datatype.number(),
-            wins: [],
-            losses: faker.datatype.number(),
-            ownedChannels: [],
-            joinedChannels: [],
-            sentMessages: []
+            rank: faker.datatype.number()
         } as SeedUsers);
         return user;
     }
