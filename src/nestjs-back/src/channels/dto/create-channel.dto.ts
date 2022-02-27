@@ -27,7 +27,7 @@ export class CreateChannelDto {
     @IsString()
     @MaxLength(50)
     @MinLength(8)
-    readonly password: string;
+    readonly password?: string;
 
     readonly users: Users[];
 
