@@ -1,24 +1,22 @@
+import { PartialType } from '@nestjs/mapped-types';
 import {
     IsDate,
     IsNotEmpty,
-    IsOptional,
     IsString,
     MaxLength
 } from 'class-validator';
+import { CreateMessageDto } from './create-message.dto';
 import { Users } from "src/users/entities/users.entity";
 
-export class UpdateMessageDto {
-    @IsOptional()
+export class UpdateMessageDto extends PartialType(CreateMessageDto) {
     @IsDate()
     readonly createdAt: Date;
 
-    @IsOptional()
     @IsNotEmpty()
     @IsString()
     @MaxLength(640)
     readonly content: string;
 
-    @IsOptional()
     @IsNotEmpty()
     readonly sender: Users;
 }
