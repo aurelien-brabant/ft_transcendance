@@ -2,7 +2,7 @@ import { Controller, Get, Param, Post, Patch, Delete, Body, Query } from '@nestj
 import { GamesService } from './games.service';
 import { CreateGameDto } from './dto/create-game.dto';
 import { UpdateGameDto } from './dto/update-game.dto';
-import { PaginationQueryDto } from 'src/common/dto/pagination-query.dto';
+// import { PaginationQueryDto } from 'src/common/dto/pagination-query.dto';
 
 @Controller('games')
 export class GamesController {

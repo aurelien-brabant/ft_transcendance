@@ -5,10 +5,9 @@ import { CreateGameDto } from './create-game.dto';
 
 export class UpdateGameDto extends PartialType(CreateGameDto) {
     @IsOptional()
-    @IsInt()
-    readonly winner: number;
-//    readonly winner: Users;  
+    readonly players: Users[];
 
     @IsOptional()
-    readonly players: Users[];
+    @IsInt()
+    readonly winner: Users;
 }

@@ -1,15 +1,14 @@
 import { Injectable, NotFoundException } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
-import { Users } from './entities/users.entity';
 import { Repository } from 'typeorm';
+import { Users } from './entities/users.entity';
+import { CreateDuoQuadraDto } from './dto/create-duoquadra.dto';
 import { CreateUserDto } from './dto/create-user.dto';
 import { UpdateUserDto } from './dto/update-user.dto';
-import { SeedUserDto } from './dto/seed-user.dto';
 import { hash as hashPassword } from 'bcrypt';
-import { CreateDuoQuadraDto } from './dto/create-duoquadra.dto';
 import { prefixWithRandomAdjective } from 'src/utils/prefixWithRandomAdjective';
 import { PaginationQueryDto } from 'src/common/dto/pagination-query.dto';
-import {downloadResource} from 'src/utils/download';
+import { downloadResource } from 'src/utils/download';
 import { join } from 'path';
 import { readFileSync } from 'fs';
 import { faker } from '@faker-js/faker';
@@ -50,6 +49,42 @@ export class UsersService {
         });
         if (!user) throw new NotFoundException(`User [${id}] not found`);
         return user;
+    }
+
+    async getOwnedChannels(id: string) {
+        const user = await this.usersRepository
+            .createQueryBuilder("user")
+            .innerJoinAndSelect("user.ownedChannels", "channel")
+            .where("user.id = :id", { id: id })
+            .getOne();
+
+        if (!user)
+            throw new NotFoundException(`User [${id}] not found`);
+        return user.ownedChannels;
+    }
+
+    async getJoinedChannels(id: string) {
+        const user = await this.usersRepository
+            .createQueryBuilder("user")
+            .innerJoinAndSelect("user.joinedChannels", "channel")
+            .where("user.id = :id", { id: id })
+            .getOne();
+
+        if (!user)
+            throw new NotFoundException(`User [${id}] not found`);
+        return user.joinedChannels;
+    }
+
+    async getSentMessages(id: string) {
+        const user = await this.usersRepository
+            .createQueryBuilder("user")
+            .innerJoinAndSelect("user.sentMessages", "message")
+            .where("user.id = :id", { id: id })
+            .getOne();
+
+        if (!user)
+            throw new NotFoundException(`User [${id}] not found`);
+        return user.sentMessages;
     }
 
     async createDuoQuadra({
@@ -156,11 +191,4 @@ export class UsersService {
     }
 
   */
-    async seed(seedUserDto: SeedUserDto) {
-        const user = this.usersRepository.create({
-            ...seedUserDto,
-        });
-
-        return this.usersRepository.save(user);
-    }
 }

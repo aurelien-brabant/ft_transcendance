@@ -14,12 +14,27 @@ export class UsersController {
     findAll(@Query() paginationQuery: PaginationQueryDto) {
         return this.usersService.findAll(paginationQuery);
     }
-    
+
     @Get(':id')
     findOne(@Param('id') id: string) {
         return this.usersService.findOne(id);
     }
-    
+
+    @Get('/:id/ownedChannels')
+    getOwnedChannels(@Param('id') id: string) {
+        return this.usersService.getOwnedChannels(id);
+    }
+
+    @Get('/:id/joinedChannels')
+    getJoinedChannels(@Param('id') id: string) {
+        return this.usersService.getJoinedChannels(id);
+    }
+
+    @Get('/:id/messages')
+    getSentMessages(@Param('id') id: string) {
+        return this.usersService.getSentMessages(id);
+    }
+
     @Post()
     async create(@Body() createUserDto: CreateUserDto) {
         const createdUser = await this.usersService.create(createUserDto);
