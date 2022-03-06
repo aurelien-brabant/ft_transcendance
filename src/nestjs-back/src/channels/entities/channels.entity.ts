@@ -29,7 +29,7 @@ export class Channel {
     visibility: string
 
     @IsOptional()
-    @Column({ length: 50, nullable: true })
+    @Column({ select: false, length: 50, nullable: true })
     password: string;
 
     @ManyToMany(() => User, user => user.joinedChannels)
