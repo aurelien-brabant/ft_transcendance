@@ -6,7 +6,6 @@ import {
 } from 'class-validator';
 import { Channel } from 'src/channels/entities/channels.entity';
 import { Game } from 'src/games/entities/games.entity';
-import { Message } from 'src/messages/entities/messages.entity';
 import { User } from '../entities/users.entity';
 
 export class CreateUserDto {
@@ -39,7 +38,4 @@ export class CreateUserDto {
 
     @IsOptional()
     readonly joinedChannels: Channel[];
-
-    @IsOptional()
-    readonly sentMessages: Message[];
 }

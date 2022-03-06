@@ -25,8 +25,7 @@ export class SeederService {
             losses: faker.datatype.number(),
             friends: [],
             ownedChannels: [],
-            joinedChannels: [],
-            sentMessages: []
+            joinedChannels: []
         });
         user = await this.usersService.update(user.id.toString(), {
             username: username,

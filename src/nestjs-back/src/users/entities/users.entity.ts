@@ -9,7 +9,6 @@ import {
 import { Channel } from 'src/channels/entities/channels.entity';
 import { Game } from "src/games/entities/games.entity";
 //import { GamesInvite } from "src/gamesInvites/entities/gamesInvites.entity";
-import { Message } from 'src/messages/entities/messages.entity';
 
 @Entity()
 export class User {
@@ -86,9 +85,4 @@ export class User {
 
     @ManyToMany(() => Channel, joinedChannels => joinedChannels.users)
     joinedChannels: Channel[];
-
-    @OneToMany(() => Message, message => message.sender, {
-        cascade: true,
-    })
-    sentMessages: Message[];
 }

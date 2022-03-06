@@ -15,7 +15,6 @@ export type SeedUser = {
     friends: SeedUser[];
     ownedChannels: SeedChannel[];
     joinedChannels: SeedChannel[];
-    sentMessages: SeedMessage[];
 };
 
 /* GAMES */
