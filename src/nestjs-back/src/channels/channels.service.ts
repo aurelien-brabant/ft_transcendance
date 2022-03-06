@@ -13,11 +13,15 @@ export class ChannelsService {
     ) {}
 
     findAll() {
-        return this.channelsRepository.find();
+        return this.channelsRepository.find({
+            relations: ['owner']
+        });
     }
 
     async findOne(id: string) {
-        const channel =  await this.channelsRepository.findOne(id);
+        const channel =  await this.channelsRepository.findOne(id, {
+            relations: ['owner']
+        });
         if (!channel)
             throw new NotFoundException(`Channel [${id}] not found`);
         return channel;

@@ -13,11 +13,15 @@ export class MessagesService {
     ) {}
 
     findAll() {
-        return this.messagesRepository.find();
+        return this.messagesRepository.find({
+            relations: ['sender', 'channel']
+        });
     }
 
     async findOne(id: string) {
-        const message =  await this.messagesRepository.findOne(id);
+        const message =  await this.messagesRepository.findOne(id, {
+            relations: ['sender', 'channel']
+        });
         if (!message)
             throw new NotFoundException(`Message [${id}] not found`);
         return message;
