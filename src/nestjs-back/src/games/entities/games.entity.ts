@@ -1,20 +1,21 @@
+import {
+    Column,
+    Entity,
+    JoinTable,
+    ManyToMany,
+    ManyToOne,
+    PrimaryGeneratedColumn
+} from "typeorm";
 import { IsOptional } from "class-validator";
 import { Users } from "src/users/entities/users.entity";
-import { Column, Entity, ManyToMany, PrimaryGeneratedColumn } from "typeorm";
 
 @Entity()
 export class Games {
     @PrimaryGeneratedColumn()
     id: number;
 
+    /*
     @IsOptional()
-    @ManyToMany(
-        type => Users,
-        user => user.games,
-    )
-    players: Users[];
-
-/*    @IsOptional()
     @ManyToMany(
         type => Users,
         user => user.gamesInviteSender
@@ -27,17 +28,20 @@ export class Games {
         user => user.gamesInviteReceiver
     )
     gameInviteReceiver: Users;
+    */
 
-    @IsOptional()
-    @OneToMany(
-        type => Users,
-        user => user.win
+    @ManyToMany(
+        () => Users,
+        player => player.games
     )
-    winner: Users;*/
+    @JoinTable()
+    players: Users[];
 
     @IsOptional()
-    @Column( {nullable: true} )
-    winner: number;
+    @ManyToOne(() => Users, user => user.wins, {
+        onDelete: "CASCADE"
+    })
+    winner: Users;
 
     @Column({
         type: 'date',

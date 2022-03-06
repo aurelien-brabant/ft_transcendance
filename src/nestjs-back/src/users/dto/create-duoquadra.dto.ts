@@ -1,4 +1,10 @@
-import {IsEmail, IsOptional, IsPhoneNumber, IsString, IsUrl} from "class-validator";
+import {
+    IsEmail,
+    IsOptional,
+    IsPhoneNumber,
+    IsString,
+    IsUrl
+} from "class-validator";
 
 /**
  * NOTE: as of now this DTO is not used in its quality of DTO, but more as a standard typescript type.

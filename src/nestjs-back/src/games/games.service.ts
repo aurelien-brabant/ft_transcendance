@@ -1,11 +1,10 @@
 import { Injectable, NotFoundException } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
-import { PaginationQueryDto } from 'src/common/dto/pagination-query.dto';
+// import { PaginationQueryDto } from 'src/common/dto/pagination-query.dto';
 import { Repository } from 'typeorm';
-import { CreateGameDto } from './dto/create-game.dto';
-import { SeedGameDto } from './dto/seed-game.dto';
-import { UpdateGameDto } from './dto/update-game.dto';
 import { Games } from './entities/games.entity';
+import { CreateGameDto } from './dto/create-game.dto';
+import { UpdateGameDto } from './dto/update-game.dto';
 
 @Injectable()
 export class GamesService {
@@ -39,7 +38,7 @@ export class GamesService {
         const game = this.gamesRepository.create(createGameDto);
         return this.gamesRepository.save(game);
     }
- 
+
     async update(id: string, updateGameDto: UpdateGameDto) { 
         const game = await this.gamesRepository.preload({
             id: +id,
@@ -49,15 +48,9 @@ export class GamesService {
             throw new NotFoundException(`Cannot update game[${id}]: Not found`);
         return this.gamesRepository.save(game);
     }
-   
+
     async remove(id: string) { 
         const game = await this.findOne(id);
         return this.gamesRepository.remove(game);
     }
-
-    seed(seedGameDto: SeedGameDto) {
-        const game = this.gamesRepository.create(seedGameDto);
-        return this.gamesRepository.save(game);
-    }
-
 }
