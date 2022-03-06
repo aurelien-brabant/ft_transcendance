@@ -6,8 +6,8 @@ import {
     MaxLength,
     MinLength
 } from 'class-validator';
-import { Messages } from 'src/messages/entities/messages.entity';
-import { Users } from 'src/users/entities/users.entity';
+import { Message } from 'src/messages/entities/messages.entity';
+import { User } from 'src/users/entities/users.entity';
 
 export class CreateChannelDto {
     @IsNotEmpty()
@@ -17,7 +17,7 @@ export class CreateChannelDto {
     readonly name: string;
 
     @IsNotEmpty()
-    readonly owner: Users;
+    readonly owner: User;
 
     @IsString()
     @IsIn(["public", "private", "protected"])
@@ -29,8 +29,8 @@ export class CreateChannelDto {
     @MinLength(8)
     readonly password?: string;
 
-    readonly users: Users[];
+    readonly users: User[];
 
     @IsOptional()
-    readonly messages: Messages[];
+    readonly messages: Message[];
 }

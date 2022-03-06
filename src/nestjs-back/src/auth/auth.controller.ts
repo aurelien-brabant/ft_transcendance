@@ -1,6 +1,6 @@
 import { Request, Body, UseGuards, Post, Controller, Get, UnauthorizedException, NotFoundException } from '@nestjs/common';
 import { AuthGuard } from '@nestjs/passport';
-import {AuthService} from './auth.service';
+import { AuthService } from './auth.service';
 import { JwtAuthGuard } from './jwt-auth.guard';
 import { Login42Dto } from './dto/login-42.dto';
 import { UsersService } from '../users/users.service';

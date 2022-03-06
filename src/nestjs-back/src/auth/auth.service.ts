@@ -1,8 +1,8 @@
 import { Injectable } from '@nestjs/common';
-import {UsersService} from 'src/users/users.service';
 import { compare as comparePassword } from 'bcrypt';
-import {Users} from 'src/users/entities/users.entity';
-import {JwtService} from '@nestjs/jwt';
+import { User } from 'src/users/entities/users.entity';
+import { UsersService } from 'src/users/users.service';
+import { JwtService } from '@nestjs/jwt';
 import fetch from 'node-fetch';
 import * as FormData from 'form-data';
 
@@ -21,7 +21,7 @@ export class AuthService {
     return null;
   };
 
-  async generateJWT(user: Users) {
+  async generateJWT(user: User) {
     const payload = { sub: user.id };
 
     return {

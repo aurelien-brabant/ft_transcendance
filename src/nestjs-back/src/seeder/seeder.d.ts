@@ -1,6 +1,6 @@
 /* USERS */
 
-export type SeedUsers = {
+export type SeedUser = {
     id: number;
     username: string;
     password: string;
@@ -9,42 +9,42 @@ export type SeedUsers = {
     pic: string;
     duoquadra_login: string;
     rank: number;
-    games: SeedGames[];
-    wins: SeedGames[];
+    games: SeedGame[];
+    wins: SeedGame[];
     losses: number;
-    friends: SeedUsers[];
-    ownedChannels: SeedChannels[];
-    joinedChannels: SeedChannels[];
-    sentMessages: SeedMessages[];
+    friends: SeedUser[];
+    ownedChannels: SeedChannel[];
+    joinedChannels: SeedChannel[];
+    sentMessages: SeedMessage[];
 };
 
 /* GAMES */
 
-export type SeedGames = {
+export type SeedGame = {
     id: number;
-    players: SeedUsers[];
-    winner: SeedUsers;
+    players: SeedUser[];
+    winner: SeedUser;
     createdAt: Date;
 };
 
 /* CHANNELS */
 
-export type SeedChannels = {
+export type SeedChannel = {
     id: number;
     name: string;
-    owner: SeedUsers;
+    owner: SeedUser;
     visibility: string
     password: string;
-    users: SeedUsers[];
-    messages: SeedMessages[];
+    users: SeedUser[];
+    messages: SeedMessage[];
 };
 
 /* MESSAGES */
 
-export type SeedMessages = {
+export type SeedMessage = {
     id: number;
     createdAt: Date;
     content: string;
-    sender: SeedUsers;
-    channel: SeedChannels;
+    sender: SeedUser;
+    channel: SeedChannel;
 };

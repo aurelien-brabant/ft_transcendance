@@ -4,8 +4,8 @@ import {
     IsString,
     MaxLength
 } from 'class-validator';
-import { Channels } from "src/channels/entities/channels.entity";
-import { Users } from "src/users/entities/users.entity";
+import { Channel } from "src/channels/entities/channels.entity";
+import { User } from "src/users/entities/users.entity";
 
 export class CreateMessageDto {
     @IsNotEmpty()
@@ -18,8 +18,8 @@ export class CreateMessageDto {
     readonly content: string;
 
     @IsNotEmpty()
-    readonly sender: Users;
+    readonly sender: User;
 
     @IsNotEmpty()
-    readonly channel: Channels;
+    readonly channel: Channel;
 }

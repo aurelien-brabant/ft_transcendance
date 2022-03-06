@@ -1,15 +1,15 @@
 import { Injectable, NotFoundException } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Repository } from 'typeorm';
-import { Channels } from './entities/channels.entity';
+import { Channel } from './entities/channels.entity';
 import { CreateChannelDto } from './dto/create-channel.dto';
 import { UpdateChannelDto } from './dto/update-channel.dto';
 
 @Injectable()
 export class ChannelsService {
     constructor(
-        @InjectRepository(Channels)
-        private readonly channelsRepository: Repository<Channels>,
+        @InjectRepository(Channel)
+        private readonly channelsRepository: Repository<Channel>,
     ) {}
 
     findAll() {

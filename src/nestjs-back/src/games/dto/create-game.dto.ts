@@ -1,5 +1,5 @@
 import { IsDate, IsOptional } from 'class-validator';
-// import { Users } from 'src/users/entities/users.entity';
+// import { User } from 'src/users/entities/users.entity';
 
 export class CreateGameDto {
     @IsOptional()
@@ -8,9 +8,9 @@ export class CreateGameDto {
 
     /*
     @IsOptional()
-    readonly gameInviteSender: Users;
+    readonly gameInviteSender: User;
 
     @IsOptional()
-    readonly gameInviteReceiver: Users;
+    readonly gameInviteReceiver: User;
     */
 }

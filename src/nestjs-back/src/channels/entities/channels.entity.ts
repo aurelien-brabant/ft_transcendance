@@ -8,21 +8,21 @@ import {
     PrimaryGeneratedColumn
 } from "typeorm";
 import { IsOptional } from "class-validator";
-import { Messages } from 'src/messages/entities/messages.entity';
-import { Users } from "src/users/entities/users.entity";
+import { Message } from 'src/messages/entities/messages.entity';
+import { User } from "src/users/entities/users.entity";
 
 @Entity()
-export class Channels {
+export class Channel {
     @PrimaryGeneratedColumn()
     id: number;
 
     @Column({ length: 50, unique: true })
     name: string;
 
-    @ManyToOne(() => Users, owner => owner.ownedChannels, {
+    @ManyToOne(() => User, owner => owner.ownedChannels, {
         onDelete: "CASCADE"
     })
-    owner: Users;
+    owner: User;
 
     /* public, private, protected */
     @Column({ default: "private" })
@@ -32,12 +32,12 @@ export class Channels {
     @Column({ length: 50, nullable: true })
     password: string;
 
-    @ManyToMany(() => Users, user => user.joinedChannels)
+    @ManyToMany(() => User, user => user.joinedChannels)
     @JoinTable()
-    users: Users[];
+    users: User[];
 
-    @OneToMany(() => Messages, message => message.channel, {
+    @OneToMany(() => Message, message => message.channel, {
         cascade: true
     })
-    messages: Messages[];
+    messages: Message[];
 }

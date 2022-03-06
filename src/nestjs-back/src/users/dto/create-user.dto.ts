@@ -4,10 +4,10 @@ import {
   IsOptional,
   IsString
 } from 'class-validator';
-import { Channels } from 'src/channels/entities/channels.entity';
-import { Games } from 'src/games/entities/games.entity';
-import { Messages } from 'src/messages/entities/messages.entity';
-import { Users } from '../entities/users.entity';
+import { Channel } from 'src/channels/entities/channels.entity';
+import { Game } from 'src/games/entities/games.entity';
+import { Message } from 'src/messages/entities/messages.entity';
+import { User } from '../entities/users.entity';
 
 export class CreateUserDto {
     @IsOptional()
@@ -20,10 +20,10 @@ export class CreateUserDto {
     @IsOptional()
     //    @IsInt({ each: true })
       //  readonly games: number[];
-    readonly games: Games[];
+    readonly games: Game[];
 
     @IsOptional()
-    readonly wins: Games[];
+    readonly wins: Game[];
 
     @IsOptional()
     @IsInt()
@@ -31,15 +31,15 @@ export class CreateUserDto {
 
     @IsOptional()
     //    @IsInt({ each: true })
-    //    readonly friends: number [];
-    readonly friends: Users[];
+    //    readonly friends: number[];
+    readonly friends: User[];
 
     @IsOptional()
-    readonly ownedChannels: Channels[];
+    readonly ownedChannels: Channel[];
 
     @IsOptional()
-    readonly joinedChannels: Channels[];
+    readonly joinedChannels: Channel[];
 
     @IsOptional()
-    readonly sentMessages: Messages[];
+    readonly sentMessages: Message[];
 }

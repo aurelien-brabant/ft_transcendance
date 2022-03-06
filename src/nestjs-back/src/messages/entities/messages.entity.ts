@@ -5,11 +5,11 @@ import {
     ManyToOne,
     PrimaryGeneratedColumn
 } from "typeorm";
-import { Channels } from "src/channels/entities/channels.entity";
-import { Users } from "src/users/entities/users.entity";
+import { Channel } from "src/channels/entities/channels.entity";
+import { User } from "src/users/entities/users.entity";
 
 @Entity()
-export class Messages {
+export class Message {
     @PrimaryGeneratedColumn()
     id: number;
 
@@ -22,13 +22,13 @@ export class Messages {
     @Column({ length: 640 })
     content: string;
 
-    @ManyToOne(() => Users, sender => sender.sentMessages, {
+    @ManyToOne(() => User, sender => sender.sentMessages, {
         onDelete: "CASCADE"
     })
-    sender: Users;
+    sender: User;
 
-    @ManyToOne(() => Channels, channel => channel.messages, {
+    @ManyToOne(() => Channel, channel => channel.messages, {
         onDelete: "CASCADE"
     })
-    channel: Channels;
+    channel: Channel;
 }

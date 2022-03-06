@@ -7,10 +7,10 @@ import {
     PrimaryGeneratedColumn
 } from "typeorm";
 import { IsOptional } from "class-validator";
-import { Users } from "src/users/entities/users.entity";
+import { User } from "src/users/entities/users.entity";
 
 @Entity()
-export class Games {
+export class Game {
     @PrimaryGeneratedColumn()
     id: number;
 
@@ -31,17 +31,17 @@ export class Games {
     */
 
     @ManyToMany(
-        () => Users,
+        () => User,
         player => player.games
     )
     @JoinTable()
-    players: Users[];
+    players: User[];
 
     @IsOptional()
-    @ManyToOne(() => Users, user => user.wins, {
+    @ManyToOne(() => User, user => user.wins, {
         onDelete: "CASCADE"
     })
-    winner: Users;
+    winner: User;
 
     @Column({
         type: 'date',
