@@ -1,23 +1,27 @@
 import { Injectable, NotFoundException } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Repository } from 'typeorm';
-import { Messages } from './entities/messages.entity';
+import { Message } from './entities/messages.entity';
 import { CreateMessageDto } from './dto/create-message.dto';
 import { UpdateMessageDto } from './dto/update-message.dto';
 
 @Injectable()
 export class MessagesService {
     constructor(
-        @InjectRepository(Messages)
-        private readonly messagesRepository: Repository<Messages>,
+        @InjectRepository(Message)
+        private readonly messagesRepository: Repository<Message>,
     ) {}
 
     findAll() {
-        return this.messagesRepository.find();
+        return this.messagesRepository.find({
+            relations: ['sender', 'channel']
+        });
     }
 
     async findOne(id: string) {
-        const message =  await this.messagesRepository.findOne(id);
+        const message =  await this.messagesRepository.findOne(id, {
+            relations: ['sender', 'channel']
+        });
         if (!message)
             throw new NotFoundException(`Message [${id}] not found`);
         return message;

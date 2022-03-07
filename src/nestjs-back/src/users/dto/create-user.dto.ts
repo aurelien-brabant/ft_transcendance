@@ -4,10 +4,9 @@ import {
   IsOptional,
   IsString
 } from 'class-validator';
-import { Channels } from 'src/channels/entities/channels.entity';
-import { Games } from 'src/games/entities/games.entity';
-import { Messages } from 'src/messages/entities/messages.entity';
-import { Users } from '../entities/users.entity';
+import { Channel } from 'src/channels/entities/channels.entity';
+import { Game } from 'src/games/entities/games.entity';
+import { User } from '../entities/users.entity';
 
 export class CreateUserDto {
     @IsOptional()
@@ -18,24 +17,21 @@ export class CreateUserDto {
     readonly email: string;
 
     @IsOptional()
-    readonly games: Games[];
+    readonly games: Game[];
 
     @IsOptional()
-    readonly wins: Games[];
+    readonly wins: Game[];
 
     @IsOptional()
     @IsInt()
     readonly losses: number;
 
     @IsOptional()
-    readonly friends: Users[];
+    readonly friends: User[];
 
     @IsOptional()
-    readonly ownedChannels: Channels[];
+    readonly ownedChannels: Channel[];
 
     @IsOptional()
-    readonly joinedChannels: Channels[];
-
-    @IsOptional()
-    readonly sentMessages: Messages[];
+    readonly joinedChannels: Channel[];
 }

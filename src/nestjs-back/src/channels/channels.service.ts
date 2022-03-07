@@ -1,23 +1,27 @@
 import { Injectable, NotFoundException } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Repository } from 'typeorm';
-import { Channels } from './entities/channels.entity';
+import { Channel } from './entities/channels.entity';
 import { CreateChannelDto } from './dto/create-channel.dto';
 import { UpdateChannelDto } from './dto/update-channel.dto';
 
 @Injectable()
 export class ChannelsService {
     constructor(
-        @InjectRepository(Channels)
-        private readonly channelsRepository: Repository<Channels>,
+        @InjectRepository(Channel)
+        private readonly channelsRepository: Repository<Channel>,
     ) {}
 
     findAll() {
-        return this.channelsRepository.find();
+        return this.channelsRepository.find({
+            relations: ['owner']
+        });
     }
 
     async findOne(id: string) {
-        const channel =  await this.channelsRepository.findOne(id);
+        const channel =  await this.channelsRepository.findOne(id, {
+            relations: ['owner']
+        });
         if (!channel)
             throw new NotFoundException(`Channel [${id}] not found`);
         return channel;

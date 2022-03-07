@@ -3,14 +3,14 @@ import { InjectRepository } from '@nestjs/typeorm';
 import { Repository } from 'typeorm';
 import { CreateGameInviteDto } from './dto/create-gameInvite.dto';
 import { UpdateGameInviteDto } from './dto/update-gameInvite.dto';
-import { GamesInvites } from './entities/gamesInvites.entity';
+import { GamesInvite } from './entities/gamesInvites.entity';
 
 @Injectable()
 export class GamesInvitesService {
 
     constructor(
-        @InjectRepository(GamesInvites)
-        private readonly gamesInvitesRepository: Repository<GamesInvites>,
+        @InjectRepository(GamesInvite)
+        private readonly gamesInvitesRepository: Repository<GamesInvite>,
     ) {}
 
     findAll() {

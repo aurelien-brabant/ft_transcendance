@@ -1,7 +1,7 @@
 import { Injectable, NotFoundException } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Repository } from 'typeorm';
-import { Users } from './entities/users.entity';
+import { User } from './entities/users.entity';
 import { CreateDuoQuadraDto } from './dto/create-duoquadra.dto';
 import { CreateUserDto } from './dto/create-user.dto';
 import { UpdateUserDto } from './dto/update-user.dto';
@@ -16,10 +16,10 @@ import { faker } from '@faker-js/faker';
 @Injectable()
 export class UsersService {
     constructor(
-        @InjectRepository(Users)
-        private readonly usersRepository: Repository<Users>,
-    //    @InjectRepository(Games)
-        //private readonly gamesRepository: Repository<Games>,
+        @InjectRepository(User)
+        private readonly usersRepository: Repository<User>,
+    //    @InjectRepository(Game)
+        //private readonly gamesRepository: Repository<Game>,
     ) {}
 
     findAll(paginationQuery: PaginationQueryDto) {
@@ -31,13 +31,13 @@ export class UsersService {
         });
     }
 
-    async findOneByEmail(email: string): Promise<Users> | null {
+    async findOneByEmail(email: string): Promise<User> | null {
         const user = await this.usersRepository.findOne({ email });
 
         return user;
     }
 
-    async findOneByDuoQuadraLogin(login: string): Promise<Users> | null {
+    async findOneByDuoQuadraLogin(login: string): Promise<User> | null {
         return this.usersRepository.findOne({
             duoquadra_login: login,
         });
@@ -75,30 +75,18 @@ export class UsersService {
         return user.joinedChannels;
     }
 
-    async getSentMessages(id: string) {
-        const user = await this.usersRepository
-            .createQueryBuilder("user")
-            .innerJoinAndSelect("user.sentMessages", "message")
-            .where("user.id = :id", { id: id })
-            .getOne();
-
-        if (!user)
-            throw new NotFoundException(`User [${id}] not found`);
-        return user.sentMessages;
-    }
-
     async createDuoQuadra({
         email,
         phone,
         imageUrl,
         login,
-    }: CreateDuoQuadraDto, ftBearer: string): Promise<Users> {
+    }: CreateDuoQuadraDto, ftBearer: string): Promise<User> {
         // we need to generate an username for the duoquadra. However, we can't guarantee that another user
         // isn't using the duoquadra's login as username currently. Thus we need to check for that possiblity and
         // generate a random prefix in case the login is already taken.
 
         let actualLogin = login;
-        let u: Users | null = null;
+        let u: User | null = null;
 
         do {
             actualLogin = prefixWithRandomAdjective(login, 50);
@@ -125,7 +113,7 @@ export class UsersService {
           createUserDto.games.map(name => this.preloadGameByName(name)),
         );
 */
-        let u: Users | null = null;
+        let u: User | null = null;
 
         u = await this.usersRepository.findOne({
             email: createUserDto.email,
@@ -183,7 +171,7 @@ export class UsersService {
         return this.usersRepository.remove(user);
     }
 /*
-    private async preloadGameByName(name: string): Promise<Games> {
+    private async preloadGameByName(name: string): Promise<Game> {
         const existingGame = await this.gamesRepository.findOne({ name });
         if (existingGame)
             return existingGame;

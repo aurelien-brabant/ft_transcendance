@@ -6,20 +6,19 @@ import {
     OneToMany,
     PrimaryGeneratedColumn
 } from "typeorm";
-import { Channels } from 'src/channels/entities/channels.entity';
-import { Games } from "src/games/entities/games.entity";
-//import { GamesInvites } from "src/gamesInvites/entities/gamesInvites.entity";
-import { Messages } from 'src/messages/entities/messages.entity';
+import { Channel } from 'src/channels/entities/channels.entity';
+import { Game } from "src/games/entities/games.entity";
+//import { GamesInvite } from "src/gamesInvites/entities/gamesInvites.entity";
 
 @Entity()
-export class Users {
+export class User {
     @PrimaryGeneratedColumn()
     id: number;
 
     @Column({ unique: true })
     username: string;
 
-    @Column({ nullable: true })
+    @Column({ select: false, nullable: true })
     password: string;
 
     @Column({ unique: true })
@@ -41,46 +40,41 @@ export class Users {
     @Column({ nullable: true })
     rank: number;
 
-    @ManyToMany(() => Games, games => games.players)
-    games: Games[];
+    @ManyToMany(() => Game, game => game.players)
+    games: Game[];
 
-    @OneToMany(() => Games, game => game.winner, {
+    @OneToMany(() => Game, game => game.winner, {
         cascade: true,
     })
-    wins: Games[];
+    wins: Game[];
 
     @Column({ default: 0 })
     losses: number;
 
-    @ManyToMany(() => Users)
+    @ManyToMany(() => User)
     @JoinTable()
-    friends: Users[];
+    friends: User[];
 
 /*    @JoinTable()
     @ManyToMany(
-        type => GamesInvites,
-        (invites) => invites.sender,
+        type => GamesInvite,
+        (invite) => invite.sender,
     )
-    gamesInviteSender: GamesInvites[];
+    gamesInviteSender: GamesInvite[];
 
     @JoinTable()
     @ManyToMany(
-        type => GamesInvites,
-        (invites) => invites.receiver,
+        type => GamesInvite,
+        (invite) => invite.receiver,
     )
-    gamesInviteReceiver: GamesInvites[];
+    gamesInviteReceiver: GamesInvite[];
     */
 
-    @OneToMany(() => Channels, channel => channel.owner, {
+    @OneToMany(() => Channel, channel => channel.owner, {
         cascade: true,
     })
-    ownedChannels: Channels[];
+    ownedChannels: Channel[];
 
-    @ManyToMany(() => Channels, joinedChannels => joinedChannels.users)
-    joinedChannels: Channels[];
-
-    @OneToMany(() => Messages, message => message.sender, {
-        cascade: true,
-    })
-    sentMessages: Messages[];
+    @ManyToMany(() => Channel, joinedChannels => joinedChannels.users)
+    joinedChannels: Channel[];
 }

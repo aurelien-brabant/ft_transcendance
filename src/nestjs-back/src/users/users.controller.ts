@@ -30,11 +30,6 @@ export class UsersController {
         return this.usersService.getJoinedChannels(id);
     }
 
-    @Get('/:id/messages')
-    getSentMessages(@Param('id') id: string) {
-        return this.usersService.getSentMessages(id);
-    }
-
     @Post()
     async create(@Body() createUserDto: CreateUserDto) {
         const createdUser = await this.usersService.create(createUserDto);

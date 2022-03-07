@@ -1,6 +1,6 @@
 import { Injectable } from '@nestjs/common';
 import { getConnection } from 'typeorm';
-import { SeedChannels, SeedGames, SeedMessages, SeedUsers } from './seeder';
+import { SeedChannel, SeedGame, SeedMessage, SeedUser } from './seeder';
 import { UsersService } from '../users/users.service';
 import { GamesService } from '../games/games.service';
 import { ChannelsService } from '../channels/channels.service';
@@ -25,8 +25,7 @@ export class SeederService {
             losses: faker.datatype.number(),
             friends: [],
             ownedChannels: [],
-            joinedChannels: [],
-            sentMessages: []
+            joinedChannels: []
         });
         user = await this.usersService.update(user.id.toString(), {
             username: username,
@@ -34,7 +33,7 @@ export class SeederService {
             pic: faker.image.imageUrl(),
             duoquadra_login: username + "_42",
             rank: faker.datatype.number()
-        } as SeedUsers);
+        } as SeedUser);
         return user;
     }
 
@@ -67,20 +66,20 @@ export class SeederService {
             game = await this.gamesService.update(game.id.toString(), {
                 players: [],
                 winner: user
-            } as SeedGames);
+            } as SeedGame);
 
             console.log("Game [%s] created", game.id);
         }
     }
 
-    async seedFakeMessages(dstChannel: SeedChannels, fakeSender: SeedUsers) {
+    async seedFakeMessages(dstChannel: SeedChannel, fakeSender: SeedUser) {
         for (let i = 0; i < 10; ++i) {
             const message = await this.messagesService.create({
                 createdAt: faker.datatype.datetime(),
                 content: faker.lorem.sentence(5),
                 sender: fakeSender,
                 channel: dstChannel
-            } as SeedMessages);
+            } as SeedMessage);
 
             console.log("Message [%s] => ['%s'] sent by User [%s]", message.id, message.content, message.sender.id);
         }
@@ -97,7 +96,7 @@ export class SeederService {
                 password: faker.internet.password(),
                 users: [fakeOwner],
                 messages: []
-            } as SeedChannels);
+            } as SeedChannel);
 
             console.log('[+] Seeding fake messages in channel [%s]...', channel.id);
             await this.seedFakeMessages(channel, fakeOwner);

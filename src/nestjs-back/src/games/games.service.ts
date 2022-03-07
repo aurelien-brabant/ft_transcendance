@@ -2,7 +2,7 @@ import { Injectable, NotFoundException } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 // import { PaginationQueryDto } from 'src/common/dto/pagination-query.dto';
 import { Repository } from 'typeorm';
-import { Games } from './entities/games.entity';
+import { Game } from './entities/games.entity';
 import { CreateGameDto } from './dto/create-game.dto';
 import { UpdateGameDto } from './dto/update-game.dto';
 
@@ -10,8 +10,8 @@ import { UpdateGameDto } from './dto/update-game.dto';
 export class GamesService {
 
     constructor(
-        @InjectRepository(Games)
-        private readonly gamesRepository: Repository<Games>,
+        @InjectRepository(Game)
+        private readonly gamesRepository: Repository<Game>,
     ) {}
 
 /*    findAll(paginationQuery: PaginationQueryDto) {
