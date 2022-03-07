@@ -6,8 +6,9 @@ import { useState } from "react";
 import isEmail from "validator/lib/isEmail";
 import isMobilePhone from "validator/lib/isMobilePhone";
 import {NextPageWithLayout} from './_app';
-//import withAuth from '../components/hoc/withAuth';
 import authContext, {AuthContextType} from '../context/auth/authContext';
+import { FaCheckCircle } from 'react-icons/fa';
+import { MdError } from 'react-icons/md'
 
 const labelClassName = "grow uppercase text-neutral-400";
 const inputClassName =
@@ -52,14 +53,15 @@ const baseObject: FormData = {
 
 const Welcome: NextPageWithLayout = () => {
   const { getUserData, mergeUserData } = useContext(authContext) as AuthContextType;
+  const [editStatus, setEditStatus] = useState("pending");
+  const [invalidInputs, setInvalidInputs] = useState<InvalidInputs>({});
+
   const [formData, setFormData] = useState<FormData>({
     username: getUserData().username,
     email: getUserData().email,
     phone: getUserData().phone ? getUserData().phone : null,
     tfa: false
   });
-
-  const [invalidInputs, setInvalidInputs] = useState<InvalidInputs>({});
 
   useEffect(() => {
     console.log(getUserData());
@@ -77,6 +79,7 @@ const Welcome: NextPageWithLayout = () => {
       ...formData,
       [e.target.name]: e.target.value,
     });
+    setEditStatus("pending")
   };
 
   const editUser = async (formData: FormData) => {
@@ -92,8 +95,12 @@ const Welcome: NextPageWithLayout = () => {
 
     const res = await req.json();
     console.log(res);
-    if (req.status === 200)
+    if (req.status === 200) {
       mergeUserData(formData);
+      setEditStatus('success');
+    }
+    else
+      setEditStatus('failure');
   }
 
   const handleSubmit = (e: React.FormEvent<HTMLFormElement>) => {
@@ -116,7 +123,7 @@ const Welcome: NextPageWithLayout = () => {
     }
   
     setInvalidInputs(tmp);
-    if (tmp !== '{}') {
+    if (!tmp.username && !tmp.email && !tmp.phone) {
       if (formData.phone === "")
         editUser({...formData, phone: null});
       else
@@ -149,7 +156,10 @@ const Welcome: NextPageWithLayout = () => {
               src={`/api/users/${getUserData().id}/photo`}
             />
             <div className="absolute p-2 bg-white border-2 border-gray-900 rounded-full -top-4 -right-4">
-              <FiEdit2 className="text-gray-900" />
+              {( editStatus === 'pending') ? <FiEdit2 className="text-gray-900" />
+            	: (editStatus === 'success') ? <FaCheckCircle className="text-green-600 animate-ping-3"/>
+									: <MdError className="text-red-600 animate-ping-3"/>
+              }
             </div>
           </div>
           <div className="text-center">
@@ -158,8 +168,10 @@ const Welcome: NextPageWithLayout = () => {
           </div>
         </div>
         <div className="flex flex-col py-12 gap-y-10">
-          <h1 className="text-2xl">Edit profile</h1>
-
+            <h1 className="text-2xl">
+              Edit profile
+            </h1>
+          
           {/* Inputs */}
           <form onSubmit={handleSubmit} className="flex flex-col gap-y-6">
             <div className={inputGroupClassName}>
