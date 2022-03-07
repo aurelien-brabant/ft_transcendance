@@ -6,7 +6,7 @@ import { useState } from "react";
 import isEmail from "validator/lib/isEmail";
 import isMobilePhone from "validator/lib/isMobilePhone";
 import {NextPageWithLayout} from './_app';
-import withAuth from '../components/hoc/withAuth';
+//import withAuth from '../components/hoc/withAuth';
 import authContext, {AuthContextType} from '../context/auth/authContext';
 
 const labelClassName = "grow uppercase text-neutral-400";
@@ -15,14 +15,14 @@ const inputClassName =
 const inputGroupClassName = "grid md:grid-cols-4 grid-cols-1 items-center gap-x-8 gap-y-2";
 
 type FormData = {
-  nickname: string;
+  username: string;
   email: string;
   phone: string;
   tfa: boolean;
 };
 
 type InvalidInputs = {
-  nickname?: string;
+  username?: string;
   email?: string;
   phone?: string;
   tfa?: string;
@@ -43,16 +43,16 @@ const validatePhone = (phone: string) => {
 };
 
 const baseObject: FormData = {
-  nickname: "Lord Norminet",
+  username: "Lord Norminet",
   email: "lordnorminet@42.fr",
   phone: "+33 7 52 63 43 53",
   tfa: false,
 };
 
 const Welcome: NextPageWithLayout = () => {
-  const { getUserData } = useContext(authContext) as AuthContextType;
+  const { getUserData, mergeUserData } = useContext(authContext) as AuthContextType;
   const [formData, setFormData] = useState<FormData>({
-    nickname: getUserData().username,
+    username: getUserData().username,
     email: getUserData().email,
     phone: getUserData().phone ? getUserData().phone : '',
     tfa: false
@@ -78,6 +78,21 @@ const Welcome: NextPageWithLayout = () => {
     });
   };
 
+  const editUser = async (formData: any) => {
+  	const req = await fetch(`/api/users/${getUserData().id}`, {
+      method: 'PATCH',
+      headers: {
+        'Content-Type': 'application/json'
+      },
+      redirect: 'follow',
+      referrerPolicy: 'no-referrer',
+      body: JSON.stringify(formData)
+    });
+
+    const res = await req.json();
+    console.log(res);
+  }
+
   const handleSubmit = (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault();
 
@@ -85,8 +100,8 @@ const Welcome: NextPageWithLayout = () => {
 
     const tmp: InvalidInputs = {};
 
-    if (formData.nickname.length < 5 || formData.nickname.length > 50) {
-      tmp.nickname = "nickname can contain between 5 and 50 characters";
+    if (formData.username.length < 5 || formData.username.length > 50) {
+      tmp.username = "nickname can contain between 5 and 50 characters";
     }
 
     if (!isEmail(formData.email)) {
@@ -96,8 +111,24 @@ const Welcome: NextPageWithLayout = () => {
     if (formData.phone && !isMobilePhone(formData.phone.replace(/ /g, ""))) {
       tmp.phone = "Not a valid phone number";
     }
-
+  
     setInvalidInputs(tmp);
+  
+    if (formData.phone === "")
+       // setFormData({...formData, phone: null});
+     {
+        const formToEdit = ({
+            "username": `${formData.username}`,
+            "email": `${formData.email}`,
+            "phone": null
+        });
+        editUser(formToEdit);
+        mergeUserData(formToEdit);
+    }
+    else {
+        editUser(formData);
+        mergeUserData(formData);
+    } 
   };
 
   const hasValidPhone = validatePhone(formData.phone);
@@ -107,6 +138,7 @@ const Welcome: NextPageWithLayout = () => {
       ? "bg-red-500"
       : "bg-green-500"
     : "bg-gray-800";
+
   const tfaText = hasValidPhone
     ? (formData.tfa ? "Disable" : "Enable") + " 2FA"
     : "Valid phone number required";
@@ -138,15 +170,15 @@ const Welcome: NextPageWithLayout = () => {
           {/* Inputs */}
           <form onSubmit={handleSubmit} className="flex flex-col gap-y-6">
             <div className={inputGroupClassName}>
-              <label htmlFor="nickname" className={labelClassName}>
-                Nickname
+              <label htmlFor="username" className={labelClassName}>
+                Username
               </label>
-              <InputErrorProvider error={invalidInputs.nickname}>
+              <InputErrorProvider error={invalidInputs.username}>
                 <input
-                  value={formData.nickname}
+                  value={formData.username}
                   onChange={handleChange}
                   type="text"
-                  name="nickname"
+                  name="username"
                   className={inputClassName}
                 />
               </InputErrorProvider>
@@ -154,7 +186,7 @@ const Welcome: NextPageWithLayout = () => {
             </div>
 
             <div className={inputGroupClassName}>
-              <label htmlFor="nickname" className={labelClassName}>
+              <label htmlFor="email" className={labelClassName}>
                 Email address
               </label>
               <InputErrorProvider error={invalidInputs.email}>

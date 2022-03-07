@@ -18,6 +18,10 @@ export class UpdateUserDto extends PartialType(CreateUserDto) {
 
     @IsOptional()
     @IsString()
+    readonly tfa: string;
+
+    @IsOptional()
+    @IsString()
     readonly pic: string;
 
     @IsOptional()
