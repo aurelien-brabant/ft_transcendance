@@ -28,6 +28,9 @@ export class User {
     phone: string;
 
     @Column({ nullable: true })
+    tfa: string;
+
+    @Column({ nullable: true })
     pic: string;
 
     // should be null if user is not a duoquadra, otherwise must be set to the duoquadra's unique login
@@ -52,18 +55,7 @@ export class User {
     @JoinTable()
     friends: User[];
 
-    /*
-    @Column()
-    @JoinTable()
-    @ManyToMany(
-        type => Friend,
-        (friend) => friend.friends,
-    )
-    friends: Friend[];
-    friends: User[];
-    friends: number[]
-
-    @JoinTable()
+/*    @JoinTable()
     @ManyToMany(
         type => GamesInvite,
         (invite) => invite.sender,

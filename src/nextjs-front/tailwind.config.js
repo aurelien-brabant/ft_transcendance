@@ -26,6 +26,7 @@ module.exports = {
         blinkSlow: "blink 3s infinite linear",
         fuse: "fuse 3s infinite linear",
         upAndDown: "upAndDown .7s infinite alternate",
+        'ping-3': 'ping 0.5s ease-in 3',
       },
     },
   },

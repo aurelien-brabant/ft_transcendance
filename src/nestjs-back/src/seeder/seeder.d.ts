@@ -1,11 +1,14 @@
 /* USERS */
 
+import { SpawnSyncOptionsWithBufferEncoding } from "child_process";
+
 export type SeedUser = {
     id: number;
     username: string;
     password: string;
     email: string;
     phone: string;
+    tfa: string;
     pic: string;
     duoquadra_login: string;
     rank: number;

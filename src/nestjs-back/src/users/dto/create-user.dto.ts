@@ -17,8 +17,6 @@ export class CreateUserDto {
     readonly email: string;
 
     @IsOptional()
-    //    @IsInt({ each: true })
-      //  readonly games: number[];
     readonly games: Game[];
 
     @IsOptional()
@@ -29,8 +27,6 @@ export class CreateUserDto {
     readonly losses: number;
 
     @IsOptional()
-    //    @IsInt({ each: true })
-    //    readonly friends: number[];
     readonly friends: User[];
 
     @IsOptional()

@@ -6,8 +6,9 @@ import { useState } from "react";
 import isEmail from "validator/lib/isEmail";
 import isMobilePhone from "validator/lib/isMobilePhone";
 import {NextPageWithLayout} from './_app';
-import withAuth from '../components/hoc/withAuth';
 import authContext, {AuthContextType} from '../context/auth/authContext';
+import { FaCheckCircle } from 'react-icons/fa';
+import { MdError } from 'react-icons/md'
 
 const labelClassName = "grow uppercase text-neutral-400";
 const inputClassName =
@@ -15,20 +16,20 @@ const inputClassName =
 const inputGroupClassName = "grid md:grid-cols-4 grid-cols-1 items-center gap-x-8 gap-y-2";
 
 type FormData = {
-  nickname: string;
+  username: string;
   email: string;
-  phone: string;
+  phone: string | null;
   tfa: boolean;
 };
 
 type InvalidInputs = {
-  nickname?: string;
+  username?: string;
   email?: string;
-  phone?: string;
+  phone?: string | null;
   tfa?: string;
 };
 
-const InputErrorProvider: React.FC<{ error?: string }> = ({
+const InputErrorProvider: React.FC<{ error?: string | null }> = ({
   children,
   error,
 }) => (
@@ -38,27 +39,29 @@ const InputErrorProvider: React.FC<{ error?: string }> = ({
   </div>
 );
 
-const validatePhone = (phone: string) => {
-  return isMobilePhone(phone.replace(/ /g, ""));
+const validatePhone = (phone: string | null) => {
+  if (phone && phone !== "")
+    return isMobilePhone(phone.replace(/ /g, ""));
 };
 
 const baseObject: FormData = {
-  nickname: "Lord Norminet",
+  username: "Lord Norminet",
   email: "lordnorminet@42.fr",
   phone: "+33 7 52 63 43 53",
   tfa: false,
 };
 
 const Welcome: NextPageWithLayout = () => {
-  const { getUserData } = useContext(authContext) as AuthContextType;
+  const { getUserData, mergeUserData } = useContext(authContext) as AuthContextType;
+  const [editStatus, setEditStatus] = useState("pending");
+  const [invalidInputs, setInvalidInputs] = useState<InvalidInputs>({});
+
   const [formData, setFormData] = useState<FormData>({
-    nickname: getUserData().username,
+    username: getUserData().username,
     email: getUserData().email,
-    phone: getUserData().phone ? getUserData().phone : '',
+    phone: getUserData().phone ? getUserData().phone : null,
     tfa: false
   });
-
-  const [invalidInputs, setInvalidInputs] = useState<InvalidInputs>({});
 
   useEffect(() => {
     console.log(getUserData());
@@ -76,7 +79,29 @@ const Welcome: NextPageWithLayout = () => {
       ...formData,
       [e.target.name]: e.target.value,
     });
+    setEditStatus("pending")
   };
+
+  const editUser = async (formData: FormData) => {
+  	const req = await fetch(`/api/users/${getUserData().id}`, {
+      method: 'PATCH',
+      headers: {
+        'Content-Type': 'application/json'
+      },
+      redirect: 'follow',
+      referrerPolicy: 'no-referrer',
+      body: JSON.stringify(formData)
+    });
+
+    const res = await req.json();
+    console.log(res);
+    if (req.status === 200) {
+      mergeUserData(formData);
+      setEditStatus('success');
+    }
+    else
+      setEditStatus('failure');
+  }
 
   const handleSubmit = (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault();
@@ -85,8 +110,8 @@ const Welcome: NextPageWithLayout = () => {
 
     const tmp: InvalidInputs = {};
 
-    if (formData.nickname.length < 5 || formData.nickname.length > 50) {
-      tmp.nickname = "nickname can contain between 5 and 50 characters";
+    if (formData.username.length < 5 || formData.username.length > 50) {
+      tmp.username = "nickname can contain between 5 and 50 characters";
     }
 
     if (!isEmail(formData.email)) {
@@ -96,8 +121,14 @@ const Welcome: NextPageWithLayout = () => {
     if (formData.phone && !isMobilePhone(formData.phone.replace(/ /g, ""))) {
       tmp.phone = "Not a valid phone number";
     }
-
+  
     setInvalidInputs(tmp);
+    if (!tmp.username && !tmp.email && !tmp.phone) {
+      if (formData.phone === "")
+        editUser({...formData, phone: null});
+      else
+        editUser(formData);
+    } 
   };
 
   const hasValidPhone = validatePhone(formData.phone);
@@ -107,6 +138,7 @@ const Welcome: NextPageWithLayout = () => {
       ? "bg-red-500"
       : "bg-green-500"
     : "bg-gray-800";
+
   const tfaText = hasValidPhone
     ? (formData.tfa ? "Disable" : "Enable") + " 2FA"
     : "Valid phone number required";
@@ -124,7 +156,10 @@ const Welcome: NextPageWithLayout = () => {
               src={`/api/users/${getUserData().id}/photo`}
             />
             <div className="absolute p-2 bg-white border-2 border-gray-900 rounded-full -top-4 -right-4">
-              <FiEdit2 className="text-gray-900" />
+              {( editStatus === 'pending') ? <FiEdit2 className="text-gray-900" />
+            	: (editStatus === 'success') ? <FaCheckCircle className="text-green-600 animate-ping-3"/>
+									: <MdError className="text-red-600 animate-ping-3"/>
+              }
             </div>
           </div>
           <div className="text-center">
@@ -133,20 +168,22 @@ const Welcome: NextPageWithLayout = () => {
           </div>
         </div>
         <div className="flex flex-col py-12 gap-y-10">
-          <h1 className="text-2xl">Edit profile</h1>
-
+            <h1 className="text-2xl">
+              Edit profile
+            </h1>
+          
           {/* Inputs */}
           <form onSubmit={handleSubmit} className="flex flex-col gap-y-6">
             <div className={inputGroupClassName}>
-              <label htmlFor="nickname" className={labelClassName}>
-                Nickname
+              <label htmlFor="username" className={labelClassName}>
+                Username
               </label>
-              <InputErrorProvider error={invalidInputs.nickname}>
+              <InputErrorProvider error={invalidInputs.username}>
                 <input
-                  value={formData.nickname}
+                  value={formData.username}
                   onChange={handleChange}
                   type="text"
-                  name="nickname"
+                  name="username"
                   className={inputClassName}
                 />
               </InputErrorProvider>
@@ -154,7 +191,7 @@ const Welcome: NextPageWithLayout = () => {
             </div>
 
             <div className={inputGroupClassName}>
-              <label htmlFor="nickname" className={labelClassName}>
+              <label htmlFor="email" className={labelClassName}>
                 Email address
               </label>
               <InputErrorProvider error={invalidInputs.email}>
@@ -175,7 +212,7 @@ const Welcome: NextPageWithLayout = () => {
               </label>
               <InputErrorProvider error={invalidInputs.phone}>
                 <input
-                  value={formData.phone}
+                  value={formData.phone || ""}
                   onChange={handleChange}
                   type="text"
                   name="phone"
