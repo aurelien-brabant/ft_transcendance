@@ -17,18 +17,18 @@ const inputGroupClassName = "grid md:grid-cols-4 grid-cols-1 items-center gap-x-
 type FormData = {
   username: string;
   email: string;
-  phone: string;
+  phone: string | null;
   tfa: boolean;
 };
 
 type InvalidInputs = {
   username?: string;
   email?: string;
-  phone?: string;
+  phone?: string | null;
   tfa?: string;
 };
 
-const InputErrorProvider: React.FC<{ error?: string }> = ({
+const InputErrorProvider: React.FC<{ error?: string | null }> = ({
   children,
   error,
 }) => (
@@ -38,8 +38,9 @@ const InputErrorProvider: React.FC<{ error?: string }> = ({
   </div>
 );
 
-const validatePhone = (phone: string) => {
-  return isMobilePhone(phone.replace(/ /g, ""));
+const validatePhone = (phone: string | null) => {
+  if (phone && phone !== "")
+    return isMobilePhone(phone.replace(/ /g, ""));
 };
 
 const baseObject: FormData = {
@@ -54,7 +55,7 @@ const Welcome: NextPageWithLayout = () => {
   const [formData, setFormData] = useState<FormData>({
     username: getUserData().username,
     email: getUserData().email,
-    phone: getUserData().phone ? getUserData().phone : '',
+    phone: getUserData().phone ? getUserData().phone : null,
     tfa: false
   });
 
@@ -78,7 +79,7 @@ const Welcome: NextPageWithLayout = () => {
     });
   };
 
-  const editUser = async (formData: any) => {
+  const editUser = async (formData: FormData) => {
   	const req = await fetch(`/api/users/${getUserData().id}`, {
       method: 'PATCH',
       headers: {
@@ -91,6 +92,8 @@ const Welcome: NextPageWithLayout = () => {
 
     const res = await req.json();
     console.log(res);
+    if (req.status === 200)
+      mergeUserData(formData);
   }
 
   const handleSubmit = (e: React.FormEvent<HTMLFormElement>) => {
@@ -113,21 +116,11 @@ const Welcome: NextPageWithLayout = () => {
     }
   
     setInvalidInputs(tmp);
-  
-    if (formData.phone === "")
-       // setFormData({...formData, phone: null});
-     {
-        const formToEdit = ({
-            "username": `${formData.username}`,
-            "email": `${formData.email}`,
-            "phone": null
-        });
-        editUser(formToEdit);
-        mergeUserData(formToEdit);
-    }
-    else {
+    if (tmp !== '{}') {
+      if (formData.phone === "")
+        editUser({...formData, phone: null});
+      else
         editUser(formData);
-        mergeUserData(formData);
     } 
   };
 
@@ -207,7 +200,7 @@ const Welcome: NextPageWithLayout = () => {
               </label>
               <InputErrorProvider error={invalidInputs.phone}>
                 <input
-                  value={formData.phone}
+                  value={formData.phone || ""}
                   onChange={handleChange}
                   type="text"
                   name="phone"
