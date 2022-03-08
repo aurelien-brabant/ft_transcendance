@@ -18,6 +18,7 @@ export type SeedUser = {
     friends: SeedUser[];
     ownedChannels: SeedChannel[];
     joinedChannels: SeedChannel[];
+    accountDeactivated: boolean;
 };
 
 /* GAMES */

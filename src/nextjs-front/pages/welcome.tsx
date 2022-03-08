@@ -9,6 +9,7 @@ import {NextPageWithLayout} from './_app';
 import authContext, {AuthContextType} from '../context/auth/authContext';
 import { FaCheckCircle } from 'react-icons/fa';
 import { MdError } from 'react-icons/md'
+import alertContext, {AlertContextType} from "../context/alert/alertContext";
 
 const labelClassName = "grow uppercase text-neutral-400";
 const inputClassName =
@@ -55,6 +56,7 @@ const Welcome: NextPageWithLayout = () => {
   const { getUserData, mergeUserData } = useContext(authContext) as AuthContextType;
   const [editStatus, setEditStatus] = useState("pending");
   const [invalidInputs, setInvalidInputs] = useState<InvalidInputs>({});
+  const { setAlert } = useContext(alertContext) as AlertContextType;
 
   const [formData, setFormData] = useState<FormData>({
     username: getUserData().username,
@@ -79,7 +81,7 @@ const Welcome: NextPageWithLayout = () => {
       ...formData,
       [e.target.name]: e.target.value,
     });
-    setEditStatus("pending")
+    setEditStatus("pending");
   };
 
   const editUser = async (formData: FormData) => {
@@ -98,9 +100,12 @@ const Welcome: NextPageWithLayout = () => {
     if (req.status === 200) {
       mergeUserData(formData);
       setEditStatus('success');
+      setAlert({ type: 'success', content: 'User edited successfully' });
     }
-    else
+    else {
       setEditStatus('failure');
+      setAlert({ type: 'error', content: 'Error while editing user!' });
+    }
   }
 
   const handleSubmit = (e: React.FormEvent<HTMLFormElement>) => {
