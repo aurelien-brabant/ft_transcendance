@@ -1,5 +1,5 @@
 import { Fragment, useEffect } from "react";
-import SocketIOClient from 'socket.io-client';
+import io from 'socket.io-client';
 import Head from "next/head";
 import withDashboardLayout from "../../components/hoc/withDashboardLayout";
 
@@ -7,9 +7,12 @@ import withDashboardLayout from "../../components/hoc/withDashboardLayout";
 const Hub: React.FC = () => {
 	useEffect((): any => {
     // connect to socket server
-    const socket = SocketIOClient.connect(process.env.BASE_URL, {
-      path: "/api/",
-    });
+	const socket = io("ws://localhost", {
+	  reconnectionDelayMax: 10000,
+	  path: '/api'
+	});
+	// .connect("/api")
+
 
     // log socket connection
     socket.on("connect", () => {
