@@ -10,7 +10,7 @@ import { ChannelsModule } from './channels/channels.module';
 import { MessagesModule } from './messages/messages.module';
 import { SeederModule } from './seeder/seeder.module';
 import { TypeOrmModule } from '@nestjs/typeorm';
-import { PongGateway } from './gateway/pong.gateway'
+import { GatewayModule } from './gateway/gateway.module';
 
 @Module({
   imports: [
@@ -32,9 +32,9 @@ import { PongGateway } from './gateway/pong.gateway'
       autoLoadEntities: true,
       synchronize: true,         // true in Dev // false in production
       keepConnectionAlive: true,
-    })
+    }), GatewayModule,
   ],
   controllers: [AppController],
-  providers: [AppService, PongGateway],
+  providers: [AppService],
 })
 export class AppModule {}

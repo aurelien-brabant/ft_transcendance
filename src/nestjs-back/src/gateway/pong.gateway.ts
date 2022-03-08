@@ -13,9 +13,10 @@ import {
 import { Logger } from "@nestjs/common"
 
 @WebSocketGateway({
-  cors: {
-    origin: '*',
-  },
+	cors: {
+		origin: '*',
+		methods: ["GET", "POST"]
+	},
 })
 export class PongGateway implements  OnGatewayInit, OnGatewayConnection, OnGatewayDisconnect {
 
@@ -24,18 +25,18 @@ export class PongGateway implements  OnGatewayInit, OnGatewayConnection, OnGatew
 	private logger: Logger = new Logger('gameGateway');
 
 	afterInit(server: Server) {
-     this.logger.log('Init');
-    }
+		this.logger.log('Init');
+	}
 
-    handleDisconnect(client: Socket) {
-     console.log(`Client disconnected: ${client.id}`);
-    }
+	handleDisconnect(client: Socket) {
+		console.log(`Client disconnected: ${client.id}`);
+	}
 
-    handleConnection(@ConnectedSocket() client: Socket, @MessageBody() data: any) {
-     this.logger.log(`Client connected: ${client.id}`);
-	 this.server.emit('connect')
-	 return { event: 'connect', text: 'Hello World'};
-    }
+	handleConnection(@ConnectedSocket() client: Socket, @MessageBody() data: any) {
+		this.logger.log(`Client connected: ${client.id}`);
+		this.server.emit('connect');
+		return { event: 'connect', text: 'Hello World'};
+	}
 
 	@SubscribeMessage('hello')
 	handleHello(@ConnectedSocket() client: Socket, @MessageBody() data: string) {
