@@ -40,7 +40,8 @@ export class PongGateway implements  OnGatewayInit, OnGatewayConnection, OnGatew
 
 	@SubscribeMessage('hello')
 	handleHello(@ConnectedSocket() client: Socket, @MessageBody() data: string) {
-		this.logger.log(`Client ${client.id} said ` + data);
+		this.logger.log(`Client ${client.id} said `, data);
+		this.server.emit('connect');
 	}
 
 }

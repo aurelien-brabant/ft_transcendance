@@ -12,7 +12,7 @@ const Hub: React.FC = () => {
 	  path: '/api'
 	});
 	// .connect("/api")
-
+	socket.emit('hello', { msg: "Hello"});
 
     // log socket connection
     socket.on("connect", () => {
