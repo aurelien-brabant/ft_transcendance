@@ -10,6 +10,7 @@ import { ChannelsModule } from './channels/channels.module';
 import { MessagesModule } from './messages/messages.module';
 import { SeederModule } from './seeder/seeder.module';
 import { TypeOrmModule } from '@nestjs/typeorm';
+import { PongGateway } from './gateway/pong.gateway'
 
 @Module({
   imports: [
@@ -34,6 +35,6 @@ import { TypeOrmModule } from '@nestjs/typeorm';
     })
   ],
   controllers: [AppController],
-  providers: [AppService],
+  providers: [AppService, PongGateway],
 })
 export class AppModule {}
