@@ -10,6 +10,7 @@ import authContext, {AuthContextType} from '../context/auth/authContext';
 import { FaCheckCircle } from 'react-icons/fa';
 import { MdError } from 'react-icons/md'
 import alertContext, {AlertContextType} from "../context/alert/alertContext";
+import Router, { useRouter } from 'next/router';
 
 const labelClassName = "grow uppercase text-neutral-400";
 const inputClassName =
@@ -53,11 +54,13 @@ const baseObject: FormData = {
 };
 
 const Welcome: NextPageWithLayout = () => {
-  const { getUserData, mergeUserData } = useContext(authContext) as AuthContextType;
+  const { getUserData, mergeUserData, logout, clearUser } = useContext(authContext) as AuthContextType;
   const [editStatus, setEditStatus] = useState("pending");
   const [invalidInputs, setInvalidInputs] = useState<InvalidInputs>({});
   const { setAlert } = useContext(alertContext) as AlertContextType;
-
+ 	
+  const router = useRouter();
+   
   const [formData, setFormData] = useState<FormData>({
     username: getUserData().username,
     email: getUserData().email,
@@ -65,8 +68,20 @@ const Welcome: NextPageWithLayout = () => {
     tfa: false
   });
 
+  const reactivateAccount = () => {
+    fetch(`/api/users/${getUserData().id}`, {
+      method: 'PATCH',
+      headers: {
+        'Content-Type': 'application/json'
+      },
+      body: JSON.stringify({accountDeactivated: false})
+    });
+  }
+
   useEffect(() => {
     console.log(getUserData());
+    if (getUserData().accountDeactivated)
+      reactivateAccount();
   }, [])
 
   // recompute this only when formData changes
@@ -83,6 +98,29 @@ const Welcome: NextPageWithLayout = () => {
     });
     setEditStatus("pending");
   };
+
+  const handleLogout = async () => {
+		setAlert({type: 'success', content: 'Logged out'});
+		logout();
+		await router.push('/');
+		clearUser();
+	}
+
+  const deactivateAccount = async () => {
+    const req = await fetch(`/api/users/${getUserData().id}`, {
+      method: 'PATCH',
+      headers: {
+        'Content-Type': 'application/json'
+      },
+      body: JSON.stringify({accountDeactivated: true})
+    });
+
+    const res = await req.json();
+    console.log(res);
+    if (req.status === 200) {
+      handleLogout();
+    }
+  }
 
   const editUser = async (formData: FormData) => {
   	const req = await fetch(`/api/users/${getUserData().id}`, {
@@ -262,7 +300,14 @@ const Welcome: NextPageWithLayout = () => {
                 Save changes
               </button>
 
-              <button className="px-1 py-2 text-sm font-bold uppercase bg-red-600 md:px-6 md:text-lg">
+              <button
+                className="px-1 py-2 text-sm font-bold uppercase bg-red-600 md:px-6 md:text-lg"
+                onClick={() => {
+                  if (confirm("Deactivated account?\nJust login again to reactivate your account.\n\nClick OK to proceed.") == true) {
+                    deactivateAccount();
+                  }
+                }}
+              >
                 Deactivate account
               </button>
             </div>

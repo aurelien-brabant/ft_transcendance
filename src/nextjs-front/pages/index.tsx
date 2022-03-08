@@ -184,7 +184,7 @@ const HomePage: NextPageWithLayout = () => {
             <h3 className="text-2xl lg:text-3xl text-neutral-200">
               Let’s have the most entertaining pong game of your life.
             </h3>
-            <Link href="/">
+            <Link href="/signin">
               <a className="px-6 py-2 text-xl uppercase bg-pink-600 drop-shadow-md text-bold text-neutral-200">
                 Play now
               </a>

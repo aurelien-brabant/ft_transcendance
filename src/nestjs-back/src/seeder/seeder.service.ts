@@ -49,7 +49,7 @@ export class SeederService {
     }
 
     async seedFakeUsers() {
-        for (let i = 0; i < 100; ++i) {
+        for (let i = 0; i < 10; ++i) {
             let pseudo = faker.internet.userName();
             const user = await this.createFakeUser(pseudo);
 
@@ -58,7 +58,7 @@ export class SeederService {
     }
 
     async seedFakeGames() {
-        const user = await this.usersService.findOne("12");
+        const user = await this.usersService.findOne("5");
 
         for (let i = 0; i < 100; ++i) {
             let game = await this.gamesService.create({

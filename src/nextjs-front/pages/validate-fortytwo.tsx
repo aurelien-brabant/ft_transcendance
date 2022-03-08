@@ -10,12 +10,14 @@ import Head from "next/head";
 import { authorizationLink } from "../constants/authorize42";
 import {NextPageWithLayout} from "./_app";
 import alertContext, {AlertContextType} from "../context/alert/alertContext";
+import authContext, { AuthContextType } from "../context/auth/authContext";
 
 const ValidateFortyTwo: NextPageWithLayout = () => {
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState<null | string>(null);
   const { setAlert } = useContext(alertContext) as AlertContextType;
-
+  const { getUserData } = useContext(authContext) as AuthContextType;
+  
   const router = useRouter();
 
   useEffect(() => {

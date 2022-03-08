@@ -59,7 +59,6 @@ const SignIn: NextPageWithLayout = () => {
       },
       body: JSON.stringify(data),
     });
-
     if (res.status === 201) {
       const { access_token } = await res.json();
       setAlert({

@@ -22,6 +22,8 @@ services:
     ports:
       - 80:80
 
+    restart: unless-stopped
+
   # frontend
 
   nextjs-front:
@@ -42,6 +44,8 @@ services:
 
     ports:
       - 3000:3000
+
+    restart: unless-stopped
 
   # backend
 
@@ -71,7 +75,9 @@ services:
 
     ports:
       - 6001:3000
-  
+
+    restart: unless-stopped
+
   postgres:
     image: postgres:14-alpine3.15
 
@@ -84,6 +90,8 @@ services:
     environment:
       - POSTGRES_USER=transcendance
       - POSTGRES_PASSWORD=transcendance
+
+    restart: unless-stopped
 
 volumes:
   postgres-data:
