@@ -13,7 +13,7 @@ export type SeedUser = {
     duoquadra_login: string;
     rank: number;
     games: SeedGame[];
-    wins: SeedGame[];
+    wins: number;
     losses: number;
     friends: SeedUser[];
     ownedChannels: SeedChannel[];
