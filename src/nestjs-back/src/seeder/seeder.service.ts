@@ -21,7 +21,7 @@ export class SeederService {
             email: (faker.unique as any)(faker.internet.email),
             password: faker.internet.password(),
             games: [],
-            wins: [],
+            wins: faker.datatype.number(),
             losses: faker.datatype.number(),
             friends: [],
             ownedChannels: [],

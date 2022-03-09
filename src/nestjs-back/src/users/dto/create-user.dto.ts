@@ -20,7 +20,8 @@ export class CreateUserDto {
     readonly games: Game[];
 
     @IsOptional()
-    readonly wins: Game[];
+    @IsInt()
+    readonly wins: number;
 
     @IsOptional()
     @IsInt()

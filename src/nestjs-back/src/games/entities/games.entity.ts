@@ -38,9 +38,7 @@ export class Game {
     players: User[];
 
     @IsOptional()
-    @ManyToOne(() => User, user => user.wins, {
-        onDelete: "CASCADE"
-    })
+    @ManyToOne(() => User)
     winner: User;
 
     @Column({

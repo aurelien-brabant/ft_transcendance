@@ -43,10 +43,8 @@ export class User {
     @ManyToMany(() => Game, game => game.players)
     games: Game[];
 
-    @OneToMany(() => Game, game => game.winner, {
-        cascade: true,
-    })
-    wins: Game[];
+    @Column({ default: 0 })
+    wins: number;
 
     @Column({ default: 0 })
     losses: number;
