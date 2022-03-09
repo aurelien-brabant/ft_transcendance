@@ -152,7 +152,6 @@ const UserProfilePage: NextPageWithLayout<UserProfilePageProps> = ({
     losses: getUserData().losses,
     wins: getUserData().wins,
     ratio: getUserData().wins / getUserData().losses,
-    
 	  rankedHistory: rankedHistory
   });
 
@@ -165,7 +164,7 @@ const UserProfilePage: NextPageWithLayout<UserProfilePageProps> = ({
           <div className="relative w-48 h-48">
             <img
               className="object-cover object-center w-full h-full rounded drop-shadow-md"
-              src={userData.avatar}
+              src={`/api/users/${getUserData().id}/photo`}
             />
 
             { /* actions */ }
