@@ -1,47 +1,40 @@
+
 import { Socket, Server } from 'socket.io';
+import { Logger } from "@nestjs/common"
 import {
-	SubscribeMessage,
-	WebSocketGateway,
-	WebSocketServer,
 	MessageBody,
 	OnGatewayInit,
 	OnGatewayConnection,
 	OnGatewayDisconnect,
 	ConnectedSocket,
-	WsResponse
-} from '@nestjs/websockets';
-import { Logger } from "@nestjs/common"
+	SubscribeMessage,
+	WebSocketGateway,
+	WebSocketServer
+} from "@nestjs/websockets";
 
-@WebSocketGateway({
-	cors: {
-		origin: '*',
-		methods: ["GET", "POST"]
-	},
-})
-export class PongGateway implements  OnGatewayInit, OnGatewayConnection, OnGatewayDisconnect {
+@WebSocketGateway({ cors: true })
+export class PongGateway implements OnGatewayInit, OnGatewayConnection, OnGatewayDisconnect {
+  @WebSocketServer()
+  server: Server;
+  private logger: Logger = new Logger('gameGateway');
 
-	@WebSocketServer()
-	server: Server;
-	private logger: Logger = new Logger('gameGateway');
+  afterInit(server: Server) {
+	  this.logger.log('Init');
+  }
 
-	afterInit(server: Server) {
-		this.logger.log('Init');
-	}
+  handleConnection(@ConnectedSocket() client: Socket) {
+  	this.logger.log(`Client connected: ${client.id}`);
+	this.server.emit("connected");
+  }
 
-	handleDisconnect(client: Socket) {
-		console.log(`Client disconnected: ${client.id}`);
-	}
+  handleDisconnect(client: Socket) {
+  	this.logger.log(`Client disconnected: ${client.id}`);
+  }
 
-	handleConnection(@ConnectedSocket() client: Socket, @MessageBody() data: any) {
-		this.logger.log(`Client connected: ${client.id}`);
-		this.server.emit('connect');
-		return { event: 'connect', text: 'Hello World'};
-	}
 
-	@SubscribeMessage('hello')
-	handleHello(@ConnectedSocket() client: Socket, @MessageBody() data: string) {
-		this.logger.log(`Client ${client.id} said `, data);
-		this.server.emit('connect');
-	}
-
+  @SubscribeMessage('message')
+  handleMessage(@MessageBody() message: string): void {
+	  this.logger.log("a message has been received");
+    this.server.emit('message', message);
+  }
 }
