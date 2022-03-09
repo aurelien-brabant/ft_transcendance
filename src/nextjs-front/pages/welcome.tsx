@@ -10,7 +10,7 @@ import authContext, {AuthContextType} from '../context/auth/authContext';
 import { FaCheckCircle } from 'react-icons/fa';
 import { MdError } from 'react-icons/md'
 import alertContext, {AlertContextType} from "../context/alert/alertContext";
-import Router, { useRouter } from 'next/router';
+import { useRouter } from 'next/router';
 
 const labelClassName = "grow uppercase text-neutral-400";
 const inputClassName =
@@ -82,6 +82,8 @@ const Welcome: NextPageWithLayout = () => {
     console.log(getUserData());
     if (getUserData().accountDeactivated)
       reactivateAccount();
+    if (getUserData().tfa)
+      setFormData({ ...formData, tfa: true });
   }, [])
 
   // recompute this only when formData changes
@@ -207,7 +209,7 @@ const Welcome: NextPageWithLayout = () => {
           </div>
           <div className="text-center">
           <h2 className="text-xl font-bold text-pink-600">{getUserData().username}</h2>
-            <Link href={`/users/lordnorminet`}><a className="block py-1 text-sm uppercase text-neutral-200">See public profile</a></Link>
+            <Link href={`/users/${getUserData().id}`}><a className="block py-1 text-sm uppercase text-neutral-200">See public profile</a></Link>
           </div>
         </div>
         <div className="flex flex-col py-12 gap-y-10">
@@ -276,9 +278,8 @@ const Welcome: NextPageWithLayout = () => {
                 type="button"
                 className={`px-6 py-2 col-span-2 ${tfaBgColor}`}
                 onClick={() => {
-                  if (hasValidPhone) {
+                  if (hasValidPhone) 
                     setFormData({ ...formData, tfa: !formData.tfa });
-                  }
                 }}
               >
                 {tfaText}
