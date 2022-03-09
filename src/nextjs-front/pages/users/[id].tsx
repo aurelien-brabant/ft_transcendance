@@ -36,7 +36,7 @@ type CurrentUser = {
   rank: number;
   losses: number;
   wins: number;
-  ratio: number;
+  ratio: number | string;
   id: number;
 };
 
@@ -130,7 +130,7 @@ const HistoryTable: React.FC<{ history: GameSummary[], userId:number }> = ({
 );
 
 export type Highlight = {
-  n: number;
+  n: number | string;
   label: string;
   hint: string;
   nColor: string;
@@ -154,7 +154,6 @@ const UserProfilePage: NextPageWithLayout = ({//<UserProfilePageProps> = ({
   
   const getGamesHistory = async () => {
     const req = await fetch(`/api/users/${getUserData().id}`);
-   // const req = await fetch(`/api/users/3`);
     const data:any[] = await req.json();
     setGamesHistory(JSON.parse(JSON.stringify(data)).games);
   };
@@ -163,8 +162,9 @@ const UserProfilePage: NextPageWithLayout = ({//<UserProfilePageProps> = ({
     getGamesHistory();
   }, []);
 
-  const ratio = (String(getUserData().wins / getUserData().losses) === 'NaN') ? -1 : (getUserData().wins / getUserData().losses);
-  
+  const ratio = getUserData().wins / getUserData().losses;
+  console.log('ratio', ratio);
+
   const [userData] = useState<CurrentUser>({
     id: getUserData().id,
     username: getUserData().username,
@@ -172,7 +172,7 @@ const UserProfilePage: NextPageWithLayout = ({//<UserProfilePageProps> = ({
     rank: getUserData().rank ? getUserData().rank : "-",
     losses: getUserData().losses,
     wins: getUserData().wins,
-    ratio: ratio,
+    ratio: (String(getUserData().wins / getUserData().losses) === 'NaN') ? "-" : (getUserData().wins / getUserData().losses),
   });
   
   return (
