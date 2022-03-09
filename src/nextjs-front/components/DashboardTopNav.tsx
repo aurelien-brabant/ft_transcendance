@@ -166,7 +166,7 @@ const DashboardTopNav: React.FC<DashboardTopNavProps> = ({
 	}
 
 	return (
-		<div className="sticky top-0 z-20 z-30 flex items-center gap-x-8 bg-neutral-100 h-14 drop-shadow-lg">
+		<div className="sticky top-0 z-30 flex items-center gap-x-8 bg-neutral-100 h-14 drop-shadow-lg">
 			<div className="flex items-center h-full gap-x-4 md:gap-x-">
 				<div className="flex items-center justify-center w-24 h-full bg-gray-900">
 					<Image

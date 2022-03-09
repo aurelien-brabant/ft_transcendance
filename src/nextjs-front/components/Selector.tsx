@@ -1,4 +1,4 @@
-import { Fragment, ReactElement, useState } from "react";
+import { ReactElement, useState } from "react";
 
 export type SelectorItem = {
 	label: string;
@@ -11,7 +11,7 @@ export type SelectorProps = {
 
 const Selector: React.FC<SelectorProps> = ({ items }) => {
 	const [selected, setSelected] = useState(0);
-
+	
 	return (
 		<div className="w-full">
 			<div className="flex overflow-x-auto">

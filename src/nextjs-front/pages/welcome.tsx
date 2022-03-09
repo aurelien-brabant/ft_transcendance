@@ -77,8 +77,6 @@ const Welcome: NextPageWithLayout = () => {
       reactivateAccount();
 
     baseObject = getUserData();
-//      if (baseObject.tfa)
-  //    setFormData({ ...formData, tfa: true });
   }, [])
 
   // recompute this only when formData changes
@@ -204,7 +202,7 @@ const Welcome: NextPageWithLayout = () => {
           </div>
           <div className="text-center">
           <h2 className="text-xl font-bold text-pink-600">{getUserData().username}</h2>
-            <Link href={`/users/${getUserData().id}`}><a className="block py-1 text-sm uppercase text-neutral-200">See public profile</a></Link>
+            <Link href={`/users/${getUserData().id}`}><a className="block py-1 text-sm uppercase text-neutral-200 hover:underline">See public profile</a></Link>
           </div>
         </div>
         <div className="flex flex-col py-12 gap-y-10">

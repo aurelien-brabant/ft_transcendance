@@ -3,15 +3,13 @@ import { UserStatusItem } from "../../components/UserStatus";
 import withDashboardLayout from "../../components/hoc/withDashboardLayout";
 import { NextPageWithLayout } from "../_app";
 import Selector from "../../components/Selector";
-import { genRankedGameSummary, genUnrankedGameSummary, SeedGameSummary, SeedRankedGameSummary } from "../../seed/game";
-import { GoArrowDown, GoArrowUp } from "react-icons/go";
 import Link from "next/link";
-import { Fragment, useContext, useState } from "react";
+import { Fragment, useContext, useEffect, useState } from "react";
 import { RiPingPongLine, RiMessage2Line } from 'react-icons/ri';
 import { IoMdPersonAdd } from 'react-icons/io';
 import Tooltip from "../../components/Tooltip";
 import authContext, { AuthContextType } from "../../context/auth/authContext";
-
+import { GiFalling, GiPodiumWinner } from "react-icons/gi";
  
 /*export const getServerSideProps: GetServerSideProps = async function (context) {
   return {
@@ -21,6 +19,17 @@ import authContext, { AuthContextType } from "../../context/auth/authContext";
   };
 };
 */
+
+export type GameSummary = {
+	winnerScore: number;
+	looserScore: number;
+	createdAt: string;
+	endedAt: string;
+	id: string;
+  winnerId: number;
+	looserId: number;
+};
+
 type CurrentUser = {
 	username: string;
 	avatar: string;
@@ -28,21 +37,13 @@ type CurrentUser = {
   losses: number;
   wins: number;
   ratio: number;
-	rankedHistory: SeedRankedGameSummary[];
+  id: number;
 };
 
-type UserProfilePageProps = {
-  user: CurrentUser;
-};
+//type UserProfilePageProps = {
+  //user: CurrentUser;
+//};
 
-const formatDuration = (duration: number) => {
-  const minutes = Math.floor(duration / 60000);
-  const seconds = Math.floor((duration % 60000) / 1000);
-
-  return `${("" + minutes).length === 1 ? "0" : ""}${minutes}:${
-    ("" + seconds).length === 1 ? "0" : ""
-  }${seconds}`;
-};
 
 const renderScore = (score: [number, number]) => {
   const getColor = (n1: number, n2: number) =>
@@ -62,21 +63,20 @@ const renderScore = (score: [number, number]) => {
   );
 };
 
-const Stonks: React.FC<{ n: number }> = ({ n }) => {
-  let color = n > 0 ? "text-green-400" : n < 0 ? "text-red-400" : "";
+const getDuration = (begin: number, end: number) => {
 
-  return (
-    <div className="flex items-center gap-x-2">
-      {n < 0 ? <GoArrowDown /> : n > 0 ? <GoArrowUp /> : ""}
-      <span className={color}>{Math.abs(n)}</span>
-    </div>
-  );
-};
+  const diff = end - begin;
+  const minutes = Math.floor(diff / 60);
+  const seconds = Math.floor(diff - (minutes * 60));
+  
+  return (`${minutes}` + ' min ' + (seconds < 10 ? '0' : '') + `${seconds} sec`);
+}
 
-
-const RankedHistoryTable: React.FC<{ history: SeedRankedGameSummary[] }> = ({
+const HistoryTable: React.FC<{ history: GameSummary[], userId:number }> = ({
   history,
+  userId
 }) => (
+
   <table
     className="w-full my-4 text-left"
   >
@@ -85,37 +85,43 @@ const RankedHistoryTable: React.FC<{ history: SeedRankedGameSummary[] }> = ({
         <th className="p-3 uppercase">Opponent</th>
         <th className="p-3 uppercase">Duration</th>
         <th className="p-3 uppercase">Score</th>
-        <th className="p-3 uppercase">ELO change</th>
-        <th className="p-3 uppercase">Ranking change</th>
+        <th className="p-3 uppercase">Result</th>
         <th className="p-3 uppercase">Date</th>
       </tr>
     </thead>
     <tbody>
       {/* NOTE: OBVIOUSLY we won't sort on the client side this is only for simulation purpose */}
       {history
-        .sort((a, b) => new Date(b.date).getTime() - new Date(a.date).getTime())
+        .sort((a, b) => new Date(b.endedAt).getTime() - new Date(a.endedAt).getTime())
         .map((unranked, index) => (
           <tr
             key={unranked.id}
             className={`py-6 ${index % 2 ? "bg-gray-800" : "bg-gray-700"}`}
           >
             <td className="p-3 font-bold">
-              <Link href={`/users/${unranked.players[1]}`}>
-                <a>{unranked.players[1]}</a>
+              <Link href={`/users/${unranked.winnerId === userId ? unranked.looserId : unranked.winnerId}`}>
+                <a>{(unranked.winnerId === userId) ? unranked.looserId : unranked.winnerId}</a>
               </Link>
             </td>
             <td className="p-3 text-neutral-200">
-              {formatDuration(unranked.duration)}
-            </td>
-            <td className="p-3">{renderScore(unranked.score)}</td>
-            <td className="p-3">
-              <Stonks n={unranked.eloDiff} />
+              {`${getDuration(parseInt(unranked.createdAt), parseInt(unranked.endedAt))}`}
             </td>
             <td className="p-3">
-              <Stonks n={unranked.rankingDiff} />
+              {unranked.winnerId === userId ?
+                  renderScore([unranked.winnerScore, unranked.looserScore])
+              :
+                  renderScore([unranked.looserScore, unranked.winnerScore])
+              }
+            </td>
+            <td className="p-3 text-3xl">
+              {unranked.winnerId === userId ? 
+                  <GiPodiumWinner className="text-green-400"/>
+                  :
+                  <GiFalling className="text-red-400"/>
+              } 
             </td>
             <td className="p-3">
-              {new Date(unranked.date).toLocaleDateString()}
+              {new Date(parseInt(unranked.endedAt)).toLocaleDateString()}
             </td>
           </tr>
         ))}
@@ -138,53 +144,66 @@ const HighlightItem: React.FC<Highlight> = ({ n, label, hint, nColor }) => (
   </article>
 );
 
-const UserProfilePage: NextPageWithLayout<UserProfilePageProps> = ({
- // user,
+
+const UserProfilePage: NextPageWithLayout = ({//<UserProfilePageProps> = ({
+//  user,
 }) => {
   const actionTooltipStyles = 'font-bold bg-gray-900 text-neutral-200';
   const { getUserData } = useContext(authContext) as AuthContextType;
-	const rankedHistory = new Array(50).fill(0).map(el => genRankedGameSummary());
+  const [gamesHistory, setGamesHistory] = useState([]);
+  
+  const getGamesHistory = async () => {
+    const req = await fetch(`/api/users/${getUserData().id}`);
+   // const req = await fetch(`/api/users/3`);
+    const data:any[] = await req.json();
+    setGamesHistory(JSON.parse(JSON.stringify(data)).games);
+  };
 
+  useEffect(() => {
+    getGamesHistory();
+  }, []);
+
+  const ratio = (String(getUserData().wins / getUserData().losses) === 'NaN') ? -1 : (getUserData().wins / getUserData().losses);
+  
   const [userData] = useState<CurrentUser>({
+    id: getUserData().id,
     username: getUserData().username,
     avatar: getUserData().pic,
     rank: getUserData().rank ? getUserData().rank : "-",
     losses: getUserData().losses,
     wins: getUserData().wins,
-    ratio: getUserData().wins / getUserData().losses,
-	  rankedHistory: rankedHistory
+    ratio: ratio,
   });
-
+  
   return (
     <div className="min-h-screen overflow-x-auto text-white bg-fixed bg-center bg-fill grow" style={{
-        backgroundImage: "url('/triangles.png')"
-      }}>
+      backgroundImage: "url('/triangles.png')"
+    }}>
       <div style={{ maxWidth: "800px" }} className="px-2 py-16 mx-auto">
         <div className="flex flex-col items-center gap-y-10">
           <div className="relative w-48 h-48">
             <img
               className="object-cover object-center w-full h-full rounded drop-shadow-md"
-              src={`/api/users/${getUserData().id}/photo`}
-            />
+              src={`/api/users/${getUserData().id}/photo`} />
 
-            { /* actions */ }
+            {/* actions */}
             <div className="absolute left-0 right-0 flex items-center justify-center -bottom-4 gap-x-2">
               <Tooltip className={actionTooltipStyles} content="challenge">
-              <button className="p-2 text-2xl text-gray-900 bg-white rounded-full transition hover:scale-105">
-                <RiPingPongLine />
-              </button>
+                <button className="p-2 text-2xl text-gray-900 bg-white rounded-full transition hover:scale-105">
+                  <RiPingPongLine />
+                </button>
               </Tooltip>
 
               <Tooltip className={actionTooltipStyles} content="message">
-              <button className="p-2 text-2xl text-gray-900 bg-white rounded-full transition hover:scale-105">
-                <RiMessage2Line />
-              </button>
+                <button className="p-2 text-2xl text-gray-900 bg-white rounded-full transition hover:scale-105">
+                  <RiMessage2Line />
+                </button>
               </Tooltip>
 
               <Tooltip className={actionTooltipStyles} content="Add as friend">
-              <button className="p-2 text-2xl text-gray-900 bg-white rounded-full transition hover:scale-105">
-                <IoMdPersonAdd />
-              </button>
+                <button className="p-2 text-2xl text-gray-900 bg-white rounded-full transition hover:scale-105">
+                  <IoMdPersonAdd className="text-black" />
+                </button>
               </Tooltip>
             </div>
 
@@ -198,26 +217,23 @@ const UserProfilePage: NextPageWithLayout<UserProfilePageProps> = ({
               n={userData.rank}
               label="Ranking"
               hint="Place in the global ranking"
-              nColor="text-orange-500"
-            />
+              nColor="text-orange-500" />
             <HighlightItem
               n={userData.wins}
               label="TOTAL WINS"
               hint="Number of wins"
-              nColor="text-green-300"
-            />
+              nColor="text-green-300" />
             <HighlightItem
               n={userData.ratio}
               label="Ratio"
               hint="Wins divided by looses"
-              nColor="text-blue-500"
-            />
+              nColor="text-blue-500" />
           </div>
           <Selector
             items={[
               {
                 label: "Games history",
-                component: <RankedHistoryTable history={userData.rankedHistory} />,
+                component: <HistoryTable history={gamesHistory} userId={userData.id}/>,
               },
               {
                 label: "Last achievements",
@@ -227,13 +243,12 @@ const UserProfilePage: NextPageWithLayout<UserProfilePageProps> = ({
                   </div>
                 ),
               },
-            ]}
-          />
+            ]} />
         </div>
       </div>
     </div>
   );
-};
+}
 
 UserProfilePage.getLayout = withDashboardLayout;
 
