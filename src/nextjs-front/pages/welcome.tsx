@@ -46,20 +46,12 @@ const validatePhone = (phone: string | null) => {
     return isMobilePhone(phone.replace(/ /g, ""));
 };
 
-const baseObject: FormData = {
-  username: "Lord Norminet",
-  email: "lordnorminet@42.fr",
-  phone: "+33 7 52 63 43 53",
-  tfa: false,
-};
-
 const Welcome: NextPageWithLayout = () => {
   const { getUserData, mergeUserData, logout, clearUser } = useContext(authContext) as AuthContextType;
   const [editStatus, setEditStatus] = useState("pending");
   const [invalidInputs, setInvalidInputs] = useState<InvalidInputs>({});
   const { setAlert } = useContext(alertContext) as AlertContextType;
- 	
-  const router = useRouter();
+ 	const router = useRouter();
    
   const [formData, setFormData] = useState<FormData>({
     username: getUserData().username,
@@ -67,7 +59,9 @@ const Welcome: NextPageWithLayout = () => {
     phone: getUserData().phone ? getUserData().phone : null,
     tfa: false
   });
-
+  
+  let baseObject: FormData;
+  
   const reactivateAccount = () => {
     fetch(`/api/users/${getUserData().id}`, {
       method: 'PATCH',
@@ -79,10 +73,11 @@ const Welcome: NextPageWithLayout = () => {
   }
 
   useEffect(() => {
-    console.log(getUserData());
     if (getUserData().accountDeactivated)
       reactivateAccount();
-    if (getUserData().tfa)
+
+    baseObject = getUserData();
+      if (baseObject.tfa)
       setFormData({ ...formData, tfa: true });
   }, [])
 
