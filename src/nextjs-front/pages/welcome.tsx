@@ -57,7 +57,7 @@ const Welcome: NextPageWithLayout = () => {
     username: getUserData().username,
     email: getUserData().email,
     phone: getUserData().phone ? getUserData().phone : null,
-    tfa: false
+    tfa: getUserData().tfa
   });
   
   let baseObject: FormData;
@@ -77,8 +77,8 @@ const Welcome: NextPageWithLayout = () => {
       reactivateAccount();
 
     baseObject = getUserData();
-      if (baseObject.tfa)
-      setFormData({ ...formData, tfa: true });
+//      if (baseObject.tfa)
+  //    setFormData({ ...formData, tfa: true });
   }, [])
 
   // recompute this only when formData changes

@@ -1,27 +1,38 @@
-import { GetServerSideProps, NextPage } from "next";
+//import { GetServerSideProps, NextPage } from "next";
 import { UserStatusItem } from "../../components/UserStatus";
 import withDashboardLayout from "../../components/hoc/withDashboardLayout";
-import { genUser, SeedUser } from "../../seed/user";
 import { NextPageWithLayout } from "../_app";
 import Selector from "../../components/Selector";
-import { SeedGameSummary, SeedRankedGameSummary } from "../../seed/game";
+import { genRankedGameSummary, genUnrankedGameSummary, SeedGameSummary, SeedRankedGameSummary } from "../../seed/game";
 import { GoArrowDown, GoArrowUp } from "react-icons/go";
 import Link from "next/link";
-import { Fragment, ReactElement } from "react";
+import { Fragment, useContext, useState } from "react";
 import { RiPingPongLine, RiMessage2Line } from 'react-icons/ri';
 import { IoMdPersonAdd } from 'react-icons/io';
 import Tooltip from "../../components/Tooltip";
+import authContext, { AuthContextType } from "../../context/auth/authContext";
 
-export const getServerSideProps: GetServerSideProps = async function (context) {
+ 
+/*export const getServerSideProps: GetServerSideProps = async function (context) {
   return {
     props: {
-      user: genUser(),
+      user: getUserData(),
     },
   };
 };
+*/
+type CurrentUser = {
+	username: string;
+	avatar: string;
+  rank: number;
+  losses: number;
+  wins: number;
+  ratio: number;
+	rankedHistory: SeedRankedGameSummary[];
+};
 
 type UserProfilePageProps = {
-  user: SeedUser;
+  user: CurrentUser;
 };
 
 const formatDuration = (duration: number) => {
@@ -62,46 +73,6 @@ const Stonks: React.FC<{ n: number }> = ({ n }) => {
   );
 };
 
-const UnrankedHistoryTable: React.FC<{ history: SeedGameSummary[] }> = ({
-  history,
-}) => (
-  <table
-    className="w-full my-4 text-left"
-  >
-    <thead>
-      <tr className="text-pink-600 bg-gray-800">
-        <th className="p-3 uppercase">Opponent</th>
-        <th className="p-3 uppercase">Duration</th>
-        <th className="p-3 uppercase">Score</th>
-        <th className="p-3 uppercase">Date</th>
-      </tr>
-    </thead>
-    <tbody>
-      {/* NOTE: OBVIOUSLY we won't sort on the client side this is only for simulation purpose */}
-      {history
-        .sort((a, b) => new Date(b.date).getTime() - new Date(a.date).getTime())
-        .map((unranked, index) => (
-          <tr
-            key={unranked.id}
-            className={`py-6 ${index % 2 ? "bg-gray-800" : "bg-gray-700"}`}
-          >
-            <td className="p-3 font-bold">
-              <Link href={`/users/${unranked.players[1]}`}>
-                <a>{unranked.players[1]}</a>
-              </Link>
-            </td>
-            <td className="p-3 text-neutral-200">
-              {formatDuration(unranked.duration)}
-            </td>
-            <td className="p-3">{renderScore(unranked.score)}</td>
-            <td className="p-3">
-              {new Date(unranked.date).toLocaleDateString()}
-            </td>
-          </tr>
-        ))}
-    </tbody>
-  </table>
-);
 
 const RankedHistoryTable: React.FC<{ history: SeedRankedGameSummary[] }> = ({
   history,
@@ -168,9 +139,22 @@ const HighlightItem: React.FC<Highlight> = ({ n, label, hint, nColor }) => (
 );
 
 const UserProfilePage: NextPageWithLayout<UserProfilePageProps> = ({
-  user,
+ // user,
 }) => {
   const actionTooltipStyles = 'font-bold bg-gray-900 text-neutral-200';
+  const { getUserData } = useContext(authContext) as AuthContextType;
+	const rankedHistory = new Array(50).fill(0).map(el => genRankedGameSummary());
+
+  const [userData] = useState<CurrentUser>({
+    username: getUserData().username,
+    avatar: getUserData().pic,
+    rank: getUserData().rank ? getUserData().rank : "-",
+    losses: getUserData().losses,
+    wins: getUserData().wins,
+    ratio: getUserData().wins / getUserData().losses,
+    
+	  rankedHistory: rankedHistory
+  });
 
   return (
     <div className="min-h-screen overflow-x-auto text-white bg-fixed bg-center bg-fill grow" style={{
@@ -181,7 +165,7 @@ const UserProfilePage: NextPageWithLayout<UserProfilePageProps> = ({
           <div className="relative w-48 h-48">
             <img
               className="object-cover object-center w-full h-full rounded drop-shadow-md"
-              src={user.avatar}
+              src={userData.avatar}
             />
 
             { /* actions */ }
@@ -207,40 +191,34 @@ const UserProfilePage: NextPageWithLayout<UserProfilePageProps> = ({
 
           </div>
           <div className="flex flex-col items-center">
-            <h1 className="text-2xl text-pink-600">{user.username}</h1>
+            <h1 className="text-2xl text-pink-600">{userData.username}</h1>
             <UserStatusItem status="online" />
           </div>
           <div className="w-full p-5 bg-gray-800 border-2 border-gray-800 rounded drop-shadow-md grid lg:grid-cols-3">
             <HighlightItem
-              n={10}
+              n={userData.rank}
               label="Ranking"
               hint="Place in the global ranking"
               nColor="text-orange-500"
             />
             <HighlightItem
-              n={1300}
-              label="ELO"
-              hint="Ranking score"
+              n={userData.wins}
+              label="TOTAL WINS"
+              hint="Number of wins"
               nColor="text-green-300"
             />
             <HighlightItem
-              n={10 / 4}
+              n={userData.ratio}
               label="Ratio"
-              hint="Ranked wins divided by ranking looses"
+              hint="Wins divided by looses"
               nColor="text-blue-500"
             />
           </div>
           <Selector
             items={[
               {
-                label: "Unranked 1v1",
-                component: (
-                  <UnrankedHistoryTable history={user.unrankedHistory} />
-                ),
-              },
-              {
-                label: "Ranked 1v1",
-                component: <RankedHistoryTable history={user.rankedHistory} />,
+                label: "Games history",
+                component: <RankedHistoryTable history={userData.rankedHistory} />,
               },
               {
                 label: "Last achievements",
