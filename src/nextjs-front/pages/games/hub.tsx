@@ -3,22 +3,26 @@ import io from 'socket.io-client';
 import Head from "next/head";
 import withDashboardLayout from "../../components/hoc/withDashboardLayout";
 
+let socket;
 // const Hub: NextPageWithLayout = () => {
 const Hub: React.FC = () => {
+
+	const joinQueue = () => {
+		console.log("Joining Queue");
+		socket.emit("join");
+	}
+
 	useEffect((): any => {
+		// connect to socket server
+		socket = io("localhost");
 
-    // connect to socket server
-	const socket = io("localhost");
+		// log socket connection
+		socket.on("connect", () => {
+			console.log("SOCKET CONNECTED!", socket.id);
+		});
 
-	// socket.emit('hello');
-
-    // log socket connection
-    socket.on("connected", () => {
-      console.log("SOCKET CONNECTED!", socket.id);
-    });
-
-    // // socket disconnet onUnmount if exists
-    // if (socket) return () => socket.disconnect();
+		// // socket disconnet onUnmount if exists
+		// if (socket) return () => socket.disconnect();
   }, []);
 
 	return (
@@ -31,6 +35,7 @@ const Hub: React.FC = () => {
 				/>
 			</Head>
 			<h1>Hello World!</h1>
+			<button onClick={joinQueue}>Find a match</button>
 		</Fragment>
 	);
 }
