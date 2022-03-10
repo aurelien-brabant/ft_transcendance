@@ -262,7 +262,7 @@ const DashboardTopNav: React.FC<DashboardTopNavProps> = ({
 										Edit profile
 									</a>
 								</Link>
-								<Link href={`/users/${user.username}`}>
+								<Link href={`/users/${getUserData().id}`}>
 									<a className="block p-2 text-sm font-bold transition hover:bg-neutral-200">
 										See profile
 									</a>

@@ -49,6 +49,9 @@ export class User {
     @Column({ default: 0 })
     losses: number;
 
+    @Column({ type: 'decimal', default: 0 })
+    ratio: number;
+
     @ManyToMany(() => User)
     @JoinTable()
     friends: User[];
