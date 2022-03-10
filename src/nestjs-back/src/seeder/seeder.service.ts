@@ -17,23 +17,28 @@ export class SeederService {
   ) {}
 
   async createFakeUser(username: string) {
+    const wins = faker.datatype.number();
+    const losses = faker.datatype.number();
+    const ratio = wins / losses;
+
     let user = await this.usersService.create({
-      email: (faker.unique as any)(faker.internet.email),
-      password: faker.internet.password(),
-      games: [],
-      wins: faker.datatype.number(),
-      losses: faker.datatype.number(),
-      friends: [],
-      ownedChannels: [],
-      joinedChannels: [],
-      accountDeactivated: false,
+        email: (faker.unique as any)(faker.internet.email),
+        password: faker.internet.password(),
+        games: [],
+        wins: wins,
+        losses: losses,
+        ratio: ratio,
+        friends: [],
+        ownedChannels: [],
+        joinedChannels: [],
+        accountDeactivated: false,
     });
     user = await this.usersService.update(user.id.toString(), {
-      username: username,
-      phone: faker.phone.phoneNumber(),
-      pic: faker.image.imageUrl(),
-      duoquadra_login: username + "_42",
-      rank: faker.datatype.number()
+        username: username,
+        phone: faker.phone.phoneNumber(),
+        pic: faker.image.avatar(),
+        duoquadra_login: username + "_42",
+        rank: faker.datatype.number()
     } as SeedUser);
     return user;
   }

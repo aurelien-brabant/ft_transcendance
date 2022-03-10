@@ -4,6 +4,7 @@ import withDashboardLayout from "../../components/hoc/withDashboardLayout";
 import { NextPageWithLayout } from "../_app";
 import Selector from "../../components/Selector";
 import Link from "next/link";
+import Image from 'next/image';
 import { Fragment, useContext, useEffect, useState } from "react";
 import { RiPingPongLine, RiMessage2Line } from 'react-icons/ri';
 import { IoMdPersonAdd } from 'react-icons/io';
@@ -11,6 +12,8 @@ import Tooltip from "../../components/Tooltip";
 import authContext, { AuthContextType } from "../../context/auth/authContext";
 import { GiFalling, GiPodiumWinner } from "react-icons/gi";
 import { FaEquals } from "react-icons/fa";
+//import PreventSSR from "../../components/PreventSSR";
+import { BounceLoader } from "react-spinners";
 
 /*export const getServerSideProps: GetServerSideProps = async function (context) {
   return {
@@ -155,7 +158,10 @@ const UserProfilePage: NextPageWithLayout = ({//<UserProfilePageProps> = ({
   const actionTooltipStyles = 'font-bold bg-gray-900 text-neutral-200';
   const { getUserData } = useContext(authContext) as AuthContextType;
   const [gamesHistory, setGamesHistory] = useState([]);
-  const [userData] = useState<CurrentUser>(
+  const url: string = window.location.href;
+  const userId: number = parseInt(url.substring(url.lastIndexOf('/') + 1));
+  const [isLoading, setIsLoading] = useState(true);
+  const [userData, setUserData] = useState<CurrentUser>(
     {
       id: getUserData().id,
       username: getUserData().username,
@@ -169,35 +175,52 @@ const UserProfilePage: NextPageWithLayout = ({//<UserProfilePageProps> = ({
 
   const updateGamesHistory = async (games: any) => {
     for (var i in games) {
-      const id = (games[i].winnerId === getUserData().id) ? games[i].looserId : games[i].winnerId;
-      const req = await fetch (`/api/users/${id}`)
+      const opponentId = (games[i].winnerId === userId) ? games[i].looserId : games[i].winnerId;
+      const req = await fetch (`/api/users/${opponentId}`)
       const res = await req.json();
       games[i].opponent = res.username;
     }
     setGamesHistory(games);
   }
 
+  const updateUserData = async (data: any) => {
+    setUserData({
+      id: data.id,
+      username: data.username,
+      avatar: data.pic.startsWith("https://") ? data.pic : `/api/users/${data.id}/photo`,
+      rank: data.rank ? data.rank : "-",
+      losses: data.losses,
+      wins: data.wins,
+      ratio: (String(data.wins / data.losses) === 'NaN') ? "-" : (Math.round(data.wins / data.losses * 100) / 100),
+    });
+  }
+
   useEffect(() => {
     const fetchData = async () => {
-      const req = await fetch(`/api/users/${getUserData().id}`);
+
+      const req = await fetch(`/api/users/${userId}`);
       const data = await req.json();
-      updateGamesHistory(JSON.parse(JSON.stringify(data)).games)
+      
+      updateUserData(data);
+      updateGamesHistory(JSON.parse(JSON.stringify(data)).games);
+      setIsLoading(false);
     }
   
     fetchData()
     .catch(console.error);
-  }, [])
+  }, [userId])
 
   return (
     <div className="min-h-screen overflow-x-auto text-white bg-fixed bg-center bg-fill grow" style={{
       backgroundImage: "url('/triangles.png')"
     }}>
+      { !isLoading ?
       <div style={{ maxWidth: "800px" }} className="px-2 py-16 mx-auto">
         <div className="flex flex-col items-center gap-y-10">
           <div className="relative w-48 h-48">
             <img
               className="object-cover object-center w-full h-full rounded drop-shadow-md"
-              src={`/api/users/${getUserData().id}/photo`} />
+              src={userData.avatar} />
 
             {/* actions */}
             <div className="absolute left-0 right-0 flex items-center justify-center -bottom-4 gap-x-2">
@@ -259,6 +282,14 @@ const UserProfilePage: NextPageWithLayout = ({//<UserProfilePageProps> = ({
             ]} />
         </div>
       </div>
+      :
+      <div className="relative flex flex-col items-center justify-center min-h-screen bg-gray-900 gap-y-4">
+        <div className="absolute inset-0 z-50 flex items-center justify-center">
+			    <Image src="/logo.svg" height="200" width="200" />
+		    </div>
+    		<BounceLoader size={400} color="#db2777" />
+	    </div>
+      }
     </div>
   );
 }
