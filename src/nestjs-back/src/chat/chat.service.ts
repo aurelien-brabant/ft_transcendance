@@ -20,7 +20,7 @@ export class ChatService {
     const { Authentication: authToken } = parse(cookie);
     const user = await this.authenticationService.getUserFromAuthToken(authToken);
     if (!user) {
-      throw new WsException('Invalid credentials.');
+      throw new WsException("Can't get user from socket: Invalid credentials.");
     }
     return user;
   }

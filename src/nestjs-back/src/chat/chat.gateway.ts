@@ -4,6 +4,7 @@ import {
   ConnectedSocket,
   MessageBody,
   OnGatewayConnection,
+  OnGatewayDisconnect,
   OnGatewayInit,
   SubscribeMessage,
   WebSocketGateway,
@@ -12,7 +13,7 @@ import {
 import { ChatService } from './chat.service';
 
 @WebSocketGateway({ namespace: 'chat', cors: true })
-export class ChatGateway implements OnGatewayInit, OnGatewayConnection {
+export class ChatGateway implements OnGatewayInit, OnGatewayConnection, OnGatewayDisconnect {
   @WebSocketServer() server: Server;
   private logger: Logger = new Logger('ChatGateway');
 
@@ -25,6 +26,10 @@ export class ChatGateway implements OnGatewayInit, OnGatewayConnection {
   async handleConnection(socket: Socket) {
     this.logger.log(`Client connected: ${socket.id}`);
     await this.chatService.getUserFromSocket(socket);
+  }
+
+  handleDisconnect(client: Socket) {
+    this.logger.log(`Client disconnected: ${client.id}`);
   }
 
   @SubscribeMessage('messageToServer')
