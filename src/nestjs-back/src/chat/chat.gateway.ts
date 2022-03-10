@@ -27,10 +27,10 @@ export class ChatGateway implements OnGatewayInit, OnGatewayConnection, OnGatewa
     this.logger.log(`Client disconnected: ${client.id}`);
   }
 
-  @SubscribeMessage('message')
-  handleMessage(@MessageBody() message: string): void {
-    this.logger.log(`Received message: ${message}`);
-    this.server.emit('message', message);
+  @SubscribeMessage('messageToServer')
+  handleMessage(@MessageBody() data: string): void {
+    this.logger.log(`Received message: ${data}`);
+    this.server.emit('messageToClient', data);
   }
 
   @SubscribeMessage('joinChannel')
