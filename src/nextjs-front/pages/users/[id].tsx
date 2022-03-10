@@ -223,6 +223,7 @@ const UserProfilePage: NextPageWithLayout = ({//<UserProfilePageProps> = ({
               src={userData.avatar} />
 
             {/* actions */}
+            {(userData.id !== getUserData().id) ?
             <div className="absolute left-0 right-0 flex items-center justify-center -bottom-4 gap-x-2">
               <Tooltip className={actionTooltipStyles} content="challenge">
                 <button className="p-2 text-2xl text-gray-900 bg-white rounded-full transition hover:scale-105">
@@ -242,7 +243,10 @@ const UserProfilePage: NextPageWithLayout = ({//<UserProfilePageProps> = ({
                 </button>
               </Tooltip>
             </div>
-
+            :
+            <></>
+            }
+            
           </div>
           <div className="flex flex-col items-center">
             <h1 className="text-2xl text-pink-600">{userData.username}</h1>

@@ -6,7 +6,6 @@ import { useRouter } from "next/router";
 import { BiBell } from "react-icons/bi";
 import { genUser } from "../seed/user";
 import Link from "next/link";
-import { faker } from "@faker-js/faker";
 import { dashboardNavItems } from "../constants/nav";
 import notificationsContext from "../context/notifications/notificationsContext";
 import authContext, {AuthContextType} from "../context/auth/authContext";
@@ -52,15 +51,15 @@ const SearchBar: React.FC<SearchBarProps> = ({ className }) => {
 
 	// TODO: we will eventually need to think about something less retarded
 	const fetchUsers = async () => {
-		const res = await fetch("https://jsonplaceholder.typicode.com/users");
+		const res = await fetch("/api/users/");
 
 		if (res.status === 200) {
-			const users = (await res.json()) as Array<{ username: string }>;
+			const users = (await res.json()) as Array<{ username: string, id: string }>;
 			const searchableUsers = users.map<Searchable>((user) => ({
 				type: "user",
 				content: user.username,
-				href: `/users/${user.username}`,
-				id: faker.datatype.uuid()
+				href: `/users/${user.id}`,
+				id: user.id
 			}));
 
 			setSearchables([
@@ -121,6 +120,7 @@ const SearchBar: React.FC<SearchBarProps> = ({ className }) => {
 				{searchValue &&
 					searchResults.map((searchable, index) => (
 						<Fragment key={searchable.id}>
+							<a href={searchable.href}>
 							<hr />
 							<article
 								className={`flex justify-between px-4 py-3 ${
@@ -136,6 +136,7 @@ const SearchBar: React.FC<SearchBarProps> = ({ className }) => {
 									{searchable.type}
 								</span>
 							</article>
+							</a>
 						</Fragment>
 					))}
 			</div>
