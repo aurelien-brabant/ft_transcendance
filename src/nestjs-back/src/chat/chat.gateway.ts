@@ -1,49 +1,54 @@
 import { Server, Socket } from 'socket.io';
 import { Logger } from '@nestjs/common';
 import {
+  ConnectedSocket,
   MessageBody,
   OnGatewayConnection,
-  OnGatewayDisconnect,
   OnGatewayInit,
   SubscribeMessage,
   WebSocketGateway,
   WebSocketServer,
 } from '@nestjs/websockets';
+import { ChatService } from './chat.service';
 
 @WebSocketGateway({ namespace: 'chat', cors: true })
-export class ChatGateway implements OnGatewayInit, OnGatewayConnection, OnGatewayDisconnect {
+export class ChatGateway implements OnGatewayInit, OnGatewayConnection {
   @WebSocketServer() server: Server;
   private logger: Logger = new Logger('ChatGateway');
+
+  constructor(private readonly chatService: ChatService) {}
 
   afterInit(server: Server) {
     this.logger.log('Init ChatGateway');
   }
 
-  handleConnection(client: Socket) {
-    this.logger.log(`Client connected: ${client.id}`);
-  }
-
-  handleDisconnect(client: Socket) {
-    this.logger.log(`Client disconnected: ${client.id}`);
+  async handleConnection(socket: Socket) {
+    this.logger.log(`Client connected: ${socket.id}`);
+    await this.chatService.getUserFromSocket(socket);
   }
 
   @SubscribeMessage('messageToServer')
-  handleMessage(@MessageBody() data: string): void {
+  async handleMessage(
+    @ConnectedSocket() socket: Socket,
+    @MessageBody() data: string
+  ) {
+    const sender = await this.chatService.getUserFromSocket(socket);
+
     this.logger.log(`Received message: ${data}`);
-    this.server.emit('messageToClient', data);
+    this.server.emit('messageToClient', { data, sender });
   }
 
   @SubscribeMessage('joinChannel')
-  handleJoinChannel(client: Socket, channelName: string) {
-    client.join(channelName);
-    this.logger.log(`Client [${client.id}] joined channel ${channelName}`);
-    client.emit('joinedChannel', channelName);
+  handleJoinChannel(socket: Socket, channelName: string) {
+    socket.join(channelName);
+    this.logger.log(`Client [${socket.id}] joined channel ${channelName}`);
+    socket.emit('joinedChannel', channelName);
   }
 
   @SubscribeMessage('leaveChannel')
-  handleLeftChannel(client: Socket, channelName: string) {
-    client.leave(channelName);
-    this.logger.log(`Client [${client.id}] left channel ${channelName}`);
-    client.emit('leftChannel', channelName);
+  handleLeftChannel(socket: Socket, channelName: string) {
+    socket.leave(channelName);
+    this.logger.log(`Client [${socket.id}] left channel ${channelName}`);
+    socket.emit('leftChannel', channelName);
   }
 }

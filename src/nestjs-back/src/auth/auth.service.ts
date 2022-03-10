@@ -3,15 +3,25 @@ import { compare as comparePassword } from 'bcrypt';
 import { User } from 'src/users/entities/users.entity';
 import { UsersService } from 'src/users/users.service';
 import { JwtService } from '@nestjs/jwt';
+import { ConfigService } from '@nestjs/config';
+import { Socket } from 'socket.io';
 import fetch from 'node-fetch';
 import * as FormData from 'form-data';
 
+export interface CustomSocket extends Socket { 
+  user: User;
+}
+
 @Injectable()
 export class AuthService {
-  constructor(private usersServices: UsersService, private readonly jwtService: JwtService) {}
+  constructor(
+    private readonly usersService: UsersService,
+    private readonly jwtService: JwtService,
+    private readonly configService: ConfigService
+  ) {}
 
   async validateUser(email: string, password: string): Promise<any> {
-    const user = await this.usersServices.findOneByEmail(email);
+    const user = await this.usersService.findOneByEmail(email);
 
     if (user && await comparePassword(password, user.password)) {
       const { password, ...result } = user; // exclude password from result
@@ -63,12 +73,12 @@ export class AuthService {
       }
     })).json();
 
-    let duoQuadraUser = await this.usersServices.findOneByDuoQuadraLogin(duoQuadraProfile.login);
+    let duoQuadraUser = await this.usersService.findOneByDuoQuadraLogin(duoQuadraProfile.login);
 
     // first login using 42 credentials, creating a ft_transcendance account
     if (!duoQuadraUser) {
 
-      duoQuadraUser = await this.usersServices.createDuoQuadra({
+      duoQuadraUser = await this.usersService.createDuoQuadra({
         phone: duoQuadraProfile.phone !== 'hidden' ? duoQuadraUser.phone : null,
         email: duoQuadraProfile.email,
         imageUrl: duoQuadraProfile.image_url,
@@ -83,4 +93,12 @@ export class AuthService {
     return this.jwtService.sign({ sub: ''+duoQuadraUser.id });
   }
 
+  async getUserFromAuthToken(token: string) {
+    const payload: CustomSocket = this.jwtService.verify(token, {
+      secret: this.configService.get('JWT_ACCESS_TOKEN_SECRET')
+    });
+    if (payload.id) {
+      return this.usersService.findOne(payload.id);
+    }
+  }
 }
