@@ -4,6 +4,7 @@ import withDashboardLayout from "../../components/hoc/withDashboardLayout";
 import { NextPageWithLayout } from "../_app";
 import Selector from "../../components/Selector";
 import Link from "next/link";
+import Image from 'next/image';
 import { Fragment, useContext, useEffect, useState } from "react";
 import { RiPingPongLine, RiMessage2Line } from 'react-icons/ri';
 import { IoMdPersonAdd } from 'react-icons/io';
@@ -11,7 +12,8 @@ import Tooltip from "../../components/Tooltip";
 import authContext, { AuthContextType } from "../../context/auth/authContext";
 import { GiFalling, GiPodiumWinner } from "react-icons/gi";
 import { FaEquals } from "react-icons/fa";
-import PreventSSR from "../../components/PreventSSR";
+//import PreventSSR from "../../components/PreventSSR";
+import { BounceLoader } from "react-spinners";
 
 /*export const getServerSideProps: GetServerSideProps = async function (context) {
   return {
@@ -185,7 +187,7 @@ const UserProfilePage: NextPageWithLayout = ({//<UserProfilePageProps> = ({
     setUserData({
       id: data.id,
       username: data.username,
-      avatar: data.pic.startsWith("http://") ? data.pic : `/api/users/${data.id}/photo`,
+      avatar: data.pic.startsWith("https://") ? data.pic : `/api/users/${data.id}/photo`,
       rank: data.rank ? data.rank : "-",
       losses: data.losses,
       wins: data.wins,
@@ -280,7 +282,13 @@ const UserProfilePage: NextPageWithLayout = ({//<UserProfilePageProps> = ({
             ]} />
         </div>
       </div>
-      : <div>LOADING</div>
+      :
+      <div className="relative flex flex-col items-center justify-center min-h-screen bg-gray-900 gap-y-4">
+        <div className="absolute inset-0 z-50 flex items-center justify-center">
+			    <Image src="/logo.svg" height="200" width="200" />
+		    </div>
+    		<BounceLoader size={400} color="#db2777" />
+	    </div>
       }
     </div>
   );
