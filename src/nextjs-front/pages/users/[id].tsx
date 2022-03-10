@@ -10,7 +10,8 @@ import { IoMdPersonAdd } from 'react-icons/io';
 import Tooltip from "../../components/Tooltip";
 import authContext, { AuthContextType } from "../../context/auth/authContext";
 import { GiFalling, GiPodiumWinner } from "react-icons/gi";
- 
+import { FaEquals } from "react-icons/fa";
+
 /*export const getServerSideProps: GetServerSideProps = async function (context) {
   return {
     props: {
@@ -21,18 +22,19 @@ import { GiFalling, GiPodiumWinner } from "react-icons/gi";
 */
 
 export type GameSummary = {
-	winnerScore: number;
-	looserScore: number;
-	createdAt: string;
-	endedAt: string;
-	id: string;
+  winnerScore: number;
+  looserScore: number;
+  createdAt: string;
+  endedAt: string;
+  id: string;
   winnerId: number;
-	looserId: number;
+  looserId: number;
+  opponent: string;
 };
 
 type CurrentUser = {
-	username: string;
-	avatar: string;
+  username: string;
+  avatar: string;
   rank: number;
   losses: number;
   wins: number;
@@ -41,13 +43,14 @@ type CurrentUser = {
 };
 
 //type UserProfilePageProps = {
-  //user: CurrentUser;
+//user: CurrentUser;
 //};
 
 
 const renderScore = (score: [number, number]) => {
   const getColor = (n1: number, n2: number) =>
-    n1 < n2 ? "text-red-400" : "text-green-400";
+    (n1 === n2) ? "text-gray-400" :
+        (n1 < n2) ? "text-red-400" : "text-green-400";
   const spanClassName = "text-lg";
 
   return (
@@ -68,11 +71,11 @@ const getDuration = (begin: number, end: number) => {
   const diff = end - begin;
   const minutes = Math.floor(diff / 60);
   const seconds = Math.floor(diff - (minutes * 60));
-  
+
   return (`${minutes}` + ' min ' + (seconds < 10 ? '0' : '') + `${seconds} sec`);
 }
 
-const HistoryTable: React.FC<{ history: GameSummary[], userId:number }> = ({
+const HistoryTable: React.FC<{ history: GameSummary[], userId: number }> = ({
   history,
   userId
 }) => (
@@ -100,7 +103,7 @@ const HistoryTable: React.FC<{ history: GameSummary[], userId:number }> = ({
           >
             <td className="p-3 font-bold">
               <Link href={`/users/${unranked.winnerId === userId ? unranked.looserId : unranked.winnerId}`}>
-                <a>{(unranked.winnerId === userId) ? unranked.looserId : unranked.winnerId}</a>
+                <a>{unranked.opponent}</a>
               </Link>
             </td>
             <td className="p-3 text-neutral-200">
@@ -108,17 +111,18 @@ const HistoryTable: React.FC<{ history: GameSummary[], userId:number }> = ({
             </td>
             <td className="p-3">
               {unranked.winnerId === userId ?
-                  renderScore([unranked.winnerScore, unranked.looserScore])
-              :
-                  renderScore([unranked.looserScore, unranked.winnerScore])
+                renderScore([unranked.winnerScore, unranked.looserScore])
+                :
+                renderScore([unranked.looserScore, unranked.winnerScore])
               }
             </td>
             <td className="p-3 text-3xl">
-              {unranked.winnerId === userId ? 
-                  <GiPodiumWinner className="text-green-400"/>
-                  :
-                  <GiFalling className="text-red-400"/>
-              } 
+              {(unranked.winnerScore === unranked.looserScore) ? <FaEquals className="text-gray-400" />
+                  : (unranked.winnerId === userId) ?
+                      <GiPodiumWinner className="text-green-400" />
+                      :
+                      <GiFalling className="text-red-400" />
+              }
             </td>
             <td className="p-3">
               {new Date(parseInt(unranked.endedAt)).toLocaleDateString()}
@@ -146,35 +150,44 @@ const HighlightItem: React.FC<Highlight> = ({ n, label, hint, nColor }) => (
 
 
 const UserProfilePage: NextPageWithLayout = ({//<UserProfilePageProps> = ({
-//  user,
+  //  user,
 }) => {
   const actionTooltipStyles = 'font-bold bg-gray-900 text-neutral-200';
   const { getUserData } = useContext(authContext) as AuthContextType;
   const [gamesHistory, setGamesHistory] = useState([]);
-  
-  const getGamesHistory = async () => {
-    const req = await fetch(`/api/users/${getUserData().id}`);
-    const data:any[] = await req.json();
-    setGamesHistory(JSON.parse(JSON.stringify(data)).games);
-  };
+  const [userData] = useState<CurrentUser>(
+    {
+      id: getUserData().id,
+      username: getUserData().username,
+      avatar: getUserData().pic,
+      rank: getUserData().rank ? getUserData().rank : "-",
+      losses: getUserData().losses,
+      wins: getUserData().wins,
+      ratio: (String(getUserData().wins / getUserData().losses) === 'NaN') ? "-" : (getUserData().wins / getUserData().losses),
+    }
+  );
+
+  const updateGamesHistory = async (games: any) => {
+    for (var i in games) {
+      const id = (games[i].winnerId === getUserData().id) ? games[i].looserId : games[i].winnerId;
+      const req = await fetch (`/api/users/${id}`)
+      const res = await req.json();
+      games[i].opponent = res.username;
+    }
+    setGamesHistory(games);
+  }
 
   useEffect(() => {
-    getGamesHistory();
-  }, []);
-
-  const ratio = getUserData().wins / getUserData().losses;
-  console.log('ratio', ratio);
-
-  const [userData] = useState<CurrentUser>({
-    id: getUserData().id,
-    username: getUserData().username,
-    avatar: getUserData().pic,
-    rank: getUserData().rank ? getUserData().rank : "-",
-    losses: getUserData().losses,
-    wins: getUserData().wins,
-    ratio: (String(getUserData().wins / getUserData().losses) === 'NaN') ? "-" : (getUserData().wins / getUserData().losses),
-  });
+    const fetchData = async () => {
+      const req = await fetch(`/api/users/${getUserData().id}`);
+      const data = await req.json();
+      updateGamesHistory(JSON.parse(JSON.stringify(data)).games)
+    }
   
+    fetchData()
+    .catch(console.error);
+  }, [])
+
   return (
     <div className="min-h-screen overflow-x-auto text-white bg-fixed bg-center bg-fill grow" style={{
       backgroundImage: "url('/triangles.png')"
@@ -233,7 +246,7 @@ const UserProfilePage: NextPageWithLayout = ({//<UserProfilePageProps> = ({
             items={[
               {
                 label: "Games history",
-                component: <HistoryTable history={gamesHistory} userId={userData.id}/>,
+                component: <HistoryTable history={gamesHistory} userId={userData.id} />,
               },
               {
                 label: "Last achievements",
