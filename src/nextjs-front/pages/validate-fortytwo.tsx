@@ -1,9 +1,7 @@
 import { useRouter } from "next/router";
 import { Fragment, useContext, useEffect, useState } from "react";
 import HashLoader from "react-spinners/HashLoader";
-import { BiSad } from "react-icons/bi";
 import Image from "next/image";
-import withWildLayout from "../components/hoc/withWildLayout";
 
 import Head from "next/head";
 
@@ -15,7 +13,7 @@ const ValidateFortyTwo: NextPageWithLayout = () => {
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState<null | string>(null);
   const { setAlert } = useContext(alertContext) as AlertContextType;
-
+  
   const router = useRouter();
 
   useEffect(() => {
@@ -82,7 +80,7 @@ const ValidateFortyTwo: NextPageWithLayout = () => {
             <Fragment>
               <Image src={"/this_is_fine.gif"} width={498} height={280} />
               <div className="flex flex-col text-center gap-y-2">
-                <h1 className="text-3xl font-bold text-white text-red-600 left-4 top-4">
+                <h1 className="text-3xl font-bold text-red-600 left-4 top-4">
                   An error occured during the authorization process.
                 </h1>
                 <small className="text-xl leading-normal text-left text-neutral-200">

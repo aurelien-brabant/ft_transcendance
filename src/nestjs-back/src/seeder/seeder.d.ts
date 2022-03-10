@@ -1,6 +1,8 @@
 /* USERS */
 
+import { Time } from "@faker-js/faker/time";
 import { SpawnSyncOptionsWithBufferEncoding } from "child_process";
+import { Timestamp } from "typeorm";
 
 export type SeedUser = {
     id: number;
@@ -18,6 +20,7 @@ export type SeedUser = {
     friends: SeedUser[];
     ownedChannels: SeedChannel[];
     joinedChannels: SeedChannel[];
+    accountDeactivated: boolean;
 };
 
 /* GAMES */
@@ -25,8 +28,12 @@ export type SeedUser = {
 export type SeedGame = {
     id: number;
     players: SeedUser[];
-    winner: SeedUser;
-    createdAt: Date;
+    winnerId: number;
+    looserId: number;
+    createdAt: string;
+    endedAt: string;
+    winnerScore: number;
+    looserScore: number;
 };
 
 /* CHANNELS */

@@ -52,7 +52,7 @@ export class UsersController {
             throw new NotFoundException();
         }
 
-        const avatarPath = join('/upload', 'avatars', user.username);
+        const avatarPath = join('/upload', 'avatars', user.pic);
 
         try {
             statSync(avatarPath);

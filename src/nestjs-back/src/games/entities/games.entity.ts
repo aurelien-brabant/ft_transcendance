@@ -3,10 +3,8 @@ import {
     Entity,
     JoinTable,
     ManyToMany,
-    ManyToOne,
     PrimaryGeneratedColumn
 } from "typeorm";
-import { IsOptional } from "class-validator";
 import { User } from "src/users/entities/users.entity";
 
 @Entity()
@@ -15,14 +13,12 @@ export class Game {
     id: number;
 
     /*
-    @IsOptional()
     @ManyToMany(
         type => Users,
         user => user.gamesInviteSender
     )
     gameInviteSender: Users;
 
-    @IsOptional()
     @ManyToMany(
         type => Users,
         user => user.gamesInviteReceiver
@@ -37,13 +33,23 @@ export class Game {
     @JoinTable()
     players: User[];
 
-    @IsOptional()
-    @ManyToOne(() => User)
-    winner: User;
+    @Column({ nullable: true })
+    winnerId: number;
+
+    @Column({ nullable: true })
+    looserId: number;
 
     @Column({
-        type: 'date',
-        default: () => 'CURRENT_DATE',
+        default: () => 'CURRENT_TIMESTAMP',
     })
-    createdAt: Date;
+    createdAt: string;
+
+    @Column({ nullable: true })
+    endedAt: string;
+
+    @Column({ nullable: true })
+    winnerScore: number;
+
+    @Column({ nullable: true })
+    looserScore: number;
 }

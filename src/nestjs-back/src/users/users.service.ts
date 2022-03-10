@@ -102,6 +102,7 @@ export class UsersService {
             username: actualLogin,
             email,
             phone,
+            pic: actualLogin,
             duoquadra_login: login,
         });
 

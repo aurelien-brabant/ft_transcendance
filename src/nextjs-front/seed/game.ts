@@ -11,8 +11,8 @@ export type SeedGameSummary = {
 };
 
 export type SeedRankedGameSummary = SeedGameSummary & {
-	eloDiff: number;
-	rankingDiff: number;
+	win: number;
+	loose: number;
 };
 
 export const genGameSummary = (): SeedGameSummary => {
@@ -31,6 +31,6 @@ export const genUnrankedGameSummary = () => genGameSummary();
 
 export const genRankedGameSummary = (): SeedRankedGameSummary => ({
 	...genGameSummary(),
-	eloDiff: faker.datatype.number({ min: -50, max: 50 }),
-	rankingDiff: faker.datatype.number({ min: -4, max: 4 })
+	win: 0,
+	loose: 1
 })

@@ -9,6 +9,8 @@ import {NextPageWithLayout} from './_app';
 import authContext, {AuthContextType} from '../context/auth/authContext';
 import { FaCheckCircle } from 'react-icons/fa';
 import { MdError } from 'react-icons/md'
+import alertContext, {AlertContextType} from "../context/alert/alertContext";
+import { useRouter } from 'next/router';
 
 const labelClassName = "grow uppercase text-neutral-400";
 const inputClassName =
@@ -44,27 +46,37 @@ const validatePhone = (phone: string | null) => {
     return isMobilePhone(phone.replace(/ /g, ""));
 };
 
-const baseObject: FormData = {
-  username: "Lord Norminet",
-  email: "lordnorminet@42.fr",
-  phone: "+33 7 52 63 43 53",
-  tfa: false,
-};
-
 const Welcome: NextPageWithLayout = () => {
-  const { getUserData, mergeUserData } = useContext(authContext) as AuthContextType;
+  const { getUserData, mergeUserData, logout, clearUser } = useContext(authContext) as AuthContextType;
   const [editStatus, setEditStatus] = useState("pending");
   const [invalidInputs, setInvalidInputs] = useState<InvalidInputs>({});
-
+  const { setAlert } = useContext(alertContext) as AlertContextType;
+ 	const router = useRouter();
+   
   const [formData, setFormData] = useState<FormData>({
     username: getUserData().username,
     email: getUserData().email,
     phone: getUserData().phone ? getUserData().phone : null,
-    tfa: false
+    tfa: getUserData().tfa
   });
+  
+  let baseObject: FormData;
+  
+  const reactivateAccount = () => {
+    fetch(`/api/users/${getUserData().id}`, {
+      method: 'PATCH',
+      headers: {
+        'Content-Type': 'application/json'
+      },
+      body: JSON.stringify({accountDeactivated: false})
+    });
+  }
 
   useEffect(() => {
-    console.log(getUserData());
+    if (getUserData().accountDeactivated)
+      reactivateAccount();
+
+    baseObject = getUserData();
   }, [])
 
   // recompute this only when formData changes
@@ -79,8 +91,31 @@ const Welcome: NextPageWithLayout = () => {
       ...formData,
       [e.target.name]: e.target.value,
     });
-    setEditStatus("pending")
+    setEditStatus("pending");
   };
+
+  const handleLogout = async () => {
+		setAlert({type: 'success', content: 'Logged out'});
+		logout();
+		await router.push('/');
+		clearUser();
+	}
+
+  const deactivateAccount = async () => {
+    const req = await fetch(`/api/users/${getUserData().id}`, {
+      method: 'PATCH',
+      headers: {
+        'Content-Type': 'application/json'
+      },
+      body: JSON.stringify({accountDeactivated: true})
+    });
+
+    const res = await req.json();
+    console.log(res);
+    if (req.status === 200) {
+      handleLogout();
+    }
+  }
 
   const editUser = async (formData: FormData) => {
   	const req = await fetch(`/api/users/${getUserData().id}`, {
@@ -98,9 +133,12 @@ const Welcome: NextPageWithLayout = () => {
     if (req.status === 200) {
       mergeUserData(formData);
       setEditStatus('success');
+      setAlert({ type: 'success', content: 'User edited successfully' });
     }
-    else
+    else {
       setEditStatus('failure');
+      setAlert({ type: 'error', content: 'Error while editing user!' });
+    }
   }
 
   const handleSubmit = (e: React.FormEvent<HTMLFormElement>) => {
@@ -164,7 +202,7 @@ const Welcome: NextPageWithLayout = () => {
           </div>
           <div className="text-center">
           <h2 className="text-xl font-bold text-pink-600">{getUserData().username}</h2>
-            <Link href={`/users/lordnorminet`}><a className="block py-1 text-sm uppercase text-neutral-200">See public profile</a></Link>
+            <Link href={`/users/${getUserData().id}`}><a className="block py-1 text-sm uppercase text-neutral-200 hover:underline">See public profile</a></Link>
           </div>
         </div>
         <div className="flex flex-col py-12 gap-y-10">
@@ -233,9 +271,8 @@ const Welcome: NextPageWithLayout = () => {
                 type="button"
                 className={`px-6 py-2 col-span-2 ${tfaBgColor}`}
                 onClick={() => {
-                  if (hasValidPhone) {
+                  if (hasValidPhone) 
                     setFormData({ ...formData, tfa: !formData.tfa });
-                  }
                 }}
               >
                 {tfaText}
@@ -257,7 +294,14 @@ const Welcome: NextPageWithLayout = () => {
                 Save changes
               </button>
 
-              <button className="px-1 py-2 text-sm font-bold uppercase bg-red-600 md:px-6 md:text-lg">
+              <button
+                className="px-1 py-2 text-sm font-bold uppercase bg-red-600 md:px-6 md:text-lg"
+                onClick={() => {
+                  if (confirm("Deactivated account?\nJust login again to reactivate your account.\n\nClick OK to proceed.") == true) {
+                    deactivateAccount();
+                  }
+                }}
+              >
                 Deactivate account
               </button>
             </div>

@@ -1,5 +1,5 @@
 import { PartialType } from '@nestjs/mapped-types';
-import { IsOptional } from 'class-validator';
+import { IsOptional, IsString, IsInt } from 'class-validator';
 import { User } from 'src/users/entities/users.entity';
 import { CreateGameDto } from './create-game.dto';
 
@@ -8,5 +8,20 @@ export class UpdateGameDto extends PartialType(CreateGameDto) {
     readonly players: User[];
 
     @IsOptional()
-    readonly winner: User;
+    readonly winnerId: number;
+
+    @IsOptional()
+    readonly looserId: number;
+
+    @IsOptional()
+    @IsString()
+    readonly endedAt: string;
+
+    @IsOptional()
+    @IsInt()
+    readonly winnerScore: number;
+
+    @IsOptional()
+    @IsInt()
+    readonly looserScore: number;
 }

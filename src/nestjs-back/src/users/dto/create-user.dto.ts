@@ -1,4 +1,5 @@
 import {
+  IsBoolean,
   IsEmail,
   IsInt,
   IsOptional,
@@ -35,4 +36,8 @@ export class CreateUserDto {
 
     @IsOptional()
     readonly joinedChannels: Channel[];
+
+    @IsOptional()
+    @IsBoolean()
+    readonly accountDeactivated: boolean;
 }

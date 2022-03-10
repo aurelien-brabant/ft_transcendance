@@ -75,4 +75,7 @@ export class User {
 
     @ManyToMany(() => Channel, joinedChannels => joinedChannels.users)
     joinedChannels: Channel[];
+
+    @Column({default: false})
+    accountDeactivated: boolean;
 }

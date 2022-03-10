@@ -25,7 +25,8 @@ export class SeederService {
             losses: faker.datatype.number(),
             friends: [],
             ownedChannels: [],
-            joinedChannels: []
+            joinedChannels: [],
+            accountDeactivated: false,
         });
         user = await this.usersService.update(user.id.toString(), {
             username: username,
@@ -48,7 +49,7 @@ export class SeederService {
     }
 
     async seedFakeUsers() {
-        for (let i = 0; i < 100; ++i) {
+        for (let i = 0; i <= 10; ++i) {
             let pseudo = faker.internet.userName();
             const user = await this.createFakeUser(pseudo);
 
@@ -57,15 +58,21 @@ export class SeederService {
     }
 
     async seedFakeGames() {
-        const user = await this.usersService.findOne("12");
 
-        for (let i = 0; i < 100; ++i) {
+        for (let i = 0; i < 10; ++i) {
+            const winner = await this.usersService.findOne(String(i + 1));
+            const looser = await this.usersService.findOne(String(i + 2));    
+
             let game = await this.gamesService.create({
-                createdAt: faker.datatype.datetime(),
+                createdAt: String(Date.now() + i),
             });
             game = await this.gamesService.update(game.id.toString(), {
-                players: [],
-                winner: user
+                players: [winner, looser],
+                winnerId: i + 1,
+                looserId: i + 2,
+                endedAt: String(Date.now() + i + 180),
+                winnerScore: faker.datatype.number(),
+                looserScore: faker.datatype.number(),
             } as SeedGame);
 
             console.log("Game [%s] created", game.id);
