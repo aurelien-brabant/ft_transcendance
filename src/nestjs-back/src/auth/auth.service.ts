@@ -8,10 +8,14 @@ import * as FormData from 'form-data';
 
 @Injectable()
 export class AuthService {
-  constructor(private usersServices: UsersService, private readonly jwtService: JwtService) {}
-
+  constructor(
+    private usersServices: UsersService,
+    private readonly jwtService: JwtService,
+  ) {}  
+  
   async validateUser(email: string, password: string): Promise<any> {
-    const user = await this.usersServices.findOneByEmail(email);
+
+    const user = await this.usersServices.findUserPassword(email);
 
     if (user && await comparePassword(password, user.password)) {
       const { password, ...result } = user; // exclude password from result

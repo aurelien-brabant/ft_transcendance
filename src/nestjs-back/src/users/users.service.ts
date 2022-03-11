@@ -10,7 +10,6 @@ import { prefixWithRandomAdjective } from 'src/utils/prefixWithRandomAdjective';
 import { PaginationQueryDto } from 'src/common/dto/pagination-query.dto';
 import { downloadResource } from 'src/utils/download';
 import { join } from 'path';
-import { readFileSync } from 'fs';
 import { faker } from '@faker-js/faker';
 
 @Injectable()
@@ -18,8 +17,6 @@ export class UsersService {
     constructor(
         @InjectRepository(User)
         private readonly usersRepository: Repository<User>,
-    //    @InjectRepository(Game)
-        //private readonly gamesRepository: Repository<Game>,
     ) {}
 
     findAll(paginationQuery: PaginationQueryDto) {
@@ -31,9 +28,19 @@ export class UsersService {
         });
     }
 
+    async findUserPassword(email:string): Promise<User> | null {
+    
+        const user = await this.usersRepository
+            .createQueryBuilder("user")
+            .select("user.password")
+            .where("user.email = :email", { email })
+            .getOne();
+
+        return user;
+    }
+
     async findOneByEmail(email: string): Promise<User> | null {
         const user = await this.usersRepository.findOne({ email });
-
         return user;
     }
 
@@ -78,7 +85,6 @@ export class UsersService {
     async createDuoQuadra({
         email,
         phone,
-        imageUrl,
         login,
     }: CreateDuoQuadraDto, ftBearer: string): Promise<User> {
         // we need to generate an username for the duoquadra. However, we can't guarantee that another user
@@ -110,10 +116,7 @@ export class UsersService {
     }
 
     async create(createUserDto: CreateUserDto) {
-    /*    const games = await Promise.all(
-          createUserDto.games.map(name => this.preloadGameByName(name)),
-        );
-*/
+  
         let u: User | null = null;
 
         u = await this.usersRepository.findOne({
@@ -151,16 +154,9 @@ export class UsersService {
     }
 
     async update(id: string, updateUserDto: UpdateUserDto) {
-/*                const games = 
-            updateUserDto.games &&
-            (await Promise.all(
-                updateUserDto.games.map(name => this.preloadGameByName(name)),
-            ));
-*/
          const user = await this.usersRepository.preload({
             id: +id,
             ...updateUserDto,
-//                      games,
         });
         if (!user)
             throw new NotFoundException(`Cannot update user[${id}]: Not found`);
@@ -171,13 +167,4 @@ export class UsersService {
         const user = await this.findOne(id);
         return this.usersRepository.remove(user);
     }
-/*
-    private async preloadGameByName(name: string): Promise<Game> {
-        const existingGame = await this.gamesRepository.findOne({ name });
-        if (existingGame)
-            return existingGame;
-        return this.gamesRepository.create({ name });
-    }
-
-  */
 }
