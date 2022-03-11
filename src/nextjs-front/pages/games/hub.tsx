@@ -9,20 +9,34 @@ const Hub: React.FC = () => {
 
 	const joinQueue = () => {
 		console.log("Joining Queue");
-		socket.emit("join");
+		socket.emit("joinQueue");
 	}
 
 	useEffect((): any => {
 		// connect to socket server
 		socket = io("localhost");
 
-		// log socket connection
 		socket.on("connect", () => {
-			console.log("SOCKET CONNECTED!", socket.id);
+			console.log("Socket connected !", socket.id);
+
+			socket.on("addedToQueue", () => {
+				console.log("You were added to the queue");
+			});
+
+			socket.on("roomId", function(room: string) {
+					socket.emit("joinRoom", room);
+			});
+
+			socket.on("joinedRoom", (data: string) => {
+				console.log(data);
+			});
 		});
 
-		// // socket disconnet onUnmount if exists
-		// if (socket) return () => socket.disconnect();
+		// socket disconnect onUnmount if exists
+		return () => {
+			if (socket)
+				socket.disconnect();
+		}
   }, []);
 
 	return (
