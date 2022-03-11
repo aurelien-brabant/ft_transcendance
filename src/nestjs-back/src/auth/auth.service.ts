@@ -15,13 +15,14 @@ export interface CustomSocket extends Socket {
 @Injectable()
 export class AuthService {
   constructor(
-    private readonly usersService: UsersService,
+    private usersService: UsersService,
     private readonly jwtService: JwtService,
     private readonly configService: ConfigService
   ) {}
 
   async validateUser(email: string, password: string): Promise<any> {
-    const user = await this.usersService.findOneByEmail(email);
+
+    const user = await this.usersService.findUserPassword(email);
 
     if (user && await comparePassword(password, user.password)) {
       const { password, ...result } = user; // exclude password from result

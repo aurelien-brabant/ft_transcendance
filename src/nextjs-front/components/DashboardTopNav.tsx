@@ -4,14 +4,11 @@ import { FiSearch } from "react-icons/fi";
 import { GiHamburgerMenu } from "react-icons/gi";
 import { useRouter } from "next/router";
 import { BiBell } from "react-icons/bi";
-import { genUser } from "../seed/user";
 import Link from "next/link";
 import { dashboardNavItems } from "../constants/nav";
 import notificationsContext from "../context/notifications/notificationsContext";
 import authContext, {AuthContextType} from "../context/auth/authContext";
 import alertContext, {AlertContextType} from "../context/alert/alertContext";
-
-const user = genUser();
 
 type SearchBarProps = {
 	className?: string;
