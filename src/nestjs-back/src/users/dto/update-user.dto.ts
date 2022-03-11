@@ -1,5 +1,6 @@
 import { PartialType } from '@nestjs/mapped-types';
 import {
+  IsDecimal,
   IsInt,
   IsOptional,
   IsPhoneNumber,
@@ -31,4 +32,8 @@ export class UpdateUserDto extends PartialType(CreateUserDto) {
     @IsOptional()
     @IsInt()
     readonly rank: number;
+    
+    @IsOptional()
+    @IsDecimal()
+    readonly ratio: number; 
 }
