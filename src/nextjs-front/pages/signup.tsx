@@ -66,8 +66,6 @@ const SignUp: NextPageWithLayout = () => {
     };
 
     const { status: createUserStatus } = await fetch("/api/users/", reqMeta);
-  //  console.log('reqmeta', reqMeta);
-    //console.log('createUserStatus', createUserStatus);
 
     if (createUserStatus != 201) {
       if (createUserStatus === 409) {
@@ -79,7 +77,6 @@ const SignUp: NextPageWithLayout = () => {
     } else {
       const userLoginRes = await fetch("/api/auth/login", reqMeta);
       let tmp = setAlert({ type: "info", content: "Account created" });
-//console.log('userloginres', userLoginRes);
       if (userLoginRes.status != 201) {
         setAlert({ type: "error", content: "Could not login" }, tmp);
       } else {
