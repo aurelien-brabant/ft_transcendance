@@ -1,6 +1,5 @@
 import {
   IsBoolean,
-  IsDecimal,
   IsEmail,
   IsInt,
   IsOptional,
@@ -28,10 +27,6 @@ export class CreateUserDto {
     @IsOptional()
     @IsInt()
     readonly losses: number;
-
-    @IsOptional()
-    @IsDecimal()
-    readonly ratio: number;
 
     @IsOptional()
     readonly friends: User[];

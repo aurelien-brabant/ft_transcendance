@@ -39,10 +39,10 @@ export class UsersService {
         return user;
     }
 
-    async findOneByEmail(email: string): Promise<User> | null {
+   /* async findOneByEmail(email: string): Promise<User> | null {
         const user = await this.usersRepository.findOne({ email });
         return user;
-    }
+    }*/
 
     async findOneByDuoQuadraLogin(login: string): Promise<User> | null {
         return this.usersRepository.findOne({
@@ -154,10 +154,31 @@ export class UsersService {
     }
 
     async update(id: string, updateUserDto: UpdateUserDto) {
-         const user = await this.usersRepository.preload({
-            id: +id,
-            ...updateUserDto,
-        });
+        let user: User | null = null;
+        let ratio: number, winsTmp: number, lossesTmp: number;
+
+        winsTmp = updateUserDto.wins ? updateUserDto.wins : null;
+        lossesTmp = updateUserDto.losses ? updateUserDto.losses : null;
+
+        if (winsTmp || lossesTmp) {
+            user = await this.usersRepository.findOne(id);
+            if (winsTmp)
+                ratio = (Math.round(winsTmp / user.losses * 100) / 100)
+            else if (lossesTmp)
+                ratio = (Math.round(user.wins / lossesTmp * 100) / 100)
+            user = await this.usersRepository.preload({
+                    id: +id,
+                    ratio: ratio,
+                    ...updateUserDto,
+                });
+        }
+        else {
+            user = await this.usersRepository.preload({
+                id: +id,
+                ...updateUserDto,
+            });
+        }
+
         if (!user)
             throw new NotFoundException(`Cannot update user[${id}]: Not found`);
         return this.usersRepository.save(user);
