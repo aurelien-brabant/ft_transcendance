@@ -60,7 +60,7 @@ const HistoryTable: React.FC<{ ranking: RankingList[] }> = ({
             </td>
             <td className={`p-3 ${(String(unranked.ratio) === "1") ? "text-neutral-200" :
                                 (unranked.ratio > 1) ? "text-green-500" : "text-red-500"}`}>
-              {unranked.ratio}
+              {String(unranked.ratio) === "0" && !unranked.wins && !unranked.losses ? "-" : unranked.ratio}
             </td>
           </tr>
         ))}
@@ -115,12 +115,11 @@ const LeaderboardPage: NextPageWithLayout = ({}) => {
       tmp = [...tmp, {
         id: data[i].id,
         username: data[i].username,
-        avatar: data[i].pic.startsWith("https://") ? data[i].pic : `/api/users/${data[i].id}/photo`,
+        avatar: !data[i].pic ? "" : data[i].pic.startsWith("https://") ? data[i].pic : `/api/users/${data[i].id}/photo`,
         rank: data[i].rank ? data[i].rank : "-",
         losses: data[i].losses,
         wins: data[i].wins,
         accountDeactivated: data[i].accountDeactivated,
-//        ratio: (!data[i].wins && !data[i].losses) ? "-" : data[i].ratio,
         ratio: data[i].ratio,
       }];
     }
@@ -147,7 +146,7 @@ const LeaderboardPage: NextPageWithLayout = ({}) => {
       backgroundImage: "url('/triangles.png')"
     }}>
       { !isLoading ?
-      <div style={{ maxWidth: "800px" }} className="px-2 py-16 mx-auto">
+      <div style={{ maxWidth: "800px" }} className="px-2 py-10 mx-auto">
         <div className="flex flex-col items-center gap-y-10">
           <div className="relative w-48 h-48 flex justify-center items-center text-center">
             <GiLaurelsTrophy className="text-9xl text-yellow-500"/>

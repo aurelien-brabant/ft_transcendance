@@ -189,7 +189,7 @@ const UserProfilePage: NextPageWithLayout = ({//<UserProfilePageProps> = ({
     setUserData({
       id: data.id,
       username: data.username,
-      avatar: data.pic.startsWith("https://") ? data.pic : `/api/users/${data.id}/photo`,
+      avatar: !data.pic ? "" : data.pic.startsWith("https://") ? data.pic : `/api/users/${data.id}/photo`,
       rank: data.rank ? data.rank : "-",
       losses: data.losses,
       wins: data.wins,
