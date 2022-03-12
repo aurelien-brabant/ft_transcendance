@@ -7,10 +7,11 @@ import Selector from "../../components/Selector";
 import { SeedGameSummary, SeedRankedGameSummary } from "../../seed/game";
 import { GoArrowDown, GoArrowUp } from "react-icons/go";
 import Link from "next/link";
-import { Fragment, ReactElement } from "react";
+import { Fragment, ReactElement, useContext } from "react";
 import { RiPingPongLine, RiMessage2Line } from 'react-icons/ri';
 import { IoMdPersonAdd } from 'react-icons/io';
 import Tooltip from "../../components/Tooltip";
+import chatContext, {ChatContextType} from "../../context/chat/chatContext";
 
 export const getServerSideProps: GetServerSideProps = async function (context) {
   return {
@@ -171,6 +172,12 @@ const UserProfilePage: NextPageWithLayout<UserProfilePageProps> = ({
   user,
 }) => {
   const actionTooltipStyles = 'font-bold bg-gray-900 text-neutral-200';
+  const {  setChatView, openChat } = useContext(chatContext) as ChatContextType;
+
+  const handleMessage = () => {
+    openChat();
+    setChatView('dm', 'direct message', { targetUsername: user.username });
+  }
 
   return (
     <div className="min-h-screen overflow-x-auto text-white bg-fixed bg-center bg-fill grow" style={{
@@ -193,7 +200,9 @@ const UserProfilePage: NextPageWithLayout<UserProfilePageProps> = ({
               </Tooltip>
 
               <Tooltip className={actionTooltipStyles} content="message">
-              <button className="p-2 text-2xl text-gray-900 bg-white rounded-full transition hover:scale-105">
+              <button className="p-2 text-2xl text-gray-900 bg-white rounded-full transition hover:scale-105"
+                onClick={handleMessage}
+              >
                 <RiMessage2Line />
               </button>
               </Tooltip>
