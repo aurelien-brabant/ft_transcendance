@@ -211,8 +211,8 @@ const UserProfilePage: NextPageWithLayout<UserProfilePageProps> = ({
   const {  setChatView, openChat } = useContext(chatContext) as ChatContextType;
 
   const handleMessage = () => {
-    openChat();
     setChatView('dm', 'direct message', { targetUsername: user.username });
+    openChat();
   }
 
   return (
