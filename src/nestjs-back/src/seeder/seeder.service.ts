@@ -89,11 +89,11 @@ export class SeederService {
             const message = await this.messagesService.create({
                 createdAt: faker.datatype.datetime(),
                 content: faker.lorem.sentence(5),
-                sender: fakeSender,
+                author: fakeSender,
                 channel: dstChannel
             } as SeedMessage);
 
-            console.log("Message [%s] => ['%s'] sent by User [%s]", message.id, message.content, message.sender.id);
+            console.log("Message [%s] => ['%s'] sent by User [%s]", message.id, message.content, message.author.id);
         }
     }
 

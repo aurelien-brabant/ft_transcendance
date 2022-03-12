@@ -55,6 +55,6 @@ export type SeedMessage = {
   id: number;
   createdAt: Date;
   content: string;
-  sender: SeedUser;
+  author: SeedUser;
   channel: SeedChannel;
 };

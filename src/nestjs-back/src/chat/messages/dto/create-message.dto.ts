@@ -18,7 +18,7 @@ export class CreateMessageDto {
   readonly content: string;
 
   @IsNotEmpty()
-  readonly sender: User;
+  readonly author: User;
 
   @IsNotEmpty()
   readonly channel: Channel;
