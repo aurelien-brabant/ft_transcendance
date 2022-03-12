@@ -100,36 +100,36 @@ const HistoryTable: React.FC<{ history: GameSummary[], userId: number }> = ({
       {/* NOTE: OBVIOUSLY we won't sort on the client side this is only for simulation purpose */}
       {history
         .sort((a, b) => new Date(b.endedAt).getTime() - new Date(a.endedAt).getTime())
-        .map((unranked, index) => (
+        .map((game, index) => (
           <tr
-            key={unranked.id}
+            key={game.id}
             className={`py-6 ${index % 2 ? "bg-gray-800" : "bg-gray-700"}`}
           >
             <td className="p-3 font-bold">
-              <Link href={`/users/${unranked.winnerId === userId ? unranked.looserId : unranked.winnerId}`}>
-                <a>{unranked.opponent}</a>
+              <Link href={`/users/${game.winnerId === userId ? game.looserId : game.winnerId}`}>
+                <a>{game.opponent}</a>
               </Link>
             </td>
             <td className="p-3 text-neutral-200">
-              {`${getDuration(parseInt(unranked.createdAt), parseInt(unranked.endedAt))}`}
+              {`${getDuration(parseInt(game.createdAt), parseInt(game.endedAt))}`}
             </td>
             <td className="p-3">
-              {unranked.winnerId === userId ?
-                renderScore([unranked.winnerScore, unranked.looserScore])
+              {game.winnerId === userId ?
+                renderScore([game.winnerScore, game.looserScore])
                 :
-                renderScore([unranked.looserScore, unranked.winnerScore])
+                renderScore([game.looserScore, game.winnerScore])
               }
             </td>
             <td className="p-3 text-3xl">
-              {(unranked.winnerScore === unranked.looserScore) ? <FaEquals className="text-gray-400" />
-                  : (unranked.winnerId === userId) ?
+              {(game.winnerScore === game.looserScore) ? <FaEquals className="text-gray-400" />
+                  : (game.winnerId === userId) ?
                       <GiPodiumWinner className="text-green-400" />
                       :
                       <GiFalling className="text-red-400" />
               }
             </td>
             <td className="p-3">
-              {new Date(parseInt(unranked.endedAt)).toLocaleDateString()}
+              {new Date(parseInt(game.endedAt)).toLocaleDateString()}
             </td>
           </tr>
         ))}
@@ -153,9 +153,8 @@ const HighlightItem: React.FC<Highlight> = ({ n, label, hint, nColor }) => (
 );
 
 
-const UserProfilePage: NextPageWithLayout = ({//<UserProfilePageProps> = ({
-  //  user,
-}) => {
+const UserProfilePage: NextPageWithLayout = ({}) => {
+
   const actionTooltipStyles = 'font-bold bg-gray-900 text-neutral-200';
   const { getUserData } = useContext(authContext) as AuthContextType;
   const [gamesHistory, setGamesHistory] = useState([]);

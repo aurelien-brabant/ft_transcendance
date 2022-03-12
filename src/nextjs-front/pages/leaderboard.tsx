@@ -37,10 +37,10 @@ const HistoryTable: React.FC<{ ranking: RankingList[] }> = ({
     <tbody>
       {ranking
         .sort((a, b) => b.ratio - a.ratio)
-        .map((unranked, index) => (
+        .map((user, index) => (
           <tr
-            key={unranked.id}
-            className={`py-6 ${index % 2 ? "bg-gray-800" : "bg-gray-700"}`}
+            key={user.id}
+            className={`py-6 ${index % 2 ? "bg-gray-800" : "bg-gray-700"} ${user.accountDeactivated ? "line-through": "no-underline"}`}
           >
             <td className={`p-3 ${(String(index) === "0") ? "text-yellow-500 font-extrabold" :
                                 (String(index) === "1") ? "text-zinc-400 font-extrabold" : 
@@ -48,19 +48,19 @@ const HistoryTable: React.FC<{ ranking: RankingList[] }> = ({
               {index + 1}
             </td>
             <td className="p-3 font-bold">
-              <Link href={`/users/${unranked.id}`}>
-                <a>{unranked.username}</a>
+              <Link href={`/users/${user.id}`}>
+                <a>{user.username}</a>
               </Link>
             </td>
-            <td className={`p-3 text-neutral-200 ${unranked.wins >= unranked.losses ? "font-bold" : "font-normal"}`}>
-              {unranked.wins}
+            <td className={`p-3 text-neutral-200 ${user.wins >= user.losses ? "font-bold" : "font-normal"}`}>
+              {user.wins}
             </td>
-            <td className={`p-3 text-neutral-200 ${unranked.wins <= unranked.losses ? "font-bold" : "font-normal"}`}>
-              {unranked.losses}
+            <td className={`p-3 text-neutral-200 ${user.wins <= user.losses ? "font-bold" : "font-normal"}`}>
+              {user.losses}
             </td>
-            <td className={`p-3 ${(String(unranked.ratio) === "1") ? "text-neutral-200" :
-                                (unranked.ratio > 1) ? "text-green-500" : "text-red-500"}`}>
-              {String(unranked.ratio) === "0" && !unranked.wins && !unranked.losses ? "-" : unranked.ratio}
+            <td className={`p-3 ${(String(user.ratio) === "1") ? "text-neutral-200" :
+                                (user.ratio > 1) ? "text-green-500" : "text-red-500"}`}>
+              {String(user.ratio) === "0" && !user.wins && !user.losses ? "-" : user.ratio}
             </td>
           </tr>
         ))}
@@ -105,25 +105,41 @@ const HighlightItem: React.FC<Highlight> = ({ label, hint, nColor, ranking }) =>
 const LeaderboardPage: NextPageWithLayout = ({}) => {
 
   const [ranking, setRanking] = useState<RankingList[]>([]);
+  const [ranking42, setRanking42] = useState<RankingList[]>([]);
   const [isLoading, setIsLoading] = useState(false);
 
-  const createRankingList = (data: any) => {
+  const createRankingLists = (data: any) => {
 
-    let tmp: RankingList[] = [];
+    let rank: RankingList[] = [];
+    let rank42: RankingList[] = [];
 
     for (var i in data) {
-      tmp = [...tmp, {
-        id: data[i].id,
-        username: data[i].username,
-        avatar: !data[i].pic ? "" : data[i].pic.startsWith("https://") ? data[i].pic : `/api/users/${data[i].id}/photo`,
-        rank: data[i].rank ? data[i].rank : "-",
-        losses: data[i].losses,
-        wins: data[i].wins,
-        accountDeactivated: data[i].accountDeactivated,
-        ratio: data[i].ratio,
+
+      if (data[i].email.search("@student.42.") !== -1)
+          rank42 = [...rank42, {
+            id: data[i].id,
+            username: data[i].username,
+            avatar: !data[i].pic ? "" : data[i].pic.startsWith("https://") ? data[i].pic : `/api/users/${data[i].id}/photo`,
+            rank: data[i].rank ? data[i].rank : "-",
+            losses: data[i].losses,
+            wins: data[i].wins,
+            accountDeactivated: data[i].accountDeactivated,
+            ratio: data[i].ratio,
+          }];
+  
+      rank = [...rank, {
+          id: data[i].id,
+          username: data[i].username,
+          avatar: !data[i].pic ? "" : data[i].pic.startsWith("https://") ? data[i].pic : `/api/users/${data[i].id}/photo`,
+          rank: data[i].rank ? data[i].rank : "-",
+          losses: data[i].losses,
+          wins: data[i].wins,
+          accountDeactivated: data[i].accountDeactivated,
+          ratio: data[i].ratio,
       }];
     }
-    setRanking(tmp);
+    setRanking42(rank42);
+    setRanking(rank);
   }
 
 
@@ -133,7 +149,7 @@ const LeaderboardPage: NextPageWithLayout = ({}) => {
       const req = await fetch('/api/users');
       const data = await req.json();
       
-      createRankingList(data);
+      createRankingLists(data);
       setIsLoading(false);
     }
   
@@ -179,11 +195,7 @@ const LeaderboardPage: NextPageWithLayout = ({}) => {
               },
               {
                 label: "42 ranking",
-                component: (
-                  <div className="flex flex-col items-center justify-center mt-8">
-                    <h3 className="text-2xl text-gray-600">42 ranking is coming soon...</h3>
-                  </div>
-                ),
+                component:  <HistoryTable ranking={ranking42} />,
               },
             ]} />
         </div>
