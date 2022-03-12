@@ -3,21 +3,19 @@ import { NextPageWithLayout } from "./_app";
 import Selector from "../components/Selector";
 import Link from "next/link";
 import Image from 'next/image';
-import { Fragment, useContext, useEffect, useState } from "react";
-import authContext, { AuthContextType } from "../context/auth/authContext";
-import { GiFalling, GiLaurelsTrophy, GiPodiumSecond, GiPodiumThird, GiPodiumWinner } from "react-icons/gi";
-import { FaEquals } from "react-icons/fa";
+import { Fragment, useEffect, useState } from "react";
+import { GiLaurelsTrophy, GiPodiumSecond, GiPodiumThird, GiPodiumWinner } from "react-icons/gi";
 import { BounceLoader } from "react-spinners";
 
 export type RankingList = {
-  winnerScore: number;
-  looserScore: number;
-  createdAt: string;
-  endedAt: string;
   id: string;
-  winnerId: number;
-  looserId: number;
-  opponent: string;
+  username: string;
+  avatar: string;
+  rank: number | string,
+  losses: number,
+  wins: number,
+  accountDeactivated: boolean,
+  ratio: number | string,
 };
 
 const renderScore = (score: [number, number]) => {
@@ -48,8 +46,8 @@ const getDuration = (begin: number, end: number) => {
   return (`${minutes}` + ' min ' + (seconds < 10 ? '0' : '') + `${seconds} sec`);
 }
 
-const HistoryTable: React.FC<{ history: RankingList[] }> = ({
-  history
+const HistoryTable: React.FC<{ ranking: RankingList[] }> = ({
+  ranking
 }) => (
 
   <table
@@ -57,38 +55,36 @@ const HistoryTable: React.FC<{ history: RankingList[] }> = ({
   >
     <thead>
       <tr className="text-pink-600 bg-gray-800">
-        <th className="p-3 uppercase">Opponent</th>
-        <th className="p-3 uppercase">Duration</th>
-        <th className="p-3 uppercase">Score</th>
-        <th className="p-3 uppercase">Result</th>
-        <th className="p-3 uppercase">Date</th>
+        <th className="p-3 uppercase">Rank</th>
+        <th className="p-3 uppercase">Username</th>
+        <th className="p-3 uppercase">Wins</th>
+        <th className="p-3 uppercase">Losses</th>
+        <th className="p-3 uppercase">Ratio</th>
       </tr>
     </thead>
     <tbody>
-      {/* NOTE: OBVIOUSLY we won't sort on the client side this is only for simulation purpose */}
-      {history
-        .sort((a, b) => new Date(b.endedAt).getTime() - new Date(a.endedAt).getTime())
+      {ranking
         .map((unranked, index) => (
           <tr
             key={unranked.id}
             className={`py-6 ${index % 2 ? "bg-gray-800" : "bg-gray-700"}`}
           >
+            <td>
+              {unranked.rank}
+            </td>
             <td className="p-3 font-bold">
-              <Link href={`/users/${unranked.opponent}`}>
-                <a>{unranked.opponent}</a>
+              <Link href={`/users/${unranked.id}`}>
+                <a>{unranked.username}</a>
               </Link>
             </td>
             <td className="p-3 text-neutral-200">
-              {`${getDuration(parseInt(unranked.createdAt), parseInt(unranked.endedAt))}`}
+              {unranked.wins}
             </td>
             <td className="p-3">
-              {renderScore([unranked.winnerScore, unranked.looserScore])}
-            </td>
-            <td className="p-3 text-3xl">
-              <FaEquals className="text-gray-400" />
+              {unranked.losses}
             </td>
             <td className="p-3">
-              {new Date(parseInt(unranked.endedAt)).toLocaleDateString()}
+              {unranked.ratio}
             </td>
           </tr>
         ))}
@@ -97,23 +93,28 @@ const HistoryTable: React.FC<{ history: RankingList[] }> = ({
 );
 
 export type Highlight = {
-  n: number | string;
   label: string;
   hint: string;
   nColor: string;
+  ranking: any;
 };
 
-const HighlightItem: React.FC<Highlight> = ({ n, label, hint, nColor }) => { 
+const HighlightItem: React.FC<Highlight> = ({ label, hint, nColor, ranking }) => { 
   
+  let pic: string = "";
+
+  if (ranking[0] && ranking[1] && ranking[2])
+    pic = label === 'first' ? ranking[0].avatar :
+      label === 'second' ? ranking[1].avatar : ranking[2].avatar;
+
   return (
 
   <article className={`flex flex-col items-center gap-y-2 ${nColor}`}>
     <h3 className="text-5xl font-bold">
       <img
         className="object-cover object-center w-full h-full rounded-full drop-shadow-md"
-        src={`/api/users/${13}/photo`}
+        src={pic}
       />
-      {/*n*/}
     </h3>
     <div className="text-8xl">
       {label === 'first' && <GiPodiumWinner />}
@@ -127,25 +128,43 @@ const HighlightItem: React.FC<Highlight> = ({ n, label, hint, nColor }) => {
 
 const LeaderboardPage: NextPageWithLayout = ({}) => {
 
-  const { getUserData } = useContext(authContext) as AuthContextType;
-  const [ranking, setRanking] = useState([]);
+  const [ranking, setRanking] = useState<RankingList[]>([]);
   const [isLoading, setIsLoading] = useState(false);
-/*
+
+  const createRankingList = (data: any) => {
+
+    let tmp: any = [];
+
+    for (var i in data) {
+      tmp = [...tmp, {
+        id: data[i].id,
+        username: data[i].username,
+        avatar: data[i].pic.startsWith("https://") ? data[i].pic : `/api/users/${data[i].id}/photo`,
+        rank: data[i].rank ? data[i].rank : "-",
+        losses: data[i].losses,
+        wins: data[i].wins,
+        accountDeactivated: data[i].accountDeactivated,
+        ratio: (!data[i].wins && !data[i].losses) ? "-" : data[i].ratio,
+      }];
+    }
+    setRanking(tmp);
+  }
+
+
   useEffect(() => {
     const fetchData = async () => {
 
-      const req = await fetch(`/api/users/${userId}`);
+      const req = await fetch('/api/users');
       const data = await req.json();
       
-      updateUserData(data);
-      updateGamesHistory(JSON.parse(JSON.stringify(data)).games);
+      createRankingList(data);
       setIsLoading(false);
     }
   
     fetchData()
     .catch(console.error);
-  }, [userId])
-*/
+  }, [])
+
   return (
     <div className="min-h-screen overflow-x-auto text-white bg-fixed bg-center bg-fill grow" style={{
       backgroundImage: "url('/triangles.png')"
@@ -158,26 +177,29 @@ const LeaderboardPage: NextPageWithLayout = ({}) => {
           </div>
           <div className="w-full p-5 bg-gray-800 border-2 border-gray-800 rounded drop-shadow-md grid lg:grid-cols-3">
             <HighlightItem
-              n={ranking[1]}
               label="second"
               hint="#2"
-              nColor="text-zinc-400" />
+              nColor="text-zinc-400"
+              ranking={ranking}
+            />
             <HighlightItem
-              n={ranking[0]}
               label="first"
               hint="#1"
-              nColor="text-yellow-500" />
+              nColor="text-yellow-500"
+              ranking={ranking}
+            />
             <HighlightItem
-              n={ranking[2]}
               label="third"
               hint="#3"
-              nColor="text-orange-800" />
+              nColor="text-orange-800"
+              ranking={ranking}
+            />
           </div>
           <Selector
             items={[
               {
                 label: "Ranking",
-                component: <HistoryTable history={ranking} />,
+                component: <HistoryTable ranking={ranking} />,
               },
               {
                 label: "42 ranking",
