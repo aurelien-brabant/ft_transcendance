@@ -3,7 +3,7 @@ import { NextPageWithLayout } from "./_app";
 import Selector from "../components/Selector";
 import Link from "next/link";
 import Image from 'next/image';
-import { Fragment, useEffect, useState } from "react";
+import { useEffect, useState } from "react";
 import { GiLaurelsTrophy, GiPodiumSecond, GiPodiumThird, GiPodiumWinner } from "react-icons/gi";
 import { BounceLoader } from "react-spinners";
 
@@ -15,36 +15,8 @@ export type RankingList = {
   losses: number,
   wins: number,
   accountDeactivated: boolean,
-  ratio: number | string,
+  ratio: number,
 };
-
-const renderScore = (score: [number, number]) => {
-  const getColor = (n1: number, n2: number) =>
-    (n1 === n2) ? "text-gray-400" :
-        (n1 < n2) ? "text-red-400" : "text-green-400";
-  const spanClassName = "text-lg";
-
-  return (
-    <Fragment>
-      <span className={`${spanClassName} ${getColor(score[0], score[1])}`}>
-        {score[0]}
-      </span>
-      {" - "}
-      <span className={`${spanClassName} ${getColor(score[1], score[0])}`}>
-        {score[1]}
-      </span>
-    </Fragment>
-  );
-};
-
-const getDuration = (begin: number, end: number) => {
-
-  const diff = end - begin;
-  const minutes = Math.floor(diff / 60);
-  const seconds = Math.floor(diff - (minutes * 60));
-
-  return (`${minutes}` + ' min ' + (seconds < 10 ? '0' : '') + `${seconds} sec`);
-}
 
 const HistoryTable: React.FC<{ ranking: RankingList[] }> = ({
   ranking
@@ -64,26 +36,30 @@ const HistoryTable: React.FC<{ ranking: RankingList[] }> = ({
     </thead>
     <tbody>
       {ranking
+        .sort((a, b) => b.ratio - a.ratio)
         .map((unranked, index) => (
           <tr
             key={unranked.id}
             className={`py-6 ${index % 2 ? "bg-gray-800" : "bg-gray-700"}`}
           >
-            <td>
-              {unranked.rank}
+            <td className={`p-3 ${(String(index) === "0") ? "text-yellow-500 font-extrabold" :
+                                (String(index) === "1") ? "text-zinc-400 font-extrabold" : 
+                                (String(index) === "2") ? "text-orange-800 font-extrabold" : "text-white font-normal"}`}>
+              {index + 1}
             </td>
             <td className="p-3 font-bold">
               <Link href={`/users/${unranked.id}`}>
                 <a>{unranked.username}</a>
               </Link>
             </td>
-            <td className="p-3 text-neutral-200">
+            <td className={`p-3 text-neutral-200 ${unranked.wins >= unranked.losses ? "font-bold" : "font-normal"}`}>
               {unranked.wins}
             </td>
-            <td className="p-3">
+            <td className={`p-3 text-neutral-200 ${unranked.wins <= unranked.losses ? "font-bold" : "font-normal"}`}>
               {unranked.losses}
             </td>
-            <td className="p-3">
+            <td className={`p-3 ${(String(unranked.ratio) === "1") ? "text-neutral-200" :
+                                (unranked.ratio > 1) ? "text-green-500" : "text-red-500"}`}>
               {unranked.ratio}
             </td>
           </tr>
@@ -96,7 +72,7 @@ export type Highlight = {
   label: string;
   hint: string;
   nColor: string;
-  ranking: any;
+  ranking: RankingList[];
 };
 
 const HighlightItem: React.FC<Highlight> = ({ label, hint, nColor, ranking }) => { 
@@ -133,7 +109,7 @@ const LeaderboardPage: NextPageWithLayout = ({}) => {
 
   const createRankingList = (data: any) => {
 
-    let tmp: any = [];
+    let tmp: RankingList[] = [];
 
     for (var i in data) {
       tmp = [...tmp, {
@@ -144,7 +120,8 @@ const LeaderboardPage: NextPageWithLayout = ({}) => {
         losses: data[i].losses,
         wins: data[i].wins,
         accountDeactivated: data[i].accountDeactivated,
-        ratio: (!data[i].wins && !data[i].losses) ? "-" : data[i].ratio,
+//        ratio: (!data[i].wins && !data[i].losses) ? "-" : data[i].ratio,
+        ratio: data[i].ratio,
       }];
     }
     setRanking(tmp);
