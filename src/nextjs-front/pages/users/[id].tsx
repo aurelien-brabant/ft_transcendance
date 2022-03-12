@@ -1,28 +1,33 @@
-//import { GetServerSideProps, NextPage } from "next";
-import { UserStatusItem } from "../../components/UserStatus";
-import withDashboardLayout from "../../components/hoc/withDashboardLayout";
-import { NextPageWithLayout } from "../_app";
-import Selector from "../../components/Selector";
+import { GetServerSideProps } from "next";
 import Link from "next/link";
 import Image from 'next/image';
 import { Fragment, useContext, useEffect, useState } from "react";
-import { RiPingPongLine, RiMessage2Line } from 'react-icons/ri';
-import { IoMdPersonAdd } from 'react-icons/io';
-import Tooltip from "../../components/Tooltip";
-import authContext, { AuthContextType } from "../../context/auth/authContext";
-import { GiFalling, GiPodiumWinner } from "react-icons/gi";
-import { FaEquals } from "react-icons/fa";
-//import PreventSSR from "../../components/PreventSSR";
 import { BounceLoader } from "react-spinners";
+import { FaEquals } from "react-icons/fa";
+import { IoMdPersonAdd } from 'react-icons/io';
+import { GiFalling, GiPodiumWinner } from "react-icons/gi";
+import { RiPingPongLine, RiMessage2Line } from 'react-icons/ri';
+import { NextPageWithLayout } from "../_app";
+import authContext, { AuthContextType } from "../../context/auth/authContext";
+// import PreventSSR from "../../components/PreventSSR";
+import Selector from "../../components/Selector";
+import Tooltip from "../../components/Tooltip";
+import { UserStatusItem } from "../../components/UserStatus";
+import withDashboardLayout from "../../components/hoc/withDashboardLayout";
+import chatContext, {ChatContextType} from "../../context/chat/chatContext";
+import { genUser, SeedUser } from "../../seed/user";
 
-/*export const getServerSideProps: GetServerSideProps = async function (context) {
+export const getServerSideProps: GetServerSideProps = async function (context) {
   return {
     props: {
-      user: getUserData(),
+      user: genUser(),
     },
   };
 };
-*/
+
+type UserProfilePageProps = {
+  user: CurrentUser;
+};
 
 export type GameSummary = {
   winnerScore: number;
@@ -44,11 +49,6 @@ type CurrentUser = {
   ratio: number | string;
   id: number;
 };
-
-//type UserProfilePageProps = {
-//user: CurrentUser;
-//};
-
 
 const renderScore = (score: [number, number]) => {
   const getColor = (n1: number, n2: number) =>
@@ -151,9 +151,8 @@ const HighlightItem: React.FC<Highlight> = ({ n, label, hint, nColor }) => (
   </article>
 );
 
-
-const UserProfilePage: NextPageWithLayout = ({//<UserProfilePageProps> = ({
-  //  user,
+const UserProfilePage: NextPageWithLayout<UserProfilePageProps> = ({
+  user,
 }) => {
   const actionTooltipStyles = 'font-bold bg-gray-900 text-neutral-200';
   const { getUserData } = useContext(authContext) as AuthContextType;
@@ -209,6 +208,12 @@ const UserProfilePage: NextPageWithLayout = ({//<UserProfilePageProps> = ({
     fetchData()
     .catch(console.error);
   }, [userId])
+  const {  setChatView, openChat } = useContext(chatContext) as ChatContextType;
+
+  const handleMessage = () => {
+    setChatView('dm', 'direct message', { targetUsername: user.username });
+    openChat();
+  }
 
   return (
     <div className="min-h-screen overflow-x-auto text-white bg-fixed bg-center bg-fill grow" style={{
@@ -232,9 +237,11 @@ const UserProfilePage: NextPageWithLayout = ({//<UserProfilePageProps> = ({
               </Tooltip>
 
               <Tooltip className={actionTooltipStyles} content="message">
-                <button className="p-2 text-2xl text-gray-900 bg-white rounded-full transition hover:scale-105">
-                  <RiMessage2Line />
-                </button>
+              <button className="p-2 text-2xl text-gray-900 bg-white rounded-full transition hover:scale-105"
+                onClick={handleMessage}
+              >
+                <RiMessage2Line />
+              </button>
               </Tooltip>
 
               <Tooltip className={actionTooltipStyles} content="Add as friend">
