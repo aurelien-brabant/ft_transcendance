@@ -100,15 +100,19 @@ export class SeederService {
     async seedFakeChannels() {
         const fakeOwner = await this.createFakeUser("fakeOwner", 12);
 
-        for (let i = 0; i < 100; ++i) {
-            const channel = await this.channelsService.create({
+        for (let i = 0; i < 50; ++i) {
+            let channel = await this.channelsService.create({
                 name: (faker.unique as any)(faker.company.companyName),
                 owner: fakeOwner,
                 privacy: ['private', 'public', 'protected'][Math.floor(Math.random() * 3)],
-                password: faker.internet.password(),
                 users: [fakeOwner],
                 messages: []
             } as SeedChannel);
+            if (channel.privacy === 'protected') {
+                channel = await this.channelsService.update(channel.id.toString(), {
+                    password: faker.internet.password()
+                });
+            }
 
             console.log('[+] Seeding fake messages in channel [%s]...', channel.id);
             await this.seedFakeMessages(channel, fakeOwner);

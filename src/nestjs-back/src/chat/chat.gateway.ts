@@ -28,8 +28,8 @@ export class ChatGateway implements OnGatewayInit, OnGatewayConnection, OnGatewa
     this.logger.log(`Client connected: ${socket.id}`);
   }
 
-  handleDisconnect(client: Socket) {
-    this.logger.log(`Client disconnected: ${client.id}`);
+  handleDisconnect(socket: Socket) {
+    this.logger.log(`Client disconnected: ${socket.id}`);
   }
 
   @SubscribeMessage('messageToServer')
@@ -37,23 +37,23 @@ export class ChatGateway implements OnGatewayInit, OnGatewayConnection, OnGatewa
     @ConnectedSocket() socket: Socket,
     @MessageBody() data: string
   ) {
-    const sender = await this.chatService.getUserFromSocket(socket);
+    const author = await this.chatService.getUserFromSocket(socket);
 
-    this.logger.log(`Received message: ${data}`);
-    this.server.emit('messageToClient', { data, sender });
+    this.logger.log(`Handle message from Client [${author.id}]`);
+    this.server.emit('messageToClient', data);
+    // this.server.to(data.channel).emit('messageToClient', data);
   }
 
-  @SubscribeMessage('joinChannel')
-  handleJoinChannel(socket: Socket, channelName: string) {
-    socket.join(channelName);
-    this.logger.log(`Client [${socket.id}] joined channel ${channelName}`);
-    socket.emit('joinedChannel', channelName);
-  }
-
-  @SubscribeMessage('leaveChannel')
-  handleLeftChannel(socket: Socket, channelName: string) {
-    socket.leave(channelName);
-    this.logger.log(`Client [${socket.id}] left channel ${channelName}`);
-    socket.emit('leftChannel', channelName);
-  }
+  // @SubscribeMessage('joinChannel')
+  // joinChannel(
+  //   @ConnectedSocket() socket: Socket,
+  //   @MessageBody() data: string
+  // ) {
+  //   socket.join(data, (err) => {
+  //     if (err) {
+  //       console.log('error ', err);
+  //     }
+  //   });
+  //   this.logger.log(`Client [${socket.id}] joined channel ${channelName}`);
+  // }
 }
