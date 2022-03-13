@@ -1,9 +1,9 @@
 import { Fragment, useEffect } from "react";
-import io from 'socket.io-client';
+import { io, Socket }from 'socket.io-client';
 import Head from "next/head";
-import withDashboardLayout from "../../components/hoc/withDashboardLayout";
+// import withDashboardLayout from "../../components/hoc/withDashboardLayout";
 
-let socket;
+let socket: Socket;
 // const Hub: NextPageWithLayout = () => {
 const Hub: React.FC = () => {
 
