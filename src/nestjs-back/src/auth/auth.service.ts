@@ -1,16 +1,12 @@
 import { Injectable } from '@nestjs/common';
-import { compare as comparePassword } from 'bcrypt';
-import { User } from 'src/users/entities/users.entity';
-import { UsersService } from 'src/users/users.service';
 import { JwtService } from '@nestjs/jwt';
 import { ConfigService } from '@nestjs/config';
-import { Socket } from 'socket.io';
+import { compare as comparePassword } from 'bcrypt';
 import fetch from 'node-fetch';
 import * as FormData from 'form-data';
-
-export interface CustomSocket extends Socket { 
-  user: User;
-}
+import { User } from 'src/users/entities/users.entity';
+import { UsersService } from 'src/users/users.service';
+import { TokenPayload } from './tokenPayload.interface';
 
 @Injectable()
 export class AuthService {
@@ -95,7 +91,7 @@ export class AuthService {
   }
 
   async getUserFromAuthToken(token: string) {
-    const payload: CustomSocket = this.jwtService.verify(token, {
+    const payload: TokenPayload = this.jwtService.verify(token, {
       secret: this.configService.get('JWT_ACCESS_TOKEN_SECRET')
     });
     if (payload.id) {
