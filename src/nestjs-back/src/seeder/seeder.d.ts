@@ -43,7 +43,7 @@ export type SeedChannel = {
   id: number;
   name: string;
   owner: SeedUser;
-  visibility: string
+  privacy: string
   password: string;
   users: SeedUser[];
   messages: SeedMessage[];

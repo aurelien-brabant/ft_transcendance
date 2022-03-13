@@ -26,7 +26,7 @@ export class Channel {
 
   /* public, private, protected */
   @Column({ default: "private" })
-  visibility: string
+  privacy: string
 
   @IsOptional()
   @Column({ select: false, length: 50, nullable: true })

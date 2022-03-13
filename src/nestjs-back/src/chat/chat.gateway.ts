@@ -24,8 +24,8 @@ export class ChatGateway implements OnGatewayInit, OnGatewayConnection, OnGatewa
   }
 
   async handleConnection(socket: Socket) {
-    this.logger.log(`Client connected: ${socket.id}`);
     await this.chatService.getUserFromSocket(socket);
+    this.logger.log(`Client connected: ${socket.id}`);
   }
 
   handleDisconnect(client: Socket) {
