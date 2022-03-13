@@ -5,10 +5,10 @@ import { GamesService } from 'src/games/games.service';
 import { User } from '../users/entities/users.entity';
 import { UsersService } from 'src/users/users.service';
 import { UsersModule } from '../users/users.module';
-import { Channel } from "src/channels/entities/channels.entity";
-import { ChannelsService } from 'src/channels/channels.service';
-import { Message } from 'src/messages/entities/messages.entity';
-import { MessagesService } from 'src/messages/messages.service';
+import { Channel } from "src/chat/channels/entities/channels.entity";
+import { ChannelsService } from 'src/chat/channels/channels.service';
+import { Message } from 'src/chat/messages/entities/messages.entity';
+import { MessagesService } from 'src/chat/messages/messages.service';
 import { SeederService } from './seeder.service';
 
 @Module({

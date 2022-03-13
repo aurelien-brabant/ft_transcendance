@@ -6,8 +6,9 @@ import { UsersModule } from './users/users.module';
 import { FriendsInvitesModule } from './friendsInvites/friendsInvites.module';
 import { GamesModule } from './games/games.module';
 import { GamesInvitesModule } from './gamesInvites/gamesInvites.module';
-import { ChannelsModule } from './channels/channels.module';
-import { MessagesModule } from './messages/messages.module';
+import { GatewayModule } from './gateway/gateway.module';
+import { ChannelsModule } from './chat/channels/channels.module';
+import { MessagesModule } from './chat/messages/messages.module';
 import { SeederModule } from './seeder/seeder.module';
 import { TypeOrmModule } from '@nestjs/typeorm';
 
@@ -18,6 +19,7 @@ import { TypeOrmModule } from '@nestjs/typeorm';
     FriendsInvitesModule,
     GamesModule,
     GamesInvitesModule,
+    GatewayModule,
     ChannelsModule,
     MessagesModule,
     SeederModule,
@@ -31,7 +33,7 @@ import { TypeOrmModule } from '@nestjs/typeorm';
       autoLoadEntities: true,
       synchronize: true,         // true in Dev // false in production
       keepConnectionAlive: true,
-    })
+    }),
   ],
   controllers: [AppController],
   providers: [AppService],
