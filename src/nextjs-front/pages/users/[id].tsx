@@ -1,4 +1,3 @@
-import { GetServerSideProps } from "next";
 import Link from "next/link";
 import Image from 'next/image';
 import { Fragment, useContext, useEffect, useState } from "react";
@@ -15,19 +14,6 @@ import Tooltip from "../../components/Tooltip";
 import { UserStatusItem } from "../../components/UserStatus";
 import withDashboardLayout from "../../components/hoc/withDashboardLayout";
 import chatContext, {ChatContextType} from "../../context/chat/chatContext";
-import { genUser, SeedUser } from "../../seed/user";
-
-export const getServerSideProps: GetServerSideProps = async function (context) {
-  return {
-    props: {
-      user: genUser(),
-    },
-  };
-};
-
-type UserProfilePageProps = {
-  user: CurrentUser;
-};
 
 export type GameSummary = {
   winnerScore: number;
@@ -152,9 +138,9 @@ const HighlightItem: React.FC<Highlight> = ({ n, label, hint, nColor }) => (
   </article>
 );
 
-const UserProfilePage: NextPageWithLayout<UserProfilePageProps> = ({
-  user,
-}) => {
+
+const UserProfilePage: NextPageWithLayout = ({}) => {
+
   const actionTooltipStyles = 'font-bold bg-gray-900 text-neutral-200';
   const { getUserData } = useContext(authContext) as AuthContextType;
   const [gamesHistory, setGamesHistory] = useState([]);
@@ -214,7 +200,7 @@ const UserProfilePage: NextPageWithLayout<UserProfilePageProps> = ({
   const {  setChatView, openChat } = useContext(chatContext) as ChatContextType;
 
   const handleMessage = () => {
-    setChatView('dm', 'direct message', { targetUsername: user.username });
+    setChatView('dm', 'direct message', { targetUsername: userId });
     openChat();
   }
 
@@ -299,10 +285,10 @@ const UserProfilePage: NextPageWithLayout<UserProfilePageProps> = ({
       :
       <div className="relative flex flex-col items-center justify-center min-h-screen bg-gray-900 gap-y-4">
         <div className="absolute inset-0 z-50 flex items-center justify-center">
-			    <Image src="/logo.svg" height="200" width="200" />
-		    </div>
-    		<BounceLoader size={400} color="#db2777" />
-	    </div>
+          <Image src="/logo.svg" height="200" width="200" />
+        </div>
+        <BounceLoader size={400} color="#db2777" />
+      </div>
       }
     </div>
   );
