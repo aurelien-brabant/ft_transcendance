@@ -43,6 +43,7 @@ type CurrentUser = {
   wins: number;
   ratio: number | string;
   id: number;
+  accountDeactivated: boolean;
 };
 
 //type UserProfilePageProps = {
@@ -99,36 +100,36 @@ const HistoryTable: React.FC<{ history: GameSummary[], userId: number }> = ({
       {/* NOTE: OBVIOUSLY we won't sort on the client side this is only for simulation purpose */}
       {history
         .sort((a, b) => new Date(b.endedAt).getTime() - new Date(a.endedAt).getTime())
-        .map((unranked, index) => (
+        .map((game, index) => (
           <tr
-            key={unranked.id}
+            key={game.id}
             className={`py-6 ${index % 2 ? "bg-gray-800" : "bg-gray-700"}`}
           >
             <td className="p-3 font-bold">
-              <Link href={`/users/${unranked.winnerId === userId ? unranked.looserId : unranked.winnerId}`}>
-                <a>{unranked.opponent}</a>
+              <Link href={`/users/${game.winnerId === userId ? game.looserId : game.winnerId}`}>
+                <a>{game.opponent}</a>
               </Link>
             </td>
             <td className="p-3 text-neutral-200">
-              {`${getDuration(parseInt(unranked.createdAt), parseInt(unranked.endedAt))}`}
+              {`${getDuration(parseInt(game.createdAt), parseInt(game.endedAt))}`}
             </td>
             <td className="p-3">
-              {unranked.winnerId === userId ?
-                renderScore([unranked.winnerScore, unranked.looserScore])
+              {game.winnerId === userId ?
+                renderScore([game.winnerScore, game.looserScore])
                 :
-                renderScore([unranked.looserScore, unranked.winnerScore])
+                renderScore([game.looserScore, game.winnerScore])
               }
             </td>
             <td className="p-3 text-3xl">
-              {(unranked.winnerScore === unranked.looserScore) ? <FaEquals className="text-gray-400" />
-                  : (unranked.winnerId === userId) ?
+              {(game.winnerScore === game.looserScore) ? <FaEquals className="text-gray-400" />
+                  : (game.winnerId === userId) ?
                       <GiPodiumWinner className="text-green-400" />
                       :
                       <GiFalling className="text-red-400" />
               }
             </td>
             <td className="p-3">
-              {new Date(parseInt(unranked.endedAt)).toLocaleDateString()}
+              {new Date(parseInt(game.endedAt)).toLocaleDateString()}
             </td>
           </tr>
         ))}
@@ -152,9 +153,8 @@ const HighlightItem: React.FC<Highlight> = ({ n, label, hint, nColor }) => (
 );
 
 
-const UserProfilePage: NextPageWithLayout = ({//<UserProfilePageProps> = ({
-  //  user,
-}) => {
+const UserProfilePage: NextPageWithLayout = ({}) => {
+
   const actionTooltipStyles = 'font-bold bg-gray-900 text-neutral-200';
   const { getUserData } = useContext(authContext) as AuthContextType;
   const [gamesHistory, setGamesHistory] = useState([]);
@@ -169,7 +169,8 @@ const UserProfilePage: NextPageWithLayout = ({//<UserProfilePageProps> = ({
       rank: getUserData().rank ? getUserData().rank : "-",
       losses: getUserData().losses,
       wins: getUserData().wins,
-      ratio: (String(getUserData().wins / getUserData().losses) === 'NaN') ? "-" : (getUserData().wins / getUserData().losses),
+      accountDeactivated: getUserData().accountDeactivated,
+      ratio: (!getUserData().wins && !getUserData().losses) ? "-" : getUserData().ratio,
     }
   );
 
@@ -187,11 +188,12 @@ const UserProfilePage: NextPageWithLayout = ({//<UserProfilePageProps> = ({
     setUserData({
       id: data.id,
       username: data.username,
-      avatar: data.pic.startsWith("https://") ? data.pic : `/api/users/${data.id}/photo`,
+      avatar: !data.pic ? "" : data.pic.startsWith("https://") ? data.pic : `/api/users/${data.id}/photo`,
       rank: data.rank ? data.rank : "-",
       losses: data.losses,
       wins: data.wins,
-      ratio: (String(data.wins / data.losses) === 'NaN') ? "-" : (Math.round(data.wins / data.losses * 100) / 100),
+      accountDeactivated: data.accountDeactivated,
+      ratio: (!data.wins && !data.losses) ? "-" : data.ratio,
     });
   }
 
@@ -223,7 +225,7 @@ const UserProfilePage: NextPageWithLayout = ({//<UserProfilePageProps> = ({
               src={userData.avatar} />
 
             {/* actions */}
-            {(userData.id !== getUserData().id) ?
+            {(userData.id !== getUserData().id || !userData.accountDeactivated) ?
             <div className="absolute left-0 right-0 flex items-center justify-center -bottom-4 gap-x-2">
               <Tooltip className={actionTooltipStyles} content="challenge">
                 <button className="p-2 text-2xl text-gray-900 bg-white rounded-full transition hover:scale-105">
@@ -250,7 +252,7 @@ const UserProfilePage: NextPageWithLayout = ({//<UserProfilePageProps> = ({
           </div>
           <div className="flex flex-col items-center">
             <h1 className="text-2xl text-pink-600">{userData.username}</h1>
-            <UserStatusItem status="online" />
+            <UserStatusItem status={(userData.accountDeactivated) ? "deactivated" : "online"}/>
           </div>
           <div className="w-full p-5 bg-gray-800 border-2 border-gray-800 rounded drop-shadow-md grid lg:grid-cols-3">
             <HighlightItem
