@@ -8,7 +8,7 @@ import {
 } from "react";
 import chatContext, {
 	ChatContextType,
-	ChatGroup,
+	// ChatGroup,
 	ChatGroupPrivacy,
 } from "../../context/chat/chatContext";
 import {

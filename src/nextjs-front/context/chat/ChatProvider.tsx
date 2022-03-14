@@ -1,17 +1,17 @@
 import { useEffect, useState } from "react";
-import { faker } from '@faker-js/faker';
 import { BsFillChatDotsFill } from "react-icons/bs";
 import Chat from "../../components/Chat";
 import ChatGroupsView from "../../components/chat/Groups";
-import ChatGroupView, {GroupHeader} from "../../components/chat/Group";
+import ChatGroupView, { GroupHeader } from "../../components/chat/Group";
 import ChatDirectMessagesView from "../../components/chat/DirectMessages";
-import ChatDirectMessageView, {DirectMessageHeader} from "../../components/chat/DirectMessage";
+import ChatDirectMessageView, { DirectMessageHeader } from "../../components/chat/DirectMessage";
 import chatContext, { ChatGroup, ChatGroupPrivacy, ChatView, DirectMessage } from "./chatContext";
-import Groupadd, {GroupaddHeader} from "../../components/chat/Groupadd";
-import PasswordProtection, {PasswordProtectionHeader} from "../../components/chat/PasswordProtection";
-import GroupUsers, {GroupUsersHeader} from "../../components/chat/GroupUsers";
-import GroupSettings, {GroupSettingsHeader} from "../../components/chat/GroupSettings";
-import GroupNew, {GroupNewHeader} from "../../components/chat/GroupNew";
+import Groupadd, { GroupaddHeader } from "../../components/chat/Groupadd";
+import PasswordProtection, { PasswordProtectionHeader } from "../../components/chat/PasswordProtection";
+import GroupUsers, { GroupUsersHeader } from "../../components/chat/GroupUsers";
+import GroupSettings, { GroupSettingsHeader } from "../../components/chat/GroupSettings";
+import GroupNew, { GroupNewHeader } from "../../components/chat/GroupNew";
+import { faker } from '@faker-js/faker';
 
 export type ChatViewItem = {
 	label: string;

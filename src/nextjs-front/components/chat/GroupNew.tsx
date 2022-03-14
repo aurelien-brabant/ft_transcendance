@@ -1,5 +1,5 @@
 import { useState, Fragment, useContext } from "react";
-import {BsArrowLeftShort} from "react-icons/bs";
+import { BsArrowLeftShort } from "react-icons/bs";
 import chatContext, { ChatContextType, ChatGroupPrivacy } from "../../context/chat/chatContext";
 
 type NewGroupData = {

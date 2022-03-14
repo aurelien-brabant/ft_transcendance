@@ -1,11 +1,11 @@
-import faker from "@faker-js/faker";
 import { useContext, useEffect, useRef, useState } from "react";
-import chatContext, { ChatContextType, ChatMessage } from "../../context/chat/chatContext";
+import { AiOutlineClose } from "react-icons/ai";
+import { BsArrowLeftShort } from "react-icons/bs";
 import { FiSend } from 'react-icons/fi';
-import {BsArrowLeftShort} from "react-icons/bs";
-import {AiOutlineClose} from "react-icons/ai";
-import {MdPeopleAlt} from "react-icons/md";
-import {RiSettings5Line} from "react-icons/ri";
+import { MdPeopleAlt } from "react-icons/md";
+import { RiSettings5Line } from "react-icons/ri";
+import chatContext, { ChatContextType, ChatMessage } from "../../context/chat/chatContext";
+import faker from "@faker-js/faker";
 
 export const GroupHeader: React.FC<{ viewParams: any  }> = ({ viewParams }) => {
 	const { openChatView, closeChat, setChatView } = useContext(chatContext) as ChatContextType;

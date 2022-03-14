@@ -1,6 +1,6 @@
-import {useContext} from 'react';
+import { useContext } from 'react';
 import { BsArrowLeftShort } from 'react-icons/bs';
-import chatContext, {ChatContextType} from '../../context/chat/chatContext';
+import chatContext, { ChatContextType } from '../../context/chat/chatContext';
 
 export const GroupaddHeader: React.FC<{ viewParams: any}> = ({ viewParams }) => {
 	const { setChatView, openChatView, closeChat, closeRightmostView } = useContext(chatContext) as ChatContextType;

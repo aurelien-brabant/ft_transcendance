@@ -1,9 +1,9 @@
-import faker from "@faker-js/faker";
-import Link from "next/link";
 import { useContext, useEffect, useState } from "react";
 import { GiThorHammer } from "react-icons/gi";
 import { BsArrowLeftShort, BsShieldFillPlus } from "react-icons/bs";
+import Link from "next/link";
 import chatContext, { ChatContextType } from "../../context/chat/chatContext";
+import faker from "@faker-js/faker";
 
 type UserSummary = {
 	avatar: string;

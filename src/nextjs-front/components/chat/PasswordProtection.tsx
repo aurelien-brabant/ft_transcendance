@@ -1,9 +1,7 @@
-import {useContext} from "react";
-import {
-	AiFillLock,
-} from "react-icons/ai";
-import {BsArrowLeftShort} from "react-icons/bs";
-import chatContext, {ChatContextType} from "../../context/chat/chatContext";
+import { useContext } from "react";
+import { AiFillLock } from "react-icons/ai";
+import { BsArrowLeftShort } from "react-icons/bs";
+import chatContext, { ChatContextType } from "../../context/chat/chatContext";
 
 export const PasswordProtectionHeader: React.FC<{ viewParams: any }> = ({ viewParams}) => {
 	const { setChatView } = useContext(chatContext) as ChatContextType;

@@ -1,9 +1,8 @@
-import Draggable from "react-draggable";
+// import Draggable from "react-draggable";
 import {
 	Fragment,
 	useContext,
 } from "react";
-
 import { AiOutlineClose, AiOutlineUser } from "react-icons/ai";
 import { FaUserFriends } from "react-icons/fa";
 import { ChatViewItem } from "../context/chat/ChatProvider";

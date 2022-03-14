@@ -1,12 +1,12 @@
-import faker from "@faker-js/faker";
-import {useContext, useEffect, useRef, useState} from "react";
-import chatContext, {ChatContextType, ChatMessage} from "../../context/chat/chatContext";
-import {UserStatusItem} from "../UserStatus";
-import { BsArrowLeftShort } from 'react-icons/bs';
-import { MdPeopleAlt } from 'react-icons/md';
+import { useContext, useEffect, useRef, useState } from "react";
 import { AiOutlineClose, AiOutlineUser } from "react-icons/ai";
-import Tooltip from "../Tooltip";
+import { BsArrowLeftShort } from 'react-icons/bs';
 import {FiSend} from "react-icons/fi";
+import { MdPeopleAlt } from 'react-icons/md';
+import chatContext, { ChatContextType, ChatMessage } from "../../context/chat/chatContext";
+import { UserStatusItem } from "../UserStatus";
+// import Tooltip from "../Tooltip";
+import faker from "@faker-js/faker";
 
 export const DirectMessageHeader: React.FC<{ viewParams: any }> = ({ viewParams }) => {
 	const { setChatView, openChatView, closeChat } = useContext(chatContext) as ChatContextType;
