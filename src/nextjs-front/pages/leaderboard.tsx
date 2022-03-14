@@ -12,7 +12,6 @@ export type RankingList = {
   id: string;
   username: string;
   avatar: string;
-  rank: number | string,
   losses: number,
   wins: number,
   accountDeactivated: boolean,
@@ -140,7 +139,6 @@ const LeaderboardPage: NextPageWithLayout = ({}) => {
             id: data[i].id,
             username: data[i].username,
             avatar: !data[i].pic ? "" : data[i].pic.startsWith("https://") ? data[i].pic : `/api/users/${data[i].id}/photo`,
-            rank: data[i].rank ? data[i].rank : "-",
             losses: data[i].losses,
             wins: data[i].wins,
             accountDeactivated: data[i].accountDeactivated,
@@ -151,7 +149,6 @@ const LeaderboardPage: NextPageWithLayout = ({}) => {
           id: data[i].id,
           username: data[i].username,
           avatar: !data[i].pic ? "" : data[i].pic.startsWith("https://") ? data[i].pic : `/api/users/${data[i].id}/photo`,
-          rank: data[i].rank ? data[i].rank : "-",
           losses: data[i].losses,
           wins: data[i].wins,
           accountDeactivated: data[i].accountDeactivated,

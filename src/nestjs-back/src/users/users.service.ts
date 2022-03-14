@@ -165,9 +165,11 @@ export class UsersService {
 
         if (winsTmp || lossesTmp) {
             user = await this.usersRepository.findOne(id);
-            if (winsTmp)
+            if (winsTmp && lossesTmp)
+                ratio = (Math.round(winsTmp / lossesTmp * 100) / 100)
+            else if (winsTmp && !lossesTmp)
                 ratio = (Math.round(winsTmp / user.losses * 100) / 100)
-            else if (lossesTmp)
+            else if (lossesTmp && !winsTmp)
                 ratio = (Math.round(user.wins / lossesTmp * 100) / 100)
             user = await this.usersRepository.preload({
                     id: +id,

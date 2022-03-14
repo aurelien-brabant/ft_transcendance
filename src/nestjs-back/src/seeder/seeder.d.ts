@@ -13,7 +13,6 @@ export type SeedUser = {
     tfa: string;
     pic: string;
     duoquadra_login: string;
-    rank: number;
     games: SeedGame[];
     wins: number;
     losses: number;
