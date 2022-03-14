@@ -1,7 +1,11 @@
 import { Injectable } from '@nestjs/common';
 import { JwtService } from '@nestjs/jwt';
+<<<<<<< HEAD
 import { ConfigService } from '@nestjs/config';
 import { compare as comparePassword } from 'bcrypt';
+=======
+import { Socket } from 'socket.io';
+>>>>>>> c2fbe94cd37f701833548383d0f262225d9f1099
 import fetch from 'node-fetch';
 import * as FormData from 'form-data';
 import { User } from 'src/users/entities/users.entity';
@@ -13,7 +17,6 @@ export class AuthService {
   constructor(
     private usersService: UsersService,
     private readonly jwtService: JwtService,
-    private readonly configService: ConfigService
   ) {}
 
   async validateUser(email: string, password: string): Promise<any> {
@@ -89,6 +92,7 @@ export class AuthService {
 
     return this.jwtService.sign({ sub: ''+duoQuadraUser.id });
   }
+<<<<<<< HEAD
 
   async getUserFromAuthToken(token: string) {
     const payload: TokenPayload = this.jwtService.verify(token, {
@@ -98,4 +102,6 @@ export class AuthService {
       return this.usersService.findOne(payload.id);
     }
   }
+=======
+>>>>>>> c2fbe94cd37f701833548383d0f262225d9f1099
 }
