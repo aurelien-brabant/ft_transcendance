@@ -38,9 +38,6 @@ export class User {
     @Column({ nullable: true, unique: true })
     duoquadra_login: string;
 
-    @Column({ nullable: true })
-    rank: number;
-
     @ManyToMany(() => Game, game => game.players)
     games: Game[];
 
