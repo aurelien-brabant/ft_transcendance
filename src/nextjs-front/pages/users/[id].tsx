@@ -38,7 +38,6 @@ export type GameSummary = {
 type CurrentUser = {
   username: string;
   avatar: string;
-  rank: number;
   losses: number;
   wins: number;
   ratio: number | string;
@@ -162,12 +161,12 @@ const UserProfilePage: NextPageWithLayout = ({}) => {
   const userId: number = parseInt(url.substring(url.lastIndexOf('/') + 1));
   const [isLoading, setIsLoading] = useState(true);
   const [selected, setSelected] = useState(0);
+  const [rank, setRank] = useState("-");
   const [userData, setUserData] = useState<CurrentUser>(
     {
       id: getUserData().id,
       username: getUserData().username,
       avatar: getUserData().pic,
-      rank: getUserData().rank ? getUserData().rank : "-",
       losses: getUserData().losses,
       wins: getUserData().wins,
       accountDeactivated: getUserData().accountDeactivated,
@@ -190,7 +189,6 @@ const UserProfilePage: NextPageWithLayout = ({}) => {
       id: data.id,
       username: data.username,
       avatar: !data.pic ? "" : data.pic.startsWith("https://") ? data.pic : `/api/users/${data.id}/photo`,
-      rank: data.rank ? data.rank : "-",
       losses: data.losses,
       wins: data.wins,
       accountDeactivated: data.accountDeactivated,
@@ -206,6 +204,10 @@ const UserProfilePage: NextPageWithLayout = ({}) => {
       
       updateUserData(data);
       updateGamesHistory(JSON.parse(JSON.stringify(data)).games);
+
+      const reqRank = await fetch(`/api/users/${userId}/rank`);
+      const res = await reqRank.json();
+      setRank(res);
       setIsLoading(false);
     }
   
@@ -257,7 +259,7 @@ const UserProfilePage: NextPageWithLayout = ({}) => {
           </div>
           <div className="w-full p-5 bg-gray-800 border-2 border-gray-800 rounded drop-shadow-md grid lg:grid-cols-3">
             <HighlightItem
-              n={userData.rank}
+              n={rank}
               label="Ranking"
               hint="Place in the global ranking"
               nColor="text-orange-500" />

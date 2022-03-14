@@ -37,7 +37,6 @@ const HistoryTable: React.FC<{ ranking: RankingList[] }> = ({
     </thead>
     <tbody>
       {ranking
-        .sort((a, b) => b.ratio - a.ratio)
         .map((user, index) => (
           <tr
             key={user.id}
@@ -101,8 +100,10 @@ const HighlightItem: React.FC<Highlight> = ({ label, hint, nColor, ranking }) =>
       { (userUrl !== "") ?
         <a href={userUrl}>
           <img
-            className="object-cover object-center w-full h-full rounded-full drop-shadow-md"
+            className="object-cover object-center rounded-full drop-shadow-md"
             src={pic}
+            width={150}
+            height={150}
           />
         </a>
         :

@@ -25,6 +25,9 @@ export class UsersService {
             relations: ['games', 'friends'],
             skip: offset,
             take: limit,
+            order: {
+                ratio: 'DESC'
+            }
         });
     }
 
@@ -187,5 +190,16 @@ export class UsersService {
     async remove(id: string) {
         const user = await this.findOne(id);
         return this.usersRepository.remove(user);
+    }
+
+    async findRrank(id: string, paginationQuery: PaginationQueryDto) {
+        const users = await this.findAll(paginationQuery);
+        let rank: string;
+
+        for (let i = 0; i < users.length; i++) {
+            if (String(users[i].id) === id)
+                rank = String(i + 1);
+        }
+        return rank;
     }
 }

@@ -4,7 +4,7 @@ import { UsersService } from './users.service';
 import { CreateUserDto } from './dto/create-user.dto';
 import { UpdateUserDto } from './dto/update-user.dto';
 import { createReadStream, statSync } from 'fs';
-import path, { join } from 'path/posix';
+import { join } from 'path/posix';
 
 @Controller('users')
 export class UsersController {
@@ -61,6 +61,11 @@ export class UsersController {
         } const file = createReadStream(avatarPath);
 
         file.pipe(res);
+    }
+
+    @Get('/:id/rank')
+    findRank(@Param('id') id: string, @Query() paginationQuery: PaginationQueryDto) {
+        return this.usersService.findRrank(id, paginationQuery);
     }
 
     @Patch(':id')
