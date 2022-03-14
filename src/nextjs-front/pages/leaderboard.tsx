@@ -6,6 +6,7 @@ import Image from 'next/image';
 import { useEffect, useState } from "react";
 import { GiLaurelsTrophy, GiPodiumSecond, GiPodiumThird, GiPodiumWinner } from "react-icons/gi";
 import { BounceLoader } from "react-spinners";
+import { BsFillQuestionCircleFill } from "react-icons/bs";
 
 export type RankingList = {
   id: string;
@@ -78,19 +79,35 @@ export type Highlight = {
 const HighlightItem: React.FC<Highlight> = ({ label, hint, nColor, ranking }) => { 
   
   let pic: string = "";
+  let userUrl: string = "";
 
-  if (ranking[0] && ranking[1] && ranking[2])
-    pic = label === 'first' ? ranking[0].avatar :
-      label === 'second' ? ranking[1].avatar : ranking[2].avatar;
+  if (ranking[0] && label == 'first') {
+    pic = ranking[0].avatar;
+    userUrl = `/users/${ranking[0].id}`;
+  }
+  else if (ranking[1] && label == 'second') {
+    pic = ranking[1].avatar;
+    userUrl = `/users/${ranking[1].id}`
+  }
+  else if (ranking[2] && label == 'third') {
+    pic = ranking[2].avatar;
+    userUrl = `/users/${ranking[2].id}`
+  }
 
   return (
 
   <article className={`flex flex-col items-center gap-y-2 ${nColor}`}>
     <h3 className="text-5xl font-bold">
-      <img
-        className="object-cover object-center w-full h-full rounded-full drop-shadow-md"
-        src={pic}
-      />
+      { (userUrl !== "") ?
+        <a href={userUrl}>
+          <img
+            className="object-cover object-center w-full h-full rounded-full drop-shadow-md"
+            src={pic}
+          />
+        </a>
+        :
+        <BsFillQuestionCircleFill className="text-9xl"/>
+      }
     </h3>
     <div className="text-8xl">
       {label === 'first' && <GiPodiumWinner />}
@@ -107,7 +124,9 @@ const LeaderboardPage: NextPageWithLayout = ({}) => {
   const [ranking, setRanking] = useState<RankingList[]>([]);
   const [ranking42, setRanking42] = useState<RankingList[]>([]);
   const [isLoading, setIsLoading] = useState(false);
-
+  const [activeRank, setActiveRank] = useState<RankingList[]>([]);
+  const [selected, setSelected] = useState(0);
+	 
   const createRankingLists = (data: any) => {
 
     let rank: RankingList[] = [];
@@ -140,6 +159,7 @@ const LeaderboardPage: NextPageWithLayout = ({}) => {
     }
     setRanking42(rank42);
     setRanking(rank);
+    setActiveRank(rank);
   }
 
 
@@ -157,6 +177,10 @@ const LeaderboardPage: NextPageWithLayout = ({}) => {
     .catch(console.error);
   }, [])
 
+  useEffect(() => {
+    (!selected) ? setActiveRank(ranking) : setActiveRank(ranking42);
+  }, [selected])
+
   return (
     <div className="min-h-screen overflow-x-auto text-white bg-fixed bg-center bg-fill grow" style={{
       backgroundImage: "url('/triangles.png')"
@@ -172,22 +196,22 @@ const LeaderboardPage: NextPageWithLayout = ({}) => {
               label="second"
               hint="#2"
               nColor="text-zinc-400"
-              ranking={ranking}
+              ranking={activeRank}
             />
             <HighlightItem
               label="first"
               hint="#1"
               nColor="text-yellow-500"
-              ranking={ranking}
+              ranking={activeRank}
             />
             <HighlightItem
               label="third"
               hint="#3"
               nColor="text-orange-800"
-              ranking={ranking}
+              ranking={activeRank}
             />
           </div>
-          <Selector
+          <Selector selected={selected} setSelected={setSelected}
             items={[
               {
                 label: "Ranking",

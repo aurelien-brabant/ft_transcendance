@@ -161,6 +161,7 @@ const UserProfilePage: NextPageWithLayout = ({}) => {
   const url: string = window.location.href;
   const userId: number = parseInt(url.substring(url.lastIndexOf('/') + 1));
   const [isLoading, setIsLoading] = useState(true);
+  const [selected, setSelected] = useState(0);
   const [userData, setUserData] = useState<CurrentUser>(
     {
       id: getUserData().id,
@@ -225,7 +226,9 @@ const UserProfilePage: NextPageWithLayout = ({}) => {
               src={userData.avatar} />
 
             {/* actions */}
-            {(userData.id !== getUserData().id || !userData.accountDeactivated) ?
+            {(userData.id === getUserData().id || userData.accountDeactivated) ?
+            <></>
+            :
             <div className="absolute left-0 right-0 flex items-center justify-center -bottom-4 gap-x-2">
               <Tooltip className={actionTooltipStyles} content="challenge">
                 <button className="p-2 text-2xl text-gray-900 bg-white rounded-full transition hover:scale-105">
@@ -245,8 +248,6 @@ const UserProfilePage: NextPageWithLayout = ({}) => {
                 </button>
               </Tooltip>
             </div>
-            :
-            <></>
             }
             
           </div>
@@ -271,7 +272,7 @@ const UserProfilePage: NextPageWithLayout = ({}) => {
               hint="Wins divided by looses"
               nColor="text-blue-500" />
           </div>
-          <Selector
+          <Selector selected={selected} setSelected={setSelected}
             items={[
               {
                 label: "Games history",
