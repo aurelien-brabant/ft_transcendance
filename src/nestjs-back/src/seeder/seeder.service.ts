@@ -3,8 +3,8 @@ import { getConnection } from 'typeorm';
 import { SeedChannel, SeedGame, SeedMessage, SeedUser } from './seeder';
 import { UsersService } from '../users/users.service';
 import { GamesService } from '../games/games.service';
-import { ChannelsService } from '../channels/channels.service';
-import { MessagesService } from '../messages/messages.service';
+import { ChannelsService } from '../chat/channels/channels.service';
+import { MessagesService } from '../chat/messages/messages.service';
 import { faker } from '@faker-js/faker';
 
 @Injectable()
@@ -86,11 +86,11 @@ export class SeederService {
             const message = await this.messagesService.create({
                 createdAt: faker.datatype.datetime(),
                 content: faker.lorem.sentence(5),
-                sender: fakeSender,
+                author: fakeSender,
                 channel: dstChannel
             } as SeedMessage);
 
-            console.log("Message [%s] => ['%s'] sent by User [%s]", message.id, message.content, message.sender.id);
+            console.log("Message [%s] => ['%s'] sent by User [%s]", message.id, message.content, message.author.id);
         }
     }
 
@@ -101,7 +101,7 @@ export class SeederService {
             const channel = await this.channelsService.create({
                 name: (faker.unique as any)(faker.company.companyName),
                 owner: fakeOwner,
-                visibility: "protected",
+                visibility: ['private', 'public', 'protected'][Math.floor(Math.random() * 3)],
                 password: faker.internet.password(),
                 users: [fakeOwner],
                 messages: []

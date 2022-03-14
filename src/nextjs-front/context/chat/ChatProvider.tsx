@@ -177,6 +177,7 @@ const ChatProvider: React.FC = ({ children }) => {
 					className="fixed z-50 flex items-center justify-center p-4 text-5xl bg-orange-500 rounded-full transition hover:scale-105 text-neutral-200"
 					style={{ right: "10px", bottom: "10px" }}
 					onClick={() => {
+						setChatView("groups", "group chats", {});
 						setIsChatOpened(true);
 					}}
 				>

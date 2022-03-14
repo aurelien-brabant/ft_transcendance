@@ -5,7 +5,7 @@ import {
   IsOptional,
   IsString
 } from 'class-validator';
-import { Channel } from 'src/channels/entities/channels.entity';
+import { Channel } from 'src/chat/channels/entities/channels.entity';
 import { Game } from 'src/games/entities/games.entity';
 import { User } from '../entities/users.entity';
 

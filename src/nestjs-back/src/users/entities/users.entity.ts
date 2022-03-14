@@ -6,7 +6,7 @@ import {
     OneToMany,
     PrimaryGeneratedColumn
 } from "typeorm";
-import { Channel } from 'src/channels/entities/channels.entity';
+import { Channel } from 'src/chat/channels/entities/channels.entity';
 import { Game } from "src/games/entities/games.entity";
 import { IsOptional } from "class-validator";
 //import { GamesInvite } from "src/gamesInvites/entities/gamesInvites.entity";
