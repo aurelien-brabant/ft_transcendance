@@ -16,7 +16,7 @@ export class SeederService {
         private readonly messagesService: MessagesService
     ) {}
 
-    async createFakeUser(username: string, rank:number) {
+    async createFakeUser(username: string) {
 
         let user = await this.usersService.create({
             email: (faker.unique as any)(faker.internet.email),
@@ -34,10 +34,7 @@ export class SeederService {
             phone: faker.phone.phoneNumber(),
             pic: faker.image.avatar(),
             duoquadra_login: username + "_42",
-            rank: rank,
-            wins: faker.datatype.number()
-        } as SeedUser);
-        user = await this.usersService.update(user.id.toString(), {
+            wins: faker.datatype.number(),
             losses: faker.datatype.number()
         } as SeedUser);
         return user;
@@ -56,7 +53,7 @@ export class SeederService {
     async seedFakeUsers() {
         for (let i = 0; i <= 10; ++i) {
             let pseudo = faker.internet.userName();
-            const user = await this.createFakeUser(pseudo, i + 1);
+            const user = await this.createFakeUser(pseudo);
 
             console.log("User [%s] => [%s] [%s] created", user.id, user.duoquadra_login, user.email);
         }
@@ -98,7 +95,7 @@ export class SeederService {
     }
 
     async seedFakeChannels() {
-        const fakeOwner = await this.createFakeUser("fakeOwner", 12);
+        const fakeOwner = await this.createFakeUser("fakeOwner");
 
         for (let i = 0; i < 100; ++i) {
             const channel = await this.channelsService.create({
