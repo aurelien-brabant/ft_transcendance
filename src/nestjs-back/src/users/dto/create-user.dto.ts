@@ -40,4 +40,7 @@ export class CreateUserDto {
     @IsOptional()
     @IsBoolean()
     readonly accountDeactivated: boolean;
+
+    @IsOptional()
+    readonly blockedUsers: User[];
 }
