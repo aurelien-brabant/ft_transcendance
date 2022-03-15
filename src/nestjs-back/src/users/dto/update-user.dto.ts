@@ -1,7 +1,7 @@
 import { PartialType } from '@nestjs/mapped-types';
 import {
+  IsBoolean,
   IsDecimal,
-  IsInt,
   IsOptional,
   IsPhoneNumber,
   IsString
@@ -18,8 +18,8 @@ export class UpdateUserDto extends PartialType(CreateUserDto) {
     readonly phone: string;
 
     @IsOptional()
-    @IsString()
-    readonly tfa: string;
+    @IsBoolean()
+    readonly tfa: boolean;
 
     @IsOptional()
     @IsString()
@@ -31,5 +31,9 @@ export class UpdateUserDto extends PartialType(CreateUserDto) {
 
     @IsOptional()
     @IsDecimal()
-    readonly ratio: number; 
+    readonly ratio: number;
+    
+    @IsOptional()
+    @IsString()
+    readonly tfaSecret: string;
 }

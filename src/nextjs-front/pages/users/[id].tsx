@@ -8,7 +8,6 @@ import { GiFalling, GiPodiumWinner } from "react-icons/gi";
 import { RiPingPongLine, RiMessage2Line } from 'react-icons/ri';
 import { NextPageWithLayout } from "../_app";
 import authContext, { AuthContextType } from "../../context/auth/authContext";
-// import PreventSSR from "../../components/PreventSSR";
 import Selector from "../../components/Selector";
 import Tooltip from "../../components/Tooltip";
 import { UserStatusItem } from "../../components/UserStatus";

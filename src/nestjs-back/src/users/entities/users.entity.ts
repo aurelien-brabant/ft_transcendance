@@ -28,8 +28,8 @@ export class User {
     @Column({ nullable: true })
     phone: string;
 
-    @Column({ nullable: true })
-    tfa: string;
+    @Column({ default: false })
+    tfa: boolean;
 
     @Column({ nullable: true })
     pic: string;
@@ -79,4 +79,7 @@ export class User {
 
     @Column({default: false})
     accountDeactivated: boolean;
+
+    @Column({ nullable: true })
+    tfaSecret: string;  
 }

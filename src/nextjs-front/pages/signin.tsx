@@ -20,7 +20,7 @@ const SignIn: NextPageWithLayout = () => {
   const { isAuthenticated } = useContext(authContext) as AuthContextType;
   const { setAlert } = useContext(alertContext) as AlertContextType;
   const router = useRouter();
-
+  
   const formConfig: ProgressiveFormConfig = {
     steps: [
       {
@@ -62,14 +62,15 @@ const SignIn: NextPageWithLayout = () => {
    
     if (res.status === 201) {
       const { access_token } = await res.json();
+      window.localStorage.setItem("bearer", access_token);
       setAlert({
         type: "success",
         content: "Logged in successfully, redirecting...",
       });
-      window.localStorage.setItem("bearer", access_token);
-      await router.push("/welcome");
-      return;
-    } else {
+        await router.push(`/validate-tfa`);
+        return;
+    }
+    else {
       setAlert({
         content: "Invalid credentials",
         type: "error",
@@ -81,7 +82,7 @@ const SignIn: NextPageWithLayout = () => {
 
   useEffect(() => {
     if (isAuthenticated) {
-      router.push("/welcome");
+      router.push("/validate-tfa");
     }
   }, []);
 
@@ -95,10 +96,11 @@ const SignIn: NextPageWithLayout = () => {
         />
       </Head>
       <div className="pt-20 bg-fixed bg-center bg-fill" style={{ backgroundImage: "url('/triangles.png')" }}>
+     
         <main
           className="flex flex-col items-center min-h-screen mx-auto pt-52 gap-y-8 text-neutral-200"
           style={{ maxWidth: "450px" }}
-        >
+          >
           <div className="text-center">
             <h1 className="text-4xl text-white"> Sign In </h1>
             <h2 className="py-2">
@@ -138,6 +140,7 @@ const SignIn: NextPageWithLayout = () => {
             config={formConfig}
           />
         </main>
+       
       </div>
     </Fragment>
   );
