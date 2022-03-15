@@ -22,6 +22,7 @@ export type SeedUser = {
   ownedChannels: SeedChannel[];
   joinedChannels: SeedChannel[];
   accountDeactivated: boolean;
+  blockedUsers: BlockedUsers[]
 };
 
 /* GAMES */
