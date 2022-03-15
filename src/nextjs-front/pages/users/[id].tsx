@@ -29,7 +29,6 @@ export type GameSummary = {
 type CurrentUser = {
   username: string;
   avatar: string;
-  rank: number;
   losses: number;
   wins: number;
   ratio: number | string;
@@ -147,12 +146,13 @@ const UserProfilePage: NextPageWithLayout = ({}) => {
   const url: string = window.location.href;
   const userId: number = parseInt(url.substring(url.lastIndexOf('/') + 1));
   const [isLoading, setIsLoading] = useState(true);
+  const [selected, setSelected] = useState(0);
+  const [rank, setRank] = useState("-");
   const [userData, setUserData] = useState<CurrentUser>(
     {
       id: getUserData().id,
       username: getUserData().username,
       avatar: getUserData().pic,
-      rank: getUserData().rank ? getUserData().rank : "-",
       losses: getUserData().losses,
       wins: getUserData().wins,
       accountDeactivated: getUserData().accountDeactivated,
@@ -175,7 +175,6 @@ const UserProfilePage: NextPageWithLayout = ({}) => {
       id: data.id,
       username: data.username,
       avatar: !data.pic ? "" : data.pic.startsWith("https://") ? data.pic : `/api/users/${data.id}/photo`,
-      rank: data.rank ? data.rank : "-",
       losses: data.losses,
       wins: data.wins,
       accountDeactivated: data.accountDeactivated,
@@ -191,6 +190,10 @@ const UserProfilePage: NextPageWithLayout = ({}) => {
       
       updateUserData(data);
       updateGamesHistory(JSON.parse(JSON.stringify(data)).games);
+
+      const reqRank = await fetch(`/api/users/${userId}/rank`);
+      const res = await reqRank.json();
+      setRank(res);
       setIsLoading(false);
     }
   
@@ -217,7 +220,9 @@ const UserProfilePage: NextPageWithLayout = ({}) => {
               src={userData.avatar} />
 
             {/* actions */}
-            {(userData.id !== getUserData().id || !userData.accountDeactivated) ?
+            {(userData.id === getUserData().id || userData.accountDeactivated) ?
+            <></>
+            :
             <div className="absolute left-0 right-0 flex items-center justify-center -bottom-4 gap-x-2">
               <Tooltip className={actionTooltipStyles} content="challenge">
                 <button className="p-2 text-2xl text-gray-900 bg-white rounded-full transition hover:scale-105">
@@ -239,8 +244,6 @@ const UserProfilePage: NextPageWithLayout = ({}) => {
                 </button>
               </Tooltip>
             </div>
-            :
-            <></>
             }
             
           </div>
@@ -250,7 +253,7 @@ const UserProfilePage: NextPageWithLayout = ({}) => {
           </div>
           <div className="w-full p-5 bg-gray-800 border-2 border-gray-800 rounded drop-shadow-md grid lg:grid-cols-3">
             <HighlightItem
-              n={userData.rank}
+              n={rank}
               label="Ranking"
               hint="Place in the global ranking"
               nColor="text-orange-500" />
@@ -265,7 +268,7 @@ const UserProfilePage: NextPageWithLayout = ({}) => {
               hint="Wins divided by looses"
               nColor="text-blue-500" />
           </div>
-          <Selector
+          <Selector selected={selected} setSelected={setSelected}
             items={[
               {
                 label: "Games history",

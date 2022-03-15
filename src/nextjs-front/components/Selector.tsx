@@ -1,4 +1,4 @@
-import { ReactElement, useState } from "react";
+import { ReactElement } from "react";
 
 export type SelectorItem = {
 	label: string;
@@ -6,11 +6,12 @@ export type SelectorItem = {
 };
 
 export type SelectorProps = {
+	selected: number;
+	setSelected: any;
 	items: SelectorItem[];
 };
 
-const Selector: React.FC<SelectorProps> = ({ items }) => {
-	const [selected, setSelected] = useState(0);
+const Selector: React.FC<SelectorProps> = ({ selected, setSelected, items }) => {
 	
 	return (
 		<div className="w-full">

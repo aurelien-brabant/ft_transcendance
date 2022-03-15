@@ -31,10 +31,6 @@ export class UpdateUserDto extends PartialType(CreateUserDto) {
     readonly duoquadra_login: string;
 
     @IsOptional()
-    @IsInt()
-    readonly rank: number;
-    
-    @IsOptional()
     @IsDecimal()
     readonly ratio: number; 
 

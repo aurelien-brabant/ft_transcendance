@@ -25,6 +25,9 @@ export class UsersService {
             relations: ['games', 'friends'],
             skip: offset,
             take: limit,
+            order: {
+                ratio: 'DESC'
+            }
         });
     }
 
@@ -162,9 +165,11 @@ export class UsersService {
 
         if (winsTmp || lossesTmp) {
             user = await this.usersRepository.findOne(id);
-            if (winsTmp)
+            if (winsTmp && lossesTmp)
+                ratio = (Math.round(winsTmp / lossesTmp * 100) / 100)
+            else if (winsTmp && !lossesTmp)
                 ratio = (Math.round(winsTmp / user.losses * 100) / 100)
-            else if (lossesTmp)
+            else if (lossesTmp && !winsTmp)
                 ratio = (Math.round(user.wins / lossesTmp * 100) / 100)
             user = await this.usersRepository.preload({
                     id: +id,
@@ -187,5 +192,16 @@ export class UsersService {
     async remove(id: string) {
         const user = await this.findOne(id);
         return this.usersRepository.remove(user);
+    }
+
+    async findRrank(id: string, paginationQuery: PaginationQueryDto) {
+        const users = await this.findAll(paginationQuery);
+        let rank: string;
+
+        for (let i = 0; i < users.length; i++) {
+            if (String(users[i].id) === id)
+                rank = String(i + 1);
+        }
+        return rank;
     }
 }
