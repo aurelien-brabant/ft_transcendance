@@ -3,58 +3,23 @@ import React from "react";
 import {Socket} from 'socket.io-client';
 
 import { useState, useRef, useEffect } from 'react';
-
+import styles from "../styles/Canvas.module.css";
 
 // import { animateNeon, drawGame } from "../lib/drawGame";
 // import { updateGame, resetGame } from "../lib/updateGame";
 // import { GameConstants, GameState, gameConstants } from "../constants/gameConstants"
-// import { Draw, Player, Ball, Net, Score } from "../class";
+import { Draw, Player, Ball, Net, Score, Room } from "../gameObjects";
+import { gameConstants } from "../gameObjects/GameObject";
 
+const Canvas: React.FC<{socketProps: Socket, roomProps: Room | null}> = ({socketProps, roomProps}) => {
 
-enum GameState {
-	QUEUE,
-	INIT,
-	STARTING,
-	PLAYING,
-	PAUSED,
-	RESUME,
-	GOAL,
-	END
-}
-
-type player = {
-	id: string;
-	x: number;
-	y: number;
-	goal: number;
-	speed: number;
-}
-
-type Ball = {
-	x: number;
-	y: number;
-	speed: number;
-}
-
-type Room = {
-	id: string;
-    gameState: GameState;
-	players: player[];
-	ball: Ball;
-	timestampStart: Date;
-	timestampServer: Date;
-}
-
-const Canvas: React.FC<{socketProps: Socket, roomProps: Room | undefined}> = ({socketProps, roomProps}) => {
 	/*
 		Canvas ref and size
 	*/
-	const canvasRef = useRef<HTMLCanvasElement>(null);
-    let socket: Socket = socketProps;
-    let room: Room | undefined = roomProps;
-    let roomId: string = room.id;
+	const canvasRef = useRef<HTMLCanvasElement>();
 
-    // let room: Room = props.room;
+    let socket: Socket = socketProps;
+    let room: Room | null = roomProps;
 
     /*
 		Game initialisation
@@ -62,11 +27,12 @@ const Canvas: React.FC<{socketProps: Socket, roomProps: Room | undefined}> = ({s
 	*/
 
 	// let start = Date.now();
-	let oldTimestamp = 0;
-	let secondElapsed = 0;
+
+	// let oldTimestamp = 0;
+	// let secondElapsed = 0;
 	// let dot = 0;
 	// let display = 0;
-	let seconds = 0;
+	// let seconds = 0;
 
 	// const net = new Net(20, 50, gameConstants.canvasWidth, gameConstants.canvasHeight);
 	// const player1 = new Player(players.p1, gameConstants.canvasWidth, gameConstants.canvasHeight, 10, 540, 30, 200, 'rgba(255, 255, 255, 0.8)');
@@ -79,28 +45,34 @@ const Canvas: React.FC<{socketProps: Socket, roomProps: Room | undefined}> = ({s
 		Handle key controls
 	*/
 
-	const downHandler = (event: KeyboardEvent): void => {
-		console.log(event.key)
-		if (event.key === "ArrowUp") {
-			socket.emit("Up", roomId);
-		}
-		if (event.key === "ArrowDown") {
-			socket.emit("Down", roomId);
-		}
-	};
+	// const downHandler = (event: KeyboardEvent): void => {
+	// 	console.log(event.key)
+	// 	if (event.key === "ArrowUp") {
+	// 		socket.emit("Up", roomId);
+	// 	}
+	// 	if (event.key === "ArrowDown") {
+	// 		socket.emit("Down", roomId);
+	// 	}
+	// };
 
 	useEffect(() => {
 		// Initialize Everything
+
 		const canvas = canvasRef.current;
 		const context = canvas.getContext('2d');
+		let animationFrameId: number;
 
 		canvas.width = 1920;
 		canvas.height = 1080;
 
-		// const draw = new Draw(canvas, gameConstants.canvasWidth, gameConstants.canvasHeight)
+		context.save();
+		context.fillStyle = 'black';
+		context.fillRect(0, 0, canvas.width, canvas.height);
+		context.restore();
 
-		let animationFrameId: number;
-		window.addEventListener("keydown", downHandler);
+		const draw = new Draw(canvas);
+
+		// window.addEventListener("keydown", downHandler);
 
 		// const gameRunning = () => {
 		// 	ball.update(score, gameConstants, secondElapsed);
@@ -142,8 +114,8 @@ const Canvas: React.FC<{socketProps: Socket, roomProps: Room | undefined}> = ({s
 		// }
 
 		const gameLoop = (timestamp = 0) => {
-			secondElapsed = (timestamp - oldTimestamp) / 1000;
-			oldTimestamp = timestamp;
+			// secondElapsed = (timestamp - oldTimestamp) / 1000;
+			// oldTimestamp = timestamp;
 
 			// drawGame(canvas, draw, net, player1, player2, ball, score);
 			// draw.drawText("FPS: " + Math.round(1/secondElapsed), (gameConstants.canvasWidth - 150), 45, 45, "white");
@@ -188,21 +160,30 @@ const Canvas: React.FC<{socketProps: Socket, roomProps: Room | undefined}> = ({s
 			// } else if (roomState === GameState.END) {
 			// 	gameEnd();
 			// }
+			socket.emit("requestUpdate", room.id);
 			animationFrameId = window.requestAnimationFrame(gameLoop);
 		}
 
 		gameLoop();
 
 		return () => {
+			console.log("Unmount");
 			window.cancelAnimationFrame(animationFrameId);
-			window.removeEventListener("keydown", downHandler);
+			// window.removeEventListener("keydown", downHandler);
 		};
 	}, []);
 
 	return (
 		<>
-			<canvas ref={canvasRef} ></canvas>
-			{/* <canvas className={styles.canvas} ref={canvasRef} ></canvas> */}
+		{
+			room ? (
+				<div className={styles.container}>
+					<canvas ref={canvasRef} className={styles.canvas} ></canvas>
+				</div>
+			) : (
+				<div> Room is undefined </div>
+			)
+		}
 		</>
 	);
 };

@@ -28,7 +28,7 @@ export class PongGateway implements OnGatewayInit, OnGatewayConnection, OnGatewa
 	server: Server;
 	private logger: Logger = new Logger('gameGateway');
     private readonly queue: Queue<string> = new Queue();
-    private readonly rooms: Map<string, Room> = new Map()
+    private readonly rooms: Map<string, Room> = new Map();
 
 	findMatches(server: Server, queue: Queue<string>, rooms: Map<string, Room>) {
 		if (queue.size() > 1) {
@@ -45,6 +45,9 @@ export class PongGateway implements OnGatewayInit, OnGatewayConnection, OnGatewa
 			server.to(players[1]).emit("newRoom",  room);
 
             rooms.set(roomId, room);
+			// console.log(rooms.get(roomId));
+			// console.log(rooms);
+			
             // function below will update room state and emit changes to players
             // this.updateRoomState();
         }
@@ -76,16 +79,32 @@ export class PongGateway implements OnGatewayInit, OnGatewayConnection, OnGatewa
 		this.server.to(client.id).emit("joinedRoom");
 	}
 
+	@SubscribeMessage('requestUpdate')
+	async handleRequestUpdate(@ConnectedSocket() client: Socket, @MessageBody() roomId: string) {
+		// this.rooms[roomId].update();
+		this.server.to(client.id).emit("updateRoom", this.rooms[roomId]);
+		// this.room[roomId].update(client.id, "up");
+		// this.room[roomId].update(client.id, "up");
+	}
+
 	@SubscribeMessage('Up')
 	async handleKeyUp(@ConnectedSocket() client: Socket, @MessageBody() roomId: string) {
-		this.logger.log(`Client ${client.id} moved Up in game: ${roomId}!`);
+		console.log(this.rooms.get(roomId).players[0].id);
+		
+		if (this.rooms.get(roomId).players[0].id === client.id)
+			this.logger.log(`P1 ${client.id} moved Up in game: ${roomId}!`);
+		else if (this.rooms.get(roomId).players[0].id === client.id)
+			this.logger.log(`P2 ${client.id} moved Up in game: ${roomId}!`);
 		// this.room[roomId].update(client.id, "up");
 		// this.room[roomId].update(client.id, "up");
 	}
 
 	@SubscribeMessage('Down')
 	async handlekeyDown(@ConnectedSocket() client: Socket, @MessageBody() roomId: string) {
-		this.logger.log(`Client ${client.id} moved Down in game: ${roomId}!`);
+		if (this.rooms.get(roomId).players[0].id === client.id)
+			this.logger.log(`P1 ${client.id} moved Down in game: ${roomId}!`);
+		else if (this.rooms.get(roomId).players[1].id === client.id)
+			this.logger.log(`P2 ${client.id} moved Down in game: ${roomId}!`);
 		// this.room[roomId].update(client.id, "down");
 		// this.room[roomId].update(client.id, "down");
 	}

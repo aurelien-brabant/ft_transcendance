@@ -3,6 +3,7 @@ import { io, Socket } from 'socket.io-client';
 import Head from "next/head";
 import withDashboardLayout from "../../components/hoc/withDashboardLayout";
 import Canvas from "../../components/Canvas";
+import { Draw, Player, Ball, Net, Score, Room } from "../../gameObjects";
 
 let socket: Socket;
 // const Hub: NextPageWithLayout = () => {
@@ -18,33 +19,13 @@ enum GameState {
 	END
 }
 
-type player = {
-	id: string;
-	x: number;
-	y: number;
-	goal: number;
-	speed: number;
-}
-
-type Ball = {
-	x: number;
-	y: number;
-	speed: number;
-}
-
-type Room {
-    id: string;
-    gameState: GameState;
-	players: player[];
-	ball: Ball;
-	timestampStart: number;
-	timestampServer: number;
-}
-
 const Hub: React.FC = () => {
-	const [gameStart, setGameStart] = useState(false);
-	const [room, setRoom] = useState<Room>();
+	let lastRoom: Room = new Room("", []);
+
+	const [displayGame, setDisplayGame] = useState(false);
+	const [room, setRoom] = useState<Room | null>(null);
 	let roomId: string;
+
 
 	const joinQueue = () => {
 		console.log("Joining Queue");
@@ -58,6 +39,17 @@ const Hub: React.FC = () => {
 		}
 		if (event.key === "ArrowDown") {
 			socket.emit("Down", roomId);
+		}
+		if (event.key == "Escape")
+		{
+			window.removeEventListener("keydown", downHandler);
+			setDisplayGame(false);
+			setRoom(null);
+		}
+		if (event.key == "Enter")
+		{
+			console.log("last room: ", lastRoom);
+			setRoom({...lastRoom, gameState: GameState.STARTING})
 		}
 	};
 
@@ -74,14 +66,22 @@ const Hub: React.FC = () => {
 			});
 
 			socket.on("newRoom", function(newRoom: Room) {
-					setRoom(newRoom);
 					socket.emit("joinRoom", newRoom.id);
 					console.log("Trying to join: ", newRoom);
+					lastRoom = newRoom;
+					roomId = newRoom.id;
+					setRoom(newRoom);
 					window.addEventListener("keydown", downHandler);
 			});
 
+			socket.on("updateRoom", function(updatedRoom: Room) {
+				console.log("Update");
+				// lastRoom = updatedRoom;
+				// setRoom(lastRoom);
+			});
+
 			socket.on("joinedRoom", (data: Room) => {
-				setGameStart(true);
+				setDisplayGame(true);
 			});
 		});
 
@@ -102,7 +102,7 @@ const Hub: React.FC = () => {
 				/>
 			</Head>
 			{
-				gameStart ?
+				displayGame ?
 				(
 					<Canvas socketProps={socket} roomProps={room}></Canvas>
 				)
