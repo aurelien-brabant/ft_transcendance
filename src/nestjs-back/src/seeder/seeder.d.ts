@@ -24,7 +24,6 @@ export type SeedUser = {
   accountDeactivated: boolean;
   blockedUsers: User[];
   user: User;
-  rank: number;
 };
 
 /* GAMES */

@@ -36,4 +36,7 @@ export class UpdateUserDto extends PartialType(CreateUserDto) {
 
     @IsOptional()
     readonly blockedUsers: User[];
+
+    @IsOptional()
+    readonly rank: number;
 }
