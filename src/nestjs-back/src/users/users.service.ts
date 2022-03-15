@@ -69,7 +69,7 @@ export class UsersService {
             .getOne();
 
         if (!user)
-            throw new NotFoundException(`User [${id}] not found`);
+            throw new NotFoundException(`User [${id}] owns no channels`);
         return user.ownedChannels;
     }
 
@@ -81,7 +81,7 @@ export class UsersService {
             .getOne();
 
         if (!user)
-            throw new NotFoundException(`User [${id}] not found`);
+            throw new NotFoundException(`User [${id}] joined no channels`);
         return user.joinedChannels;
     }
 

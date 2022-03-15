@@ -51,7 +51,7 @@ export class SeederService {
     }
 
     async seedFakeUsers() {
-        for (let i = 0; i <= 10; ++i) {
+        for (let i = 0; i <= 11; ++i) {
             let pseudo = faker.internet.userName();
             const user = await this.createFakeUser(pseudo);
 
@@ -95,11 +95,11 @@ export class SeederService {
     }
 
     async seedFakeChannels() {
-        const fakeOwner = await this.createFakeUser("fakeOwner");
+        const fakeOwner = await this.usersService.findOne("1");
 
-        for (let i = 0; i < 50; ++i) {
+        for (let i = 0; i < 10; ++i) {
             let channel = await this.channelsService.create({
-                name: (faker.unique as any)(faker.company.companyName),
+                name: "fakeChannel_" + i,
                 owner: fakeOwner,
                 privacy: ['private', 'public', 'protected'][Math.floor(Math.random() * 3)],
                 users: [fakeOwner],

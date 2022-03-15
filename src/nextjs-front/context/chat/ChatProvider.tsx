@@ -1,4 +1,4 @@
-import { useEffect, useState } from "react";
+import { useContext, useEffect, useState } from "react";
 import { BsFillChatDotsFill } from "react-icons/bs";
 import Chat from "../../components/Chat";
 import ChatGroupsView from "../../components/chat/Groups";
@@ -11,6 +11,7 @@ import PasswordProtection, { PasswordProtectionHeader } from "../../components/c
 import GroupUsers, { GroupUsersHeader } from "../../components/chat/GroupUsers";
 import GroupSettings, { GroupSettingsHeader } from "../../components/chat/GroupSettings";
 import GroupNew, { GroupNewHeader } from "../../components/chat/GroupNew";
+import authContext, { AuthContextType } from "../auth/authContext";
 import { faker } from '@faker-js/faker';
 
 export type ChatViewItem = {
@@ -90,31 +91,63 @@ const ChatProvider: React.FC = ({ children }) => {
 	const [viewStack, setViewStack] = useState<ChatViewItem[]>([]);
 	const [chatGroups, setChatGroups] = useState<ChatGroup[]>([]);
 	const [directMessages, setDirectMessages] = useState<DirectMessage[]>([]);
-	
-	useEffect(() => {
+	const { getUserData } = useContext(authContext) as AuthContextType;
+	const userId = getUserData().id;
+
+	const updateGroupMessages = async (channels: any) => {
 		const groups: ChatGroup[] = [];
-		const dms: DirectMessage[] = [];
 
-		for (let i = 0; i != 20; ++i) {
+		for (var i in channels) {
 			groups.push({
-				label: faker.lorem.words(),
-				id: faker.datatype.uuid(),
+				label: channels[i].name,
+				id: channels[i].id,
 				lastMessage: faker.lorem.sentence(),
-				isAdmin: Math.random() > 0.5,
-				privacy: ['private', 'public', 'protected'][Math.floor(Math.random() * 3)] as ChatGroupPrivacy,
-				in: Math.random() > 0.2,
-				peopleCount: Math.floor(Math.random() * 100)
-			});
-
-			dms.push({
-				lastMessage: faker.lorem.sentence(),
-				avatar: faker.internet.avatar(),
-				username: faker.internet.userName()
+				isAdmin: (channels[i].owner === userId),
+				privacy: channels[i].privacy as ChatGroupPrivacy,
+				in: true,
+				peopleCount: 1
 			});
 		}
-
 		setChatGroups(groups);
-		setDirectMessages(dms);
+	}
+
+	useEffect(() => {
+		const fetchData = async () => {
+
+			const dms: DirectMessage[] = [];
+
+			const req = await fetch(`/api/users/${userId}/joinedChannels`);
+			const data = await req.json();
+
+			updateGroupMessages(JSON.parse(JSON.stringify(data)));
+		}
+
+		fetchData()
+		.catch(console.error);
+
+		// const groups: ChatGroup[] = [];
+		// const dms: DirectMessage[] = [];
+
+		// for (let i = 0; i != 20; ++i) {
+		// 	groups.push({
+		// 		label: faker.lorem.words(),
+		// 		id: faker.datatype.uuid(),
+		// 		lastMessage: faker.lorem.sentence(),
+		// 		isAdmin: Math.random() > 0.5,
+		// 		privacy: ['private', 'public', 'protected'][Math.floor(Math.random() * 3)] as ChatGroupPrivacy,
+		// 		in: Math.random() > 0.2,
+		// 		peopleCount: Math.floor(Math.random() * 100)
+		// 	});
+
+		// 	dms.push({
+		// 		lastMessage: faker.lorem.sentence(),
+		// 		avatar: faker.internet.avatar(),
+		// 		username: faker.internet.userName()
+		// 	});
+		// }
+
+		// setChatGroups(groups);
+		// setDirectMessages(dms);
 	}, [])
 
 	const openChat = () => {
