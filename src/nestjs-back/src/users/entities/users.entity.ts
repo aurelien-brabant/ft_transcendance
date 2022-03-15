@@ -8,7 +8,9 @@ import {
 } from "typeorm";
 import { Channel } from 'src/chat/channels/entities/channels.entity';
 import { Game } from "src/games/entities/games.entity";
+import { BlockedUsers } from "src/users/entities/blockedUsers.entity";
 import { IsOptional } from "class-validator";
+import { userInfo } from "os";
 //import { GamesInvite } from "src/gamesInvites/entities/gamesInvites.entity";
 
 @Entity()
@@ -76,6 +78,11 @@ export class User {
         cascade: true,
     })
     ownedChannels: Channel[];
+
+    @OneToMany(() => BlockedUsers, blockedUsers => blockedUsers.user)
+    @JoinTable()
+    blockedUsers: BlockedUsers[];
+
 
     @ManyToMany(() => Channel, joinedChannels => joinedChannels.users)
     joinedChannels: Channel[];
