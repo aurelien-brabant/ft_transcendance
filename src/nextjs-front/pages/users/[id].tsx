@@ -13,7 +13,7 @@ import Selector from "../../components/Selector";
 import Tooltip from "../../components/Tooltip";
 import { UserStatusItem } from "../../components/UserStatus";
 import withDashboardLayout from "../../components/hoc/withDashboardLayout";
-import chatContext, {ChatContextType} from "../../context/chat/chatContext";
+import chatContext, { ChatContextType } from "../../context/chat/chatContext";
 
 export type GameSummary = {
   winnerScore: number;
@@ -137,7 +137,6 @@ const HighlightItem: React.FC<Highlight> = ({ n, label, hint, nColor }) => (
   </article>
 );
 
-
 const UserProfilePage: NextPageWithLayout = ({}) => {
 
   const actionTooltipStyles = 'font-bold bg-gray-900 text-neutral-200';
@@ -187,7 +186,7 @@ const UserProfilePage: NextPageWithLayout = ({}) => {
 
       const req = await fetch(`/api/users/${userId}`);
       const data = await req.json();
-      
+
       updateUserData(data);
       updateGamesHistory(JSON.parse(JSON.stringify(data)).games);
 
@@ -196,14 +195,14 @@ const UserProfilePage: NextPageWithLayout = ({}) => {
       setRank(res);
       setIsLoading(false);
     }
-  
+
     fetchData()
     .catch(console.error);
   }, [userId])
-  const {  setChatView, openChat } = useContext(chatContext) as ChatContextType;
+  const { setChatView, openChat } = useContext(chatContext) as ChatContextType;
 
   const handleMessage = () => {
-    setChatView('dm', 'direct message', { targetUsername: userId });
+    setChatView('dm', 'direct message', { targetUsername: userData.username });
     openChat();
   }
 
