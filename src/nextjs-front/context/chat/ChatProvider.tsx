@@ -94,6 +94,19 @@ const ChatProvider: React.FC = ({ children }) => {
 	const { getUserData } = useContext(authContext) as AuthContextType;
 	const userId = getUserData().id;
 
+	const updateDirectMessages = async (channels: any) => {
+		const dms: DirectMessage[] = [];
+
+		for (var i in channels) {
+			dms.push({ // TODO
+				lastMessage: faker.lorem.sentence(),
+				avatar: faker.internet.avatar(),
+				username: faker.internet.userName()
+			});
+		}
+		setDirectMessages(dms);
+	}
+
 	const updateGroupMessages = async (channels: any) => {
 		const groups: ChatGroup[] = [];
 
@@ -101,11 +114,11 @@ const ChatProvider: React.FC = ({ children }) => {
 			groups.push({
 				label: channels[i].name,
 				id: channels[i].id,
-				lastMessage: faker.lorem.sentence(),
+				lastMessage: faker.lorem.sentence(), // tmp
 				isAdmin: (channels[i].owner === userId),
 				privacy: channels[i].privacy as ChatGroupPrivacy,
 				in: true,
-				peopleCount: 1
+				peopleCount: 1 // tmp
 			});
 		}
 		setChatGroups(groups);
@@ -124,30 +137,6 @@ const ChatProvider: React.FC = ({ children }) => {
 
 		fetchData()
 		.catch(console.error);
-
-		// const groups: ChatGroup[] = [];
-		// const dms: DirectMessage[] = [];
-
-		// for (let i = 0; i != 20; ++i) {
-		// 	groups.push({
-		// 		label: faker.lorem.words(),
-		// 		id: faker.datatype.uuid(),
-		// 		lastMessage: faker.lorem.sentence(),
-		// 		isAdmin: Math.random() > 0.5,
-		// 		privacy: ['private', 'public', 'protected'][Math.floor(Math.random() * 3)] as ChatGroupPrivacy,
-		// 		in: Math.random() > 0.2,
-		// 		peopleCount: Math.floor(Math.random() * 100)
-		// 	});
-
-		// 	dms.push({
-		// 		lastMessage: faker.lorem.sentence(),
-		// 		avatar: faker.internet.avatar(),
-		// 		username: faker.internet.userName()
-		// 	});
-		// }
-
-		// setChatGroups(groups);
-		// setDirectMessages(dms);
 	}, [])
 
 	const openChat = () => {
