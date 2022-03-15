@@ -342,7 +342,7 @@ const Welcome: NextPageWithLayout = () => {
 
             <div className={inputGroupClassName}>
               <label htmlFor="tfa" className={labelClassName}>
-                Two factor authentication
+                2FA - SMS
               </label>
               <button
                 type="button"
@@ -357,13 +357,13 @@ const Welcome: NextPageWithLayout = () => {
                 {tfaText}
               </button>
               <small>
-                Confirm each connection to your account using your mobile device
+                Confirm each connection to your account using your phone number
               </small>
             </div>
 
             <div className={inputGroupClassName}>
               <label htmlFor="tfa" className={labelClassName}>
-                Two factor authentication
+                2FA - Authenticator App
               </label>
               <button
                 type="button"

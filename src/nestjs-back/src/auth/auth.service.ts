@@ -27,13 +27,9 @@ export class AuthService {
       const u = await this.usersService.findOneByEmail(email);
       if (!u)
         return null;
-      
+        
       return u;
-      
-      //const { password, ...result } = user; // exclude password from result
-      //return result;
     }
-
     return null;
   };
 
