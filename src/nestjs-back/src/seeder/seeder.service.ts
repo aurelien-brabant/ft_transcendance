@@ -6,7 +6,6 @@ import { GamesService } from '../games/games.service';
 import { ChannelsService } from '../chat/channels/channels.service';
 import { MessagesService } from '../chat/messages/messages.service';
 import { faker } from '@faker-js/faker';
-
 @Injectable()
 export class SeederService {
     constructor(
@@ -19,22 +18,24 @@ export class SeederService {
     async createFakeUser(username: string) {
 
         let user = await this.usersService.create({
-            email: (faker.unique as any)(faker.internet.email),
-            password: faker.internet.password(),
-            games: [],
-            wins: 0,
-            losses: 0,
-            friends: [],
-            ownedChannels: [],
-            joinedChannels: [],
-            accountDeactivated: false
-        });
+        email: (faker.unique as any)(faker.internet.email),
+        password: faker.internet.password(),
+        games: [],
+        wins: 0,
+        losses: 0,
+        friends: [],
+        ownedChannels: [],
+        joinedChannels: [],
+        accountDeactivated: false,
+});
         user = await this.usersService.update(user.id.toString(), {
             username: username,
             phone: faker.phone.phoneNumber(),
             pic: faker.image.avatar(),
             duoquadra_login: username + "_42",
+            rank: rank,
             wins: faker.datatype.number(),
+            blockedUsers: [],
             losses: faker.datatype.number()
         } as SeedUser);
         return user;

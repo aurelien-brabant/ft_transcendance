@@ -6,6 +6,7 @@ import {
   IsPhoneNumber,
   IsString
 } from 'class-validator';
+import { User } from '../entities/users.entity';
 import { CreateUserDto } from './create-user.dto';
 
 export class UpdateUserDto extends PartialType(CreateUserDto) {
@@ -32,4 +33,7 @@ export class UpdateUserDto extends PartialType(CreateUserDto) {
     @IsOptional()
     @IsDecimal()
     readonly ratio: number; 
+
+    @IsOptional()
+    readonly blockedUsers: User[];
 }

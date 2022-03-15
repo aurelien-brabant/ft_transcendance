@@ -3,12 +3,12 @@ import {
     Entity,
     JoinTable,
     ManyToMany,
+    ManyToOne,
     OneToMany,
     PrimaryGeneratedColumn
 } from "typeorm";
 import { Channel } from 'src/chat/channels/entities/channels.entity';
 import { Game } from "src/games/entities/games.entity";
-import { BlockedUsers } from "src/users/entities/blockedUsers.entity";
 import { IsOptional } from "class-validator";
 import { userInfo } from "os";
 //import { GamesInvite } from "src/gamesInvites/entities/gamesInvites.entity";
@@ -76,10 +76,11 @@ export class User {
     })
     ownedChannels: Channel[];
 
-    @OneToMany(() => BlockedUsers, blockedUsers => blockedUsers.user)
-    @JoinTable()
-    blockedUsers: BlockedUsers[];
-
+    @OneToMany(() => User, blockedUser => blockedUser.user)
+    blockedUsers: User[];
+    
+    @ManyToOne(() => User, user => user.blockedUsers)
+    user: User;
 
     @ManyToMany(() => Channel, joinedChannels => joinedChannels.users)
     joinedChannels: Channel[];
@@ -87,3 +88,4 @@ export class User {
     @Column({default: false})
     accountDeactivated: boolean;
 }
+
