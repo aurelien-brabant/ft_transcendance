@@ -77,6 +77,8 @@ export class UsersService {
         const user = await this.usersRepository
             .createQueryBuilder("user")
             .innerJoinAndSelect("user.joinedChannels", "channel")
+            .innerJoinAndSelect("channel.users", "users")
+            .innerJoinAndSelect("channel.messages", "messages")
             .where("user.id = :id", { id: id })
             .getOne();
 

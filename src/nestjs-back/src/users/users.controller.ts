@@ -25,7 +25,7 @@ export class UsersController {
         return this.usersService.getOwnedChannels(id);
     }
 
-    @Get('/:id/joinedChannels')
+    @Get('/:id/joinedChannels') // tmp
     getJoinedChannels(@Param('id') id: string) {
         return this.usersService.getJoinedChannels(id);
     }

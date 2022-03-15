@@ -5,6 +5,7 @@ import { FiSend } from 'react-icons/fi';
 import { MdPeopleAlt } from "react-icons/md";
 import { RiSettings5Line } from "react-icons/ri";
 import chatContext, { ChatContextType, ChatMessage } from "../../context/chat/chatContext";
+import authContext, { AuthContextType } from "../../context/auth/authContext";
 import faker from "@faker-js/faker";
 
 export const GroupHeader: React.FC<{ viewParams: any  }> = ({ viewParams }) => {
@@ -35,39 +36,53 @@ const Group: React.FC<{ viewParams: { [key: string]: any } }> = ({
 	const [messages, setMessages] = useState<ChatMessage[]>([]);
 	const [currentMessage, setCurrentMessage] = useState("");
 	const chatBottom = useRef<HTMLDivElement>(null);
-	
-	useEffect(() => {
-		const messages: ChatMessage[] = [];
-
-		for (let i = 0; i != 50; ++i) {
-			messages.push({
-				isMe: Math.random() <= 0.5,
-				content: faker.lorem.sentence(),
-				id: faker.datatype.uuid(),
-				author: faker.name.findName(),
-			});
-		}
-		setMessages(messages);
-	}, []);
-
-	useEffect(() => {
-		chatBottom.current?.scrollIntoView();
-	}, [messages]);
+	const { getUserData } = useContext(authContext) as AuthContextType;
+	const userId = getUserData().id;
+	const username = getUserData().username;
 
 	const handleSubmit = () => {
-
 		if (currentMessage.length === 0) return;
 		setMessages([
 			...messages,
 			{
 				isMe: true,
 				content: currentMessage,
-				id: faker.datatype.uuid(),
-				author: "random",
+				id: userId,
+				author: username,
 			},
 		]);
 		setCurrentMessage("");
 	};
+
+	const updateMessages = async (channelMessages: any) => {
+		const messages: ChatMessage[] = [];
+
+		for (var i in channelMessages) {
+			messages.push({
+				isMe: (channelMessages[i].author.id === userId),
+				content: channelMessages[i].content,
+				id: channelMessages[i].id,
+				author: channelMessages[i].author.username,
+			});
+		}
+		setMessages(messages);
+	}
+
+	useEffect(() => {
+		const fetchData = async () => {
+			const req = await fetch(`/api/channels/1`); // tmp
+			const data = await req.json();
+
+			updateMessages(JSON.parse(JSON.stringify(data)).messages);
+		}
+
+		fetchData()
+		.catch(console.error);
+	}, []);
+
+	useEffect(() => {
+		chatBottom.current?.scrollIntoView();
+	}, [messages]);
 
 	return (
 		<div className="h-full">

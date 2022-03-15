@@ -33,7 +33,7 @@ export class SeederService {
             username: username,
             phone: faker.phone.phoneNumber(),
             pic: faker.image.avatar(),
-            duoquadra_login: username + "_42",
+            duoquadra_login: username + '_42',
             wins: faker.datatype.number(),
             losses: faker.datatype.number()
         } as SeedUser);
@@ -48,6 +48,8 @@ export class SeederService {
         await this.seedFakeGames();
         console.log('[+] Seeding fake channels...');
         await this.seedFakeChannels();
+        console.log('[+] Seeding fake DMs...');
+        await this.seedFakeDMs();
     }
 
     async seedFakeUsers() {
@@ -55,7 +57,7 @@ export class SeederService {
             let pseudo = faker.internet.userName();
             const user = await this.createFakeUser(pseudo);
 
-            console.log("User [%s] => [%s] [%s] created", user.id, user.duoquadra_login, user.email);
+            console.log('User [%s] => [%s] [%s] created', user.id, user.duoquadra_login, user.email);
         }
     }
 
@@ -77,29 +79,58 @@ export class SeederService {
                 looserScore: faker.datatype.number(),
             } as SeedGame);
 
-            console.log("Game [%s] created", game.id);
+            console.log('Game [%s] created', game.id);
         }
     }
 
-    async seedFakeMessages(dstChannel: SeedChannel, fakeSender: SeedUser) {
+    async seedFakeMessages(dstChannel: SeedChannel, fakeSender: SeedUser, fakeFriend: SeedUser) {
         for (let i = 0; i < 10; ++i) {
-            const message = await this.messagesService.create({
-                createdAt: faker.datatype.datetime(),
-                content: faker.lorem.sentence(5),
-                author: fakeSender,
-                channel: dstChannel
-            } as SeedMessage);
+            let message: SeedMessage;
 
+            if (i % 2) {
+                message = await this.messagesService.create({
+                    createdAt: faker.datatype.datetime(),
+                    content: faker.lorem.sentence(5),
+                    author: fakeSender,
+                    channel: dstChannel
+                });
+            } else {
+                message = await this.messagesService.create({
+                    createdAt: faker.datatype.datetime(),
+                    content: faker.lorem.sentence(5),
+                    author: fakeFriend,
+                    channel: dstChannel
+                });
+            }
             console.log("Message [%s] => ['%s'] sent by User [%s]", message.id, message.content, message.author.id);
         }
     }
 
+    async seedFakeDMs() {
+        const fakeOwner = await this.usersService.findOne('1');
+
+        for (let i = 2; i < 11; ++i) {
+            const fakeFriend = await this.usersService.findOne(i.toString())
+            let channel = await this.channelsService.create({
+                name: 'fakeDM_' + i,
+                owner: fakeOwner,
+                privacy: 'private',
+                users: [fakeOwner, fakeFriend],
+                messages: []
+            } as SeedChannel);
+
+            console.log('[+] Seeding fake messages in channel [%s]...', channel.id);
+            await this.seedFakeMessages(channel, fakeOwner, fakeFriend);
+        }
+    }
+
     async seedFakeChannels() {
-        const fakeOwner = await this.usersService.findOne("1");
+        const fakeOwner = await this.usersService.findOne('1');
+        const fakeFriend = await this.createFakeUser('fakeFriend');
 
         for (let i = 0; i < 10; ++i) {
             let channel = await this.channelsService.create({
-                name: "fakeChannel_" + i,
+                name: 'fakeChannel_' + i,
                 owner: fakeOwner,
                 privacy: ['private', 'public', 'protected'][Math.floor(Math.random() * 3)],
                 users: [fakeOwner],
@@ -112,7 +143,7 @@ export class SeederService {
             }
 
             console.log('[+] Seeding fake messages in channel [%s]...', channel.id);
-            await this.seedFakeMessages(channel, fakeOwner);
+            await this.seedFakeMessages(channel, fakeOwner, fakeFriend);
         }
     }
 }

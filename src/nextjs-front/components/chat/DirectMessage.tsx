@@ -1,12 +1,13 @@
 import { useContext, useEffect, useRef, useState } from "react";
 import { AiOutlineClose, AiOutlineUser } from "react-icons/ai";
 import { BsArrowLeftShort } from 'react-icons/bs';
-import {FiSend} from "react-icons/fi";
+import { FiSend } from "react-icons/fi";
 import { MdPeopleAlt } from 'react-icons/md';
 import chatContext, { ChatContextType, ChatMessage } from "../../context/chat/chatContext";
 import { UserStatusItem } from "../UserStatus";
+import authContext, { AuthContextType } from "../../context/auth/authContext";
 // import Tooltip from "../Tooltip";
-import faker from "@faker-js/faker";
+// import faker from "@faker-js/faker";
 
 export const DirectMessageHeader: React.FC<{ viewParams: any }> = ({ viewParams }) => {
 	const { setChatView, openChatView, closeChat } = useContext(chatContext) as ChatContextType;
@@ -33,25 +34,48 @@ const DirectMessage: React.FC<{ viewParams: { [key: string]: any } }> = ({
 	const [messages, setMessages] = useState<ChatMessage[]>([]);
 	const [currentMessage, setCurrentMessage] = useState('');
 	const chatBottom = useRef<HTMLDivElement>(null);
+	const { getUserData } = useContext(authContext) as AuthContextType;
+	const userId = getUserData().id;
+	const username = getUserData().username;
 
 	const handleSubmit = () => {
 		if (currentMessage.length === 0) return;
-		setMessages([ ...messages, { isMe: true, content: currentMessage, id: faker.datatype.uuid(), author: 'me' } ]);
+		setMessages([
+			...messages,
+			{
+				isMe: true,
+				content: currentMessage,
+				id: userId,
+				author: username
+			}
+		]);
 		setCurrentMessage('');
 	};
 
-	useEffect(() => {
+	const updateMessages = async (channelMessages: any) => {
 		const messages: ChatMessage[] = [];
 
-		for (let i = 0; i != 50; ++i) {
+		for (var i in channelMessages) {
 			messages.push({
-				isMe: Math.random() <= 0.5,
-				content: faker.lorem.sentence(),
-				id: faker.datatype.uuid(),
-				author: faker.name.findName()
+				isMe: (channelMessages[i].author.id === userId),
+				content: channelMessages[i].content,
+				id: channelMessages[i].id,
+				author: channelMessages[i].author.username,
 			});
 		}
 		setMessages(messages);
+	}
+
+	useEffect(() => {
+		const fetchData = async () => {
+			const req = await fetch(`/api/channels/1`); // tmp
+			const data = await req.json();
+
+			updateMessages(JSON.parse(JSON.stringify(data)).messages);
+		}
+
+		fetchData()
+		.catch(console.error);
 	}, []);
 
 	useEffect(() => {

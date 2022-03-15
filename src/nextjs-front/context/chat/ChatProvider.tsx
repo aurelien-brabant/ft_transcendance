@@ -94,47 +94,45 @@ const ChatProvider: React.FC = ({ children }) => {
 	const { getUserData } = useContext(authContext) as AuthContextType;
 	const userId = getUserData().id;
 
-	const updateDirectMessages = async (channels: any) => {
+	const updateChatMessages = async (channels: any) => {
+		const groups: ChatGroup[] = [];
 		const dms: DirectMessage[] = [];
 
 		for (var i in channels) {
-			dms.push({ // TODO
-				lastMessage: faker.lorem.sentence(),
-				avatar: faker.internet.avatar(),
-				username: faker.internet.userName()
-			});
+			const channel = channels[i];
+			const len = channel.users.length;
+			const messagePreview = channel.messages[len - 1].content;
+
+			if (len === 2) {
+				const friend = (channel.users[0].id === userId) ? channel.users[1] : channel.users[0];
+				dms.push({
+					lastMessage: messagePreview,
+					avatar: friend.pic,
+					username: friend.username,
+				});
+			} else {
+				groups.push({
+						label: channel.name,
+						id: channel.id,
+						lastMessage: messagePreview,
+						isAdmin: (channel.owner === userId),
+						privacy: channel.privacy as ChatGroupPrivacy,
+						in: !!channel.users.find(user => user.id == userId), // tmp
+						peopleCount: len
+				});
+			}
 		}
 		setDirectMessages(dms);
-	}
-
-	const updateGroupMessages = async (channels: any) => {
-		const groups: ChatGroup[] = [];
-
-		for (var i in channels) {
-			groups.push({
-				label: channels[i].name,
-				id: channels[i].id,
-				lastMessage: faker.lorem.sentence(), // tmp
-				isAdmin: (channels[i].owner === userId),
-				privacy: channels[i].privacy as ChatGroupPrivacy,
-				in: true,
-				peopleCount: 1 // tmp
-			});
-		}
 		setChatGroups(groups);
 	}
 
 	useEffect(() => {
 		const fetchData = async () => {
-
-			const dms: DirectMessage[] = [];
-
 			const req = await fetch(`/api/users/${userId}/joinedChannels`);
 			const data = await req.json();
 
-			updateGroupMessages(JSON.parse(JSON.stringify(data)));
+			updateChatMessages(JSON.parse(JSON.stringify(data)));
 		}
-
 		fetchData()
 		.catch(console.error);
 	}, [])
