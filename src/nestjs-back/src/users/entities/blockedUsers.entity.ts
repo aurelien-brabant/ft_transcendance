@@ -11,9 +11,6 @@ import {
     @PrimaryGeneratedColumn()
     id: number;
   
-    @Column({ length: 50, unique: true })
-    name: string;
-  
     @ManyToOne(() => User, user => user.blockedUsers, {
     })
     user: User;
