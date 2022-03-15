@@ -23,7 +23,7 @@ export type SeedUser = {
   joinedChannels: SeedChannel[];
   accountDeactivated: boolean;
   blockedUsers: User[];
-  user: User
+  user: User;
 };
 
 /* GAMES */
