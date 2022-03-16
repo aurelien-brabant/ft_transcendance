@@ -67,8 +67,8 @@ const SignIn: NextPageWithLayout = () => {
         type: "success",
         content: "Logged in successfully, redirecting...",
       });
-        await router.push(`/validate-tfa`);
-        return;
+      await router.push(`/validate-tfa`);
+      return;
     }
     else {
       setAlert({

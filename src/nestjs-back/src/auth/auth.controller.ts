@@ -29,14 +29,6 @@ export class AuthController {
   @Post('/login')
   async loginUser(@Request() req: any) {
     return this.authService.generateJWT(req.user);
-    /*const accessToken = JSON.parse(data).access_token;
-
-    if (!accessToken)
-      throw new UnauthorizedException;
-
-    return {
-      accessToken: accessToken
-    }*/
   }
 
   @Post('/login42')

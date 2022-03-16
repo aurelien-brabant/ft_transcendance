@@ -40,7 +40,7 @@ export class UsersService {
             .select("user.password")
             .where("user.email = :email", { email })
             .getOne();
-console.log('user from findUserPwd', user);
+
         return user;
     }
 

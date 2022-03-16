@@ -8,9 +8,10 @@ import isMobilePhone from "validator/lib/isMobilePhone";
 import {NextPageWithLayout} from './_app';
 import authContext, {AuthContextType} from '../context/auth/authContext';
 import { FaCheckCircle } from 'react-icons/fa';
-import { MdError } from 'react-icons/md'
+import { MdBackspace, MdError } from 'react-icons/md'
 import alertContext, {AlertContextType} from "../context/alert/alertContext";
 import { useRouter } from 'next/router';
+import { BsFillQuestionCircleFill } from 'react-icons/bs';
 
 const labelClassName = "grow uppercase text-neutral-400";
 const inputClassName =
@@ -55,6 +56,7 @@ const Welcome: NextPageWithLayout = () => {
   const [pendingQR, setPendingQR] = useState(false);
   const [tfaCode, setTfaCode] = useState('');
   const [tfaStatus, setTfaStatus] = useState(getUserData().tfa ? 'enabled' : 'disabled');
+  const [picUrl, setPicUrl] = useState(false);
    
   const [formData, setFormData] = useState<FormData>({
     username: getUserData().username,
@@ -75,11 +77,21 @@ const Welcome: NextPageWithLayout = () => {
     });
   }
 
+  const checkPic = async () => {
+    const req = await fetch (`/api/users/${getUserData().id}/photo`);
+    if (req.status === 200)
+      setPicUrl(true);
+    else
+      setPicUrl(false);
+  }
+
   useEffect(() => {
     if (getUserData().accountDeactivated)
       reactivateAccount();
 
     baseObject = getUserData();
+
+    checkPic();
   }, [])
 
   // recompute this only when formData changes
@@ -172,8 +184,8 @@ const Welcome: NextPageWithLayout = () => {
     } 
   };
 
-  const activateTfa = async (tfaCode: string) => {
-
+  const activateTfa = async () => {
+ 
     const req = await fetch(`/api/users/${getUserData().id}/enableTfa`, {
       method: 'POST',
       headers: {
@@ -187,10 +199,14 @@ const Welcome: NextPageWithLayout = () => {
     if (req.status === 200) {
       setAlert({ type: 'success', content: '2FA activated successfully' });
       setTfaStatus('enabled');
+      setEditStatus('success');
+      setPendingQR(false);
     }
     else {
-      setAlert({ type: 'error', content: 'Error while activating 2FA!' });
+      setAlert({ type: 'error', content: 'Wrong 2FA code!' });
       setTfaStatus('disabled');
+      setEditStatus('error');
+      setTfaCode('');    
     }
   }
 
@@ -209,6 +225,7 @@ const Welcome: NextPageWithLayout = () => {
     if (req.status === 200) {
       setAlert({ type: 'success', content: '2FA deactivated successfully' });
       setTfaStatus('disabled');
+      setEditStatus('success');
     }
     else {
       setAlert({ type: 'error', content: 'Error while deactivating 2FA!' });
@@ -218,12 +235,34 @@ const Welcome: NextPageWithLayout = () => {
 
   const handleChangeTfa = (e: React.ChangeEvent<HTMLInputElement>) => {
     setTfaCode(e.target.value);
+    setEditStatus('pendingQR');
   };
 
   const handleSubmitTfa = (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault();
     setPendingQR(false);
   };
+
+  useEffect(() => {
+            
+    if (!tfaCode.length && pendingQR) {
+        setAlert({
+            type: "info",
+            content: "Waiting for 2FA code...",
+        });
+    }
+    else if (tfaCode.length === 6 && (/^[0-9]+$/.test(tfaCode)))
+        activateTfa();
+
+    else if (tfaCode.length === 6 && !(/^[0-9]+$/.test(tfaCode))) {
+        setAlert({
+            type: "error",
+            content: "Only digits are allowed!",
+        });
+        setTfaCode('');
+    }
+
+  }, [tfaCode])
 
   const hasValidPhone = validatePhone(formData.phone);
 
@@ -237,6 +276,23 @@ const Welcome: NextPageWithLayout = () => {
     ? (formData.tfa ? "Disable" : "Enable") + " 2FA"
     : "Valid phone number required";
 
+  const getTfaForm = () => {
+    let content = [];
+    for (let i = 0; i < 6; i++) {
+      content.push(
+        <input
+        key={i}
+        value={''}
+        onChange={handleChange}
+        type="text"
+        name="tfaCode"
+        className="text-xl md:text-3xl bg-pink-600 text-white font-bold text-center border-white border-2 rounded-lg h-10 md:h-20 w-10 md:w-20"
+        />
+      );
+    }
+    return content;
+  };
+  
   return (
     <div className="min-h-screen text-white bg-gray-900 grow" id="main-content">
       <div
@@ -245,35 +301,51 @@ const Welcome: NextPageWithLayout = () => {
       >
         <div className="flex flex-col items-center gap-y-4">
           <div className="relative w-48 h-48">
+            {(!picUrl && !pendingQR) ?
+            <div className="flex justify-center">
+                  <BsFillQuestionCircleFill className="text-9xl"/>
+            </div>
+            :
             <img
               className="object-cover object-center w-full h-full rounded drop-shadow-md"
-              src={pendingQR ?`/api/users/${getUserData().id}/generateTfa`
-              : `/api/users/${getUserData().id}/photo`}
+              src={pendingQR ? `/api/users/${getUserData().id}/generateTfa`
+              : (picUrl) ? `/api/users/${getUserData().id}/photo` : ""}
             />
-            <div className="absolute p-2 bg-white border-2 border-gray-900 rounded-full -top-4 -right-4">
+            }
+            <div className={`absolute p-2 bg-white border-2 border-gray-900 rounded-full -top-4 -right-4`}>
               {( editStatus === 'pending') ? <FiEdit2 className="text-gray-900" />
             	: (editStatus === 'success') ? <FaCheckCircle className="text-green-600 animate-ping-3"/>
-									: <MdError className="text-red-600 animate-ping-3"/>
+									: (editStatus === 'pendingQR') ? <MdBackspace
+                          className="text-red-500 hover:animate-pulse hover:cursor-pointer"
+                          onClick={() => {setPendingQR(false); setEditStatus("pending")}}
+                          />
+                      : <MdError className="text-red-600 animate-ping-3"/>
               }
             </div>
           </div>
+          
           {pendingQR ?
-            <form onSubmit={handleSubmitTfa} className="flex flex-col gap-y-6">
-              <input
-                 value={tfaCode}
-                 onChange={handleChangeTfa}
-                 type="text"
-                 name="tfaCode"
-                 className="text-black text-center"
-                 autoFocus
-              />
-        
-              <button
-                className="px-1 py-2 text-sm font-bold uppercase bg-red-600 md:px-6 md:text-lg"
-                onClick={() => activateTfa(tfaCode)}
-              >
-                Validate Code
-              </button>
+          <form onSubmit={handleSubmitTfa} className="flex flex-col gap-y-6">
+            <input
+              value={tfaCode}
+              onChange={handleChangeTfa}
+              type="text"
+              name="tfaCode"
+              placeholder="2FA Code"
+              className="text-black text-center"
+              autoFocus
+            />
+
+            <div  className="space-x-5">
+              {getTfaForm()}
+            </div>
+     
+            <button
+              className="hidden px-1 py-2 text-sm font-bold uppercase bg-red-600 md:px-6 md:text-lg"
+              onClick={() => activateTfa()}
+            >
+              Validate Code
+            </button>
           </form>
           :
           <div className="text-center">
@@ -281,7 +353,10 @@ const Welcome: NextPageWithLayout = () => {
             <Link href={`/users/${getUserData().id}`}><a className="block py-1 text-sm uppercase text-neutral-200 hover:underline">See public profile</a></Link>
           </div>
           }
+
         </div>
+
+        {(!pendingQR) ?
         <div className="flex flex-col py-12 gap-y-10">
             <h1 className="text-2xl">
               Edit profile
@@ -409,6 +484,9 @@ const Welcome: NextPageWithLayout = () => {
             </div>
           </form>
         </div>
+        :
+        <></>
+        }
       </div>
     </div>
   );
