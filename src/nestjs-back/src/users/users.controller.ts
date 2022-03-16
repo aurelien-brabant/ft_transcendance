@@ -48,7 +48,7 @@ console.log('userData from back after create', userData)
     async findPhoto(@Param('id') id: string, @Response() res: any) {
         const user = await this.usersService.findOne(id);
 
-        if (!user) {
+        if (!user || !user.pic) {
             throw new NotFoundException();
         }
 
