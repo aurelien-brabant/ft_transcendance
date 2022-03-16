@@ -1,4 +1,4 @@
-import { Fragment, useContext, useEffect, useState } from "react";
+import { Fragment, useContext, useEffect, useRef, useState } from "react";
 import { BounceLoader } from "react-spinners";
 import { NextPageWithLayout } from "./_app";
 import Image from 'next/image';
@@ -6,19 +6,17 @@ import Head from "next/head";
 import Router, { useRouter } from "next/router";
 import alertContext, { AlertContextType } from "../context/alert/alertContext";
 import authContext, { AuthContextType } from "../context/auth/authContext";
-
-const formArray = [
-    {
-    }
-];
+import { FiRefreshCcw } from "react-icons/fi";
 
 const ValidateCode = () => {
     
     const { setAlert } = useContext(alertContext) as AlertContextType;
     const { getUserData } = useContext(authContext) as AuthContextType;
     const [tfaCode, setTfaCode] = useState('');
-    const [tfaArray, setTfaArray] = useState(formArray);
     const router = useRouter();
+    const [currentStep, setCurrentStep] = useState(0);
+    const inputToFocus = useRef<HTMLInputElement>(null);
+
     
     const authenticateWithTfa = async () => {
         const req = await fetch(`/api/users/${getUserData().id}/authenticateTfa`, {
@@ -38,23 +36,10 @@ const ValidateCode = () => {
         else {
             setAlert({ type: 'error', content: 'Invalid code!' });
             setTfaCode(''); 
+            setCurrentStep(0);
         }
     }
 
- //   const handleChangeTfa = (e: React.ChangeEvent<HTMLInputElement>) => {
-   //     setTfaCode(e.target.value);
-    //};
-
-    const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-        const value = e.target.value;
-//        array[i] = value;
-        setTfaCode(value);
-    };
-
-    let array: (string[]) = [];
-    for (let i = 1; i < 7; i++) {
-        array[i] = String(i);
-    } 
     useEffect(() => {
       
         if (!tfaCode.length) {
@@ -63,63 +48,79 @@ const ValidateCode = () => {
                 content: "Waiting for 2FA code...",
             });
         }
-        else if (tfaCode.length === 6)// && (/^[0-9]+$/.test(tfaCode))) {
-             authenticateWithTfa();
-//        }
-        else if (tfaCode.length === 6){// && !(/^[0-9]+$/.test(tfaCode))) {
-            setAlert({
-                type: "error",
-                content: "Only digits are allowed!",
-            });
-            setTfaCode('');
-
-        }
+        else if (tfaCode.length === 6)
+            authenticateWithTfa();
     }, [tfaCode])
-console.log(tfaCode);
 
-  const getTfaForm = () => {
-    let content = [];
-    for (let i = 0; i < 6; i++) {
-      content.push(
-        <input
-        key={i}
-        value={''}
-        onChange={handleChange}
-        type="text"
-        name="tfaCode"
-        className="text-xl md:text-3xl bg-pink-600 text-white font-bold text-center border-white border-2 rounded-lg h-10 md:h-20 w-10 md:w-20"
-        />
-      );
+ 
+    const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+        e.preventDefault();
+        const key = e.target.value;
+        
+        if (/^[0-9]+$/.test(key)) {
+            e.target.value = tfaCode[currentStep];
+            setCurrentStep(currentStep + 1);
+        }
+        else if (key !== "Escape") {
+            setAlert({ type: 'info', content: 'Only digit!' });
+            e.target.value = ""
+        }
     }
-    return content;
-  };
+    
+    const checkStep = (key: string) => {
+        if (/^[0-9]+$/.test(key))
+            setTfaCode(tfaCode + key);
+    
+        if ((currentStep > 0 && (key === "Backspace")) || key === "ArrowLeft") {
+            setTfaCode(tfaCode.substring(0, tfaCode.length - 1));
+            setCurrentStep(currentStep - 1);
+        }
+        else if (key === "Escape") {
+            setTfaCode('');
+            setCurrentStep(0);
+        }
+    }
+
+	useEffect(() => {
+		inputToFocus.current?.focus();
+	}, [currentStep]);
+    
+    const getTfaForm = () => {
+        let content = [];
+        for (let i = 0; i < 6; i++) {
+        content.push(
+            <input
+                key={i}
+                ref={currentStep === i ? inputToFocus : null}
+                onChange={handleChange}
+                className="text-xl md:text-3xl bg-inherit text-pink-600 font-bold text-center border-pink-600 border-2 rounded-lg h-10 md:h-20 w-10 md:w-20"
+                type="text"
+                pattern="[0-9]{1}"
+                onKeyDown={(e) => {checkStep(e.key)}}
+            />
+        );
+        }
+        return content;
+    };
 
 
     return (
-        <form onSubmit={authenticateWithTfa} className="flex flex-col gap-y-6 m-10">
-            <h1 className="text-center text-xl text-pink-600 uppercase animate-pulse">
-                Enter the 6-digit code from your Authenticator App
-            </h1>
-            <div className="space-x-5 flex justify-center">
-                {getTfaForm()} 
-            </div>
-            <input
-              value={tfaCode}
-              onChange={handleChange}
-              type="text"
-              name="tfaCode"
-              placeholder="2FA Code"
-              className="text-black text-center"
-              autoFocus
-            />
         
-              <button
-                type="submit"
-                className="hidden px-1 py-2 text-sm font-bold uppercase bg-red-600 md:px-6 md:text-lg"
-              >
-                2FA Code
-              </button>
+        <form onSubmit={authenticateWithTfa} className="flex flex-col gap-y-6 m-10">
+            <label>
+                <h1 className="text-center text-xl text-pink-700 uppercase animate-pulse">
+                    Enter the 6-digit code from your Authenticator App
+                </h1>
+            </label>
+            <div className="space-x-5 flex justify-center">
+                {getTfaForm()}
+            </div>
+            
+            <div className="flex justify-center">
+                <FiRefreshCcw className="font-bold text-2xl text-pink-600 hover:animate-spin hover:cursor-pointer" onClick={() => {setCurrentStep(0); setTfaCode('')}}/>
+            </div>        
         </form>
+        
     );
 }
 
