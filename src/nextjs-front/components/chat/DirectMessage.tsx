@@ -6,6 +6,7 @@ import { MdPeopleAlt } from 'react-icons/md';
 import chatContext, { ChatContextType, ChatMessage } from "../../context/chat/chatContext";
 import { UserStatusItem } from "../UserStatus";
 import authContext, { AuthContextType } from "../../context/auth/authContext";
+import alertContext, { AlertContextType } from "../../context/alert/alertContext";
 // import Tooltip from "../Tooltip";
 
 export const DirectMessageHeader: React.FC<{ viewParams: any }> = ({ viewParams }) => {
@@ -37,18 +38,43 @@ const DirectMessage: React.FC<{ viewParams: { [key: string]: any } }> = ({
 	const { getUserData } = useContext(authContext) as AuthContextType;
 	const userId = getUserData().id;
 	const username = getUserData().username;
+	const { setAlert } = useContext(alertContext) as AlertContextType;
 
-	const handleSubmit = () => {
+	const handleDmSubmit = async () => {
 		if (currentMessage.length === 0) return;
-		setMessages([
-			...messages, {
-				id: userId,
-				author: username,
+
+		const channelData = await (await fetch(`/api/channels/${dmId}`)).json(); // tmp
+
+		const res = await fetch("/api/messages", {
+			method: "POST",
+			headers: {
+				"Content-Type": "application/json",
+			},
+			body: JSON.stringify({
+				author: getUserData(),
 				content: currentMessage,
-				isMe: true
-			}
-		]);
-		setCurrentMessage('');
+				channel: channelData
+			}),
+		});
+
+		if (res.status === 201) {
+			setMessages([
+				...messages, {
+					id: userId,
+					author: username,
+					content: currentMessage,
+					isMe: true
+				}
+			]);
+			setCurrentMessage('');
+			// TODO: update last message
+			return;
+		} else {
+			setAlert({
+				type: "error",
+				content: "Failed to send message"
+			});
+		}
 	};
 
 	const updateDmMessages = async (dmMessages: any) => {
@@ -66,15 +92,13 @@ const DirectMessage: React.FC<{ viewParams: { [key: string]: any } }> = ({
 	}
 
 	useEffect(() => {
-		const fetchData = async () => {
-			const req = await fetch(`/api/channels/${dmId}`); // tmp
-			const data = await req.json();
+		const fetchDms = async () => {
+			const res = await fetch(`/api/channels/${dmId}`);
+			const data = await res.json();
 
 			updateDmMessages(JSON.parse(JSON.stringify(data)).messages);
 		}
-
-		fetchData()
-		.catch(console.error);
+		fetchDms().catch(console.error);
 	}, []);
 
 	useEffect(() => {
@@ -109,7 +133,7 @@ const DirectMessage: React.FC<{ viewParams: { [key: string]: any } }> = ({
 						setCurrentMessage(e.target.value);
 					}}
 				/>
-				<button onClick={handleSubmit} className="self-stretch px-3 py-2 text-lg text-white uppercase bg-pink-600 rounded">
+				<button onClick={handleDmSubmit} className="self-stretch px-3 py-2 text-lg text-white uppercase bg-pink-600 rounded">
 					<FiSend />
 				</button>
 			</div>

@@ -110,7 +110,7 @@ const ChatProvider: React.FC = ({ children }) => {
 		for (var i in channels) {
 			const channel = channels[i];
 			const usersInChan = channel.users.length;
-			const messagePreview = channel.messages[usersInChan - 1].content;
+			const messagePreview = channel.messages[channel.messages.length - 1].content;
 
 			if (usersInChan === 2) {
 				const friend = (channel.users[0].id === userId) ? channel.users[1] : channel.users[0];
@@ -138,8 +138,8 @@ const ChatProvider: React.FC = ({ children }) => {
 
 	useEffect(() => {
 		const fetchData = async () => {
-			const req = await fetch(`/api/users/${userId}/joinedChannels`);
-			const data = await req.json();
+			const res = await fetch(`/api/users/${userId}/joinedChannels`);
+			const data = await res.json();
 
 			updateChatMessages(JSON.parse(JSON.stringify(data)));
 		}

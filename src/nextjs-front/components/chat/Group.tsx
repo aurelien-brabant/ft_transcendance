@@ -6,7 +6,7 @@ import { MdPeopleAlt } from "react-icons/md";
 import { RiSettings5Line } from "react-icons/ri";
 import chatContext, { ChatContextType, ChatMessage } from "../../context/chat/chatContext";
 import authContext, { AuthContextType } from "../../context/auth/authContext";
-// import faker from "@faker-js/faker";
+import alertContext, { AlertContextType } from "../../context/alert/alertContext";
 
 export const GroupHeader: React.FC<{ viewParams: any }> = ({ viewParams }) => {
 	const { openChatView, closeChat, setChatView } = useContext(chatContext) as ChatContextType;
@@ -40,18 +40,43 @@ const Group: React.FC<{ viewParams: { [key: string]: any } }> = ({
 	const { getUserData } = useContext(authContext) as AuthContextType;
 	const userId = getUserData().id;
 	const username = getUserData().username;
+	const { setAlert } = useContext(alertContext) as AlertContextType;
 
-	const handleSubmit = () => {
+	const handleGroupMessageSubmit = async () => {
 		if (currentMessage.length === 0) return;
-		setMessages([
-			...messages, {
-				id: userId,
-				author: username,
+
+		const channelData = await (await fetch(`/api/channels/${channelId}`)).json(); // tmp
+
+		const res = await fetch("/api/messages", {
+			method: "POST",
+			headers: {
+				"Content-Type": "application/json",
+			},
+			body: JSON.stringify({
+				author: getUserData(),
 				content: currentMessage,
-				isMe: true
-			}
-		]);
-		setCurrentMessage('');
+				channel: channelData
+			}),
+		});
+
+		if (res.status === 201) {
+			setMessages([
+				...messages, {
+					id: userId,
+					author: username,
+					content: currentMessage,
+					isMe: true
+				}
+			]);
+			setCurrentMessage('');
+			// TODO: update last message
+			return;
+		} else {
+			setAlert({
+				type: "error",
+				content: "Failed to send message"
+			});
+		}
 	};
 
 	const updateChannelMessages = async (channelMessages: any) => {
@@ -70,14 +95,12 @@ const Group: React.FC<{ viewParams: { [key: string]: any } }> = ({
 
 	useEffect(() => {
 		const fetchData = async () => {
-			const req = await fetch(`/api/channels/${channelId}`);
-			const data = await req.json();
+			const res = await fetch(`/api/channels/${channelId}`);
+			const data = await res.json();
 
 			updateChannelMessages(JSON.parse(JSON.stringify(data)).messages);
 		}
-
-		fetchData()
-		.catch(console.error);
+		fetchData().catch(console.error);
 	}, []);
 
 	useEffect(() => {
@@ -115,7 +138,7 @@ const Group: React.FC<{ viewParams: { [key: string]: any } }> = ({
 						setCurrentMessage(e.target.value);
 					}}
 				/>
-				<button onClick={handleSubmit} className="self-stretch px-3 py-2 text-lg text-white uppercase bg-pink-600 rounded">
+				<button onClick={handleGroupMessageSubmit} className="self-stretch px-3 py-2 text-lg text-white uppercase bg-pink-600 rounded">
 					<FiSend />
 				</button>
 			</div>
