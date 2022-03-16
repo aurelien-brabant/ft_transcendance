@@ -8,8 +8,6 @@ import {
 } from "typeorm";
 import { Channel } from 'src/chat/channels/entities/channels.entity';
 import { Game } from "src/games/entities/games.entity";
-import { IsOptional } from "class-validator";
-//import { GamesInvite } from "src/gamesInvites/entities/gamesInvites.entity";
 
 @Entity()
 export class User {
@@ -53,21 +51,6 @@ export class User {
     @ManyToMany(() => User)
     @JoinTable()
     friends: User[];
-
-/*    @JoinTable()
-    @ManyToMany(
-        type => GamesInvite,
-        (invite) => invite.sender,
-    )
-    gamesInviteSender: GamesInvite[];
-
-    @JoinTable()
-    @ManyToMany(
-        type => GamesInvite,
-        (invite) => invite.receiver,
-    )
-    gamesInviteReceiver: GamesInvite[];
-    */
 
     @OneToMany(() => Channel, channel => channel.owner, {
         cascade: true,
