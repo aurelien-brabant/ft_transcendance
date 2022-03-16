@@ -33,7 +33,6 @@ export class SeederService {
             phone: faker.phone.phoneNumber(),
             pic: faker.image.avatar(),
             duoquadra_login: username + "_42",
-            rank: rank,
             wins: faker.datatype.number(),
             blockedUsers: [],
             losses: faker.datatype.number()
