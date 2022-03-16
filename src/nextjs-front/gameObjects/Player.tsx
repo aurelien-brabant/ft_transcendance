@@ -1,5 +1,5 @@
 export class Player {
-	name: string;
+	id: string;
 	canvasWidth: number;
 	canvasHeight: number;
 	defaultX: number;
@@ -12,8 +12,8 @@ export class Player {
 	step: number;
 	timing: number;
 
-	constructor(name: string, canvasWidth: number, canvasHeight: number, x: number, dy: number, width: number, height: number, color: string) {
-		this.name = name;
+	constructor(id: string, canvasWidth: number, canvasHeight: number, x: number, dy: number, width: number, height: number, color: string) {
+		this.id = id;
 		this.canvasWidth = canvasWidth;
 		this.canvasHeight = canvasHeight;
 		this.defaultX = x;

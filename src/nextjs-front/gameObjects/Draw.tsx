@@ -1,6 +1,6 @@
+import { RiHistoryLine } from "react-icons/ri";
 import { Ball } from "./Ball";
-import { gameConstants } from "./GameObject";
-import { Net } from "./Net";
+import { canvasHeight, canvasWidth, IBall, IPlayer, IRoom } from "./GameObject";
 import { Player } from "./Player";
 import { Score } from "./Score";
 
@@ -17,6 +17,14 @@ type particle = {
 		r: number;
 }
 
+type Net = {
+	x: number;
+	y: number;
+	width: number;
+	height: number;
+
+}
+
 export class Draw {
 	canvas: HTMLCanvasElement;
 	context: CanvasRenderingContext2D | null;
@@ -31,6 +39,7 @@ export class Draw {
 	width: number;
 	height: number;
 
+	net: Net;
 	constructor(canvas: HTMLCanvasElement) {
 		this.canvas = canvas;
 		this.context = this.canvas.getContext("2d");
@@ -43,8 +52,15 @@ export class Draw {
 		this.particles = [];
 		this.max_particles = 75;
 
-		this.width = gameConstants.canvasWidth;
-		this.height = gameConstants.canvasHeight;
+		this.width = canvasWidth;
+		this.height = canvasHeight;
+
+		this.net = {
+			x: canvasWidth/2 - 10,
+			y: 0,
+			width: 20,
+			height: 50
+		};
 	}
 
 	/* General Drawind functions*/
@@ -108,12 +124,27 @@ export class Draw {
 		}
 	}
 
+	drawCenteredText(text: string, x: number, y: number, size: number, color: string) {
+		if (this.context)
+		{
+			this.context.save();
+			this.context.font = size + "px -apple-system, BlinkMacSystemFont, Segoe UI, Roboto, Oxygen, Ubuntu, Cantarell, Fira Sans, Droid Sans, Helvetica Neue, sans-serif";
+			this.context.fillStyle = color;
+			this.context.textBaseline = "middle";
+			this.context.textAlign = "center";
+			this.context.shadowColor = "rgb(127, 0, "+ this.neonColor +")";
+			this.context.shadowBlur = this.firstNeon + 10;
+			this.context.fillText(text, x, y);
+			this.context.restore();
+		}
+	}
+
 	/* Game Object */
-	drawBall(ball: Ball) {
+	drawBall(ball: IBall) {
 		this.drawCircle(ball.x, ball.y, ball.r, 'white');
 	}
 
-	drawPaddle(paddle: Player) {
+	drawPaddle(paddle: IPlayer) {
 		this.drawRectangle(paddle.x, paddle.y, paddle.width, paddle.height, "white");
 
 		if (paddle.color !== "rgba(255, 255, 255, 0.8)" && paddle.step <= paddle.timing)
@@ -130,16 +161,13 @@ export class Draw {
 		}
 	}
 
-	drawNet(net: Net)
+	drawNet()
 	{
-		// 1080 / 20 = 54
-		// 1080 - 20*50 = 80
-		// 80 / 19 = 4
-		for (let i = 0 ;i <= (net.canvasHeight/2) - net.height; i += net.height)
+		for (let i = 0 ; i <= (canvasHeight/2) - this.net.height; i += this.net.height)
 		{
-			net.y = i;
-			this.drawRectangle(net.x, net.y, net.width, net.height, 'white');
-			this.drawRectangle(net.x, net.canvasHeight - (net.height + net.y), net.width, net.height, 'white');
+			this.net.y = i;
+			this.drawRectangle(this.net.x, this.net.y, this.net.width, this.net.height, 'white');
+			this.drawRectangle(this.net.x, canvasHeight - (this.net.height + this.net.y), this.net.width, this.net.height, 'white');
 			i += 19;
 		}
 	}
@@ -147,21 +175,6 @@ export class Draw {
 	drawScore(score: Score) {
 		this.drawText(score.p1_Score + "", score.x1, score.y1, score.size, 'white');
 		this.drawText(score.p2_Score + "", score.x2, score.y2, score.size, 'white');
-	}
-
-	drawCenteredText(text: string, x: number, y: number, size: number, color: string) {
-		if (this.context)
-		{
-			this.context.save();
-			this.context.font = size + "px -apple-system, BlinkMacSystemFont, Segoe UI, Roboto, Oxygen, Ubuntu, Cantarell, Fira Sans, Droid Sans, Helvetica Neue, sans-serif";
-			this.context.fillStyle = color;
-			this.context.textBaseline = "middle";
-			this.context.textAlign = "center";
-			this.context.shadowColor = "rgb(127, 0, "+ this.neonColor +")";
-			this.context.shadowBlur = this.firstNeon + 10;
-			this.context.fillText(text, x, y);
-			this.context.restore();
-		}
 	}
 
 	drawPauseButton() {
@@ -218,13 +231,13 @@ export class Draw {
 		}
 	}
 
-	drawGoal(ball: Ball, playersGoal: PlayerGoal, p1: Player, p2: Player) {
-		if (playersGoal.p1)
-			this.drawCenteredText((p1.name + " Scores !!!"), this.width/2, ((this.height/2) - (this.height/10)), 45, 'white');
-		if (playersGoal.p2)
-			this.drawCenteredText((p2.name + " Scores !!!"), this.width/2, ((this.height/2) - (this.height/10)), 45, 'white');
-		this.drawGoalParticle(ball);
-	}
+	// drawGoal(ball: Ball, playersGoal: PlayerGoal, p1: Player, p2: Player) {
+	// 	if (playersGoal.p1)
+	// 		this.drawCenteredText((p1.name + " Scores !!!"), this.width/2, ((this.height/2) - (this.height/10)), 45, 'white');
+	// 	if (playersGoal.p2)
+	// 		this.drawCenteredText((p2.name + " Scores !!!"), this.width/2, ((this.height/2) - (this.height/10)), 45, 'white');
+	// 	this.drawGoalParticle(ball);
+	// }
 
 	/* Neon effect */
 	animateNeon(canvas: HTMLCanvasElement) {

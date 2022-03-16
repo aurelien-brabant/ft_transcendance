@@ -8,10 +8,10 @@ import styles from "../styles/Canvas.module.css";
 // import { animateNeon, drawGame } from "../lib/drawGame";
 // import { updateGame, resetGame } from "../lib/updateGame";
 // import { GameConstants, GameState, gameConstants } from "../constants/gameConstants"
-import { Draw, Player, Ball, Net, Score, Room } from "../gameObjects";
-import { gameConstants } from "../gameObjects/GameObject";
+import { Draw } from "../gameObjects";
+import { canvasHeight, canvasWidth, GameState, IRoom, loadingMsg } from "../gameObjects/GameObject";
 
-const Canvas: React.FC<{socketProps: Socket, roomProps: Room | null}> = ({socketProps, roomProps}) => {
+const Canvas: React.FC<{socketProps: Socket, roomProps: IRoom | null}> = ({socketProps, roomProps}) => {
 
 	/*
 		Canvas ref and size
@@ -19,8 +19,8 @@ const Canvas: React.FC<{socketProps: Socket, roomProps: Room | null}> = ({socket
 	const canvasRef = useRef<HTMLCanvasElement>();
 
     let socket: Socket = socketProps;
-    let room: Room | null = roomProps;
-
+    let room: IRoom | null = roomProps;
+	let roomId: string = room.id;
     /*
 		Game initialisation
 		Game Object
@@ -28,68 +28,82 @@ const Canvas: React.FC<{socketProps: Socket, roomProps: Room | null}> = ({socket
 
 	// let start = Date.now();
 
-	// let oldTimestamp = 0;
-	// let secondElapsed = 0;
-	// let dot = 0;
+	let oldTimestamp = 0;
+	let secondElapsed = 0;
+	let seconds = 0;
+	let dot = 0;
 	// let display = 0;
-	// let seconds = 0;
 
-	// const net = new Net(20, 50, gameConstants.canvasWidth, gameConstants.canvasHeight);
-	// const player1 = new Player(players.p1, gameConstants.canvasWidth, gameConstants.canvasHeight, 10, 540, 30, 200, 'rgba(255, 255, 255, 0.8)');
-	// const player2 = new Player(players.p2, gameConstants.canvasWidth, gameConstants.canvasHeight, (gameConstants.canvasWidth-40), 540, 30, 200, 'rgba(255, 255, 255, 0.8)');
-	// const ball = new Ball(gameConstants.canvasWidth, gameConstants.canvasHeight, 25, 800, (gameConstants.canvasWidth/4) * 3, 50, player1, player2);
-	// const score = new Score(gameConstants.canvasWidth, gameConstants.canvasHeight);
+	// console.log(room);
+	
+	// const net: Net = new Net(20, 50, canvasWidth, canvasHeight);
+	// const player1 = new Player(room.playerOne.id, canvasWidth, canvasHeight, 10, 540, 30, 200, 'rgba(255, 255, 255, 0.8)');
+	// const player2 = new Player(room.playerTwo.id, canvasWidth, canvasHeight, (canvasWidth-40), 540, 30, 200, 'rgba(255, 255, 255, 0.8)');
+
+	// const ball = new Ball(canvasWidth, canvasHeight, 25, 800, (canvasWidth/4) * 3, 50, player1, player2);
+	// const score = new Score(canvasWidth, canvasHeight);
 
 
 	/*
 		Handle key controls
 	*/
 
-	// const downHandler = (event: KeyboardEvent): void => {
-	// 	console.log(event.key)
-	// 	if (event.key === "ArrowUp") {
-	// 		socket.emit("Up", roomId);
-	// 	}
-	// 	if (event.key === "ArrowDown") {
-	// 		socket.emit("Down", roomId);
-	// 	}
-	// };
+	const downHandler = (event: KeyboardEvent): void => {
+		socket.emit("keyDown", {roomId: roomId, key: event.key});
+	};
+
+	const upHandler = (event: KeyboardEvent): void => {
+		socket.emit("keyUp", {roomId: roomId, key: event.key});
+	};
+
+	/*
+		Draw Game
+	*/
+	const drawGame = (canvas: HTMLCanvasElement, draw: Draw, room: IRoom): void => {
+		draw.clear();
+		draw.drawNet();
+		draw.drawPaddle(room.playerOne);
+		draw.drawPaddle(room.playerTwo);
+		draw.drawBall(room.ball);
+		// draw.drawScore(score)
+		draw.animateNeon(canvas);
+	}
+
+	// useEffect(() => {
+
+	// }, []);
 
 	useEffect(() => {
-		// Initialize Everything
-
 		const canvas = canvasRef.current;
 		const context = canvas.getContext('2d');
 		let animationFrameId: number;
 
-		canvas.width = 1920;
-		canvas.height = 1080;
+		canvas.width = canvasWidth;
+		canvas.height = canvasHeight;
 
-		context.save();
-		context.fillStyle = 'black';
-		context.fillRect(0, 0, canvas.width, canvas.height);
-		context.restore();
+		
+		const draw: Draw = new Draw(canvas);
+		
+		window.addEventListener("keydown", downHandler);
+		window.addEventListener("keyup", upHandler);
 
-		const draw = new Draw(canvas);
 
-		// window.addEventListener("keydown", downHandler);
+		socket.on("updateRoom", function(updatedRoom: IRoom) {
+			room = updatedRoom;
+		});
 
-		// const gameRunning = () => {
-		// 	ball.update(score, gameConstants, secondElapsed);
-		// 	if (gameConstants.playerGoal.p1 || gameConstants.playerGoal.p2)
-		// 		roomState = GameState.GOAL;
-		// 	player1.update(keyUp, keyDown, secondElapsed);
-		// 	player2.update(keyUp, keyDown, secondElapsed);
-		// }
+		const gameRunning = () => {
+			socket.emit("requestUpdate", room.id);
+		}
 
-		// const loading = () => {
-		// 	draw.drawLoading(gameConstants.loading[dot]);
-		// 	if (seconds >= 1)
-		// 	{
-		// 		dot = (dot+1) % gameConstants.loading.length;
-		// 		seconds = 0;
-		// 	}
-		// }
+		const loading = () => {
+			draw.drawLoading(loadingMsg[dot]);
+			if (seconds >= 1)
+			{
+				dot = (dot+1) % loadingMsg.length;
+				seconds = 0;
+			}
+		}
 
 		// const gameEnd = () => {
 		// 	draw.drawGoalParticle(ball);
@@ -114,28 +128,25 @@ const Canvas: React.FC<{socketProps: Socket, roomProps: Room | null}> = ({socket
 		// }
 
 		const gameLoop = (timestamp = 0) => {
-			// secondElapsed = (timestamp - oldTimestamp) / 1000;
-			// oldTimestamp = timestamp;
+			secondElapsed = (timestamp - oldTimestamp) / 1000;
+			oldTimestamp = timestamp;
 
-			// drawGame(canvas, draw, net, player1, player2, ball, score);
-			// draw.drawText("FPS: " + Math.round(1/secondElapsed), (gameConstants.canvasWidth - 150), 45, 45, "white");
-			/* Maybe use a switch and rename the roomState properly */
-			// if (roomState === GameState.INIT) {
-			// 	score.p1_Score = 0;
-			// 	score.p2_Score = 0;
-			// 	roomState = GameState.STARTING;
-			// }
-
-			// if (roomState === GameState.PLAYING || roomState === GameState.PAUSED) {
-			// 	if (roomState == GameState.PLAYING)
-			// 		gameRunning();
-			// 	if (roomState === GameState.PAUSED){
-			// 		draw.drawPauseButton();
-			// 	}
-			// } else if (roomState === GameState.RESUME) {
+			drawGame(canvas, draw, room);
+			if (room.gameState === GameState.WAITING) {
+				seconds += secondElapsed;
+				loading();
+			} else if (room.gameState === GameState.PLAYING || room.gameState === GameState.PAUSED) {
+				if (room.gameState == GameState.PLAYING)
+					gameRunning();
+				if (room.gameState === GameState.PAUSED){
+					draw.drawPauseButton();
+				}
+			}
+			//  else if (roomState === GameState.RESUME) {
 			// 	oldTimestamp = Date.now();
 			// 	roomState = GameState.PLAYING;
-			// } else if (roomState === GameState.STARTING || roomState === GameState.GOAL) {
+			// }
+			// else if (roomState === GameState.STARTING || roomState === GameState.GOAL) {
 			// 	if (roomState === GameState.GOAL && (score.p1_Score >= nbGoal || score.p2_Score >= nbGoal)) {
 			// 		roomState = GameState.END;
 			// 	}
@@ -153,14 +164,9 @@ const Canvas: React.FC<{socketProps: Socket, roomProps: Room | null}> = ({socket
 			// 			draw.drawGoal(ball, gameConstants.playerGoal, player1, player2);
 			// 		draw.drawCountDown(Math.ceil(3 - seconds));
 			// 	}
-			// } else if (roomState === GameState.QUEUE) {
-			// 	seconds += secondElapsed;
-			// 	// seconds += secondElapsed;
-			// 	loading();
 			// } else if (roomState === GameState.END) {
 			// 	gameEnd();
 			// }
-			socket.emit("requestUpdate", room.id);
 			animationFrameId = window.requestAnimationFrame(gameLoop);
 		}
 
@@ -169,7 +175,8 @@ const Canvas: React.FC<{socketProps: Socket, roomProps: Room | null}> = ({socket
 		return () => {
 			console.log("Unmount");
 			window.cancelAnimationFrame(animationFrameId);
-			// window.removeEventListener("keydown", downHandler);
+			window.removeEventListener("keydown", downHandler);
+			window.removeEventListener("keyup", upHandler);
 		};
 	}, []);
 

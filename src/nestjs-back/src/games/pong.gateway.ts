@@ -12,13 +12,13 @@ import {
 } from "@nestjs/websockets";
 
 // Not yet in place
-import { User } from "src/users/entities/users.entity";
-
+// import { User } from "src/users/entities/users.entity";
 // import { GamesService } from './games.service';
-import { CreateGameDto } from 'src/games/dto/create-game.dto';
-import { UpdateGameDto } from 'src/games/dto/update-game.dto';
+// import { CreateGameDto } from 'src/games/dto/create-game.dto';
+// import { UpdateGameDto } from 'src/games/dto/update-game.dto';
+
 import Queue from './class/Queue';
-import Room from './class/Room';
+import Room, { GameState, IRoom } from './class/Room';
 
 @WebSocketGateway({ cors: true })
 export class PongGateway implements OnGatewayInit, OnGatewayConnection, OnGatewayDisconnect {
@@ -43,13 +43,7 @@ export class PongGateway implements OnGatewayInit, OnGatewayConnection, OnGatewa
 
 			server.to(players[0]).emit("newRoom", room);
 			server.to(players[1]).emit("newRoom",  room);
-
             rooms.set(roomId, room);
-			// console.log(rooms.get(roomId));
-			// console.log(rooms);
-			
-            // function below will update room state and emit changes to players
-            // this.updateRoomState();
         }
     }
 
@@ -63,8 +57,12 @@ export class PongGateway implements OnGatewayInit, OnGatewayConnection, OnGatewa
 
 	async handleDisconnect(@ConnectedSocket() client: Socket) {
 		this.logger.log(`Client disconnected: ${client.id}`);
+		// Verify if player is in a game and set GameState to pause
+		// if -> player in a game
+		//		room.changeState(PAUSE)
 	}
 
+	// Etape 1 : Player JoinQueue
 	@SubscribeMessage('joinQueue')
 	handleJoinQueue(@ConnectedSocket() client: Socket) {
 		this.queue.enqueue(client.id);
@@ -72,40 +70,63 @@ export class PongGateway implements OnGatewayInit, OnGatewayConnection, OnGatewa
 		this.logger.log(`Client ${client.id} was added to queue !`);
 	}
 
+	// Etape 2 : The player was assigned a Room and received the roomId we add him to the room
 	@SubscribeMessage('joinRoom')
 	handleJoinRoom(@ConnectedSocket() client: Socket, @MessageBody() room: string) {
-		this.logger.log(`Client ${client.id} was added to room: ${room} !`);
 		client.join(room);
 		this.server.to(client.id).emit("joinedRoom");
 	}
 
+	// Etape 3 : Players ask for the last room Updates
 	@SubscribeMessage('requestUpdate')
-	async handleRequestUpdate(@ConnectedSocket() client: Socket, @MessageBody() roomId: string) {
-		// this.rooms[roomId].update();
-		this.server.to(client.id).emit("updateRoom", this.rooms[roomId]);
-		// this.room[roomId].update(client.id, "up");
-		// this.room[roomId].update(client.id, "up");
+	handleRequestUpdate(@ConnectedSocket() client: Socket, @MessageBody() roomId: string) {
+		const room: Room = this.rooms.get(roomId);
+
+		if (room.gameState === GameState.PLAYING)
+			room.update();
+		this.server.to(client.id).emit("updateRoom", room);
 	}
 
-	@SubscribeMessage('Up')
-	async handleKeyUp(@ConnectedSocket() client: Socket, @MessageBody() roomId: string) {
-		console.log(this.rooms.get(roomId).players[0].id);
-		
-		if (this.rooms.get(roomId).players[0].id === client.id)
-			this.logger.log(`P1 ${client.id} moved Up in game: ${roomId}!`);
-		else if (this.rooms.get(roomId).players[0].id === client.id)
-			this.logger.log(`P2 ${client.id} moved Up in game: ${roomId}!`);
-		// this.room[roomId].update(client.id, "up");
-		// this.room[roomId].update(client.id, "up");
+	// Controls
+	@SubscribeMessage('keyDown')
+	async handleKeyUp(@ConnectedSocket() client: Socket, @MessageBody() data: {roomId: string, key: string}) {
+		const room: Room = this.rooms.get(data.roomId);
+
+		if (room.playerOne.id === client.id)
+		{
+			if (data.key === 'ArrowUp')
+				room.playerOne.up = true;
+			if (data.key === 'ArrowDown')
+				room.playerOne.down = true;
+
+		}
+		else if (room.playerTwo.id === client.id)
+		{
+			if (data.key === 'ArrowUp')
+				room.playerTwo.up = true;
+			if (data.key === 'ArrowDown')
+				room.playerTwo.down = true;
+		}
 	}
 
-	@SubscribeMessage('Down')
-	async handlekeyDown(@ConnectedSocket() client: Socket, @MessageBody() roomId: string) {
-		if (this.rooms.get(roomId).players[0].id === client.id)
-			this.logger.log(`P1 ${client.id} moved Down in game: ${roomId}!`);
-		else if (this.rooms.get(roomId).players[1].id === client.id)
-			this.logger.log(`P2 ${client.id} moved Down in game: ${roomId}!`);
-		// this.room[roomId].update(client.id, "down");
-		// this.room[roomId].update(client.id, "down");
+	@SubscribeMessage('keyUp')
+	async handleKeyDown(@ConnectedSocket() client: Socket, @MessageBody() data: {roomId: string, key: string}) {
+		const room: Room = this.rooms.get(data.roomId);
+
+		if (room.playerOne.id === client.id)
+		{
+			if (data.key === 'ArrowUp')
+				room.playerOne.up = false;
+			if (data.key === 'ArrowDown')
+				room.playerOne.down = false;
+
+		}
+		else if (room.playerTwo.id === client.id)
+		{
+			if (data.key === 'ArrowUp')
+				room.playerTwo.up = false;
+			if (data.key === 'ArrowDown')
+				room.playerTwo.down = false;
+		}
 	}
 }

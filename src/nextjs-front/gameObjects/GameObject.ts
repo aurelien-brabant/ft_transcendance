@@ -1,7 +1,10 @@
-import { PlayerGoal } from "./Draw";
+// Constant
+export const canvasWidth: number = 1920;
+export const canvasHeight: number = 1080;
+export const loadingMsg: string[] = ['loading', 'loading.', 'loading..', 'loading...'];
 
 export enum GameState {
-	QUEUE,
+	WAITING,
 	INIT,
 	STARTING,
 	PLAYING,
@@ -11,45 +14,34 @@ export enum GameState {
 	END
 }
 
-export type Player = {
+export interface IPlayer {
 	id: string;
 	x: number;
 	y: number;
+	width: number;
+	height: number
+	speed: number;
 	goal: number;
-	speed: number;
 }
 
-export type Ball = {
+export interface IBall {
 	x: number;
 	y: number;
+	r: number;
+	defaultRadius: number;
+	defaultSpeed: number;
 	speed: number;
+	maxSpeed: number;
+	acceleration: number;
+	velocity: {dx: number, dy: number};
 }
 
-export type Room = {
+export interface IRoom {
 	id: string;
-    gameState: GameState;
-	players: Player[];
-	ball: Ball;
+	gameState: GameState;
+	playerOne: IPlayer;
+	playerTwo: IPlayer;
+	ball: IBall;
 	timestampStart: number;
 	timestampServer: number;
-}
-
-export type GameConstants = {
-	canvasWidth: number;
-	canvasHeight: number;
-	roomState: GameState;
-	loading: string[];
-	playersGoal: PlayerGoal;
-
-	start: number;
-}
-
-export const gameConstants: GameConstants = {
-	canvasWidth: 1920,
-	canvasHeight: 1080,
-	roomState: GameState.QUEUE,
-	loading: ["Loading", "Loading.", "Loading..", "Loading..."],
-	playersGoal: { p1: false, p2: false },
-
-	start: Date.now()
 }

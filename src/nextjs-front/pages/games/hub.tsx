@@ -3,7 +3,7 @@ import { io, Socket } from 'socket.io-client';
 import Head from "next/head";
 import withDashboardLayout from "../../components/hoc/withDashboardLayout";
 import Canvas from "../../components/Canvas";
-import { Draw, Player, Ball, Net, Score, Room } from "../../gameObjects";
+import { IRoom } from "../../gameObjects/GameObject";
 
 let socket: Socket;
 // const Hub: NextPageWithLayout = () => {
@@ -20,10 +20,10 @@ enum GameState {
 }
 
 const Hub: React.FC = () => {
-	let lastRoom: Room = new Room("", []);
+	let lastRoom: IRoom;
 
 	const [displayGame, setDisplayGame] = useState(false);
-	const [room, setRoom] = useState<Room | null>(null);
+	const [room, setRoom] = useState<IRoom | null>(null);
 	let roomId: string;
 
 
@@ -31,28 +31,6 @@ const Hub: React.FC = () => {
 		console.log("Joining Queue");
 		socket.emit("joinQueue");
 	}
-
-	const downHandler = (event: KeyboardEvent): void => {
-		console.log(event.key)
-		if (event.key === "ArrowUp") {
-			socket.emit("Up", roomId);
-		}
-		if (event.key === "ArrowDown") {
-			socket.emit("Down", roomId);
-		}
-		if (event.key == "Escape")
-		{
-			window.removeEventListener("keydown", downHandler);
-			setDisplayGame(false);
-			setRoom(null);
-		}
-		if (event.key == "Enter")
-		{
-			console.log("last room: ", lastRoom);
-			setRoom({...lastRoom, gameState: GameState.STARTING})
-		}
-	};
-
 
 	useEffect((): any => {
 		// connect to socket server
@@ -65,22 +43,21 @@ const Hub: React.FC = () => {
 				console.log("You were added to the queue");
 			});
 
-			socket.on("newRoom", function(newRoom: Room) {
+			socket.on("newRoom", function(newRoom: IRoom) {
 					socket.emit("joinRoom", newRoom.id);
-					console.log("Trying to join: ", newRoom);
 					lastRoom = newRoom;
 					roomId = newRoom.id;
 					setRoom(newRoom);
-					window.addEventListener("keydown", downHandler);
+					// window.addEventListener("keydown", downHandler);
 			});
 
-			socket.on("updateRoom", function(updatedRoom: Room) {
-				console.log("Update");
-				// lastRoom = updatedRoom;
-				// setRoom(lastRoom);
-			});
+			// socket.on("updateRoom", function(updatedRoom: IRoom) {
+			// 	console.log("Update");
+			// 	lastRoom = updatedRoom;
+			// 	setRoom(lastRoom);
+			// });
 
-			socket.on("joinedRoom", (data: Room) => {
+			socket.on("joinedRoom", (data: IRoom) => {
 				setDisplayGame(true);
 			});
 		});

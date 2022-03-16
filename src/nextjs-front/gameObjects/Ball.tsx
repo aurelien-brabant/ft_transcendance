@@ -1,4 +1,4 @@
-import { GameConstants } from "../constants/gameConstants";
+import { GameData } from "./GameObject";
 import { Player } from "./Player";
 import { Score } from "./Score";
 
@@ -130,7 +130,7 @@ export class Ball {
 		this.speed = this.defaultSpeed;
     }
 
-	update(score: Score, gameConstants : GameConstants, secondPassed: number) {
+	update(score: Score, gameData : GameData, secondPassed: number) {
 		if (this.r < this.defaultRadius)
 			this.r += 1;
 
@@ -146,7 +146,7 @@ export class Ball {
 		{
 			score.p2_Score++;
 			this.goal = true;
-			gameConstants.playersGoal.p2 = true;
+			gameData.playersGoal.p2 = true;
 			return ;
 		}
 		// Goal Player two
@@ -154,12 +154,12 @@ export class Ball {
 		{
 			score.p1_Score++;
 			this.goal = true;
-			gameConstants.playersGoal.p1 = true;
+			gameData.playersGoal.p1 = true;
 			return ;
 		}
 		this.goal = false;
-		gameConstants.playersGoal.p1 = false;
-		gameConstants.playersGoal.p2 = false;
+		gameData.playersGoal.p1 = false;
+		gameData.playersGoal.p2 = false;
 		return ;
 	}
 }
