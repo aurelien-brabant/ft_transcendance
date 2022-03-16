@@ -12,33 +12,43 @@ import alertContext, {AlertContextType} from "../context/alert/alertContext";
 const ValidateFortyTwo: NextPageWithLayout = () => {
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState<null | string>(null);
-  const { setAlert } = useContext(alertContext) as AlertContextType;
+  const { setAlert } = useContext(alertContext) as AlertContextType;  
   
   const router = useRouter();
 
-  useEffect(() => {
+  const fetchData = async () => {
+
     const searchParams = new URLSearchParams(window.location.search);
     const requestURI = `/api/auth/login42`;
 
-    fetch(requestURI, {
+    const req = await fetch(requestURI, {
       method: "POST",
       headers: {
         "Content-Type": "application/json",
       },
       body: JSON.stringify({ apiCode: searchParams.get("code") }),
-    }).then((res) => {
-      if (res.status === 201) {
-        setAlert({ type: 'success', content: 'The 42 API authorized the connexion. Redirecting...' });
-        res.json().then(({ access_token }) => {
-          window.localStorage.setItem("bearer", access_token);
-          router.push("/welcome");
-        });
-      } else {
-        setAlert({ type: 'error', content: 'Could not log in using 42 API' });
-        setError("An error occured");
-        setIsLoading(false);
-      }
-    });
+    })
+    const res = await req.json();
+    const id = res.id;
+    const access_token = res.access_token;
+    
+    if (req.status === 201) {
+      setAlert({ type: 'success', content: 'The 42 API authorized the connexion. Redirecting...' });
+      window.localStorage.setItem("bearer", access_token);
+      const reqTfa = await fetch(`/api/users/${id}`);
+      const resTfa = await reqTfa.json();
+      !resTfa.tfa ? router.push("/welcome") : router.push(`/validate-tfa`);
+    }
+    else {
+      setAlert({ type: 'error', content: 'Could not log in using 42 API' });
+      setError("An error occured");
+      setIsLoading(false);
+    }
+
+  }
+  
+  useEffect(() => {
+    fetchData();
   }, []);
 
   return (

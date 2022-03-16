@@ -5,25 +5,25 @@ import { Timestamp } from "typeorm";
 /* USERS */
 
 export type SeedUser = {
-  id: number;
-  username: string;
-  password: string;
-  email: string;
-  phone: string;
-  tfa: string;
-  pic: string;
-  duoquadra_login: string;
-  rank: number;
-  games: SeedGame[];
-  wins: number;
-  losses: number;
-  ratio: number;
-  friends: SeedUser[];
-  ownedChannels: SeedChannel[];
-  joinedChannels: SeedChannel[];
-  accountDeactivated: boolean;
-  blockedUsers: User[];
-  user: User;
+    id: number;
+    username: string;
+    password: string;
+    email: string;
+    phone: string;
+    tfa: boolean;
+    pic: string;
+    duoquadra_login: string;
+    games: SeedGame[];
+    wins: number;
+    losses: number;
+    ratio: number;
+    friends: SeedUser[];
+    ownedChannels: SeedChannel[];
+    joinedChannels: SeedChannel[];
+    accountDeactivated: boolean;
+    tfaSecret: string;
+    blockedUsers: User[];
+    user: User;
 };
 
 /* GAMES */

@@ -1,0 +1,99 @@
+/*import { useRouter } from "next/router";
+import { useContext, useEffect, useState } from "react";
+import alertContext, { AlertContextType } from "../context/alert/alertContext";
+import authContext, { AuthContextType } from "../context/auth/authContext";
+
+const TfaForm: any = (page: string) => {
+
+    const { getUserData } = useContext(authContext) as AuthContextType;
+    const { setAlert } = useContext(alertContext) as AlertContextType;
+
+    const [tfa] = useState(getUserData().tfa);
+    const [tfaCode, setTfaCode] = useState('');
+
+    const router = useRouter();
+    
+    const enableTfa = async () => {
+
+        const req = await fetch(`/api/users/${getUserData().id}/enableTfa`, {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json'
+          },
+          redirect: 'follow',
+          referrerPolicy: 'no-referrer',
+          body: JSON.stringify({tfaCode: tfaCode})
+        });
+    console.log('req', req);
+        if (req.status === 200) {
+          setAlert({ type: 'success', content: '2FA activated successfully' });
+       //   setTfaValidated(true);
+        }
+        else {
+          setAlert({ type: 'error', content: 'Error while activating 2FA!' });
+         // setTfaValidated(false);
+        }
+    }
+
+
+
+    const handleChangeTfa = (e: React.ChangeEvent<HTMLInputElement>) => {
+        setTfaCode(e.target.value);
+    };
+console.log("page", page);
+    useEffect(() => {
+            
+        if (!tfa && page === "validate2fa") {
+            console.log('validate2faOK')
+            router.push("/welcome");
+        }
+        else if (!tfaCode.length) {
+            console.log('lengh 0')
+            setAlert({
+                type: "info",
+                content: "Waiting for 2FA code...",
+            });
+        }
+        else if (tfaCode.length === 6 && (/^[0-9]+$/.test(tfaCode))) {
+            console.log('ici');
+            (page === "welcome") ? enableTfa() : authenticateWithTfa();
+        }
+
+        else if (tfaCode.length === 6 && !(/^[0-9]+$/.test(tfaCode))) {
+            console.log('la');
+            setAlert({
+                type: "error",
+                content: "Only digits are allowed!",
+            });
+            setTfaCode('');
+        }
+
+    }, [tfaCode])
+    if (page === "welcome")
+        console.log("page WELCOME");
+    if (page === "validate2fa")
+        console.log("page 2FA");
+    return (
+        <div>
+                <form onSubmit={page === "welcome" ? enableTfa : authenticateWithTfa} className="flex flex-col gap-y-6">
+                    <input
+                        value={tfaCode}
+                        onChange={handleChangeTfa}
+                        type="text"
+                        name="tfaCode"
+                        className="text-black text-center"
+                        autoFocus
+                    />
+    
+                    <button
+                        type="submit"
+                        className="px-1 py-2 text-sm font-bold uppercase bg-red-600 md:px-6 md:text-lg"
+                    >
+                        Validate Code
+                    </button>
+                </form>
+        </div>
+    )
+}
+
+export default TfaForm;*/
