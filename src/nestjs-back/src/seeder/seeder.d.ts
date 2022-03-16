@@ -21,7 +21,9 @@ export type SeedUser = {
     ownedChannels: SeedChannel[];
     joinedChannels: SeedChannel[];
     accountDeactivated: boolean;
-    tfaSecret: string
+    tfaSecret: string;
+    blockedUsers: User[];
+    user: User;
 };
 
 /* GAMES */
