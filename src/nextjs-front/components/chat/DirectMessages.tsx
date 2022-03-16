@@ -11,7 +11,7 @@ import chatContext, {
 	// ChatGroup,
 	ChatGroupPrivacy,
 } from "../../context/chat/chatContext";
-import {UserStatusItem} from "../UserStatus";
+import { UserStatusItem } from "../UserStatus";
 
 const DirectMessages: React.FC<{
 	viewParams: Object;
@@ -83,7 +83,10 @@ const DirectMessages: React.FC<{
 						className="relative items-center px-10 py-5 border-b-2 border-gray-800 grid grid-cols-3 bg-gray-900/90 hover:bg-gray-800/90 transition"
 						onClick={() => {
 							openChatView(
-								'dm', 'dm', { targetUsername: dm.username }
+								'dm', 'dm', {
+									targetUsername: dm.username,
+									targetId: dm.id
+								}
 							)
 						}}
 					>

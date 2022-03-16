@@ -46,8 +46,8 @@ export class SeederService {
         await this.seedFakeUsers();
         console.log('[+] Seeding fake games...');
         await this.seedFakeGames();
-        console.log('[+] Seeding fake channels...');
-        await this.seedFakeChannels();
+        console.log('[+] Seeding fake chat groups..');
+        await this.seedFakeGroups();
         console.log('[+] Seeding fake DMs...');
         await this.seedFakeDMs();
     }
@@ -90,19 +90,43 @@ export class SeederService {
             if (i % 2) {
                 message = await this.messagesService.create({
                     createdAt: faker.datatype.datetime(),
-                    content: faker.lorem.sentence(5),
+                    content: `I am ${fakeSender.username}`,
                     author: fakeSender,
                     channel: dstChannel
                 });
             } else {
                 message = await this.messagesService.create({
                     createdAt: faker.datatype.datetime(),
-                    content: faker.lorem.sentence(5),
+                    content: `I am ${fakeFriend.username}`,
                     author: fakeFriend,
                     channel: dstChannel
                 });
             }
-            console.log("Message [%s] => ['%s'] sent by User [%s]", message.id, message.content, message.author.id);
+            // console.log("Message [%s] => ['%s'] sent by User [%s]", message.id, message.content, message.author.id);
+        }
+    }
+
+    async seedFakeGroups() {
+        const fakeOwner = await this.usersService.findOne('1');
+        const randomUser = await this.usersService.findOne('2');
+        const fakeFriend = await this.createFakeUser('fakeFriend');
+
+        for (let i = 0; i < 10; ++i) {
+            let channel = await this.channelsService.create({
+                name: 'fakeChannel_' + i,
+                owner: fakeOwner,
+                privacy: ['private', 'public', 'protected'][Math.floor(Math.random() * 3)],
+                users: [fakeOwner, fakeFriend, randomUser],
+                messages: []
+            } as SeedChannel);
+            if (channel.privacy === 'protected') {
+                channel = await this.channelsService.update(channel.id.toString(), {
+                    password: faker.internet.password()
+                });
+            }
+
+            console.log('[+] Seeding fake messages in channel [%s]...', channel.id);
+            await this.seedFakeMessages(channel, fakeOwner, fakeFriend);
         }
     }
 
@@ -118,29 +142,6 @@ export class SeederService {
                 users: [fakeOwner, fakeFriend],
                 messages: []
             } as SeedChannel);
-
-            console.log('[+] Seeding fake messages in channel [%s]...', channel.id);
-            await this.seedFakeMessages(channel, fakeOwner, fakeFriend);
-        }
-    }
-
-    async seedFakeChannels() {
-        const fakeOwner = await this.usersService.findOne('1');
-        const fakeFriend = await this.createFakeUser('fakeFriend');
-
-        for (let i = 0; i < 10; ++i) {
-            let channel = await this.channelsService.create({
-                name: 'fakeChannel_' + i,
-                owner: fakeOwner,
-                privacy: ['private', 'public', 'protected'][Math.floor(Math.random() * 3)],
-                users: [fakeOwner],
-                messages: []
-            } as SeedChannel);
-            if (channel.privacy === 'protected') {
-                channel = await this.channelsService.update(channel.id.toString(), {
-                    password: faker.internet.password()
-                });
-            }
 
             console.log('[+] Seeding fake messages in channel [%s]...', channel.id);
             await this.seedFakeMessages(channel, fakeOwner, fakeFriend);

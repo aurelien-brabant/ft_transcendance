@@ -12,7 +12,12 @@ import GroupUsers, { GroupUsersHeader } from "../../components/chat/GroupUsers";
 import GroupSettings, { GroupSettingsHeader } from "../../components/chat/GroupSettings";
 import GroupNew, { GroupNewHeader } from "../../components/chat/GroupNew";
 import authContext, { AuthContextType } from "../auth/authContext";
-import { faker } from '@faker-js/faker';
+
+/* Tmp: will come from the package */
+type BaseUserData = {
+	id: string;
+	username: string;
+};
 
 export type ChatViewItem = {
 	label: string;
@@ -94,31 +99,36 @@ const ChatProvider: React.FC = ({ children }) => {
 	const { getUserData } = useContext(authContext) as AuthContextType;
 	const userId = getUserData().id;
 
+	const findUserById = (user: BaseUserData) => {
+		return user.id === userId;
+	}
+
 	const updateChatMessages = async (channels: any) => {
 		const groups: ChatGroup[] = [];
 		const dms: DirectMessage[] = [];
 
 		for (var i in channels) {
 			const channel = channels[i];
-			const len = channel.users.length;
-			const messagePreview = channel.messages[len - 1].content;
+			const usersInChan = channel.users.length;
+			const messagePreview = channel.messages[usersInChan - 1].content;
 
-			if (len === 2) {
+			if (usersInChan === 2) {
 				const friend = (channel.users[0].id === userId) ? channel.users[1] : channel.users[0];
 				dms.push({
-					lastMessage: messagePreview,
-					avatar: friend.pic,
+					id: channel.id,
 					username: friend.username,
+					avatar: friend.pic,
+					lastMessage: messagePreview,
 				});
 			} else {
 				groups.push({
-						label: channel.name,
-						id: channel.id,
-						lastMessage: messagePreview,
-						isAdmin: (channel.owner === userId),
-						privacy: channel.privacy as ChatGroupPrivacy,
-						in: !!channel.users.find(user => user.id == userId), // tmp
-						peopleCount: len
+					id: channel.id,
+					label: channel.name,
+					lastMessage: messagePreview,
+					privacy: channel.privacy as ChatGroupPrivacy,
+					isAdmin: (channel.owner === userId),
+					in: !!channel.users.find(findUserById),
+					peopleCount: usersInChan
 				});
 			}
 		}

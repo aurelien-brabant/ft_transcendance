@@ -8,7 +8,7 @@ import {
 } from "react";
 import chatContext, {
 	ChatContextType,
-	// ChatGroup,
+	ChatGroup,
 	ChatGroupPrivacy,
 } from "../../context/chat/chatContext";
 import {
@@ -99,8 +99,10 @@ const Groups: React.FC<{
 						className="relative items-center px-10 py-5 border-b-2 border-gray-800 grid grid-cols-3 bg-gray-900/90 hover:bg-gray-800/90 transition"
 						onClick={() => {
 							openChatView(gm.privacy === 'protected' ? 'password_protection' : 'group', gm.label, {
-								groupName: gm.label,
-							});
+									groupName: gm.label,
+									groupId: gm.id,
+								}
+							);
 						}}
 					>
 						<div className="absolute bottom-0 left-0 flex items-center px-3 py-1 text-sm text-white bg-gray-800 drop-shadow-md gap-x-1">

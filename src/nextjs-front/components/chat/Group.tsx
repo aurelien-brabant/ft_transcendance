@@ -6,9 +6,9 @@ import { MdPeopleAlt } from "react-icons/md";
 import { RiSettings5Line } from "react-icons/ri";
 import chatContext, { ChatContextType, ChatMessage } from "../../context/chat/chatContext";
 import authContext, { AuthContextType } from "../../context/auth/authContext";
-import faker from "@faker-js/faker";
+// import faker from "@faker-js/faker";
 
-export const GroupHeader: React.FC<{ viewParams: any  }> = ({ viewParams }) => {
+export const GroupHeader: React.FC<{ viewParams: any }> = ({ viewParams }) => {
 	const { openChatView, closeChat, setChatView } = useContext(chatContext) as ChatContextType;
 
 	return (
@@ -36,6 +36,7 @@ const Group: React.FC<{ viewParams: { [key: string]: any } }> = ({
 	const [messages, setMessages] = useState<ChatMessage[]>([]);
 	const [currentMessage, setCurrentMessage] = useState("");
 	const chatBottom = useRef<HTMLDivElement>(null);
+	const channelId = viewParams.groupId;
 	const { getUserData } = useContext(authContext) as AuthContextType;
 	const userId = getUserData().id;
 	const username = getUserData().username;
@@ -43,26 +44,25 @@ const Group: React.FC<{ viewParams: { [key: string]: any } }> = ({
 	const handleSubmit = () => {
 		if (currentMessage.length === 0) return;
 		setMessages([
-			...messages,
-			{
-				isMe: true,
-				content: currentMessage,
+			...messages, {
 				id: userId,
 				author: username,
-			},
+				content: currentMessage,
+				isMe: true
+			}
 		]);
-		setCurrentMessage("");
+		setCurrentMessage('');
 	};
 
-	const updateMessages = async (channelMessages: any) => {
+	const updateChannelMessages = async (channelMessages: any) => {
 		const messages: ChatMessage[] = [];
 
 		for (var i in channelMessages) {
 			messages.push({
-				isMe: (channelMessages[i].author.id === userId),
-				content: channelMessages[i].content,
 				id: channelMessages[i].id,
 				author: channelMessages[i].author.username,
+				content: channelMessages[i].content,
+				isMe: (channelMessages[i].author.id === userId)
 			});
 		}
 		setMessages(messages);
@@ -70,10 +70,10 @@ const Group: React.FC<{ viewParams: { [key: string]: any } }> = ({
 
 	useEffect(() => {
 		const fetchData = async () => {
-			const req = await fetch(`/api/channels/1`); // tmp
+			const req = await fetch(`/api/channels/${channelId}`);
 			const data = await req.json();
 
-			updateMessages(JSON.parse(JSON.stringify(data)).messages);
+			updateChannelMessages(JSON.parse(JSON.stringify(data)).messages);
 		}
 
 		fetchData()

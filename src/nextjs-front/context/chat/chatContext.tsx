@@ -3,18 +3,18 @@ import { createContext } from 'react';
 export type ChatView = 'groups' | 'group' | 'dms' | 'dm' | 'groupadd' | 'password_protection' | 'group_users' | 'group_settings' | 'group_new'; // plural form denotes the list, singular the chat itself
 
 export type ChatMessage = {
+	id: string;
 	author: string;
 	content: string;
-	id: string;
 	isMe: boolean;
 };
 
 export type ChatGroupPrivacy = 'public' | 'protected' | 'private';
 
 export type ChatGroup = {
+	id: string;
 	label: string;
 	lastMessage: string;
-	id: string;
 	privacy: ChatGroupPrivacy;
 	isAdmin: boolean;
 	in: boolean;
@@ -22,6 +22,7 @@ export type ChatGroup = {
 };
 
 export type DirectMessage = {
+	id: string;
 	username: string;
 	avatar: string;
 	lastMessage: string;

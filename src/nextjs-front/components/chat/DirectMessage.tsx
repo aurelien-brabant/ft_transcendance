@@ -7,7 +7,6 @@ import chatContext, { ChatContextType, ChatMessage } from "../../context/chat/ch
 import { UserStatusItem } from "../UserStatus";
 import authContext, { AuthContextType } from "../../context/auth/authContext";
 // import Tooltip from "../Tooltip";
-// import faker from "@faker-js/faker";
 
 export const DirectMessageHeader: React.FC<{ viewParams: any }> = ({ viewParams }) => {
 	const { setChatView, openChatView, closeChat } = useContext(chatContext) as ChatContextType;
@@ -34,6 +33,7 @@ const DirectMessage: React.FC<{ viewParams: { [key: string]: any } }> = ({
 	const [messages, setMessages] = useState<ChatMessage[]>([]);
 	const [currentMessage, setCurrentMessage] = useState('');
 	const chatBottom = useRef<HTMLDivElement>(null);
+	const dmId = viewParams.targetId;
 	const { getUserData } = useContext(authContext) as AuthContextType;
 	const userId = getUserData().id;
 	const username = getUserData().username;
@@ -41,26 +41,25 @@ const DirectMessage: React.FC<{ viewParams: { [key: string]: any } }> = ({
 	const handleSubmit = () => {
 		if (currentMessage.length === 0) return;
 		setMessages([
-			...messages,
-			{
-				isMe: true,
-				content: currentMessage,
+			...messages, {
 				id: userId,
-				author: username
+				author: username,
+				content: currentMessage,
+				isMe: true
 			}
 		]);
 		setCurrentMessage('');
 	};
 
-	const updateMessages = async (channelMessages: any) => {
+	const updateDmMessages = async (dmMessages: any) => {
 		const messages: ChatMessage[] = [];
 
-		for (var i in channelMessages) {
+		for (var i in dmMessages) {
 			messages.push({
-				isMe: (channelMessages[i].author.id === userId),
-				content: channelMessages[i].content,
-				id: channelMessages[i].id,
-				author: channelMessages[i].author.username,
+				id: dmMessages[i].id,
+				author: dmMessages[i].author.username,
+				content: dmMessages[i].content,
+				isMe: (dmMessages[i].author.id === userId),
 			});
 		}
 		setMessages(messages);
@@ -68,10 +67,10 @@ const DirectMessage: React.FC<{ viewParams: { [key: string]: any } }> = ({
 
 	useEffect(() => {
 		const fetchData = async () => {
-			const req = await fetch(`/api/channels/1`); // tmp
+			const req = await fetch(`/api/channels/${dmId}`); // tmp
 			const data = await req.json();
 
-			updateMessages(JSON.parse(JSON.stringify(data)).messages);
+			updateDmMessages(JSON.parse(JSON.stringify(data)).messages);
 		}
 
 		fetchData()
