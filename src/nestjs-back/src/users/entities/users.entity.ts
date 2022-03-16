@@ -36,6 +36,9 @@ export class User {
     @Column({ nullable: true })
     pic: string;
 
+    @Column({ nullable: true })
+    rank: number;
+
     // should be null if user is not a duoquadra, otherwise must be set to the duoquadra's unique login
     @Column({ nullable: true, unique: true })
     duoquadra_login: string;
