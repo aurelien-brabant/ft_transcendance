@@ -11,6 +11,8 @@ import { PaginationQueryDto } from 'src/common/dto/pagination-query.dto';
 import { downloadResource } from 'src/utils/download';
 import { join } from 'path';
 import { faker } from '@faker-js/faker';
+import { authenticator } from 'otplib';
+import { toFileStream } from 'qrcode';
 
 @Injectable()
 export class UsersService {
@@ -42,10 +44,10 @@ export class UsersService {
         return user;
     }
 
-   /* async findOneByEmail(email: string): Promise<User> | null {
+    async findOneByEmail(email: string): Promise<User> | null {
         const user = await this.usersRepository.findOne({ email });
         return user;
-    }*/
+    }
 
     async findOneByDuoQuadraLogin(login: string): Promise<User> | null {
         return this.usersRepository.findOne({
@@ -203,5 +205,43 @@ export class UsersService {
                 rank = String(i + 1);
         }
         return rank;
+    }
+
+    async setTfaSecret(secret: string, id: string) {
+        return this.usersRepository.update(id, {
+          tfaSecret: secret
+        });
+    }
+
+    async enableTfa(id: string) {
+        return this.usersRepository.update(id, {
+          tfa: true
+        });
+    }
+
+    async generateTfaSecret(user: User) {
+        const secret = authenticator.generateSecret();
+        const tfaAppName = "ft_transcendance";
+     
+        const otpauthUrl = authenticator.keyuri(user.email, tfaAppName, secret);
+     
+        await this.setTfaSecret(secret, String(user.id));
+     
+        return {
+          secret,
+          otpauthUrl
+        }
+      }
+    
+    public async pipeQrCodeStream(stream: any, otpauthUrl: string) {
+        return toFileStream(stream, otpauthUrl);
+    }
+    
+    public isTfaCodeValid(tfaCode: string, user: User) {
+
+        return authenticator.verify({
+          token: tfaCode,
+          secret: user.tfaSecret
+        })
     }
 }

@@ -1,11 +1,11 @@
-import { Controller, Get, Param, Post, Patch, Delete, Body, ConflictException, NotFoundException, Response, Query } from '@nestjs/common';
+import { Controller, Get, Param, Post, Patch, Delete, Body, ConflictException, NotFoundException, Response, Query, Res, Req, HttpCode, UnauthorizedException } from '@nestjs/common';
 import { PaginationQueryDto } from 'src/common/dto/pagination-query.dto';
 import { UsersService } from './users.service';
 import { CreateUserDto } from './dto/create-user.dto';
 import { UpdateUserDto } from './dto/update-user.dto';
 import { createReadStream, statSync } from 'fs';
 import { join } from 'path/posix';
-
+  
 @Controller('users')
 export class UsersController {
     constructor(private readonly usersService: UsersService) {}
@@ -40,7 +40,7 @@ export class UsersController {
 
         // exclude password from returned JSON
         const { password, ...userData } = createdUser;
-
+console.log('userData from back after create', userData)
         return userData;
     }
 
@@ -48,7 +48,7 @@ export class UsersController {
     async findPhoto(@Param('id') id: string, @Response() res: any) {
         const user = await this.usersService.findOne(id);
 
-        if (!user) {
+        if (!user || !user.pic) {
             throw new NotFoundException();
         }
 
@@ -77,4 +77,54 @@ export class UsersController {
     remove(@Param('id') id: string) {
         return this.usersService.remove(id);
     }
+
+    @Get(':id/generateTfa')
+    async register(@Param('id') id: string, @Res() response: any) {
+        const user = await this.usersService.findOne(id);
+
+        if (!user)
+            throw new NotFoundException();
+        
+        const { otpauthUrl } = await this.usersService.generateTfaSecret(user);
+   
+        return this.usersService.pipeQrCodeStream(response, otpauthUrl);
+    }
+    
+    @Post(':id/enableTfa')
+    @HttpCode(200)
+    async enableTfa(
+        @Param('id') id: string,
+        @Body() { tfaCode }
+    ) {
+        const user = await this.usersService.findOne(id);
+       
+        if (!user)
+            throw new NotFoundException();
+
+        const isCodeValid = this.usersService.isTfaCodeValid(tfaCode, user);
+    
+        if (!isCodeValid)
+            throw new UnauthorizedException('Wrong authentication code');
+        
+        await this.usersService.enableTfa(String(user.id));
+    }
+
+    @Post(':id/authenticateTfa')
+    @HttpCode(200)
+    async authenticate(
+        @Param('id') id: string,
+        @Body() { tfaCode }
+    ) {
+        const user = await this.usersService.findOne(id);
+       
+        if (!user)
+            throw new NotFoundException();
+
+        const isCodeValid = this.usersService.isTfaCodeValid(tfaCode, user);
+    
+        if (!isCodeValid)
+            throw new UnauthorizedException('Wrong authentication code');
+
+        return {"tfaValidated": true};
+  }
 }

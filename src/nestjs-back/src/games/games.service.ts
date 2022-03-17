@@ -1,6 +1,5 @@
 import { Injectable, NotFoundException } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
-// import { PaginationQueryDto } from 'src/common/dto/pagination-query.dto';
 import { Repository } from 'typeorm';
 import { Game } from './entities/games.entity';
 import { CreateGameDto } from './dto/create-game.dto';
@@ -14,17 +13,12 @@ export class GamesService {
         private readonly gamesRepository: Repository<Game>,
     ) {}
 
-/*    findAll(paginationQuery: PaginationQueryDto) {
-        const {offset, limit} = paginationQuery;
-        return this.gamesRepository.find({
-//            relations: ['players'],
-            skip: offset,
-            take: limit,
-        });
-    }
-*/
     findAll() {
-        return this.gamesRepository.find();
+        return this.gamesRepository.find({
+            order: {
+                endedAt: 'DESC'
+            }
+        });
     }
 
     async findOne(id: string) { 

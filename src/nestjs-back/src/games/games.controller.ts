@@ -2,7 +2,6 @@ import { Controller, Get, Param, Post, Patch, Delete, Body, Query } from '@nestj
 import { GamesService } from './games.service';
 import { CreateGameDto } from './dto/create-game.dto';
 import { UpdateGameDto } from './dto/update-game.dto';
-// import { PaginationQueryDto } from 'src/common/dto/pagination-query.dto';
 
 @Controller('games')
 export class GamesController {
@@ -12,12 +11,7 @@ export class GamesController {
     findAll() {
         return this.gamesService.findAll();
     }
-/*
-    @Get()
-    findAll(@Query() paginationQuery: PaginationQueryDto) {
-        return this.gamesService.findAll(paginationQuery);
-    }
-  */  
+ 
     @Get(':id')
     findOne(@Param('id') id: string) {
         return this.gamesService.findOne(id);
