@@ -3,6 +3,7 @@ export interface IQueue<T> {
     dequeue(): T | undefined;
     size(): number;
     find(item: T): T;
+    remove(item: T): void;
 }
 
 export default class Queue<T> implements IQueue<T> {
@@ -22,7 +23,18 @@ export default class Queue<T> implements IQueue<T> {
     size(): number {
         return this.storage.length;
     }
+
     find(item: T): T {
         return this.storage.find(el => el === item);
+    }
+
+    remove(item: T): void {
+        for (let i = 0; i < this.storage.length; i++) {
+            if (this.storage[i] === item)
+            {
+                this.storage.splice(i, 1);
+                return ;
+            }
+        }
     }
 }  

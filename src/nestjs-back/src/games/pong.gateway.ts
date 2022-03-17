@@ -23,7 +23,7 @@ import Room, { GameState, IRoom } from './class/Room';
 @WebSocketGateway({ cors: true })
 export class PongGateway implements OnGatewayInit, OnGatewayConnection, OnGatewayDisconnect {
 	constructor() {}
-	// private gamesService: GamesService
+
 	@WebSocketServer()
 	server: Server;
 	private logger: Logger = new Logger('gameGateway');
@@ -57,16 +57,25 @@ export class PongGateway implements OnGatewayInit, OnGatewayConnection, OnGatewa
 
 	async handleDisconnect(@ConnectedSocket() client: Socket) {
 		this.logger.log(`Client disconnected: ${client.id}`);
-		// Verify if player is in a game and set GameState to pause
-		// if -> player in a game
-		//		room.changeState(PAUSE)
+		for (let room of this.rooms.values()) {
+			if (room.playerOne.id === client.id || room.playerTwo.id === client.id)
+			{
+				if (room.gameState === GameState.PLAYING)
+					room.changeGameState(GameState.PAUSED);
+				else if (room.gameState === GameState.PAUSED)
+				{
+					this.logger.log("No player left in the room deleting it...");
+					this.rooms.delete(room.id);
+				}
+			}
+		}
+		this.queue.remove(client.id);
 	}
 
 	// Etape 1 : Player JoinQueue
 	@SubscribeMessage('joinQueue')
 	handleJoinQueue(@ConnectedSocket() client: Socket) {
 		this.queue.enqueue(client.id);
-		this.server.to(client.id).emit("addedToQueue");
 		this.logger.log(`Client ${client.id} was added to queue !`);
 	}
 
@@ -84,6 +93,12 @@ export class PongGateway implements OnGatewayInit, OnGatewayConnection, OnGatewa
 
 		if (room.gameState === GameState.PLAYING)
 			room.update();
+		else if (room.gameState === GameState.GOAL && (Date.now() - room.goalTimestamp) >= 3500)
+		{
+			room.resetPosition();
+			room.changeGameState(GameState.PLAYING);
+			room.lastUpdate = Date.now();
+		}
 		this.server.to(client.id).emit("updateRoom", room);
 	}
 

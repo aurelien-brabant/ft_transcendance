@@ -1,14 +1,13 @@
 // Constant
 const canvasWidth: number = 1920;
 const canvasHeight: number = 1080;
+const timing: number = 15;
 
 export enum GameState {
 	WAITING,
-	INIT,
 	STARTING,
 	PLAYING,
 	PAUSED,
-	RESUME,
 	GOAL,
 	END
 }
@@ -21,6 +20,7 @@ export interface IPlayer {
 	height: number
 	speed: number;
 	goal: number;
+	color: string;
 }
 
 export class Player implements IPlayer {
@@ -31,10 +31,15 @@ export class Player implements IPlayer {
 	height: number
 	speed: number;
 	goal: number;
-
+	color: string;
+	
 	// Controls
 	up: boolean;
 	down: boolean;
+
+	// UI
+	step: number;
+
 	constructor(id: string, x: number) {
 		this.id = id;
 		this.width = 30;
@@ -46,6 +51,7 @@ export class Player implements IPlayer {
 
 		this.up = false;
 		this.down = false;
+		this.color = 'rgba(255, 255, 255, 0.8)';
 	}
 
 	reset () {
@@ -53,6 +59,15 @@ export class Player implements IPlayer {
 	}
 
 	update (secondPassed: number) {
+		if (this.color !== "rgba(255, 255, 255, 0.8)" && this.step <= timing)
+		{			
+			this.color = "rgb(" + (127 + ((this.step/timing) * 128)) + ", " + ((this.step/timing) * 255) + ", " + ((this.step/timing) * 255) + ", 0.8)";
+			this.step++;
+		} else {
+			this.step = 0;
+			this.color = 'rgba(255, 255, 255, 0.8)';
+		}
+
 		if(this.up && !this.down) {
 			if(this.y > 0)
 				this.y -= this.speed * secondPassed;
@@ -74,11 +89,11 @@ export interface IBall {
 	y: number;
 	r: number;
 	defaultRadius: number;
-	defaultSpeed: number;
 	speed: number;
 	maxSpeed: number;
 	acceleration: number;
 	velocity: {dx: number, dy: number};
+	goal: boolean;
 }
 
 export class Ball implements IBall {
@@ -87,11 +102,11 @@ export class Ball implements IBall {
 	r: number;
 	defaultRadius: number;
 
-	defaultSpeed: number;
 	speed: number;
 	maxSpeed: number;
 	acceleration: number;
 	velocity: {dx: number, dy: number};
+	goal: boolean;
 
 	constructor() {
 		this.x = canvasWidth/2;
@@ -99,45 +114,45 @@ export class Ball implements IBall {
 		this.r = 25;
 		this.defaultRadius = 25;
 
-		this.defaultSpeed = 500;
 		this.speed = 500;
 		this.maxSpeed = 1500;
 		this.acceleration = 50;
 		this.velocity = {dx: this.speed, dy: 0};
+		this.goal = false;
+	}
+
+	reset() {
+		console.log(this);
+		let dir = (this.x < canvasWidth/2) ? -1 : 1;
+		this.x = canvasWidth/2;
+		this.y = canvasHeight/2;
+		this.speed = 500;
+		this.velocity = {dx: dir * this.speed, dy: 0};
 	}
 
 	update(secondPassed: number, p1: Player, p2: Player) {
 		if (this.r < this.defaultRadius)
-			this.r += 5 * secondPassed;
+			this.r += 1;
 
-		console.log(this);
 		if (!this.handleCollision(secondPassed, p1, p2))
 		{
 			this.x += this.velocity.dx * secondPassed;
 			this.y += this.velocity.dy * secondPassed;
 		}
 
-		// //Goal player one
-		// if(this.x - this.r <= 0 && this.goal === false)
-		// {
-		// 	score.p2_Score++;
-		// 	this.goal = true;
-		// 	gameData.playersGoal.p2 = true;
-		// 	return ;
-		// }
-		// // Goal Player two
-		// if(this.x + this.r >= this.canvasWidth && this.goal === false)
-		// {
-		// 	score.p1_Score++;
-		// 	this.goal = true;
-		// 	gameData.playersGoal.p1 = true;
-		// 	return ;
-		// }
-		// this.goal = false;
-		// gameData.playersGoal.p1 = false;
-		// gameData.playersGoal.p2 = false;
-		return ;
+		//Goal player two
+		if(this.x - this.r <= 0 && this.goal === false)
+		{
+			p2.goal++;
+			this.goal = true;
+		}
 
+		// Goal Player one
+		if(this.x + this.r >= canvasWidth && this.goal === false)
+		{
+			p1.goal++;
+			this.goal = true;
+		}
 	}
 
 	// Collision between ball and Paddle
@@ -150,7 +165,7 @@ export class Ball implements IBall {
 				{
 					this.x = (p1.x + p1.width) + this.r;
 					this.r -= 5;
-					// p1.color = "rgba(127, 0, 0, 0.8)";
+					p1.color = "rgba(127, 0, 0, 0.8)";
 					return true;
 				}
 			}
@@ -160,11 +175,11 @@ export class Ball implements IBall {
 			 {
 				 if ((this.y + this.r >= p2.y && this.y + this.r <= p2.y + p2.height)
 				 || ( this.y - this.r >= p2.y && this.y - this.r <= p2.y + p2.height))
-				 {
-					 this.x = p2.x - this.r;
-					 this.r -= 5;
-					 //  p2.color = "rgba(127, 0, 0, 0.8)";
-					 return true
+				{
+					this.x = p2.x - this.r;
+					this.r -= 5;
+					p2.color = "rgba(127, 0, 0, 0.8)";
+					return true
 				 }
 			 }
 		}
@@ -173,7 +188,7 @@ export class Ball implements IBall {
 
 
 	handleCollision(secondPassed: number, p1: Player, p2: Player) {
-		// Collision on axis Y border  of the board game
+		// Collision on the borders of the board game
 		if((this.y + (this.velocity.dy * secondPassed)) - this.r <= 0 || (this.y + (this.velocity.dy * secondPassed)) + this.r >= 1080)
 		{
 			this.velocity.dy = -this.velocity.dy;
@@ -204,7 +219,8 @@ export interface IRoom {
 	playerTwo: Player;
 	ball: Ball;
 	timestampStart: number;
-	timestampServer: number;
+	lastUpdate: number;
+	goalTimestamp: number;
 }
 
 export default class Room implements IRoom {
@@ -214,10 +230,9 @@ export default class Room implements IRoom {
 	playerTwo: Player;
 	ball: Ball;
 	timestampStart: number;
-	timestampServer: number;
 	lastUpdate: number;
+	goalTimestamp: number;
 
-	// First initialisation 
     constructor(roomId: string, players: string[]) {
         this.id = roomId;
 		this.gameState = GameState.PLAYING;
@@ -225,34 +240,34 @@ export default class Room implements IRoom {
         this.playerTwo = new Player(players[1], canvasWidth-40);
 		this.ball = new Ball();
 
-		// this.ball = ({x: 0, y: 0, r: 25, speed: 0, velocity: {dx: 0, dy: 0}});
 		this.timestampStart = Date.now();
-		this.timestampServer = Date.now();
 		this.lastUpdate = Date.now();
+		this.goalTimestamp = Date.now();
     }
 	
-	// This function will change the gamestate according to what's happening
-	// player disconnection etc...
-	changeGameState() {
-
+	changeGameState(newGameState: GameState) {
+		this.gameState = newGameState;
 	}
 
-	// Reset Players and Ball position
 	resetPosition() {
-
+		this.playerOne.reset();
+		this.playerTwo.reset();
+		this.ball.reset();
 	}
 
-	// Update player and ball
 	update() {
-		// for players use keyPress = true | false
 		let secondPassed: number = (Date.now() - this.lastUpdate) / 1000;
-		this.lastUpdate = Date.now();		
+		this.lastUpdate = Date.now();
+		
 		this.playerOne.update(secondPassed);
 		this.playerTwo.update(secondPassed);
 		this.ball.update(secondPassed, this.playerOne, this.playerTwo);
+
+		if (this.ball.goal === true)
+		{
+			this.goalTimestamp = Date.now();
+			this.changeGameState(GameState.GOAL);
+			this.ball.goal = false;
+		}
 	}
-
-	// updateScore() {
-
-	// }
 }

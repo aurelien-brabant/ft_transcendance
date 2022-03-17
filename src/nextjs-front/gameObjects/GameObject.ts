@@ -2,14 +2,13 @@
 export const canvasWidth: number = 1920;
 export const canvasHeight: number = 1080;
 export const loadingMsg: string[] = ['loading', 'loading.', 'loading..', 'loading...'];
+export const countDown: string[] = ['3', '2', '1', 'Go !!!'];
 
 export enum GameState {
 	WAITING,
-	INIT,
 	STARTING,
 	PLAYING,
 	PAUSED,
-	RESUME,
 	GOAL,
 	END
 }
@@ -22,6 +21,7 @@ export interface IPlayer {
 	height: number
 	speed: number;
 	goal: number;
+	color: string;
 }
 
 export interface IBall {
@@ -29,11 +29,11 @@ export interface IBall {
 	y: number;
 	r: number;
 	defaultRadius: number;
-	defaultSpeed: number;
 	speed: number;
 	maxSpeed: number;
 	acceleration: number;
 	velocity: {dx: number, dy: number};
+	goal: boolean;
 }
 
 export interface IRoom {
@@ -43,5 +43,6 @@ export interface IRoom {
 	playerTwo: IPlayer;
 	ball: IBall;
 	timestampStart: number;
-	timestampServer: number;
+	lastUpdate: number;
+	goalTimestamp: number;
 }

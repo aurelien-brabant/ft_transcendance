@@ -1,8 +1,4 @@
-import { RiHistoryLine } from "react-icons/ri";
-import { Ball } from "./Ball";
-import { canvasHeight, canvasWidth, IBall, IPlayer, IRoom } from "./GameObject";
-import { Player } from "./Player";
-import { Score } from "./Score";
+import { canvasHeight, canvasWidth, IBall, countDown, IPlayer, IRoom, loadingMsg } from "./GameObject";
 
 export type PlayerGoal = {
 	p1: boolean;
@@ -40,6 +36,9 @@ export class Draw {
 	height: number;
 
 	net: Net;
+
+	dot: number;
+
 	constructor(canvas: HTMLCanvasElement) {
 		this.canvas = canvas;
 		this.context = this.canvas.getContext("2d");
@@ -61,6 +60,8 @@ export class Draw {
 			width: 20,
 			height: 50
 		};
+
+		this.dot = 0;
 	}
 
 	/* General Drawind functions*/
@@ -146,19 +147,7 @@ export class Draw {
 
 	drawPaddle(paddle: IPlayer) {
 		this.drawRectangle(paddle.x, paddle.y, paddle.width, paddle.height, "white");
-
-		if (paddle.color !== "rgba(255, 255, 255, 0.8)" && paddle.step <= paddle.timing)
-		{
-			/*console.log(this.step);
-			console.log('rgba(' + (245 + (this.step/this.timing * 10)) + ', ' + (203 + (this.step/this.timing * 52)) + ', '+ (66 + (this.step/this.timing * 189)) + ', 0.8)')*/
-			paddle.color = "rgb(" + (127 + (paddle.step/paddle.timing * 128)) + ", " + (0 + (paddle.step/paddle.timing * 255)) + ", " + (this.neonColor + (paddle.step/paddle.timing * (255 - (this.neonColor % 255)))) + ", 0.8)"
-			this.drawRectangle(paddle.x, paddle.y, paddle.width, paddle.height, paddle.color);
-			/*paddle.color = 'rgba(' + (245 + (paddle.step/paddle.timing * 10)) + ', ' + (203 + (paddle.step/paddle.timing * 52)) + ', '+ (66 + (paddle.step/paddle.timing * 189)) + ', 0.8)';*/
-			paddle.step++;
-		} else {
-			paddle.step = 0;
-			paddle.color = 'rgba(255, 255, 255, 0.8)'
-		}
+		this.drawRectangle(paddle.x, paddle.y, paddle.width, paddle.height, paddle.color);
 	}
 
 	drawNet()
@@ -172,9 +161,9 @@ export class Draw {
 		}
 	}
 
-	drawScore(score: Score) {
-		this.drawText(score.p1_Score + "", score.x1, score.y1, score.size, 'white');
-		this.drawText(score.p2_Score + "", score.x2, score.y2, score.size, 'white');
+	drawScore(p1: IPlayer, p2: IPlayer) {
+		this.drawText(p1.goal + "", canvasWidth/4, canvasHeight/10, 45, 'white');
+		this.drawText(p2.goal + "", 3*(canvasWidth/4), canvasHeight/10, 45, 'white');
 	}
 
 	drawPauseButton() {
@@ -185,27 +174,31 @@ export class Draw {
 		this.drawRectangle(((this.width/2) + pauseSizeX/6), ((this.height/2) - pauseSizeY/2), pauseSizeX/3, pauseSizeY, 'white');
 	}
 
-	drawLoading(loading: string) {
+	drawLoading(seconds: number) {
 		this.drawRectangle(0, 0, this.width, this.height, "rgba(0, 0, 0, 0.5)");
 		this.drawArc(this.width/2, this.height/2, this.height/4, "white", this.degrees);
-		this.drawCenteredText(loading, this.width/2, this.height/2, 45, "white");
+		this.drawCenteredText(loadingMsg[this.dot], this.width/2, this.height/2, 45, "white");
 		this.degrees += 6;
 		if (this.degrees === 360)
 			this.degrees = 0;
+		if (seconds >= 1)
+		{
+			this.dot = (this.dot+1) % loadingMsg.length;
+			seconds = 0;
+		}
 	}
 
-	drawCountDown(count: any) {
-		if (count === 0)
-			count = "GO !!!"
+	drawCountDown(countDown: string) {
+		this.drawCenteredText(countDown, this.width/2, this.height/2, 45, "white");
 
-		this.drawCenteredText(count + "", this.width/2, this.height/2, 45, "white");
 	}
+
 	resetParticles() {
 		this.particles.splice(0, this.particles.length);
 		this.particles = [];
 	}
 
-	drawGoalParticle(ball: Ball) {
+	drawGoalParticle(ball: IBall) {
 		if (this.particles.length === 0)
 		{
 			for (let i = 0; i < this.max_particles; i++) {
@@ -231,13 +224,16 @@ export class Draw {
 		}
 	}
 
-	// drawGoal(ball: Ball, playersGoal: PlayerGoal, p1: Player, p2: Player) {
-	// 	if (playersGoal.p1)
-	// 		this.drawCenteredText((p1.name + " Scores !!!"), this.width/2, ((this.height/2) - (this.height/10)), 45, 'white');
-	// 	if (playersGoal.p2)
-	// 		this.drawCenteredText((p2.name + " Scores !!!"), this.width/2, ((this.height/2) - (this.height/10)), 45, 'white');
-	// 	this.drawGoalParticle(ball);
-	// }
+	drawGoal(room: IRoom, seconds: number) {
+		let count: number = (Date.now() - room.goalTimestamp) / 1000;
+		this.drawGoalParticle(room.ball);
+		this.drawRectangle(0, 0, canvasWidth, canvasHeight, "rgba(0, 0, 0, 0.5)");
+		// if (playersGoal.p1)
+		// 	this.drawCenteredText((p1.name + " Scores !!!"), this.width/2, ((this.height/2) - (this.height/10)), 45, 'white');
+		// if (playersGoal.p2)
+		// 	this.drawCenteredText((p2.name + " Scores !!!"), this.width/2, ((this.height/2) - (this.height/10)), 45, 'white');
+		this.drawCountDown(countDown[Math.floor(count)]);
+	}
 
 	/* Neon effect */
 	animateNeon(canvas: HTMLCanvasElement) {
