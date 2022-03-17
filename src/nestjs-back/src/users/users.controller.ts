@@ -40,7 +40,6 @@ export class UsersController {
 
         // exclude password from returned JSON
         const { password, ...userData } = createdUser;
-console.log('userData from back after create', userData)
         return userData;
     }
 

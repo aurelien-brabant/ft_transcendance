@@ -44,7 +44,7 @@ const HistoryTable: React.FC<{ ranking: RankingList[] }> = ({
             <td className={`p-3 ${(String(index) === "0") ? "text-yellow-500 font-extrabold" :
                                 (String(index) === "1") ? "text-zinc-400 font-extrabold" : 
                                 (String(index) === "2") ? "text-orange-800 font-extrabold" : "text-white font-normal"}`}>
-              {index + 1}
+              {String(user.ratio) === "0" && !user.wins && !user.losses ? "-" : index + 1}
             </td>
             <td className="p-3 font-bold">
               <Link href={`/users/${user.id}`}>

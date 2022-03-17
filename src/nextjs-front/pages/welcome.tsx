@@ -249,15 +249,9 @@ const Welcome: NextPageWithLayout = () => {
 
   const hasValidPhone = validatePhone(formData.phone);
 
-  const tfaBgColor = hasValidPhone
-    ? formData.tfa
-      ? "bg-red-500"
-      : "bg-green-500"
-    : "bg-gray-800";
+  const tfaBgColor = hasValidPhone ? "bg-grAY-600" : "bg-gray-800";
 
-  const tfaText = hasValidPhone
-    ? (formData.tfa ? "Disable" : "Enable") + " 2FA"
-    : "Valid phone number required";
+  const tfaText = hasValidPhone ? "SMS-2FA unavailable now..." : "Valid phone number required";
 
     
   const handleChangeTfa = (e: React.ChangeEvent<HTMLInputElement>) => {
@@ -271,7 +265,7 @@ const Welcome: NextPageWithLayout = () => {
           setCurrentStep(currentStep + 1);
       }
       else if (key !== "Escape") {
-          setAlert({ type: 'info', content: 'Only digit!' });
+          setAlert({ type: 'warning', content: 'Only digit!' });
           e.target.value = ""
       }
   }
@@ -432,12 +426,13 @@ const Welcome: NextPageWithLayout = () => {
                 2FA - SMS
               </label>
               <button
+                disabled
                 type="button"
                 className={`px-6 py-2 col-span-2 ${tfaBgColor}`}
                 onClick={() => {
                   if (hasValidPhone) {
-                    setFormData({ ...formData, tfa: !formData.tfa });
-                    formData.tfa ? setPendingQR(true) : setPendingQR(false);
+                  //  setFormData({ ...formData, tfa: !formData.tfa });
+                    //formData.tfa ? setPendingQR(true) : setPendingQR(false);
                   }
                 }}
               >
@@ -460,8 +455,10 @@ const Welcome: NextPageWithLayout = () => {
                     setAlert({ type: 'info', content: 'Scan the QR code to get the 6-digits code given by your authenticator app'})
                     setPendingQR(true);
                   }
-                  else
-                    deactivateTfa();
+                  else {
+                    if (confirm("Deactivated account?\nJust login again to reactivate your account.\n\nClick OK to proceed.") == true)
+                      deactivateTfa();
+                    }
                 }}
               >
                 {(tfaStatus === 'enabled') ? "DEACTIVATE 2FA" : "ACTIVATE 2FA"}
