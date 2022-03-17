@@ -9,8 +9,6 @@ import {
 } from "typeorm";
 import { Channel } from 'src/chat/channels/entities/channels.entity';
 import { Game } from "src/games/entities/games.entity";
-import { IsOptional } from "class-validator";
-import { userInfo } from "os";
 
 @Entity()
 export class User {
@@ -34,9 +32,6 @@ export class User {
 
     @Column({ nullable: true })
     pic: string;
-
-    @Column({ nullable: true })
-    rank: number;
 
     // should be null if user is not a duoquadra, otherwise must be set to the duoquadra's unique login
     @Column({ nullable: true, unique: true })

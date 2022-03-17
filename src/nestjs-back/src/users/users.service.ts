@@ -139,20 +139,21 @@ export class UsersService {
         // repeats until the username is unique at this point in time
         do {
             username = prefixWithRandomAdjective(baseUsername, 50);
-            u = await this.usersRepository.findOne({ username });
+            u = await this.usersRepository.findOne({ username: username });
         } while (u);
 
         // hash the password with bcrypt using 10 salt rounds
         const hashedPwd = await hashPassword(createUserDto.password, 10);
 
-        const randomPic = faker.image.nature();
+        const imageLoc= join('/upload', 'avatars', username);
 
-        await downloadResource(randomPic, join('/upload', 'avatars', username));
+        await downloadResource(faker.image.nature(), imageLoc);
 
         const user = this.usersRepository.create({
             ...createUserDto,
             username,
             password: hashedPwd,
+            pic: username
         });
 
         return this.usersRepository.save(user);

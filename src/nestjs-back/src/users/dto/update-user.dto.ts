@@ -24,10 +24,6 @@ export class UpdateUserDto extends PartialType(CreateUserDto) {
 
     @IsOptional()
     @IsString()
-    readonly pic: string;
-
-    @IsOptional()
-    @IsString()
     readonly duoquadra_login: string;
 
     @IsOptional()
@@ -40,7 +36,4 @@ export class UpdateUserDto extends PartialType(CreateUserDto) {
 
     @IsOptional()
     readonly blockedUsers: User[];
-
-    @IsOptional()
-    readonly rank: number;
 }

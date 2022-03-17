@@ -81,9 +81,7 @@ const HistoryTable: React.FC<{ history: GameSummary[], userId: number }> = ({
       </tr>
     </thead>
     <tbody>
-      {/* NOTE: OBVIOUSLY we won't sort on the client side this is only for simulation purpose */}
       {history
-        .sort((a, b) => new Date(b.endedAt).getTime() - new Date(a.endedAt).getTime())
         .map((game, index) => (
           <tr
             key={game.id}
@@ -190,9 +188,15 @@ const UserProfilePage: NextPageWithLayout = ({}) => {
       updateUserData(data);
       updateGamesHistory(JSON.parse(JSON.stringify(data)).games);
 
-      const reqRank = await fetch(`/api/users/${userId}/rank`);
-      const res = await reqRank.json();
-      setRank(res);
+      if (!data.wins && !data.losses)
+        setRank("-")
+
+      else {
+        const reqRank = await fetch(`/api/users/${userId}/rank`);
+        const res = await reqRank.json();
+        setRank(res);
+      }
+      
       setIsLoading(false);
     }
   

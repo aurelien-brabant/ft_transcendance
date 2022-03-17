@@ -18,6 +18,10 @@ export class CreateUserDto {
     readonly email: string;
 
     @IsOptional()
+    @IsString()
+    readonly pic: string;
+
+    @IsOptional()
     readonly games: Game[];
 
     @IsOptional()
@@ -40,7 +44,4 @@ export class CreateUserDto {
     @IsOptional()
     @IsBoolean()
     readonly accountDeactivated: boolean;
-
-    // @IsOptional()
-    // readonly blockedUsers: User[];
 }
