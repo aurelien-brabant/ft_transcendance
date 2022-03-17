@@ -234,15 +234,23 @@ export class UsersService {
         }
       }
     
-    public async pipeQrCodeStream(stream: any, otpauthUrl: string) {
+    async pipeQrCodeStream(stream: any, otpauthUrl: string) {
         return toFileStream(stream, otpauthUrl);
     }
     
-    public isTfaCodeValid(tfaCode: string, user: User) {
+    async isTfaCodeValid(tfaCode: string, user: User) {
 
         return authenticator.verify({
           token: tfaCode,
           secret: user.tfaSecret
         })
+    }
+
+    async uploadAvatar(id: string, filename: string) {
+        await this.usersRepository.update(id, {
+            pic: filename
+        });
+
+        return {upload: "success", filename: filename};
     }
 }

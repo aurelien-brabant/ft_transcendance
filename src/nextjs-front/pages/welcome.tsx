@@ -1,18 +1,17 @@
 import Link from 'next/link';
 import { Fragment, useContext, useEffect, useMemo, useRef } from "react";
 import withDashboardLayout from "../components/hoc/withDashboardLayout";
-import { FiEdit2 } from "react-icons/fi";
+import { FiEdit2, FiUploadCloud } from "react-icons/fi";
 import { useState } from "react";
 import isEmail from "validator/lib/isEmail";
 import isMobilePhone from "validator/lib/isMobilePhone";
 import {NextPageWithLayout} from './_app';
 import authContext, {AuthContextType} from '../context/auth/authContext';
-import { FaCheckCircle } from 'react-icons/fa';
-import { MdBackspace, MdError } from 'react-icons/md'
 import alertContext, {AlertContextType} from "../context/alert/alertContext";
 import { useRouter } from 'next/router';
-import { BsFillQuestionCircleFill } from 'react-icons/bs';
 import Tooltip from '../components/Tooltip';
+import { Slide } from 'react-awesome-reveal';
+import { MdCancel } from 'react-icons/md';
 
 const labelClassName = "grow uppercase text-neutral-400";
 const inputClassName =
@@ -24,6 +23,7 @@ type FormData = {
   email: string;
   phone: string | null;
   tfa: boolean;
+  pic: string;
 };
 
 type InvalidInputs = {
@@ -53,21 +53,23 @@ const Welcome: NextPageWithLayout = () => {
   const [invalidInputs, setInvalidInputs] = useState<InvalidInputs>({});
   const { setAlert } = useContext(alertContext) as AlertContextType;
  	const router = useRouter();
+  const [pendingPic, setPendingPic] = useState(false);
   const [pendingQR, setPendingQR] = useState(false);
   const [tfaCode, setTfaCode] = useState('');
   const [tfaStatus, setTfaStatus] = useState(getUserData().tfa ? 'enabled' : 'disabled');
   const [currentStep, setCurrentStep] = useState(0);
   const inputToFocus = useRef<HTMLInputElement>(null);
-
+ 
   const [formData, setFormData] = useState<FormData>({
     username: getUserData().username,
     email: getUserData().email,
     phone: getUserData().phone ? getUserData().phone : null,
-    tfa: getUserData().tfa
+    tfa: getUserData().tfa,
+    pic: getUserData().pic
   });
   
   let baseObject: FormData;
-  
+ 
   const reactivateAccount = () => {
     fetch(`/api/users/${getUserData().id}`, {
       method: 'PATCH',
@@ -284,8 +286,8 @@ const Welcome: NextPageWithLayout = () => {
       }
 
       return (
-        <div className="space-x-5 m-5 text-center">
-          <h1 className="m-10 text-center text-xl text-pink-700 uppercase animate-pulse">
+        <div className="space-x-3 md:space-x-5 my-5 text-center">
+          <h1 className="my-10 text-center text-xl text-pink-700 uppercase animate-pulse">
                     Enter the 6-digit code from your Authenticator App<br/>
                     Press ECHAP to cancel
           </h1>
@@ -294,9 +296,58 @@ const Welcome: NextPageWithLayout = () => {
       );
   };
 
-  const uploadPic = () => {
+  const UploadPic = () => {
 
-    console.log('upload pic');
+    const [image, setImage] = useState('');
+
+    const uploadToClient = (event:any) => {
+    
+      if (event.target.files && event.target.files[0]) {
+        const img = event.target.files[0];
+        setImage(img);
+      }
+  };
+  
+    const uploadToServer = async () => {        
+      
+      const body = new FormData();
+      body.append("image", image);    
+     
+      const req = await fetch(`/api/users/${getUserData().id}/uploadAvatar`, {
+        method: "POST",
+        body
+      });
+     
+      if (req.ok) {
+        const res = await req.json();
+        setFormData({
+          ...formData,
+          ['pic']: res.filename,
+        });
+        setPendingPic(false);
+        setAlert({type: 'success', content: 'Avatar uploaded successfully'})
+        router.reload();
+      }
+      else if (req.status === 406)
+        setAlert({type: 'warning', content: 'Only JPG/JPEG/PNG/GIF are accepted'})
+      else
+        setAlert({type: 'error', content: 'Error while uploading!'})
+    };
+
+    return (
+    
+    <Slide direction="left" duration={300} triggerOnce>
+      <div className="flex justify-center text-pink-600 space-x-5 text-center items-center">
+        <input
+          type="file"
+          name="uploadAvatar"
+          className="border border-pink-600 p-1"
+          onChange={uploadToClient}
+        />
+        <FiUploadCloud onClick={uploadToServer} className="text-3xl hover:animate-pulse"/>
+      </div>
+    </Slide>
+    )
   }
 
   useEffect(() => {
@@ -320,15 +371,32 @@ const Welcome: NextPageWithLayout = () => {
 
             <div className="absolute p-2 bg-white border-2 border-gray-900 rounded-full -top-4 -right-4">
               <div className="absolute left-0 right-0 flex items-center justify-center -bottom-4 gap-x-2">
-                <Tooltip className="font-bold bg-gray-900 text-neutral-200" content="Upload avatar">
+                {pendingPic ?
+                <Tooltip className="font-bold bg-gray-900 text-neutral-200" content="Cancel">
                   <button className="p-2 text-xl text-gray-900 bg-white rounded-full transition hover:scale-105">
-                    <FiEdit2 className="text-gray-900" onClick={() => {uploadPic()}}/>
+                    <MdCancel
+                        className="text-red-600"
+                        onClick={() => {setPendingPic(false)}}
+                    />
                   </button>
                 </Tooltip>
+                :
+                <Tooltip className="font-bold bg-gray-900 text-neutral-200" content="Upload avatar">
+                  <button className="p-2 text-xl text-gray-900 bg-white rounded-full transition hover:scale-105">
+                    <FiEdit2
+                      className="text-gray-900"
+                      onClick={() => {setPendingPic(true)}}
+                    />
+                  </button>
+                </Tooltip>
+                }
               </div>
             </div>
           </div>
           
+          { pendingPic ?
+          <UploadPic />
+          :
           <div className="text-center">
           <h2 className="text-xl font-bold text-pink-600">{getUserData().username}</h2>
             <Link href={`/users/${getUserData().id}`}>
@@ -337,6 +405,7 @@ const Welcome: NextPageWithLayout = () => {
               </a>
             </Link>
           </div>
+          }
         </div>
 
         <div className="flex flex-col py-12 gap-y-10">

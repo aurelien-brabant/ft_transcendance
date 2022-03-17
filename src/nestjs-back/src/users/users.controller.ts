@@ -1,10 +1,13 @@
-import { Controller, Get, Param, Post, Patch, Delete, Body, ConflictException, NotFoundException, Response, Query, Res, Req, HttpCode, UnauthorizedException } from '@nestjs/common';
+import { Controller, Get, Param, Post, Patch, Delete, Body, ConflictException, NotFoundException, Response, Query, Res, HttpCode, UnauthorizedException, UseInterceptors, UploadedFile } from '@nestjs/common';
 import { PaginationQueryDto } from 'src/common/dto/pagination-query.dto';
 import { UsersService } from './users.service';
 import { CreateUserDto } from './dto/create-user.dto';
 import { UpdateUserDto } from './dto/update-user.dto';
 import { createReadStream, statSync } from 'fs';
 import { join } from 'path/posix';
+import { FileInterceptor } from '@nestjs/platform-express';
+import { editFileName, imageFileFilter } from 'src/common/upload-utils';
+import { diskStorage } from 'multer';
   
 @Controller('users')
 export class UsersController {
@@ -76,7 +79,20 @@ export class UsersController {
     remove(@Param('id') id: string) {
         return this.usersService.remove(id);
     }
-
+  
+    @Post(':id/uploadAvatar')
+    @UseInterceptors(FileInterceptor('image', {
+        storage: diskStorage({
+          destination: './avatars',
+          filename: editFileName,
+        }),
+        fileFilter: imageFileFilter,
+      }),
+    )
+    async uploadAvatar(@Param('id') id: string, @UploadedFile() file) {
+        return this.usersService.uploadAvatar(id, file.filename);        
+    }
+ 
     @Get(':id/generateTfa')
     async register(@Param('id') id: string, @Res() response: any) {
         const user = await this.usersService.findOne(id);
