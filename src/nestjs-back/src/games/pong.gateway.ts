@@ -39,7 +39,7 @@ export class PongGateway implements OnGatewayInit, OnGatewayConnection, OnGatewa
 			players.push(queue.dequeue());
 			
 			let roomId: string = `${players[0]}&${players[1]}`
-            room = new Room(roomId, players);
+            room = new Room(roomId, players, {maxGoal: 5});
 
 			server.to(players[0]).emit("newRoom", room);
 			server.to(players[1]).emit("newRoom",  room);
@@ -60,13 +60,14 @@ export class PongGateway implements OnGatewayInit, OnGatewayConnection, OnGatewa
 		for (let room of this.rooms.values()) {
 			if (room.playerOne.id === client.id || room.playerTwo.id === client.id)
 			{
-				if (room.gameState === GameState.PLAYING)
-					room.changeGameState(GameState.PAUSED);
-				else if (room.gameState === GameState.PAUSED)
+				if (room.gameState === GameState.PAUSED)
 				{
 					this.logger.log("No player left in the room deleting it...");
 					this.rooms.delete(room.id);
 				}
+				else if (room.gameState !== GameState.END)
+					room.changeGameState(GameState.PAUSED);
+				client.leave(room.id);
 			}
 		}
 		this.queue.remove(client.id);
@@ -143,5 +144,12 @@ export class PongGateway implements OnGatewayInit, OnGatewayConnection, OnGatewa
 			if (data.key === 'ArrowDown')
 				room.playerTwo.down = false;
 		}
+	}
+
+	@SubscribeMessage('leaveRoom')
+	handleLeaveRoom(@ConnectedSocket() client: Socket, @MessageBody() roomId: string) {
+		client.leave(roomId);
+		this.logger.log(`Client ${client.id} leaved room ${roomId} !`);
+		this.server.to(client.id).emit("leaveRoom");
 	}
 }

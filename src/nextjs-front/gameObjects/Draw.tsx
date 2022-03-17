@@ -228,10 +228,7 @@ export class Draw {
 		let count: number = (Date.now() - room.goalTimestamp) / 1000;
 		this.drawGoalParticle(room.ball);
 		this.drawRectangle(0, 0, canvasWidth, canvasHeight, "rgba(0, 0, 0, 0.5)");
-		// if (playersGoal.p1)
-		// 	this.drawCenteredText((p1.name + " Scores !!!"), this.width/2, ((this.height/2) - (this.height/10)), 45, 'white');
-		// if (playersGoal.p2)
-		// 	this.drawCenteredText((p2.name + " Scores !!!"), this.width/2, ((this.height/2) - (this.height/10)), 45, 'white');
+		this.drawCenteredText((room.lastGoal + " Scores !!!"), this.width/2, ((this.height/2) - (this.height/10)), 45, 'white');
 		this.drawCountDown(countDown[Math.floor(count)]);
 	}
 

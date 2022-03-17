@@ -3,20 +3,9 @@ import { io, Socket } from 'socket.io-client';
 import Head from "next/head";
 import withDashboardLayout from "../../components/hoc/withDashboardLayout";
 import Canvas from "../../components/Canvas";
-import { IRoom } from "../../gameObjects/GameObject";
+import { GameState, IRoom } from "../../gameObjects/GameObject";
 
 let socket: Socket;
-
-enum GameState {
-	QUEUE,
-	INIT,
-	STARTING,
-	PLAYING,
-	PAUSED,
-	RESUME,
-	GOAL,
-	END
-}
 
 // const Hub: NextPageWithLayout = () => {
 const Hub: React.FC = () => {
@@ -47,9 +36,9 @@ const Hub: React.FC = () => {
 				setDisplayGame(true);
 			});
 
-			// socket.on("leaveRoom", (data: IRoom) => {
-			// 	setDisplayGame(false);
-			// });
+			socket.on("leaveRoom", (data: IRoom) => {
+				setDisplayGame(false);
+			});
 		});
 
 		return () => {
@@ -69,9 +58,9 @@ const Hub: React.FC = () => {
 			</Head>
 			{
 				displayGame ?
-				(
-					<Canvas socketProps={socket} roomProps={room}></Canvas>
-				)
+					<>
+						<Canvas socketProps={socket} roomProps={room}></Canvas>
+					</>
 				:
 				(
 					<>
@@ -79,6 +68,7 @@ const Hub: React.FC = () => {
 						<button onClick={joinQueue}>Find a match</button>
 					</>
 				)
+
 			}
 
 

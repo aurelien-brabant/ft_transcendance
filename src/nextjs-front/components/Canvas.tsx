@@ -1,4 +1,4 @@
-import React from "react";
+import React, { useState } from "react";
 // import styles from '../styles/Canvas.module.css';
 import {Socket} from 'socket.io-client';
 
@@ -21,22 +21,23 @@ const Canvas: React.FC<{socketProps: Socket, roomProps: IRoom}> = ({socketProps,
     let socket: Socket = socketProps;
     let room: IRoom = roomProps;
 	let roomId: string | undefined = room?.id;
-    /*
-		Game initialisation
-		Game Object
-	*/
+
+	const [gameEnded, setGameEnded] = useState(false);
 
 	// let start = Date.now();
 
 	let oldTimestamp: number = 0;
 	let secondElapsed: number = 0;
 	let seconds: number = 0;
-	// let display = 0;	
+	let display: number = 0;	
+
+	const leaveRoom = () => {
+		socket.emit("leaveRoom", roomId);
+	}
 
 	/*
 		Handle key controls
 	*/
-
 	const downHandler = (event: KeyboardEvent): void => {
 		socket.emit("keyDown", {roomId: roomId, key: event.key});
 	};
@@ -53,7 +54,7 @@ const Canvas: React.FC<{socketProps: Socket, roomProps: IRoom}> = ({socketProps,
 		draw.drawNet();
 		draw.drawPaddle(room.playerOne);
 		draw.drawPaddle(room.playerTwo);
-		if (room.gameState !== GameState.GOAL)
+		if (room.gameState !== GameState.GOAL && room.gameState !== GameState.END)
 			draw.drawBall(room.ball);
 		draw.drawScore(room.playerOne, room.playerTwo);
 		draw.animateNeon(canvas);
@@ -88,27 +89,24 @@ const Canvas: React.FC<{socketProps: Socket, roomProps: IRoom}> = ({socketProps,
 			draw.drawGoal(room, seconds);
 		}
 
-		// const gameEnd = () => {
-		// 	draw.drawGoalParticle(ball);
-		// 	draw.drawRectangle(0, 0, gameConstants.canvasWidth, gameConstants.canvasHeight, "rgba(0, 0, 0, 0.2)");
-		// 	seconds += secondElapsed;
-		// 	if (seconds >= 1)
-		// 	{
-		// 		if (display < 3)
-		// 			display++;
-		// 		seconds -= 1;
-		// 	}
-		// 	if (display >= 1 && score.p1_Score >= 3)
-		// 		draw.drawCenteredText((player1.name + " Won !!!"), gameConstants.canvasWidth/2, ((gameConstants.canvasHeight/2) - (gameConstants.canvasHeight/10)), 45, 'white');
-		// 	else if (display >= 1 && score.p2_Score >= 3)
-		// 		draw.drawCenteredText((player2.name + " Won !!!"), gameConstants.canvasWidth/2, ((gameConstants.canvasHeight/2) - (gameConstants.canvasHeight/10)), 45, 'white');
-		// 	if (display >= 2)
-		// 	{
-		// 		draw.drawCenteredText("Match end", gameConstants.canvasWidth/2, ((gameConstants.canvasHeight/2)), 45, 'white');
-
-		// 	}
-
-		// }
+		const gameEnd = () => {
+			draw.drawGoalParticle(room.ball);
+			draw.drawRectangle(0, 0, canvasWidth, canvasHeight, "rgba(0, 0, 0, 0.2)");
+			seconds += secondElapsed;
+			if (seconds >= 1)
+			{
+				if (display < 3)
+					display++;
+				seconds -= 1;
+			}
+			if (display >= 1)
+				draw.drawCenteredText((room.winner + " Won !!!"), canvasWidth/2, ((canvasHeight/2) - (canvasHeight/10)), 45, 'white');
+			if (display >= 2)
+			{
+				draw.drawCenteredText("Match end", canvasWidth/2, ((canvasHeight/2)), 45, 'white');
+			}
+			setGameEnded(true);
+		}
 
 		const gameLoop = (timestamp = 0) => {
 			socket.emit("requestUpdate", room?.id);
@@ -128,9 +126,9 @@ const Canvas: React.FC<{socketProps: Socket, roomProps: IRoom}> = ({socketProps,
 			} else if (room.gameState === GameState.GOAL) {
 				goal();
 			}
-			// else if (roomState === GameState.END) {
-			// 	gameEnd();
-			// }
+			else if (room.gameState === GameState.END) {
+				gameEnd();
+			}
 
 			animationFrameId = window.requestAnimationFrame(gameLoop);
 		}
@@ -148,13 +146,15 @@ const Canvas: React.FC<{socketProps: Socket, roomProps: IRoom}> = ({socketProps,
 	return (
 		<>
 		{
-			room ? (
+			room &&
 				<div className={styles.container}>
 					<canvas ref={canvasRef} className={styles.canvas} ></canvas>
+					<p>You are {socket.id} </p>
+					{
+						gameEnded &&
+						<button onClick={leaveRoom}>Leave Room</button>
+					}
 				</div>
-			) : (
-				<div> Room is undefined </div>
-			)
 		}
 		</>
 	);

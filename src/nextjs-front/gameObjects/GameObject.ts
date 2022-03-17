@@ -45,4 +45,8 @@ export interface IRoom {
 	timestampStart: number;
 	lastUpdate: number;
 	goalTimestamp: number;
+	lastGoal: string;
+
+	winner: string;
+	loser: string;
 }

@@ -122,7 +122,6 @@ export class Ball implements IBall {
 	}
 
 	reset() {
-		console.log(this);
 		let dir = (this.x < canvasWidth/2) ? -1 : 1;
 		this.x = canvasWidth/2;
 		this.y = canvasHeight/2;
@@ -221,6 +220,13 @@ export interface IRoom {
 	timestampStart: number;
 	lastUpdate: number;
 	goalTimestamp: number;
+	lastGoal: string;
+
+	winner: string;
+	loser: string;
+
+	// settings customisation
+	maxGoal: number;
 }
 
 export default class Room implements IRoom {
@@ -232,8 +238,15 @@ export default class Room implements IRoom {
 	timestampStart: number;
 	lastUpdate: number;
 	goalTimestamp: number;
+	lastGoal: string;
 
-    constructor(roomId: string, players: string[]) {
+	winner: string;
+	loser: string;
+
+	// settings customisation
+	maxGoal: number;
+
+    constructor(roomId: string, players: string[], customisation: {maxGoal?: number} = {maxGoal: 3}) {
         this.id = roomId;
 		this.gameState = GameState.PLAYING;
         this.playerOne = new Player(players[0], 10);
@@ -243,6 +256,7 @@ export default class Room implements IRoom {
 		this.timestampStart = Date.now();
 		this.lastUpdate = Date.now();
 		this.goalTimestamp = Date.now();
+		this.maxGoal = customisation.maxGoal;
     }
 	
 	changeGameState(newGameState: GameState) {
@@ -266,7 +280,17 @@ export default class Room implements IRoom {
 		if (this.ball.goal === true)
 		{
 			this.goalTimestamp = Date.now();
-			this.changeGameState(GameState.GOAL);
+			if (this.playerOne.goal === this.maxGoal || this.playerTwo.goal === this.maxGoal)
+			{
+				this.winner = this.playerOne.goal === this.maxGoal ? this.playerOne.id : this.playerTwo.id;
+				this.loser = this.playerOne.goal === this.maxGoal ? this.playerTwo.id : this.playerOne.id;
+				this.changeGameState(GameState.END);
+			}
+			else
+			{
+				this.lastGoal = (this.ball.x < canvasWidth/2) ? this.playerTwo.id : this.playerOne.id;
+				this.changeGameState(GameState.GOAL);
+			}
 			this.ball.goal = false;
 		}
 	}
