@@ -11,7 +11,7 @@ import authContext, {AuthContextType} from '../context/auth/authContext';
 import alertContext, {AlertContextType} from "../context/alert/alertContext";
 import { useRouter } from 'next/router';
 import Tooltip from '../components/Tooltip';
-import { Slide } from 'react-awesome-reveal';
+import ResponsiveSlide from '../components/ResponsiveSlide';
 import { MdCameraswitch, MdCancel } from 'react-icons/md';
 
 const labelClassName = "grow uppercase text-neutral-400";
@@ -334,7 +334,10 @@ const Welcome: NextPageWithLayout = () => {
 
     return (
     
-    <Slide direction="left" duration={200} triggerOnce >
+    <ResponsiveSlide
+      useMediaQueryArg={{ query: "(min-width: 1280px)" }}
+      direction="left" duration={200} triggerOnce
+    >
       <div className="flex justify-center text-pink-600 space-x-5 text-center items-center">
         <input
           type="file"
@@ -344,7 +347,7 @@ const Welcome: NextPageWithLayout = () => {
         />
         <FiUploadCloud onClick={uploadToServer} className="text-3xl hover:animate-pulse"/>
       </div>
-    </Slide>
+    </ResponsiveSlide>
     )
   }
 

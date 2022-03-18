@@ -36,6 +36,9 @@ export class CreateUserDto {
     readonly friends: User[];
 
     @IsOptional()
+    readonly blockedUsers: User[];
+
+    @IsOptional()
     readonly ownedChannels: Channel[];
 
     @IsOptional()

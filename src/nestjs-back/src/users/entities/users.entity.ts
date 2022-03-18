@@ -53,16 +53,14 @@ export class User {
     @JoinTable()
     friends: User[];
 
+    @ManyToMany(() => User)
+    @JoinTable()
+    blockedUsers: User[];
+
     @OneToMany(() => Channel, channel => channel.owner, {
         cascade: true,
     })
     ownedChannels: Channel[];
-
-    @OneToMany(() => User, blockedUser => blockedUser.user)
-    blockedUsers: User[];
-    
-    @ManyToOne(() => User, user => user.blockedUsers)
-    user: User;
 
     @ManyToMany(() => Channel, joinedChannels => joinedChannels.users)
     joinedChannels: Channel[];

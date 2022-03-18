@@ -24,7 +24,7 @@ export class UsersService {
     findAll(paginationQuery: PaginationQueryDto) {
         const {offset, limit} = paginationQuery;
         return this.usersRepository.find({
-            relations: ['games', 'friends'],
+            relations: ['games', 'friends', 'blockedUsers'],
             skip: offset,
             take: limit,
             order: {
@@ -57,7 +57,7 @@ export class UsersService {
 
     async findOne(id: string) {
         const user = await this.usersRepository.findOne(id, {
-            relations: ['games', 'friends'],
+            relations: ['games', 'friends', 'blockedUsers'],
         });
         if (!user) throw new NotFoundException(`User [${id}] not found`);
         return user;

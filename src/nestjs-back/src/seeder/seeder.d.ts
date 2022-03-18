@@ -17,13 +17,12 @@ export type SeedUser = {
     wins: number;
     losses: number;
     ratio: number;
-    friends: SeedUser[];
+    friends: User[];
+    blockedUsers: User[];
     ownedChannels: SeedChannel[];
     joinedChannels: SeedChannel[];
     accountDeactivated: boolean;
     tfaSecret: string;
-    blockedUsers: User[];
-    user: User;
 };
 
 /* GAMES */

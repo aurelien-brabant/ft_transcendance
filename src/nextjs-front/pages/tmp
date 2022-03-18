@@ -1,0 +1,43 @@
+<div
+  className="w-full my-4 text-left"
+>
+  <thead>
+    <tr className="text-pink-600 bg-gray-800">
+      <th className="p-3 uppercase">Rank</th>
+      <th className="p-3 uppercase">Username</th>
+      <th className="p-3 uppercase">Wins</th>
+      <th className="p-3 uppercase">Losses</th>
+      <th className="p-3 uppercase">Ratio</th>
+    </tr>
+  </thead>
+  <tbody>
+    {list
+      .map((user, index) => (
+        <tr
+          key={user.id}
+          className={`py-6 ${index % 2 ? "bg-gray-800" : "bg-gray-700"} ${user.accountDeactivated ? "line-through": "no-underline"}`}
+        >
+          <td className={`p-3 ${(String(index) === "0") ? "text-yellow-500 font-extrabold" :
+                              (String(index) === "1") ? "text-zinc-400 font-extrabold" : 
+                              (String(index) === "2") ? "text-orange-800 font-extrabold" : "text-white font-normal"}`}>
+            {String(user.ratio) === "0" && !user.wins && !user.losses ? "-" : index + 1}
+          </td>
+          <td className="p-3 font-bold">
+            <Link href={`/users/${user.id}`}>
+              <a>{user.username}</a>
+            </Link>
+          </td>
+          <td className={`p-3 text-neutral-200 ${user.wins >= user.losses ? "font-bold" : "font-normal"}`}>
+            {user.wins}
+          </td>
+          <td className={`p-3 text-neutral-200 ${user.wins <= user.losses ? "font-bold" : "font-normal"}`}>
+            {user.losses}
+          </td>
+          <td className={`p-3 ${(String(user.ratio) === "1") ? "text-neutral-200" :
+                              (user.ratio > 1) ? "text-green-500" : "text-red-500"}`}>
+            {String(user.ratio) === "0" && !user.wins && !user.losses ? "-" : user.ratio}
+          </td>
+        </tr>
+      ))}
+  </tbody>
+</div>

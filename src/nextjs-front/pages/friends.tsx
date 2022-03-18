@@ -1,14 +1,18 @@
 import withDashboardLayout from "../components/hoc/withDashboardLayout";
 import { NextPageWithLayout } from "./_app";
 import Selector from "../components/Selector";
+import ResponsiveFade from "../components/ResponsiveFade";
 import Link from "next/link";
 import Image from 'next/image';
 import { useContext, useEffect, useState } from "react";
-import { GiPodiumSecond, GiThreeFriends } from "react-icons/gi";
 import { BounceLoader } from "react-spinners";
-import { FaUserFriends, FaUsersSlash } from "react-icons/fa";
+import { FaUserFriends, FaUserSlash, FaUsersSlash } from "react-icons/fa";
 import authContext, { AuthContextType } from "../context/auth/authContext";
 import { UserStatusItem } from "../components/UserStatus";
+import Tooltip from "../components/Tooltip";
+import { RiUserHeartLine, RiUserSettingsLine } from "react-icons/ri";
+import { useRouter } from "next/router";
+import { AiOutlineUserAdd, AiOutlineUserDelete } from "react-icons/ai";
 
 export type List = {
   id: string;
@@ -20,57 +24,93 @@ export type List = {
   ratio: number,
 };
 
-const Table: React.FC<{ list: List[] }> = ({
-  list
-}) => (
+const Table: React.FC<{ list: List[], type: string }> = ({
+  list, type
+}) => {
 
-  <table
-    className="w-full my-4 text-left"
-  >
-    <thead>
-      <tr className="text-pink-600 bg-gray-800">
-        <th className="p-3 uppercase">Rank</th>
-        <th className="p-3 uppercase">Username</th>
-        <th className="p-3 uppercase">Wins</th>
-        <th className="p-3 uppercase">Losses</th>
-        <th className="p-3 uppercase">Ratio</th>
-      </tr>
-    </thead>
-    <tbody>
-      {list
-        .map((user, index) => (
-          <tr
-            key={user.id}
-            className={`py-6 ${index % 2 ? "bg-gray-800" : "bg-gray-700"} ${user.accountDeactivated ? "line-through": "no-underline"}`}
-          >
-            <td className={`p-3 ${(String(index) === "0") ? "text-yellow-500 font-extrabold" :
-                                (String(index) === "1") ? "text-zinc-400 font-extrabold" : 
-                                (String(index) === "2") ? "text-orange-800 font-extrabold" : "text-white font-normal"}`}>
-              {String(user.ratio) === "0" && !user.wins && !user.losses ? "-" : index + 1}
-            </td>
-            <td className="p-3 font-bold">
-              <Link href={`/users/${user.id}`}>
-                <a>{user.username}</a>
-              </Link>
-            </td>
-            <td className={`p-3 text-neutral-200 ${user.wins >= user.losses ? "font-bold" : "font-normal"}`}>
-              {user.wins}
-            </td>
-            <td className={`p-3 text-neutral-200 ${user.wins <= user.losses ? "font-bold" : "font-normal"}`}>
-              {user.losses}
-            </td>
-            <td className={`p-3 ${(String(user.ratio) === "1") ? "text-neutral-200" :
-                                (user.ratio > 1) ? "text-green-500" : "text-red-500"}`}>
-              {String(user.ratio) === "0" && !user.wins && !user.losses ? "-" : user.ratio}
-            </td>
-          </tr>
+  const removeFriend = (id: string) => {
+    console.log('remove friend ID', id);
+  }
+
+  const requestFriend = (id: string) => {
+    console.log('request friend ID', id);
+  }
+
+  const blockUser = (id: string) => {
+    console.log('block user ID', id);
+  }
+
+  const unblockUser = (id: string) => {
+    console.log('unblock user ID', id);
+  }
+
+
+  return (
+    <ul className="place-items-stretch grid grid-cols-3 gap-10 text-center pt-10 pb-10">
+      <ResponsiveFade 
+        useMediaQueryArg={{ query: "(min-width: 1280px)" }}
+        cascade triggerOnce duration={500}
+      >
+      {list.map(({ id, username }) => (
+        <li
+          className="text-pink-600 justity-items-center p-5 bg-gray-800/70 border border-pink-600 rounded  hover:border-white hover:bg-pink-700 hover:text-inherit md:transition md:transform md:ease-in md:duration-500 md:hover:-translate-y-2"
+          key={id}
+        >
+          <p className="pb-5 place-content-evenly text-ellipsis overflow-hidden cursor-pointer font-bold">
+            {username}
+          </p>
+        
+          <div className="absolute left-0 right-0 flex items-center justify-center -bottom-4 gap-x-2">
+          {(type === 'suggested' || type === 'blocked')  &&
+            <Tooltip className='font-bold bg-gray-900 text-neutral-200' content="Add as friend">
+              <button className="p-2 text-2xl text-gray-900 bg-white rounded-full transition hover:scale-105">
+                <AiOutlineUserAdd onClick={() => {requestFriend(id)}} />
+              </button>
+            </Tooltip>
+          }
+          
+          {(type !== 'blocked') &&
+            <Tooltip className='font-bold bg-gray-900 text-neutral-200' content="Block user">
+              <button className="p-2 text-2xl text-gray-900 bg-white rounded-full transition hover:scale-105">
+                <FaUserSlash onClick={() => {blockUser(id)}} />
+              </button>
+            </Tooltip>
+          }
+          {(type === 'blocked') && <Tooltip className='font-bold bg-gray-900 text-neutral-200' content="Unblock user">
+              <button className="p-2 text-2xl text-gray-900 bg-white rounded-full transition hover:scale-105">
+                <RiUserHeartLine onClick={() => {unblockUser(id)}} />
+              </button>
+            </Tooltip>
+          }
+          {(type === 'friends' || type === 'friends42') &&
+          <Tooltip className='font-bold bg-gray-900 text-neutral-200' content="Unblock user">
+              <button className="p-2 text-2xl text-gray-900 bg-white rounded-full transition hover:scale-105">
+                <AiOutlineUserDelete onClick={() => {removeFriend(id)}} />
+              </button>
+            </Tooltip>
+          }
+          </div>
+
+          <Link href={`/users/${id}`}>
+            <a>
+              <img
+		  	        className="justify-content-center cursor-pointer"
+	  		        src={`/api/users/${id}/photo`}
+  	        		height="100%"
+	  	  	      width="100%"
+              />
+            </a>
+          </Link>
+        </li>
         ))}
-    </tbody>
-  </table>
-);
+      </ResponsiveFade>
+    </ul>
+  )
+}
+
 
 export type Highlight = {
-  n: string;
+  n: number;
   label: string;
   hint: string;
   nColor: string;
@@ -118,11 +158,14 @@ const FriendsPage: NextPageWithLayout = ({}) => {
   const [friends42, setFriends42] = useState<List[]>([]);
   const [blockedUsers, setBlockedUsers] = useState<List[]>([]);
   const [suggested, setSuggested] = useState<List[]>([]);
-  const [isLoading, setIsLoading] = useState(false);
-  const [activeList, setActiveList] = useState<List[]>([]);
+  const [friendsLen, setFriendsLen] = useState(0);
+  const [friends42Len, setFriends42Len] = useState(0);
+  const [blockedLen, setBlockedLen] = useState(0);
+  const [isLoading, setIsLoading] = useState(true);
   const [selected, setSelected] = useState(0);
   const { getUserData } = useContext(authContext) as AuthContextType;
-  
+  const router = useRouter();
+
   const createLists = (data: any) => {
 
     let friends: List[] = [];
@@ -131,71 +174,55 @@ const FriendsPage: NextPageWithLayout = ({}) => {
     let suggested: List[] = [];
 
     for (var i in data) {
-      if (parseInt(i) % 2) {
-        friends42 = [...friends42, {
-          id: data[i].id,
-          username: data[i].username,
-          avatar: `/api/users/${data[i].id}/photo`,
-          losses: data[i].losses,
-          wins: data[i].wins,
-          accountDeactivated: data[i].accountDeactivated,
-          ratio: data[i].ratio,
-      }];  
-      }
-      else {
-        blocked = [...blocked, {
-          id: data[i].id,
-          username: data[i].username,
-          avatar: `/api/users/${data[i].id}/photo`,
-          losses: data[i].losses,
-          wins: data[i].wins,
-          accountDeactivated: data[i].accountDeactivated,
-          ratio: data[i].ratio,
-      }];
-      }
+      if (data[i].id === getUserData().id) {
+        friends = data[i].friends;
+        blocked = data[i].blockedUsers;
 
-      friends = [...friends, {
-          id: data[i].id,
-          username: data[i].username,
-          avatar: `/api/users/${data[i].id}/photo`,
-          losses: data[i].losses,
-          wins: data[i].wins,
-          accountDeactivated: data[i].accountDeactivated,
-          ratio: data[i].ratio,
-      }];
+        for (var j in data[i].friends) {
+          if (data[i].friends[j].duoquadra_login)
+            friends42 = [...friends42, data[i].friends[j]];  
+        }
+      }
     }
+
+    for (var i in data) {
+      if (data[i].id !== getUserData().id) {
+        for (var j in blocked) {
+          if (blocked[j].id !== data[i].id) {
+            suggested = [...suggested, data[i]];
+          }
+        }
+      }
+    }
+
+    const filtered = suggested.filter(function(ele , pos){
+      return suggested.indexOf(ele) == pos;
+    })
+    
     setFriends(friends);
     setFriends42(friends42);
     setBlockedUsers(blocked);
-    setSuggested(suggested);
-    setActiveList(friends);
-  }
+    setSuggested(filtered);
 
+    friends.length && setFriendsLen(friends.length);
+    friends42.length && setFriends42Len(friends42.length);
+    blocked.length && setBlockedLen(blocked.length);
+
+    setIsLoading(false);
+  }
 
   useEffect(() => {
     const fetchData = async () => {
 
-      const req = await fetch('/api/users');
+      const req = await fetch('/api/users/');
       const data = await req.json();
       
       createLists(data);
-      setIsLoading(false);
     }
   
     fetchData()
     .catch(console.error);
   }, [])
-
-  useEffect(() => {
-    if (!selected)
-      setActiveList(friends);
-    else if (selected === 1)
-      setActiveList(friends42);
-    else if (selected === 2)
-      setActiveList(blockedUsers);
-    else if (selected === 3)
-      setActiveList(suggested);
-  }, [selected])
 
   return (
     <div className="min-h-screen overflow-x-auto text-white bg-fixed bg-center bg-fill grow" style={{
@@ -208,6 +235,13 @@ const FriendsPage: NextPageWithLayout = ({}) => {
             <img
               className="object-cover object-center w-full h-full rounded drop-shadow-md"
               src={`/api/users/${getUserData().id}/photo`} />
+            <div className="absolute left-0 right-0 flex items-center justify-center -bottom-4 gap-x-2">
+              <Tooltip className='font-bold bg-gray-900 text-neutral-200' content="Edit user">
+                <button className="p-2 text-2xl text-gray-900 bg-white rounded-full transition hover:scale-105">
+                  <RiUserSettingsLine onClick={() => {router.push("/welcome")}} />
+                </button>
+              </Tooltip>
+            </div>
           </div>
        
           <div className="flex flex-col items-center">
@@ -217,17 +251,17 @@ const FriendsPage: NextPageWithLayout = ({}) => {
        
           <div className="w-full p-2 bg-gray-800 border-2 border-gray-800 rounded drop-shadow-md grid lg:grid-cols-3 items-end">
             <HighlightItem
-              n={String(friends.length)}
+              n={friendsLen}
               label="friends"
               hint="Friends"
               nColor="text-pink-600" />
             <HighlightItem
-              n={String(friends42.length)}
+              n={friends42Len}
               label="friends42"
               hint="Friends @42"
               nColor="text-green-500" />
             <HighlightItem
-              n={String(blockedUsers.length)}
+              n={blockedLen}
               label="blocked"
               hint="Blocked Users"
               nColor="text-red-600" />
@@ -237,19 +271,19 @@ const FriendsPage: NextPageWithLayout = ({}) => {
             items={[
               {
                 label: "Friends",
-                component: <Table list={friends} />,
+                component: <Table list={friends} type={'friends'}/>,
               },
               {
                 label: "Friends @42",
-                component: <Table list={friends42} />,
+                component: <Table list={friends42} type={'friends42'}/>,
               },
               {
                 label: "Blocked Users",
-                component:  <Table list={blockedUsers} />,
+                component:  <Table list={blockedUsers} type={'blocked'}/>,
               },
               {
                 label: "Suggested Friends",
-                component:  <Table list={suggested} />,
+                component:  <Table list={suggested} type={'suggested'}/>,
               }
             ]} />
         </div>
