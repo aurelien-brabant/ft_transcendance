@@ -12,7 +12,7 @@ import alertContext, {AlertContextType} from "../context/alert/alertContext";
 import { useRouter } from 'next/router';
 import Tooltip from '../components/Tooltip';
 import ResponsiveSlide from '../components/ResponsiveSlide';
-import { MdCameraswitch, MdCancel } from 'react-icons/md';
+import { MdCameraswitch, MdCancel, MdOutlineArrowBackIos } from 'react-icons/md';
 
 const labelClassName = "grow uppercase text-neutral-400";
 const inputClassName =
@@ -287,12 +287,17 @@ const Welcome: NextPageWithLayout = () => {
       }
 
       return (
-        <div className="space-x-3 md:space-x-5 my-5 text-center">
-          <h1 className="my-10 text-center text-xl text-pink-700 uppercase animate-pulse">
+        <div>
+          <div className="space-x-3 md:space-x-5 my-5 text-center">
+            <h1 className="my-10 text-center text-xl text-pink-700 uppercase animate-pulse">
                     Enter the 6-digit code from your Authenticator App<br/>
                     Press ECHAP to cancel
-          </h1>
-          {content}
+            </h1>
+            {content}
+          </div>
+          <div className="flex justify-center m-5">
+            <MdOutlineArrowBackIos className="font-bold text-2xl text-pink-600 hover:animate-bounceBack hover:cursor-pointer" onClick={() => {setPendingQR(false)}}/>
+          </div>  
         </div>
       );
   };

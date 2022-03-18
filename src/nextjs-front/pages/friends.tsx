@@ -2,7 +2,6 @@ import withDashboardLayout from "../components/hoc/withDashboardLayout";
 import { NextPageWithLayout } from "./_app";
 import Selector from "../components/Selector";
 import ResponsiveFade from "../components/ResponsiveFade";
-import Link from "next/link";
 import Image from 'next/image';
 import { useContext, useEffect, useState } from "react";
 import { BounceLoader } from "react-spinners";
@@ -13,6 +12,7 @@ import Tooltip from "../components/Tooltip";
 import { RiUserHeartLine, RiUserSettingsLine } from "react-icons/ri";
 import { useRouter } from "next/router";
 import { AiOutlineUserAdd, AiOutlineUserDelete } from "react-icons/ai";
+import Link from "next/link";
 
 export type List = {
   id: string;
@@ -28,16 +28,36 @@ const Table: React.FC<{ list: List[], type: string }> = ({
   list, type
 }) => {
 
+  const { getUserData } = useContext(authContext) as AuthContextType;
+    
   const removeFriend = (id: string) => {
     console.log('remove friend ID', id);
   }
 
-  const requestFriend = (id: string) => {
+  const requestFriend = async (id: string) => {
     console.log('request friend ID', id);
+    const req = await fetch (`/api/users/${getUserData().id}`, {
+      method: "PATCH",
+      headers: {
+          "Content-Type": "application/json",
+      },
+      body: JSON.stringify({friends: [{"id": id}]}),
+    });
+    const res = await req.json();
+    console.log(res);
   }
 
-  const blockUser = (id: string) => {
+  const blockUser = async (id: string) => {
     console.log('block user ID', id);
+    const req = await fetch (`/api/users/${getUserData().id}`, {
+      method: "PATCH",
+      headers: {
+          "Content-Type": "application/json",
+      },
+      body: JSON.stringify({blockedUsers: [{"id": id}]}),
+    });
+    const res = await req.json();
+    console.log(res);
   }
 
   const unblockUser = (id: string) => {
@@ -303,5 +323,6 @@ const FriendsPage: NextPageWithLayout = ({}) => {
 }
 
 FriendsPage.getLayout = withDashboardLayout;
+FriendsPage.isAuthRestricted = true;
 
 export default FriendsPage;

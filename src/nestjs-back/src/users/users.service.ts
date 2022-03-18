@@ -180,12 +180,41 @@ export class UsersService {
                     ...updateUserDto,
                 });
         }
-        else {
+        else if (updateUserDto.friends) {
+            user = await this.findOne(id);
+            const oldFriends = (user.friends);
+            
+            let updated = [];
+            for (let i in oldFriends)
+                updated.push({id: oldFriends[i].id})
+            for (let i in updateUserDto.friends)
+                updated.push({id: updateUserDto.friends[i].id})
+            
+            user = await this.usersRepository.preload({
+                id: +id,
+                friends: updated,
+            });
+        }
+        else if (updateUserDto.blockedUsers) {
+            user = await this.findOne(id);
+            const oldBlocked = (user.blockedUsers);
+            
+            let updated = [];
+            for (let i in oldBlocked)
+                updated.push({id: oldBlocked[i].id})
+            for (let i in updateUserDto.blockedUsers)
+                updated.push({id: updateUserDto.blockedUsers[i].id})
+            
+            user = await this.usersRepository.preload({
+                id: +id,
+                blockedUsers: updated,
+            });
+        }
+        else
             user = await this.usersRepository.preload({
                 id: +id,
                 ...updateUserDto,
             });
-        }
 
         if (!user)
             throw new NotFoundException(`Cannot update user[${id}]: Not found`);

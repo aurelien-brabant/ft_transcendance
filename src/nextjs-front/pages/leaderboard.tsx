@@ -235,5 +235,6 @@ const LeaderboardPage: NextPageWithLayout = ({}) => {
 }
 
 LeaderboardPage.getLayout = withDashboardLayout;
+LeaderboardPage.isAuthRestricted = true;
 
 export default LeaderboardPage;

@@ -114,6 +114,4 @@ const ValidateFortyTwo: NextPageWithLayout = () => {
   );
 };
 
-//ValidateFortyTwo.getLayout = withWildLayout;
-
 export default ValidateFortyTwo;
