@@ -30,7 +30,7 @@ async function bootstrap() {
   }
 
   app.useStaticAssets(join(__dirname, '..', 'public'));
-  
+
   app.useGlobalPipes(
     new ValidationPipe({
       whitelist: true,
@@ -43,7 +43,7 @@ async function bootstrap() {
   );
 
   seeder();
-  
+
   await app.listen(3000);
 }
 
