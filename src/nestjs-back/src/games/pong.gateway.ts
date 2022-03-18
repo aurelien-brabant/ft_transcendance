@@ -39,7 +39,7 @@ export class PongGateway implements OnGatewayInit, OnGatewayConnection, OnGatewa
 			players.push(queue.dequeue());
 			
 			let roomId: string = `${players[0]}&${players[1]}`
-            room = new Room(roomId, players, {maxGoal: 5});
+            room = new Room(roomId, players, {maxGoal: 3});
 
 			server.to(players[0]).emit("newRoom", room);
 			server.to(players[1]).emit("newRoom",  room);
@@ -92,7 +92,13 @@ export class PongGateway implements OnGatewayInit, OnGatewayConnection, OnGatewa
 	handleRequestUpdate(@ConnectedSocket() client: Socket, @MessageBody() roomId: string) {
 		const room: Room = this.rooms.get(roomId);
 
-		if (room.gameState === GameState.PLAYING)
+		if (room.gameState === GameState.STARTING && (Date.now() - room.timestampStart) >= 3500)
+		{
+			room.timestampStart = Date.now();
+			room.lastUpdate = Date.now();
+			room.changeGameState(GameState.PLAYING);
+		}
+		else if (room.gameState === GameState.PLAYING)
 			room.update();
 		else if (room.gameState === GameState.GOAL && (Date.now() - room.goalTimestamp) >= 3500)
 		{

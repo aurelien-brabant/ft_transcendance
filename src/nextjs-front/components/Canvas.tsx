@@ -9,7 +9,7 @@ import styles from "../styles/Canvas.module.css";
 // import { updateGame, resetGame } from "../lib/updateGame";
 // import { GameConstants, GameState, gameConstants } from "../constants/gameConstants"
 import { Draw } from "../gameObjects/Draw";
-import { canvasHeight, canvasWidth, GameState, IRoom } from "../gameObjects/GameObject";
+import { canvasHeight, canvasWidth, countDown, GameState, IRoom } from "../gameObjects/GameObject";
 
 const Canvas: React.FC<{socketProps: Socket, roomProps: IRoom}> = ({socketProps, roomProps}) => {
 
@@ -62,6 +62,8 @@ const Canvas: React.FC<{socketProps: Socket, roomProps: IRoom}> = ({socketProps,
 
 	useEffect(() => {
 		const canvas = canvasRef.current;
+		if (!canvas)
+			return ;
 		const context = canvas.getContext('2d');
 		let animationFrameId: number;
 
@@ -114,14 +116,18 @@ const Canvas: React.FC<{socketProps: Socket, roomProps: IRoom}> = ({socketProps,
 			oldTimestamp = timestamp;
 
 			drawGame(canvas, draw, room);
+			if (room.gameState === GameState.STARTING) {
+				let count: number = (Date.now() - room.timestampStart) / 1000;
+				draw.drawRectangle(0, 0, canvasWidth, canvasHeight, "rgba(0, 0, 0, 0.5)");
+				draw.drawCountDown(countDown[Math.floor(count)]);
+		
+			}
 			if (room.gameState === GameState.PLAYING) {
 				draw.resetParticles();
 			} else if (room?.gameState === GameState.WAITING) {
 				// Wait for player to hit enter
 				loading();
 			} else if (room.gameState === GameState.PAUSED) {
-				console.log("test");
-				
 				draw.drawPauseButton();
 			} else if (room.gameState === GameState.GOAL) {
 				goal();
@@ -136,7 +142,6 @@ const Canvas: React.FC<{socketProps: Socket, roomProps: IRoom}> = ({socketProps,
 		gameLoop();
 
 		return () => {
-			console.log("Unmount");
 			window.cancelAnimationFrame(animationFrameId);
 			window.removeEventListener("keydown", downHandler);
 			window.removeEventListener("keyup", upHandler);
@@ -149,10 +154,29 @@ const Canvas: React.FC<{socketProps: Socket, roomProps: IRoom}> = ({socketProps,
 			room &&
 				<div className={styles.container}>
 					<canvas ref={canvasRef} className={styles.canvas} ></canvas>
-					<p>You are {socket.id} </p>
+					{
+						room.playerOne.id === socket.id ?
+						<div className="grid grid-cols-2">
+							<div>
+								<p>You are {socket.id}</p>
+							</div>
+							<div>
+								<p className="text-right">Opponents is {room.playerTwo.id}</p>
+							</div>
+						</div>
+							:
+						<div className="grid grid-cols-2">
+							<div>
+								<p>Opponents is {room.playerOne.id}</p>
+							</div>
+							<div>
+								<p className="text-right">You are {socket.id}</p>
+							</div>
+						</div>
+					}
 					{
 						gameEnded &&
-						<button onClick={leaveRoom}>Leave Room</button>
+						<button onClick={leaveRoom} className="px-6 py-2 text-xl uppercase bg-pink-600 drop-shadow-md text-bold text-neutral-200">Leave Room</button>
 					}
 				</div>
 		}

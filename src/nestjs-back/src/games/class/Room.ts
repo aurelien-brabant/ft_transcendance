@@ -248,7 +248,7 @@ export default class Room implements IRoom {
 
     constructor(roomId: string, players: string[], customisation: {maxGoal?: number} = {maxGoal: 3}) {
         this.id = roomId;
-		this.gameState = GameState.PLAYING;
+		this.gameState = GameState.STARTING;
         this.playerOne = new Player(players[0], 10);
         this.playerTwo = new Player(players[1], canvasWidth-40);
 		this.ball = new Ball();
