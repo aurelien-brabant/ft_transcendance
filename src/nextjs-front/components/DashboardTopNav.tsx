@@ -155,26 +155,13 @@ const DashboardTopNav: React.FC<DashboardTopNavProps> = ({
   	const { getUserData, logout, clearUser } = useContext(authContext) as AuthContextType;
 	const { setAlert } = useContext(alertContext) as AlertContextType;
 	const router = useRouter();
-	const [picUrl, setPicUrl] = useState(false);
-  
+	
 	const handleLogout = async () => {
 		setAlert({type: 'success', content: 'Logged out'});
 		logout();
 		await router.push('/signin');
 		clearUser();
 	}
-
-	const checkPic = async () => {
-		const req = await fetch (`/api/users/${getUserData().id}/photo`);
-		if (req.status === 200)
-		  setPicUrl(true);
-		else
-		  setPicUrl(false);
-	}
-
-	useEffect(() => {
-		checkPic();
-	  }, [])
 
 	return (
 		<div className="sticky top-0 z-30 flex items-center gap-x-8 bg-neutral-100 h-14 drop-shadow-lg">
@@ -258,7 +245,6 @@ const DashboardTopNav: React.FC<DashboardTopNavProps> = ({
 						<span className="text-sm font-bold text-center ">
 							{getUserData().username}
 						</span>
-						{ picUrl ?
 						<img
 							className="hidden rounded-full sm:block"
 							height="45px"
@@ -266,9 +252,6 @@ const DashboardTopNav: React.FC<DashboardTopNavProps> = ({
 							src={`/api/users/${getUserData().id}/photo`}
 							alt="user's avatar"
 						/>
-						:
-                  		<BsFillQuestionCircleFill className="text-4xl"/>
-						}
 
 						{isUserMenuOpened && (
 							<nav className="absolute left-0 right-0 pt-1 translate-y-20 bg-neutral-100">

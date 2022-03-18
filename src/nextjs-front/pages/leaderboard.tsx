@@ -134,11 +134,11 @@ const LeaderboardPage: NextPageWithLayout = ({}) => {
 
     for (var i in data) {
 
-      if (data[i].email.search("@student.42.") !== -1)
+      if (data[i].duoquadra_login)
           rank42 = [...rank42, {
             id: data[i].id,
             username: data[i].username,
-            avatar: !data[i].pic ? "" : data[i].pic.startsWith("https://") ? data[i].pic : `/api/users/${data[i].id}/photo`,
+            avatar: `/api/users/${data[i].id}/photo`,
             losses: data[i].losses,
             wins: data[i].wins,
             accountDeactivated: data[i].accountDeactivated,
@@ -148,7 +148,7 @@ const LeaderboardPage: NextPageWithLayout = ({}) => {
       rank = [...rank, {
           id: data[i].id,
           username: data[i].username,
-          avatar: !data[i].pic ? "" : data[i].pic.startsWith("https://") ? data[i].pic : `/api/users/${data[i].id}/photo`,
+          avatar: `/api/users/${data[i].id}/photo`,
           losses: data[i].losses,
           wins: data[i].wins,
           accountDeactivated: data[i].accountDeactivated,

@@ -234,15 +234,43 @@ export class UsersService {
         }
       }
     
-    public async pipeQrCodeStream(stream: any, otpauthUrl: string) {
+    async pipeQrCodeStream(stream: any, otpauthUrl: string) {
         return toFileStream(stream, otpauthUrl);
     }
     
-    public isTfaCodeValid(tfaCode: string, user: User) {
+    async isTfaCodeValid(tfaCode: string, user: User) {
 
         return authenticator.verify({
           token: tfaCode,
           secret: user.tfaSecret
         })
+    }
+
+    async uploadAvatar(id: string, filename: string) {
+        await this.usersRepository.update(id, {
+            pic: filename
+        });
+
+        return {upload: "success"};
+    }
+
+    async getRandomAvatar(id: string) {
+        let user = await this.usersRepository.findOne(id);
+
+        const imageLoc= join('/upload', 'avatars', user.pic);
+
+        await downloadResource(faker.image.nature(), imageLoc);
+
+        return {upload: "success"};
+    }
+
+    async getAvatar42(id: string) {
+        let user = await this.usersRepository.findOne(id);
+
+        const imageLoc= join('/upload', 'avatars', user.pic);
+
+        await downloadResource(`https://cdn.intra.42.fr/users/${user.duoquadra_login}.jpg`, imageLoc);
+
+        return {upload: "success"};
     }
 }

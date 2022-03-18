@@ -1,17 +1,18 @@
 import Link from 'next/link';
-import { useContext, useEffect, useMemo, useRef } from "react";
+import Image from "next/image";
+import { Fragment, useContext, useEffect, useMemo, useRef } from "react";
 import withDashboardLayout from "../components/hoc/withDashboardLayout";
-import { FiEdit2 } from "react-icons/fi";
+import { FiEdit2, FiUploadCloud } from "react-icons/fi";
 import { useState } from "react";
 import isEmail from "validator/lib/isEmail";
 import isMobilePhone from "validator/lib/isMobilePhone";
 import {NextPageWithLayout} from './_app';
 import authContext, {AuthContextType} from '../context/auth/authContext';
-import { FaCheckCircle } from 'react-icons/fa';
-import { MdBackspace, MdError } from 'react-icons/md'
 import alertContext, {AlertContextType} from "../context/alert/alertContext";
 import { useRouter } from 'next/router';
-import { BsFillQuestionCircleFill } from 'react-icons/bs';
+import Tooltip from '../components/Tooltip';
+import { Slide } from 'react-awesome-reveal';
+import { MdCameraswitch, MdCancel } from 'react-icons/md';
 
 const labelClassName = "grow uppercase text-neutral-400";
 const inputClassName =
@@ -23,6 +24,7 @@ type FormData = {
   email: string;
   phone: string | null;
   tfa: boolean;
+  pic: string;
 };
 
 type InvalidInputs = {
@@ -49,26 +51,26 @@ const validatePhone = (phone: string | null) => {
 
 const Welcome: NextPageWithLayout = () => {
   const { getUserData, mergeUserData, logout, clearUser } = useContext(authContext) as AuthContextType;
-  const [editStatus, setEditStatus] = useState("pending");
   const [invalidInputs, setInvalidInputs] = useState<InvalidInputs>({});
   const { setAlert } = useContext(alertContext) as AlertContextType;
  	const router = useRouter();
+  const [pendingPic, setPendingPic] = useState(false);
   const [pendingQR, setPendingQR] = useState(false);
   const [tfaCode, setTfaCode] = useState('');
   const [tfaStatus, setTfaStatus] = useState(getUserData().tfa ? 'enabled' : 'disabled');
-  const [picUrl, setPicUrl] = useState(false);
   const [currentStep, setCurrentStep] = useState(0);
   const inputToFocus = useRef<HTMLInputElement>(null);
-
+ 
   const [formData, setFormData] = useState<FormData>({
     username: getUserData().username,
     email: getUserData().email,
     phone: getUserData().phone ? getUserData().phone : null,
-    tfa: getUserData().tfa
+    tfa: getUserData().tfa,
+    pic: getUserData().pic
   });
   
   let baseObject: FormData;
-  
+ 
   const reactivateAccount = () => {
     fetch(`/api/users/${getUserData().id}`, {
       method: 'PATCH',
@@ -79,21 +81,11 @@ const Welcome: NextPageWithLayout = () => {
     });
   }
 
-  const checkPic = async () => {
-    const req = await fetch (`/api/users/${getUserData().id}/photo`);
-    if (req.status === 200)
-      setPicUrl(true);
-    else
-      setPicUrl(false);
-  }
-
   useEffect(() => {
     if (getUserData().accountDeactivated)
       reactivateAccount();
 
     baseObject = getUserData();
-
-    checkPic();
   }, [])
 
   // recompute this only when formData changes
@@ -108,7 +100,6 @@ const Welcome: NextPageWithLayout = () => {
       ...formData,
       [e.target.name]: e.target.value,
     });
-    setEditStatus("pending");
   };
 
   const handleLogout = async () => {
@@ -149,13 +140,10 @@ const Welcome: NextPageWithLayout = () => {
     console.log(res);
     if (req.status === 200) {
       mergeUserData(formData);
-      setEditStatus('success');
       setAlert({ type: 'success', content: 'User edited successfully' });
     }
-    else {
-      setEditStatus('failure');
+    else
       setAlert({ type: 'error', content: 'Error while editing user!' });
-    }
   }
 
   const handleSubmit = (e: React.FormEvent<HTMLFormElement>) => {
@@ -201,13 +189,11 @@ const Welcome: NextPageWithLayout = () => {
     if (req.status === 200) {
       setAlert({ type: 'success', content: '2FA activated successfully' });
       setTfaStatus('enabled');
-      setEditStatus('success');
       setPendingQR(false);
     }
     else {
       setAlert({ type: 'error', content: 'Wrong verification code!' });
       setTfaStatus('disabled');
-      setEditStatus('error');
       setTfaCode(''); 
       setCurrentStep(0);   
     }
@@ -228,7 +214,6 @@ const Welcome: NextPageWithLayout = () => {
     if (req.status === 200) {
       setAlert({ type: 'success', content: '2FA deactivated successfully' });
       setTfaStatus('disabled');
-      setEditStatus('success');
     }
     else {
       setAlert({ type: 'error', content: 'Error while deactivating 2FA!' });
@@ -249,15 +234,14 @@ const Welcome: NextPageWithLayout = () => {
 
   const hasValidPhone = validatePhone(formData.phone);
 
-  const tfaBgColor = hasValidPhone ? "bg-grAY-600" : "bg-gray-800";
+  const tfaBgColor = hasValidPhone ? "bg-gray-600" : "bg-gray-800";
 
   const tfaText = hasValidPhone ? "SMS-2FA unavailable now..." : "Valid phone number required";
 
     
   const handleChangeTfa = (e: React.ChangeEvent<HTMLInputElement>) => {
       e.preventDefault();
-      setEditStatus('pendingQR');
-
+     
       const key = e.target.value;
       
       if (/^[0-9]+$/.test(key)) {
@@ -279,7 +263,6 @@ const Welcome: NextPageWithLayout = () => {
           setCurrentStep(currentStep - 1);
       }
       else if (key === "Escape") {
-          setEditStatus("pending");
           setPendingQR(false);
           setTfaCode('');
           setCurrentStep(0);
@@ -295,7 +278,7 @@ const Welcome: NextPageWithLayout = () => {
               key={i}
               ref={currentStep === i ? inputToFocus : null}
               onChange={handleChangeTfa}
-              className="text-xl md:text-3xl bg-inherit text-pink-600 font-bold text-center border-pink-600 border-2 rounded-lg h-10 md:h-20 w-10 md:w-20"
+              className="focus:ring-4 focus:ring-pink-200 focus:ring-offset-pink-200 text-xl md:text-3xl bg-inherit text-pink-600 font-bold text-center border-pink-600 border-2 rounded-lg h-10 md:h-20 w-10 md:w-20"
               type="text"
               pattern="[0-9]{1}"
               onKeyDown={(e) => {checkStep(e.key)}}
@@ -304,8 +287,8 @@ const Welcome: NextPageWithLayout = () => {
       }
 
       return (
-        <div className="space-x-5 m-5 text-center">
-          <h1 className="m-10 text-center text-xl text-pink-700 uppercase animate-pulse">
+        <div className="space-x-3 md:space-x-5 my-5 text-center">
+          <h1 className="my-10 text-center text-xl text-pink-700 uppercase animate-pulse">
                     Enter the 6-digit code from your Authenticator App<br/>
                     Press ECHAP to cancel
           </h1>
@@ -314,55 +297,176 @@ const Welcome: NextPageWithLayout = () => {
       );
   };
 
+  const UploadPic = () => {
+
+    const [image, setImage] = useState('');
+
+    const uploadToClient = (event:any) => {
+    
+      if (event.target.files && event.target.files[0]) {
+        const img = event.target.files[0];
+        setImage(img);
+      }
+  };
+  
+    const uploadToServer = async () => {        
+      
+      const body = new FormData();
+      body.append("image", image);    
+     
+      const req = await fetch(`/api/users/${getUserData().id}/uploadAvatar`, {
+        method: "POST",
+        body
+      });
+     
+      if (req.ok) {
+        const res = await req.json();
+        console.log(res);
+        setPendingPic(false);
+        setAlert({type: 'success', content: 'Avatar uploaded successfully'})
+        router.reload();
+      }
+      else if (req.status === 406)
+        setAlert({type: 'warning', content: 'Only JPG/JPEG/PNG/GIF are accepted'})
+      else
+        setAlert({type: 'error', content: 'Error while uploading!'})
+    };
+
+    return (
+    
+    <Slide direction="left" duration={200} triggerOnce >
+      <div className="flex justify-center text-pink-600 space-x-5 text-center items-center">
+        <input
+          type="file"
+          name="uploadAvatar"
+          className="border border-pink-600 p-1"
+          onChange={uploadToClient}
+        />
+        <FiUploadCloud onClick={uploadToServer} className="text-3xl hover:animate-pulse"/>
+      </div>
+    </Slide>
+    )
+  }
+
+  const getRandomPic = async () => {
+
+    setAlert({type: 'info', content: 'New random avatar'})
+
+    const req = await fetch(`/api/users/${getUserData().id}/randomAvatar`);
+   
+    if (req.ok)
+      router.reload();
+    else
+      setAlert({type: 'error', content: 'Error while changin avatar!'})
+  }
+
+  const get42Pic = async () => {
+
+    setAlert({type: 'info', content: 'Default 42 pic requested'})
+
+    const req = await fetch(`/api/users/${getUserData().id}/avatar42`);
+   
+    if (req.ok)
+      router.reload();
+    else
+      setAlert({type: 'error', content: 'Error while changin avatar!'})
+  }
+
   useEffect(() => {
     inputToFocus.current?.focus();
   }, [currentStep, pendingQR]);
   
   return (
     <div className="min-h-screen text-white bg-gray-900 grow" id="main-content">
-      <div id="qrCode" 
+      <div 
         style={{ minHeight: "300vh", maxWidth: "800px" }}
         className="px-2 py-16 mx-auto"
       >
+      
+      {(getUserData().duoquadra_login) ?
+      <div className="flex flex-col items-center p-2">
+        <div className="border border-gray-900 hover:border-pink-600 rounded-full pb-0 pt-2 pr-2 pl-2">
+          <Image
+            src="/logo.svg"
+            width={35}
+            height={35}
+            alt="42 logo"
+            title="Get intra picture profile"
+            className="hover:cursor-pointer"
+            onClick={() => {get42Pic()}}
+          />
+        </div>
+      </div>
+      :
+      <></>
+      }
+
+        {!pendingQR ?
+        <Fragment>
         <div className="flex flex-col items-center gap-y-4">
           <div className="relative w-48 h-48">
-            {(!picUrl && !pendingQR) ?
-            <div className="flex justify-center">
-                  <BsFillQuestionCircleFill className="text-9xl"/>
-            </div>
-            :
             <img
               className="object-cover object-center w-full h-full rounded drop-shadow-md"
-              src={pendingQR ? `/api/users/${getUserData().id}/generateTfa`
-              : (picUrl) ? `/api/users/${getUserData().id}/photo` : ""}
+              src={`/api/users/${getUserData().id}/photo`}
             />
-            }
-            <div className={`absolute p-2 bg-white border-2 border-gray-900 rounded-full -top-4 -right-4`}>
-              {( editStatus === 'pending') ? <FiEdit2 className="text-gray-900" />
-            	: (editStatus === 'success') ? <FaCheckCircle className="text-green-600 animate-ping-3"/>
-									: (editStatus === 'pendingQR') ? <MdBackspace
-                          className="text-red-500 hover:animate-pulse hover:cursor-pointer"
-                          onClick={() => {setPendingQR(false); setEditStatus("pending")}}
-                          />
-                      : <MdError className="text-red-600 animate-ping-3"/>
-              }
+
+            {pendingPic ?
+            <div className="absolute p-2 bg-white border-2 border-gray-900 rounded-full -top-4 -right-4">
+              <div className="absolute left-0 right-0 flex items-center justify-center -bottom-4 gap-x-2">
+                <Tooltip className="font-bold bg-gray-900 text-neutral-200" content="Cancel">
+                  <button className="p-2 text-xl text-gray-900 bg-white rounded-full transition hover:scale-105">
+                    <MdCancel
+                        className="text-red-600"
+                        onClick={() => {setPendingPic(false)}}
+                    />
+                  </button>
+                </Tooltip>
+              </div>
             </div>
+            :
+            <Fragment>
+            <div className="absolute p-2 bg-white border-2 border-gray-900 rounded-full -top-4 -left-4">
+              <div className="absolute left-0 right-0 flex items-center justify-center -bottom-4 gap-x-2">
+                <Tooltip className="font-bold bg-gray-900 text-neutral-200" content="Random avatar">
+                  <button className="p-2 text-xl text-gray-900 bg-white rounded-full transition hover:scale-105">
+                    <MdCameraswitch
+                      className="text-gray-900"
+                      onClick={() => {getRandomPic()}}
+                    />
+                  </button>
+                </Tooltip>
+              </div>
+            </div>
+            <div className="absolute p-2 bg-white border-2 border-gray-900 rounded-full -top-4 -right-4">
+              <div className="absolute left-0 right-0 flex items-center justify-center -bottom-4 gap-x-2">
+                <Tooltip className="font-bold bg-gray-900 text-neutral-200" content="Upload avatar">
+                  <button className="p-2 text-xl text-gray-900 bg-white rounded-full transition hover:scale-105">
+                    <FiEdit2
+                      className="text-gray-900"
+                      onClick={() => {setPendingPic(true)}}
+                    />
+                  </button>
+                </Tooltip>
+              </div>
+            </div>
+            </Fragment>
+            }
           </div>
-          
-          {pendingQR ?
-          <div>
-            {getTfaForm()}
-          </div> 
+
+          { pendingPic ?
+          <UploadPic />
           :
           <div className="text-center">
           <h2 className="text-xl font-bold text-pink-600">{getUserData().username}</h2>
-            <Link href={`/users/${getUserData().id}`}><a className="block py-1 text-sm uppercase text-neutral-200 hover:underline">See public profile</a></Link>
+            <Link href={`/users/${getUserData().id}`}>
+              <a className="block py-1 text-sm uppercase text-neutral-200 hover:underline">
+                See public profile
+              </a>
+            </Link>
           </div>
           }
-
         </div>
 
-        {(!pendingQR) ?
         <div className="flex flex-col py-12 gap-y-10">
             <h1 className="text-2xl">
               Edit profile
@@ -456,7 +560,7 @@ const Welcome: NextPageWithLayout = () => {
                     setPendingQR(true);
                   }
                   else {
-                    if (confirm("Deactivated account?\nJust login again to reactivate your account.\n\nClick OK to proceed.") == true)
+                    if (confirm("Deactivated 2FA with Authenticator App?\nYou can reactivate it when you want.\n\nClick OK to proceed.") == true)
                       deactivateTfa();
                     }
                 }}
@@ -493,8 +597,17 @@ const Welcome: NextPageWithLayout = () => {
             </div>
           </form>
         </div>
+        </Fragment>
         :
-        <></>
+        <div className="flex flex-col items-center gap-y-4">
+          <div className="relative w-48 h-48">
+            <img
+              className="object-cover object-center w-full h-full rounded drop-shadow-md"
+              src={`/api/users/${getUserData().id}/generateTfa`}
+            />
+          </div>
+          {getTfaForm()}
+        </div>
         }
       </div>
     </div>

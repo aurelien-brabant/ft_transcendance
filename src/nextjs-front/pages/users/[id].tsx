@@ -5,7 +5,7 @@ import { BounceLoader } from "react-spinners";
 import { FaEquals } from "react-icons/fa";
 import { IoMdPersonAdd } from 'react-icons/io';
 import { GiFalling, GiPodiumWinner } from "react-icons/gi";
-import { RiPingPongLine, RiMessage2Line } from 'react-icons/ri';
+import { RiPingPongLine, RiMessage2Line, RiUserSettingsLine } from 'react-icons/ri';
 import { NextPageWithLayout } from "../_app";
 import authContext, { AuthContextType } from "../../context/auth/authContext";
 import Selector from "../../components/Selector";
@@ -13,6 +13,8 @@ import Tooltip from "../../components/Tooltip";
 import { UserStatusItem } from "../../components/UserStatus";
 import withDashboardLayout from "../../components/hoc/withDashboardLayout";
 import chatContext, {ChatContextType} from "../../context/chat/chatContext";
+import { useRouter } from "next/router";
+
 
 export type GameSummary = {
   winnerScore: number;
@@ -157,6 +159,8 @@ const UserProfilePage: NextPageWithLayout = ({}) => {
     }
   );
 
+  const router = useRouter();
+
   const updateGamesHistory = async (games: any) => {
     for (var i in games) {
       const opponentId = (games[i].winnerId === userId) ? games[i].looserId : games[i].winnerId;
@@ -189,7 +193,7 @@ const UserProfilePage: NextPageWithLayout = ({}) => {
       updateGamesHistory(JSON.parse(JSON.stringify(data)).games);
 
       if (!data.wins && !data.losses)
-        setRank("-")
+        setRank("-");
 
       else {
         const reqRank = await fetch(`/api/users/${userId}/rank`);
@@ -203,6 +207,7 @@ const UserProfilePage: NextPageWithLayout = ({}) => {
     fetchData()
     .catch(console.error);
   }, [userId])
+
   const {  setChatView, openChat } = useContext(chatContext) as ChatContextType;
 
   const handleMessage = () => {
@@ -223,8 +228,15 @@ const UserProfilePage: NextPageWithLayout = ({}) => {
               src={userData.avatar} />
 
             {/* actions */}
-            {(userData.id === getUserData().id || userData.accountDeactivated) ?
-            <></>
+            {(userData.accountDeactivated) ? <></> : 
+            (userData.id === getUserData().id) ? 
+            <div className="absolute left-0 right-0 flex items-center justify-center -bottom-4 gap-x-2">
+              <Tooltip className={actionTooltipStyles} content="Edit user">
+                <button className="p-2 text-2xl text-gray-900 bg-white rounded-full transition hover:scale-105">
+                    <RiUserSettingsLine onClick={() => {router.push("/welcome")}} />
+                </button>
+              </Tooltip>
+            </div>
             :
             <div className="absolute left-0 right-0 flex items-center justify-center -bottom-4 gap-x-2">
               <Tooltip className={actionTooltipStyles} content="challenge">
@@ -234,11 +246,11 @@ const UserProfilePage: NextPageWithLayout = ({}) => {
               </Tooltip>
 
               <Tooltip className={actionTooltipStyles} content="message">
-              <button className="p-2 text-2xl text-gray-900 bg-white rounded-full transition hover:scale-105"
-                onClick={handleMessage}
-              >
-                <RiMessage2Line />
-              </button>
+                <button className="p-2 text-2xl text-gray-900 bg-white rounded-full transition hover:scale-105"
+                  onClick={handleMessage}
+                >
+                  <RiMessage2Line />
+                </button>
               </Tooltip>
 
               <Tooltip className={actionTooltipStyles} content="Add as friend">

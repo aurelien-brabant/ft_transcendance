@@ -93,7 +93,7 @@ const ValidateCode = () => {
                 key={i}
                 ref={currentStep === i ? inputToFocus : null}
                 onChange={handleChange}
-                className="text-xl md:text-3xl bg-inherit text-pink-600 font-bold text-center border-pink-600 border-2 rounded-lg h-10 md:h-20 w-10 md:w-20"
+                className="focus:ring-2 focus:ring-pink-200 focus:ring-offset-pink-200 text-xl md:text-3xl bg-inherit text-pink-600 font-bold text-center border-pink-600 border-2 rounded-lg h-10 md:h-20 w-10 md:w-20"
                 type="text"
                 pattern="[0-9]{1}"
                 onKeyDown={(e) => {checkStep(e.key)}}
