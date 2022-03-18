@@ -103,6 +103,10 @@ const DirectMessage: React.FC<{ viewParams: { [key: string]: any } }> = ({
 		updateDmsOnMount();
 	}, []);
 
+	useEffect(() => {
+		chatBottom.current?.scrollIntoView();
+	}, [messages]);
+
 	return (
 	<div className="h-full">
 		<div className="flex flex-col items-start max-h-[87%] h-auto px-5 pb-5 overflow-auto">
