@@ -20,7 +20,7 @@ export class ChannelsService {
 
   async findOne(id: string) {
     const channel =  await this.channelsRepository.findOne(id, {
-      relations: ['owner', 'messages', 'messages.author'] // tmp
+      relations: ['owner', 'users', 'messages', 'messages.author'] // tmp
     });
     if (!channel) {
       throw new NotFoundException(`Channel [${id}] not found`);

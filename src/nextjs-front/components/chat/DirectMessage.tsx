@@ -3,12 +3,12 @@ import { AiOutlineClose, AiOutlineUser } from "react-icons/ai";
 import { BsArrowLeftShort } from 'react-icons/bs';
 import { FiSend } from "react-icons/fi";
 import { MdPeopleAlt } from 'react-icons/md';
+import alertContext, { AlertContextType } from "../../context/alert/alertContext";
+import authContext, { AuthContextType } from "../../context/auth/authContext";
 import chatContext, { ChatContextType, ChatMessage } from "../../context/chat/chatContext";
 import { UserStatusItem } from "../UserStatus";
-import authContext, { AuthContextType } from "../../context/auth/authContext";
-import alertContext, { AlertContextType } from "../../context/alert/alertContext";
-// import Tooltip from "../Tooltip";
 
+/* Header */
 export const DirectMessageHeader: React.FC<{ viewParams: any }> = ({ viewParams }) => {
 	const { closeChat, openChatView, setChatView } = useContext(
 		chatContext
@@ -23,26 +23,32 @@ export const DirectMessageHeader: React.FC<{ viewParams: any }> = ({ viewParams 
 			<div className="flex items-center gap-x-3">
 			<h6 className="font-bold">{viewParams.targetUsername}</h6> <UserStatusItem status="online" withText={false} />
 			</div>
-			<button onClick={() => { openChatView('groupadd', 'groupadd', { targetUsername: viewParams.targetUsername })}}>
+			<button onClick={() => {
+				openChatView('groupadd', 'groupadd', {
+						targetUsername: viewParams.targetUsername
+					})
+				}}
+			>
 			<MdPeopleAlt className="text-3xl" />
 			</button>
 		</div>
 	);
 }
 
+/* Conversation */
 const DirectMessage: React.FC<{ viewParams: { [key: string]: any } }> = ({
 	viewParams,
 }) => {
 	const { setAlert } = useContext(alertContext) as AlertContextType;
 	const { getUserData } = useContext(authContext) as AuthContextType;
-	const { loadChannel } = useContext(chatContext) as ChatContextType;
+	const { fetchChannelData } = useContext(chatContext) as ChatContextType;
 	const [messages, setMessages] = useState<ChatMessage[]>([]);
-	const [currentMessage, setCurrentMessage] = useState('');
+	const [currentMessage, setCurrentMessage] = useState("");
 	const chatBottom = useRef<HTMLDivElement>(null);
 	const dmId = viewParams.targetId;
 	const userId = getUserData().id;
 
-	const updateChatMessage = (message: any) => {
+	const updateMessages = (message: any) => {
 		setMessages([
 			...messages, {
 				id: message.id,
@@ -53,26 +59,11 @@ const DirectMessage: React.FC<{ viewParams: { [key: string]: any } }> = ({
 		]);
 	}
 
-	const updateDmsOnMount = async () => {
-		const data = await loadChannel(dmId).catch(console.error);
-		const dms = JSON.parse(JSON.stringify(data)).messages;
-		const messages: ChatMessage[] = [];
-
-		for (var i in dms) {
-			messages.push({
-				id: dms[i].id,
-				author: dms[i].author.username,
-				content: dms[i].content,
-				isMe: (dms[i].author.id === userId),
-			});
-		}
-		setMessages(messages);
-	}
-
+	/* Send new message */
 	const handleDmSubmit = async () => {
 		if (currentMessage.length === 0) return;
 
-		const channelData = await loadChannel(dmId).catch(console.error);
+		const channelData = await fetchChannelData(dmId).catch(console.error);
 		const res = await fetch("/api/messages", {
 			method: "POST",
 			headers: {
@@ -87,9 +78,8 @@ const DirectMessage: React.FC<{ viewParams: { [key: string]: any } }> = ({
 		const data = await res.json();
 
 		if (res.status === 201) {
-			updateChatMessage(data);
-			setCurrentMessage('');
-			// TODO: update last message
+			updateMessages(data);
+			setCurrentMessage("");
 			return;
 		} else {
 			setAlert({
@@ -99,13 +89,31 @@ const DirectMessage: React.FC<{ viewParams: { [key: string]: any } }> = ({
 		}
 	};
 
-	useEffect(() => {
-		updateDmsOnMount();
-	}, []);
-
+	/* Scroll to bottom if new message is sent */
 	useEffect(() => {
 		chatBottom.current?.scrollIntoView();
 	}, [messages]);
+
+	/* Load all messages on mount */
+	const loadDmsOnMount = async () => {
+		const data = await fetchChannelData(dmId).catch(console.error);
+		const dms = JSON.parse(JSON.stringify(data)).messages;
+		const messages: ChatMessage[] = [];
+
+		for (var i in dms) {
+			messages.push({
+				id: dms[i].id,
+				author: dms[i].author.username,
+				content: dms[i].content,
+				isMe: (dms[i].author.id === userId),
+			});
+		}
+		setMessages(messages);
+	}
+
+	useEffect(() => {
+		loadDmsOnMount();
+	}, []);
 
 	return (
 	<div className="h-full">

@@ -6,11 +6,7 @@ import {
 	useRef,
 	useState,
 } from "react";
-import chatContext, {
-	ChatContextType,
-	ChatGroup,
-	ChatGroupPrivacy,
-} from "../../context/chat/chatContext";
+import chatContext, { ChatContextType, ChatGroupPrivacy } from "../../context/chat/chatContext";
 import {
 	AiFillLock,
 	AiFillUnlock,
@@ -18,6 +14,7 @@ import {
 } from "react-icons/ai";
 import { FaUserFriends } from "react-icons/fa";
 
+/* All group conversations tab */
 const Groups: React.FC<{viewParams: Object;}> = ({ viewParams }) => {
 	const { openChatView, chatGroups } = useContext(chatContext) as ChatContextType;
 
@@ -93,7 +90,7 @@ const Groups: React.FC<{viewParams: Object;}> = ({ viewParams }) => {
 						onClick={() => {
 							openChatView(gm.privacy === 'protected' ? 'password_protection' : 'group', gm.label, {
 									groupName: gm.label,
-									groupId: gm.id,
+									groupId: gm.id
 								}
 							);
 						}}

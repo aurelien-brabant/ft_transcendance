@@ -3,7 +3,6 @@ import { BsArrowLeftShort, BsShieldFillPlus } from "react-icons/bs";
 // import { GiThorHammer } from "react-icons/gi";
 // import Link from "next/link";
 import chatContext, { ChatContextType } from "../../context/chat/chatContext";
-// import faker from "@faker-js/faker";
 
 export const GroupSettingsHeader: React.FC<{ viewParams: any }> = ({ viewParams }) => {
 	const { closeRightmostView } = useContext(chatContext) as ChatContextType;

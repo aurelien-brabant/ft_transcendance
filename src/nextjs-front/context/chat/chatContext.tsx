@@ -15,10 +15,10 @@ export type ChatGroup = {
 	id: string;
 	label: string;
 	lastMessage: string;
-	privacy: ChatGroupPrivacy;
-	isAdmin: boolean;
 	in: boolean;
+	isAdmin: boolean;
 	peopleCount: number;
+	privacy: ChatGroupPrivacy;
 };
 
 export type DirectMessage = {
@@ -35,8 +35,8 @@ export type ChatContextType = {
 	openChatView: (view: ChatView, label: string, params: Object) => void;
 	setChatView: (view: ChatView, label: string, params: Object) => void;
 	//setChatView: (view: ChatView) => void;
-	//closeCurrentChatView: () => void
-	closeRightmostView: (n?: number) => void
+	//closeCurrentChatView: () => void;
+	closeRightmostView: (n?: number) => void;
 
 	/* chat state */
 	isChatOpened: boolean;
@@ -45,7 +45,7 @@ export type ChatContextType = {
 	directMessages: DirectMessage[];
 
 	/* data fetching */
-	loadChannel: (id: string) => Promise<any>;
+	fetchChannelData: (id: string) => Promise<any>;
 	//loadChatGroups: () => void;
 	//loadChatGroup: () => void;
 };

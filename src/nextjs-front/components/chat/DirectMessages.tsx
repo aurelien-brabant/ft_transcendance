@@ -2,17 +2,13 @@ import {
 	Fragment,
 	useContext,
 	useEffect,
-	// useMemo,
 	useRef,
 	useState,
 } from "react";
-import chatContext, {
-	ChatContextType,
-	// ChatGroup,
-	ChatGroupPrivacy,
-} from "../../context/chat/chatContext";
+import chatContext, { ChatContextType, ChatGroupPrivacy } from "../../context/chat/chatContext";
 import { UserStatusItem } from "../UserStatus";
 
+/* All DM conversations tab */
 const DirectMessages: React.FC<{ viewParams: Object; }> = ({ viewParams }) => {
 	const { openChatView, directMessages } = useContext(chatContext) as ChatContextType;
 	const [filteredDms, setFilteredDms] = useState(directMessages);

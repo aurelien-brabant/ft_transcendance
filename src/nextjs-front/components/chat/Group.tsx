@@ -8,6 +8,7 @@ import chatContext, { ChatContextType, ChatMessage } from "../../context/chat/ch
 import authContext, { AuthContextType } from "../../context/auth/authContext";
 import alertContext, { AlertContextType } from "../../context/alert/alertContext";
 
+/* Header */
 export const GroupHeader: React.FC<{ viewParams: any }> = ({ viewParams }) => {
 	const { closeChat, openChatView, setChatView } = useContext(
 		chatContext
@@ -22,7 +23,13 @@ export const GroupHeader: React.FC<{ viewParams: any }> = ({ viewParams }) => {
 			<div className="flex items-center gap-x-3">
 				<h6 className="font-bold">{viewParams.groupName}</h6>
 			</div>
-			<button onClick={() => { openChatView('group_users', 'group users', { groupName: viewParams.groupName })}}>
+			<button onClick={() => {
+				openChatView('group_users', 'group users', {
+						groupName: viewParams.groupName,
+						groupId: viewParams.groupId
+				}
+				)}}
+			>
 			<MdPeopleAlt className="text-3xl" />
 			</button>
 			<button onClick={() => { openChatView('group_settings', 'group settings', { targetUsername: viewParams.targetUsername })}}>
@@ -32,19 +39,20 @@ export const GroupHeader: React.FC<{ viewParams: any }> = ({ viewParams }) => {
 	);
 }
 
+/* Conversation */
 const Group: React.FC<{ viewParams: { [key: string]: any } }> = ({
 	viewParams,
 }) => {
 	const { setAlert } = useContext(alertContext) as AlertContextType;
 	const { getUserData } = useContext(authContext) as AuthContextType;
-	const { loadChannel } = useContext(chatContext) as ChatContextType;
+	const { fetchChannelData } = useContext(chatContext) as ChatContextType;
 	const [messages, setMessages] = useState<ChatMessage[]>([]);
 	const [currentMessage, setCurrentMessage] = useState("");
 	const chatBottom = useRef<HTMLDivElement>(null);
 	const channelId = viewParams.groupId;
 	const userId = getUserData().id;
 
-	const updateChatMessage = (message: any) => {
+	const updateMessages = (message: any) => {
 		setMessages([
 			...messages, {
 				id: message.id,
@@ -53,12 +61,14 @@ const Group: React.FC<{ viewParams: { [key: string]: any } }> = ({
 				isMe: (message.author.id === userId)
 			}
 		]);
+		viewParams.updateState("newGroupMessage");
 	}
 
+	/* Send new message */
 	const handleGroupMessageSubmit = async () => {
 		if (currentMessage.length === 0) return;
 
-		const channelData = await loadChannel(channelId).catch(console.error);
+		const channelData = await fetchChannelData(channelId).catch(console.error);
 		const res = await fetch("/api/messages", {
 			method: "POST",
 			headers: {
@@ -73,9 +83,8 @@ const Group: React.FC<{ viewParams: { [key: string]: any } }> = ({
 		const data = await res.json();
 
 		if (res.status === 201) {
-			updateChatMessage(data);
+			updateMessages(data);
 			setCurrentMessage('');
-			// TODO: update last message
 			return;
 		} else {
 			setAlert({
@@ -85,8 +94,14 @@ const Group: React.FC<{ viewParams: { [key: string]: any } }> = ({
 		}
 	};
 
-	const updateGroupOnMount = async () => {
-		const data = await loadChannel(channelId).catch(console.error);
+	/* Scroll to bottom if new message is sent */
+	useEffect(() => {
+		chatBottom.current?.scrollIntoView();
+	}, [messages]);
+
+	/* Load all messages on mount */
+	const loadGroupOnMount = async () => {
+		const data = await fetchChannelData(channelId).catch(console.error);
 		const groupMessages = JSON.parse(JSON.stringify(data)).messages;
 		const messages: ChatMessage[] = [];
 
@@ -102,12 +117,8 @@ const Group: React.FC<{ viewParams: { [key: string]: any } }> = ({
 	}
 
 	useEffect(() => {
-		updateGroupOnMount();
+		loadGroupOnMount();
 	}, []);
-
-	useEffect(() => {
-		chatBottom.current?.scrollIntoView();
-	}, [messages]);
 
 	return (
 		<div className="h-full">

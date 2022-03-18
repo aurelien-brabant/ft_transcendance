@@ -3,7 +3,6 @@ import { GiThorHammer } from "react-icons/gi";
 import { BsArrowLeftShort, BsShieldFillPlus } from "react-icons/bs";
 import Link from "next/link";
 import chatContext, { ChatContextType } from "../../context/chat/chatContext";
-import faker from "@faker-js/faker";
 
 type UserSummary = {
 	avatar: string;
@@ -33,19 +32,27 @@ export const GroupUsersHeader: React.FC<{ viewParams: any }> = ({ viewParams }) 
 
 const GroupUsers: React.FC<{ viewParams: any }> = ({ viewParams }) => {
 	const [users, setUsers] = useState<UserSummary[]>([]);
+	const { fetchChannelData } = useContext(chatContext) as ChatContextType;
+	const channelId = viewParams.groupId;
 
-	useEffect(() => {
+	const updateUsers = async () => {
+		const data = await fetchChannelData(channelId).catch(console.error);
+		const chanUsers = await JSON.parse(JSON.stringify(data)).users;
+		const chanOwner = await JSON.parse(JSON.stringify(data)).owner;
 		const users: UserSummary[] = [];
 
-		for (let i = 0; i != 20; ++i) {
+		for (var i in chanUsers) {
 			users.push({
-				avatar: faker.internet.avatar(),
-				username: faker.internet.userName(),
-				isAdmin: Math.random() < 0.1,
+				avatar: !chanUsers[i].pic ? "" : chanUsers[i].pic.startsWith("https://") ? chanUsers[i].pic : `/api/users/${chanUsers[i].id}/photo`,
+				username: chanUsers[i].username,
+				isAdmin: (chanUsers[i].id === chanOwner.id)
 			});
 		}
-
 		setUsers(users);
+	}
+
+	useEffect(() => {
+		updateUsers();
 	}, []);
 
 	return (

@@ -1,6 +1,7 @@
 import { useContext } from "react";
 import { AiFillLock } from "react-icons/ai";
 import { BsArrowLeftShort } from "react-icons/bs";
+import alertContext, { AlertContextType } from "../../context/alert/alertContext";
 import chatContext, { ChatContextType } from "../../context/chat/chatContext";
 
 export const PasswordProtectionHeader: React.FC<{ viewParams: any }> = ({ viewParams}) => {
@@ -20,13 +21,22 @@ export const PasswordProtectionHeader: React.FC<{ viewParams: any }> = ({ viewPa
 }
 
 const PasswordProtection: React.FC<{ viewParams: any }> = ({ viewParams }) => {
-
 	const { setChatView } = useContext(chatContext) as ChatContextType;
+	const { setAlert } = useContext(alertContext) as AlertContextType;
 
+	/* Check password is correct */
 	const handleSubmit = (e: React.FormEvent<HTMLFormElement>) => {
 		e.preventDefault();
+		const input = (e.currentTarget.elements[0] as HTMLInputElement).value;
 
-		setChatView('group', viewParams.groupName, { ...viewParams });
+		if (input !== "test") { // tmp ofc
+			setAlert({
+				type: "error",
+				content: "Wrong password"
+			});
+		} else {
+			setChatView('group', viewParams.groupName, { ...viewParams });
+		}
 	};
 
 	return <div className = "flex flex-col items-center justify-center p-5 gap-y-4">
