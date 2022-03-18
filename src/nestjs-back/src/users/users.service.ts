@@ -251,6 +251,26 @@ export class UsersService {
             pic: filename
         });
 
-        return {upload: "success", filename: filename};
+        return {upload: "success"};
+    }
+
+    async getRandomAvatar(id: string) {
+        let user = await this.usersRepository.findOne(id);
+
+        const imageLoc= join('/upload', 'avatars', user.pic);
+
+        await downloadResource(faker.image.nature(), imageLoc);
+
+        return {upload: "success"};
+    }
+
+    async getAvatar42(id: string) {
+        let user = await this.usersRepository.findOne(id);
+
+        const imageLoc= join('/upload', 'avatars', user.pic);
+
+        await downloadResource(`https://cdn.intra.42.fr/users/${user.duoquadra_login}.jpg`, imageLoc);
+
+        return {upload: "success"};
     }
 }

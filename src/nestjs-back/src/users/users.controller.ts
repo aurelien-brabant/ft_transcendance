@@ -80,6 +80,16 @@ export class UsersController {
         return this.usersService.remove(id);
     }
   
+    @Get(':id/randomAvatar')
+    async getRandomAvatar(@Param('id') id: string) {
+        return this.usersService.getRandomAvatar(id);        
+    }
+
+    @Get(':id/avatar42')
+    async get42Avatar(@Param('id') id: string) {
+        return this.usersService.getAvatar42(id);        
+    }
+
     @Post(':id/uploadAvatar')
     @UseInterceptors(FileInterceptor('image', {
         storage: diskStorage({

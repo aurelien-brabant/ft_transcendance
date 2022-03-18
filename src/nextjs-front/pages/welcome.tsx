@@ -1,4 +1,5 @@
 import Link from 'next/link';
+import Image from "next/image";
 import { Fragment, useContext, useEffect, useMemo, useRef } from "react";
 import withDashboardLayout from "../components/hoc/withDashboardLayout";
 import { FiEdit2, FiUploadCloud } from "react-icons/fi";
@@ -11,7 +12,7 @@ import alertContext, {AlertContextType} from "../context/alert/alertContext";
 import { useRouter } from 'next/router';
 import Tooltip from '../components/Tooltip';
 import { Slide } from 'react-awesome-reveal';
-import { MdCancel } from 'react-icons/md';
+import { MdCameraswitch, MdCancel } from 'react-icons/md';
 
 const labelClassName = "grow uppercase text-neutral-400";
 const inputClassName =
@@ -320,10 +321,7 @@ const Welcome: NextPageWithLayout = () => {
      
       if (req.ok) {
         const res = await req.json();
-        setFormData({
-          ...formData,
-          ['pic']: res.filename,
-        });
+        console.log(res);
         setPendingPic(false);
         setAlert({type: 'success', content: 'Avatar uploaded successfully'})
         router.reload();
@@ -336,7 +334,7 @@ const Welcome: NextPageWithLayout = () => {
 
     return (
     
-    <Slide direction="left" duration={300} triggerOnce>
+    <Slide direction="left" duration={200} triggerOnce >
       <div className="flex justify-center text-pink-600 space-x-5 text-center items-center">
         <input
           type="file"
@@ -350,6 +348,30 @@ const Welcome: NextPageWithLayout = () => {
     )
   }
 
+  const getRandomPic = async () => {
+
+    setAlert({type: 'info', content: 'New random avatar'})
+
+    const req = await fetch(`/api/users/${getUserData().id}/randomAvatar`);
+   
+    if (req.ok)
+      router.reload();
+    else
+      setAlert({type: 'error', content: 'Error while changin avatar!'})
+  }
+
+  const get42Pic = async () => {
+
+    setAlert({type: 'info', content: 'Default 42 pic requested'})
+
+    const req = await fetch(`/api/users/${getUserData().id}/avatar42`);
+   
+    if (req.ok)
+      router.reload();
+    else
+      setAlert({type: 'error', content: 'Error while changin avatar!'})
+  }
+
   useEffect(() => {
     inputToFocus.current?.focus();
   }, [currentStep, pendingQR]);
@@ -360,6 +382,25 @@ const Welcome: NextPageWithLayout = () => {
         style={{ minHeight: "300vh", maxWidth: "800px" }}
         className="px-2 py-16 mx-auto"
       >
+      
+      {(getUserData().duoquadra_login) ?
+      <div className="flex flex-col items-center p-2">
+        <div className="border border-gray-900 hover:border-pink-600 rounded-full pb-0 pt-2 pr-2 pl-2">
+          <Image
+            src="/logo.svg"
+            width={35}
+            height={35}
+            alt="42 logo"
+            title="Get intra picture profile"
+            className="hover:cursor-pointer"
+            onClick={() => {get42Pic()}}
+          />
+        </div>
+      </div>
+      :
+      <></>
+      }
+
         {!pendingQR ?
         <Fragment>
         <div className="flex flex-col items-center gap-y-4">
@@ -369,9 +410,9 @@ const Welcome: NextPageWithLayout = () => {
               src={`/api/users/${getUserData().id}/photo`}
             />
 
+            {pendingPic ?
             <div className="absolute p-2 bg-white border-2 border-gray-900 rounded-full -top-4 -right-4">
               <div className="absolute left-0 right-0 flex items-center justify-center -bottom-4 gap-x-2">
-                {pendingPic ?
                 <Tooltip className="font-bold bg-gray-900 text-neutral-200" content="Cancel">
                   <button className="p-2 text-xl text-gray-900 bg-white rounded-full transition hover:scale-105">
                     <MdCancel
@@ -380,7 +421,24 @@ const Welcome: NextPageWithLayout = () => {
                     />
                   </button>
                 </Tooltip>
-                :
+              </div>
+            </div>
+            :
+            <Fragment>
+            <div className="absolute p-2 bg-white border-2 border-gray-900 rounded-full -top-4 -left-4">
+              <div className="absolute left-0 right-0 flex items-center justify-center -bottom-4 gap-x-2">
+                <Tooltip className="font-bold bg-gray-900 text-neutral-200" content="Random avatar">
+                  <button className="p-2 text-xl text-gray-900 bg-white rounded-full transition hover:scale-105">
+                    <MdCameraswitch
+                      className="text-gray-900"
+                      onClick={() => {getRandomPic()}}
+                    />
+                  </button>
+                </Tooltip>
+              </div>
+            </div>
+            <div className="absolute p-2 bg-white border-2 border-gray-900 rounded-full -top-4 -right-4">
+              <div className="absolute left-0 right-0 flex items-center justify-center -bottom-4 gap-x-2">
                 <Tooltip className="font-bold bg-gray-900 text-neutral-200" content="Upload avatar">
                   <button className="p-2 text-xl text-gray-900 bg-white rounded-full transition hover:scale-105">
                     <FiEdit2
@@ -389,11 +447,12 @@ const Welcome: NextPageWithLayout = () => {
                     />
                   </button>
                 </Tooltip>
-                }
               </div>
             </div>
+            </Fragment>
+            }
           </div>
-          
+
           { pendingPic ?
           <UploadPic />
           :
