@@ -18,33 +18,22 @@ import {
 } from "react-icons/ai";
 import { FaUserFriends } from "react-icons/fa";
 
-const Groups: React.FC<{
-	viewParams: Object;
-}> = ({ viewParams }) => {
-	const { openChatView, chatGroups } = useContext(
-		chatContext
-	) as ChatContextType;
+const Groups: React.FC<{viewParams: Object;}> = ({ viewParams }) => {
+	const { openChatView, chatGroups } = useContext(chatContext) as ChatContextType;
 
-	const baseChatGroups = useMemo(
-		() =>
-			chatGroups
-				.filter(
-					(group) =>
-						group.privacy !== "private" ||
-						(group.privacy === "private" && group.in)
-				)
-				.sort((a, b) => (a.privacy !== "private" ? 1 : -1)),
-		[]
-	);
+	const baseChatGroups = useMemo(() =>
+		chatGroups
+			.filter(
+				(group) =>
+					group.privacy !== "private" ||
+					(group.privacy === "private" && group.in)
+			)
+			.sort((a, b) => (a.privacy !== "private" ? 1 : -1)
+	), []);
 
 	const [filteredGroups, setFilteredGroups] = useState(baseChatGroups);
-	const [visiblityFilter, setVisiblityFilter] =
-		useState<ChatGroupPrivacy | null>(null);
+	const [visiblityFilter, setVisiblityFilter] = useState<ChatGroupPrivacy | null>(null);
 	const searchInputRef = useRef<HTMLInputElement>(null);
-
-	useEffect(() => {
-		handleSearch((searchInputRef.current as HTMLInputElement).value);
-	}, [visiblityFilter]);
 
 	const handleSearch = (term: string) => {
 		const searchTerm = term.toLowerCase();
@@ -64,6 +53,10 @@ const Groups: React.FC<{
 				: null
 		);
 	};
+
+	useEffect(() => {
+		handleSearch((searchInputRef.current as HTMLInputElement).value);
+	}, [visiblityFilter]);
 
 	return (
 		<Fragment>

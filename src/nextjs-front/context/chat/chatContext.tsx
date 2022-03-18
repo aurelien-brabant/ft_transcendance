@@ -45,6 +45,7 @@ export type ChatContextType = {
 	directMessages: DirectMessage[];
 
 	/* data fetching */
+	loadChannel: (id: string) => Promise<any>;
 	//loadChatGroups: () => void;
 	//loadChatGroup: () => void;
 };

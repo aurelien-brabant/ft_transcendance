@@ -13,21 +13,11 @@ import chatContext, {
 } from "../../context/chat/chatContext";
 import { UserStatusItem } from "../UserStatus";
 
-const DirectMessages: React.FC<{
-	viewParams: Object;
-}> = ({ viewParams }) => {
-	const { openChatView, directMessages } = useContext(
-		chatContext
-	) as ChatContextType;
-
+const DirectMessages: React.FC<{ viewParams: Object; }> = ({ viewParams }) => {
+	const { openChatView, directMessages } = useContext(chatContext) as ChatContextType;
 	const [filteredDms, setFilteredDms] = useState(directMessages);
-	const [visiblityFilter, setVisiblityFilter] =
-		useState<ChatGroupPrivacy | null>(null);
+	const [visiblityFilter, setVisiblityFilter] = useState<ChatGroupPrivacy | null>(null);
 	const searchInputRef = useRef<HTMLInputElement>(null);
-
-	useEffect(() => {
-		handleSearch((searchInputRef.current as HTMLInputElement).value);
-	}, [visiblityFilter]);
 
 	const handleSearch = (term: string) => {
 		const searchTerm = term.toLowerCase();
@@ -46,6 +36,10 @@ const DirectMessages: React.FC<{
 				: null
 		);
 	};
+
+	useEffect(() => {
+		handleSearch((searchInputRef.current as HTMLInputElement).value);
+	}, [visiblityFilter]);
 
 	return (
 		<Fragment>

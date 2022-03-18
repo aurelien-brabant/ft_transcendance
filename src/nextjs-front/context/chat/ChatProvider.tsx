@@ -1,11 +1,11 @@
-import { useContext, useEffect, useState } from "react";
+import { useContext, useEffect, useRef, useState } from "react";
 import { BsFillChatDotsFill } from "react-icons/bs";
 import Chat from "../../components/Chat";
 import ChatGroupsView from "../../components/chat/Groups";
 import ChatGroupView, { GroupHeader } from "../../components/chat/Group";
 import ChatDirectMessagesView from "../../components/chat/DirectMessages";
 import ChatDirectMessageView, { DirectMessageHeader } from "../../components/chat/DirectMessage";
-import chatContext, { ChatGroup, ChatGroupPrivacy, ChatView, DirectMessage } from "./chatContext";
+import chatContext, { ChatGroup, ChatMessage, ChatGroupPrivacy, ChatView, DirectMessage } from "./chatContext";
 import Groupadd, { GroupaddHeader } from "../../components/chat/Groupadd";
 import PasswordProtection, { PasswordProtectionHeader } from "../../components/chat/PasswordProtection";
 import GroupUsers, { GroupUsersHeader } from "../../components/chat/GroupUsers";
@@ -92,25 +92,52 @@ const views: { [key: string]: ChatViewItem } = {
 };
 
 const ChatProvider: React.FC = ({ children }) => {
+	const { getUserData } = useContext(authContext) as AuthContextType;
+	const userId = getUserData().id;
 	const [isChatOpened, setIsChatOpened] = useState(false);
 	const [viewStack, setViewStack] = useState<ChatViewItem[]>([]);
 	const [chatGroups, setChatGroups] = useState<ChatGroup[]>([]);
 	const [directMessages, setDirectMessages] = useState<DirectMessage[]>([]);
-	const { getUserData } = useContext(authContext) as AuthContextType;
-	const userId = getUserData().id;
+	const [messages, setMessages] = useState<ChatMessage[]>([]);
+	const chatBottom = useRef<HTMLDivElement>(null);
 
 	const findUserById = (user: BaseUserData) => {
 		return user.id === userId;
 	}
 
-	const updateChatMessages = async (channels: any) => {
+	// const updateDirectMessages = async (channel: any, friend: any, message: string) => {
+	// 	setDirectMessages([
+	// 		...directMessages, {
+	// 			id: channel.id,
+	// 			username: friend.username,
+	// 			avatar: friend.pic,
+	// 			lastMessage: message,
+	// 		}
+	// 	]);
+	// }
+
+	// const updateChatGroups = async (channel: any, message: string, usersInChan: number) => {
+	// 	setChatGroups([
+	// 		...chatGroups, {
+	// 			id: channel.id,
+	// 			label: channel.name,
+	// 			lastMessage: message,
+	// 			privacy: channel.privacy as ChatGroupPrivacy,
+	// 			isAdmin: (channel.owner === userId),
+	// 			in: !!channel.users.find(findUserById),
+	// 			peopleCount: usersInChan
+	// 		}
+	// 	]);
+	// }
+
+	const updateChatOnMount = async (channels: any) => {
 		const groups: ChatGroup[] = [];
 		const dms: DirectMessage[] = [];
 
 		for (var i in channels) {
 			const channel = channels[i];
 			const usersInChan = channel.users.length;
-			const messagePreview = channel.messages[channel.messages.length - 1].content;
+			const message = channel.messages[channel.messages.length - 1].content;
 
 			if (usersInChan === 2) {
 				const friend = (channel.users[0].id === userId) ? channel.users[1] : channel.users[0];
@@ -118,13 +145,13 @@ const ChatProvider: React.FC = ({ children }) => {
 					id: channel.id,
 					username: friend.username,
 					avatar: friend.pic,
-					lastMessage: messagePreview,
+					lastMessage: message,
 				});
 			} else {
 				groups.push({
 					id: channel.id,
 					label: channel.name,
-					lastMessage: messagePreview,
+					lastMessage: message,
 					privacy: channel.privacy as ChatGroupPrivacy,
 					isAdmin: (channel.owner === userId),
 					in: !!channel.users.find(findUserById),
@@ -132,20 +159,29 @@ const ChatProvider: React.FC = ({ children }) => {
 				});
 			}
 		}
-		setDirectMessages(dms);
 		setChatGroups(groups);
+		setDirectMessages(dms);
+	}
+
+	const loadChannel = async (id: string) => {
+		const res = await fetch(`/api/channels/${id}`);
+		const data = await res.json();
+		return data;
 	}
 
 	useEffect(() => {
-		const fetchData = async () => {
+		const fetchUserChannels = async () => {
 			const res = await fetch(`/api/users/${userId}/joinedChannels`);
 			const data = await res.json();
 
-			updateChatMessages(JSON.parse(JSON.stringify(data)));
+			updateChatOnMount(JSON.parse(JSON.stringify(data)));
 		}
-		fetchData()
-		.catch(console.error);
+		fetchUserChannels().catch(console.error);
 	}, [])
+
+	useEffect(() => {
+		chatBottom.current?.scrollIntoView();
+	}, [messages]);
 
 	const openChat = () => {
 		setIsChatOpened(true);
@@ -199,7 +235,8 @@ const ChatProvider: React.FC = ({ children }) => {
 				setChatView,
 				closeRightmostView,
 				chatGroups,
-				directMessages
+				directMessages,
+				loadChannel
 			}}
 		>
 			{!isChatOpened ? (

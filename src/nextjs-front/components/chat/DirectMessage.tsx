@@ -10,7 +10,9 @@ import alertContext, { AlertContextType } from "../../context/alert/alertContext
 // import Tooltip from "../Tooltip";
 
 export const DirectMessageHeader: React.FC<{ viewParams: any }> = ({ viewParams }) => {
-	const { setChatView, openChatView, closeChat } = useContext(chatContext) as ChatContextType;
+	const { closeChat, openChatView, setChatView } = useContext(
+		chatContext
+	) as ChatContextType;
 
 	return (
 		<div className="flex items-center justify-between p-3 px-5">
@@ -31,20 +33,46 @@ export const DirectMessageHeader: React.FC<{ viewParams: any }> = ({ viewParams 
 const DirectMessage: React.FC<{ viewParams: { [key: string]: any } }> = ({
 	viewParams,
 }) => {
+	const { setAlert } = useContext(alertContext) as AlertContextType;
+	const { getUserData } = useContext(authContext) as AuthContextType;
+	const { loadChannel } = useContext(chatContext) as ChatContextType;
 	const [messages, setMessages] = useState<ChatMessage[]>([]);
 	const [currentMessage, setCurrentMessage] = useState('');
 	const chatBottom = useRef<HTMLDivElement>(null);
 	const dmId = viewParams.targetId;
-	const { getUserData } = useContext(authContext) as AuthContextType;
 	const userId = getUserData().id;
-	const username = getUserData().username;
-	const { setAlert } = useContext(alertContext) as AlertContextType;
+
+	const updateChatMessage = (message: any) => {
+		setMessages([
+			...messages, {
+				id: message.id,
+				author: message.author.username,
+				content: message.content,
+				isMe: (message.author.id === userId)
+			}
+		]);
+	}
+
+	const updateDmsOnMount = async () => {
+		const data = await loadChannel(dmId).catch(console.error);
+		const dms = JSON.parse(JSON.stringify(data)).messages;
+		const messages: ChatMessage[] = [];
+
+		for (var i in dms) {
+			messages.push({
+				id: dms[i].id,
+				author: dms[i].author.username,
+				content: dms[i].content,
+				isMe: (dms[i].author.id === userId),
+			});
+		}
+		setMessages(messages);
+	}
 
 	const handleDmSubmit = async () => {
 		if (currentMessage.length === 0) return;
 
-		const channelData = await (await fetch(`/api/channels/${dmId}`)).json(); // tmp
-
+		const channelData = await loadChannel(dmId).catch(console.error);
 		const res = await fetch("/api/messages", {
 			method: "POST",
 			headers: {
@@ -56,16 +84,10 @@ const DirectMessage: React.FC<{ viewParams: { [key: string]: any } }> = ({
 				channel: channelData
 			}),
 		});
+		const data = await res.json();
 
 		if (res.status === 201) {
-			setMessages([
-				...messages, {
-					id: userId,
-					author: username,
-					content: currentMessage,
-					isMe: true
-				}
-			]);
+			updateChatMessage(data);
 			setCurrentMessage('');
 			// TODO: update last message
 			return;
@@ -77,33 +99,9 @@ const DirectMessage: React.FC<{ viewParams: { [key: string]: any } }> = ({
 		}
 	};
 
-	const updateDmMessages = async (dmMessages: any) => {
-		const messages: ChatMessage[] = [];
-
-		for (var i in dmMessages) {
-			messages.push({
-				id: dmMessages[i].id,
-				author: dmMessages[i].author.username,
-				content: dmMessages[i].content,
-				isMe: (dmMessages[i].author.id === userId),
-			});
-		}
-		setMessages(messages);
-	}
-
 	useEffect(() => {
-		const fetchDms = async () => {
-			const res = await fetch(`/api/channels/${dmId}`);
-			const data = await res.json();
-
-			updateDmMessages(JSON.parse(JSON.stringify(data)).messages);
-		}
-		fetchDms().catch(console.error);
+		updateDmsOnMount();
 	}, []);
-
-	useEffect(() => {
-		chatBottom.current?.scrollIntoView();
-	}, [messages]);
 
 	return (
 	<div className="h-full">

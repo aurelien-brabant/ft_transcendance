@@ -9,7 +9,9 @@ import authContext, { AuthContextType } from "../../context/auth/authContext";
 import alertContext, { AlertContextType } from "../../context/alert/alertContext";
 
 export const GroupHeader: React.FC<{ viewParams: any }> = ({ viewParams }) => {
-	const { openChatView, closeChat, setChatView } = useContext(chatContext) as ChatContextType;
+	const { closeChat, openChatView, setChatView } = useContext(
+		chatContext
+	) as ChatContextType;
 
 	return (
 		<div className="flex items-center justify-between p-3 px-5">
@@ -33,20 +35,30 @@ export const GroupHeader: React.FC<{ viewParams: any }> = ({ viewParams }) => {
 const Group: React.FC<{ viewParams: { [key: string]: any } }> = ({
 	viewParams,
 }) => {
+	const { setAlert } = useContext(alertContext) as AlertContextType;
+	const { getUserData } = useContext(authContext) as AuthContextType;
+	const { loadChannel } = useContext(chatContext) as ChatContextType;
 	const [messages, setMessages] = useState<ChatMessage[]>([]);
 	const [currentMessage, setCurrentMessage] = useState("");
 	const chatBottom = useRef<HTMLDivElement>(null);
 	const channelId = viewParams.groupId;
-	const { getUserData } = useContext(authContext) as AuthContextType;
 	const userId = getUserData().id;
-	const username = getUserData().username;
-	const { setAlert } = useContext(alertContext) as AlertContextType;
+
+	const updateChatMessage = (message: any) => {
+		setMessages([
+			...messages, {
+				id: message.id,
+				author: message.author.username,
+				content: message.content,
+				isMe: (message.author.id === userId)
+			}
+		]);
+	}
 
 	const handleGroupMessageSubmit = async () => {
 		if (currentMessage.length === 0) return;
 
-		const channelData = await (await fetch(`/api/channels/${channelId}`)).json(); // tmp
-
+		const channelData = await loadChannel(channelId).catch(console.error);
 		const res = await fetch("/api/messages", {
 			method: "POST",
 			headers: {
@@ -58,16 +70,10 @@ const Group: React.FC<{ viewParams: { [key: string]: any } }> = ({
 				channel: channelData
 			}),
 		});
+		const data = await res.json();
 
 		if (res.status === 201) {
-			setMessages([
-				...messages, {
-					id: userId,
-					author: username,
-					content: currentMessage,
-					isMe: true
-				}
-			]);
+			updateChatMessage(data);
 			setCurrentMessage('');
 			// TODO: update last message
 			return;
@@ -79,28 +85,24 @@ const Group: React.FC<{ viewParams: { [key: string]: any } }> = ({
 		}
 	};
 
-	const updateChannelMessages = async (channelMessages: any) => {
+	const updateGroupOnMount = async () => {
+		const data = await loadChannel(channelId).catch(console.error);
+		const groupMessages = JSON.parse(JSON.stringify(data)).messages;
 		const messages: ChatMessage[] = [];
 
-		for (var i in channelMessages) {
+		for (var i in groupMessages) {
 			messages.push({
-				id: channelMessages[i].id,
-				author: channelMessages[i].author.username,
-				content: channelMessages[i].content,
-				isMe: (channelMessages[i].author.id === userId)
+				id: groupMessages[i].id,
+				author: groupMessages[i].author.username,
+				content: groupMessages[i].content,
+				isMe: (groupMessages[i].author.id === userId)
 			});
 		}
 		setMessages(messages);
 	}
 
 	useEffect(() => {
-		const fetchData = async () => {
-			const res = await fetch(`/api/channels/${channelId}`);
-			const data = await res.json();
-
-			updateChannelMessages(JSON.parse(JSON.stringify(data)).messages);
-		}
-		fetchData().catch(console.error);
+		updateGroupOnMount();
 	}, []);
 
 	useEffect(() => {
