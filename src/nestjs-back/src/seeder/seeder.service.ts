@@ -16,25 +16,26 @@ export class SeederService {
         private readonly messagesService: MessagesService
     ) {}
 
-    async createFakeUser(username: string) {
+    async createFakeUser(username: string, i: number) {
 
         let user = await this.usersService.create({
-            email: (faker.unique as any)(faker.internet.email),
-            password: faker.internet.password(),
-            games: [],
-            wins: 0,
-            losses: 0,
-            friends: [],
-            ownedChannels: [],
-            joinedChannels: [],
-            accountDeactivated: false
-        });
+        email: "test" + String(i) + "@gmail.com",
+        password: "test",
+        pic: null,
+        games: [],
+        wins: 0,
+        losses: 0,
+        friends: [],
+        ownedChannels: [],
+        joinedChannels: [],
+        accountDeactivated: false,
+});
         user = await this.usersService.update(user.id.toString(), {
             username: username,
             phone: faker.phone.phoneNumber(),
-            pic: faker.image.avatar(),
-            duoquadra_login: username + '_42',
+            duoquadra_login: (i % 2) ? null : username + "_42",
             wins: faker.datatype.number(),
+            blockedUsers: [],
             losses: faker.datatype.number()
         } as SeedUser);
         return user;
@@ -55,7 +56,7 @@ export class SeederService {
     async seedFakeUsers() {
         for (let i = 0; i <= 11; ++i) {
             let pseudo = faker.internet.userName();
-            const user = await this.createFakeUser(pseudo);
+            const user = await this.createFakeUser(pseudo, i);
 
             console.log('User [%s] => [%s] [%s] created', user.id, user.duoquadra_login, user.email);
         }
@@ -72,8 +73,8 @@ export class SeederService {
             });
             game = await this.gamesService.update(game.id.toString(), {
                 players: [winner, looser],
-                winnerId: i + 1,
-                looserId: i + 2,
+                winnerId: (i < 9) ? i + 1 : 1,
+                looserId: (i < 8) ? i + 2 : 2,
                 endedAt: String(Date.now() + i + 180),
                 winnerScore: faker.datatype.number(),
                 looserScore: faker.datatype.number(),
@@ -130,8 +131,13 @@ export class SeederService {
         }
     }
 
+<<<<<<< HEAD
     async seedFakeDMs() {
         const fakeOwner = await this.usersService.findOne('1');
+=======
+    async seedFakeChannels() {
+        const fakeOwner = await this.createFakeUser("fakeOwner", 12);
+>>>>>>> 5280e7cedcd50a85fd5b1d9d2ae2ac53628d308b
 
         for (let i = 2; i < 11; ++i) {
             const fakeFriend = await this.usersService.findOne(i.toString())

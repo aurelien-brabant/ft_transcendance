@@ -21,10 +21,13 @@ export class AuthService {
     const user = await this.usersService.findUserPassword(email);
 
     if (user && await comparePassword(password, user.password)) {
-      const { password, ...result } = user; // exclude password from result
-      return result;
-    }
 
+      const u = await this.usersService.findOneByEmail(email);
+      if (!u)
+        return null;
+        
+      return u;
+    }
     return null;
   };
 
@@ -35,7 +38,7 @@ export class AuthService {
       access_token: this.jwtService.sign(payload)
     };
   }
-
+  
   async loginDuoQuadra(apiCode: string): Promise<string | null> {
     const tokenEndpoint = 'https://api.intra.42.fr/oauth/token/';
     const formData = new FormData();
@@ -87,7 +90,10 @@ export class AuthService {
       console.log('Existing duoquadra', duoQuadraUser);
     }
 
-    return this.jwtService.sign({ sub: ''+duoQuadraUser.id });
+    return JSON.stringify({
+      id: duoQuadraUser.id,
+      access_token: this.jwtService.sign({ sub: ''+duoQuadraUser.id })
+    });
   }
 
   async getUserFromAuthToken(token: string) {

@@ -1,11 +1,12 @@
 import { PartialType } from '@nestjs/mapped-types';
 import {
+  IsBoolean,
   IsDecimal,
-  IsInt,
   IsOptional,
   IsPhoneNumber,
   IsString
 } from 'class-validator';
+import { User } from '../entities/users.entity';
 import { CreateUserDto } from './create-user.dto';
 
 export class UpdateUserDto extends PartialType(CreateUserDto) {
@@ -18,12 +19,8 @@ export class UpdateUserDto extends PartialType(CreateUserDto) {
     readonly phone: string;
 
     @IsOptional()
-    @IsString()
-    readonly tfa: string;
-
-    @IsOptional()
-    @IsString()
-    readonly pic: string;
+    @IsBoolean()
+    readonly tfa: boolean;
 
     @IsOptional()
     @IsString()
@@ -31,5 +28,12 @@ export class UpdateUserDto extends PartialType(CreateUserDto) {
 
     @IsOptional()
     @IsDecimal()
-    readonly ratio: number; 
+    readonly ratio: number;
+    
+    @IsOptional()
+    @IsString()
+    readonly tfaSecret: string;
+
+    @IsOptional()
+    readonly blockedUsers: User[];
 }

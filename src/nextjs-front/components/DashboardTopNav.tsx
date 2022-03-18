@@ -1,4 +1,4 @@
-import { useContext, Fragment, useState } from "react";
+import { useContext, Fragment, useState, useEffect } from "react";
 import Image from "next/image";
 import { FiSearch } from "react-icons/fi";
 import { GiHamburgerMenu } from "react-icons/gi";
@@ -9,6 +9,7 @@ import { dashboardNavItems } from "../constants/nav";
 import notificationsContext from "../context/notifications/notificationsContext";
 import authContext, {AuthContextType} from "../context/auth/authContext";
 import alertContext, {AlertContextType} from "../context/alert/alertContext";
+import { BsFillQuestionCircleFill } from "react-icons/bs";
 
 type SearchBarProps = {
 	className?: string;
@@ -150,12 +151,11 @@ const DashboardTopNav: React.FC<DashboardTopNavProps> = ({
 }) => {
 	const [hasNotificationsOpened, setHasNotificationsOpened] = useState(false);
 	const [isUserMenuOpened, setIsUserMenuOpened] = useState(false);
-	const { notifications, markAllAsRead } =
-		useContext(notificationsContext);
+	const { notifications, markAllAsRead } = useContext(notificationsContext);
   	const { getUserData, logout, clearUser } = useContext(authContext) as AuthContextType;
 	const { setAlert } = useContext(alertContext) as AlertContextType;
 	const router = useRouter();
-
+	
 	const handleLogout = async () => {
 		setAlert({type: 'success', content: 'Logged out'});
 		logout();

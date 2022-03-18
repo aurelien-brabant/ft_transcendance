@@ -18,6 +18,10 @@ export class CreateUserDto {
     readonly email: string;
 
     @IsOptional()
+    @IsString()
+    readonly pic: string;
+
+    @IsOptional()
     readonly games: Game[];
 
     @IsOptional()

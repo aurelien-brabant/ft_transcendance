@@ -44,7 +44,7 @@ const HistoryTable: React.FC<{ ranking: RankingList[] }> = ({
             <td className={`p-3 ${(String(index) === "0") ? "text-yellow-500 font-extrabold" :
                                 (String(index) === "1") ? "text-zinc-400 font-extrabold" : 
                                 (String(index) === "2") ? "text-orange-800 font-extrabold" : "text-white font-normal"}`}>
-              {index + 1}
+              {String(user.ratio) === "0" && !user.wins && !user.losses ? "-" : index + 1}
             </td>
             <td className="p-3 font-bold">
               <Link href={`/users/${user.id}`}>
@@ -134,11 +134,11 @@ const LeaderboardPage: NextPageWithLayout = ({}) => {
 
     for (var i in data) {
 
-      if (data[i].email.search("@student.42.") !== -1)
+      if (data[i].duoquadra_login)
           rank42 = [...rank42, {
             id: data[i].id,
             username: data[i].username,
-            avatar: !data[i].pic ? "" : data[i].pic.startsWith("https://") ? data[i].pic : `/api/users/${data[i].id}/photo`,
+            avatar: `/api/users/${data[i].id}/photo`,
             losses: data[i].losses,
             wins: data[i].wins,
             accountDeactivated: data[i].accountDeactivated,
@@ -148,7 +148,7 @@ const LeaderboardPage: NextPageWithLayout = ({}) => {
       rank = [...rank, {
           id: data[i].id,
           username: data[i].username,
-          avatar: !data[i].pic ? "" : data[i].pic.startsWith("https://") ? data[i].pic : `/api/users/${data[i].id}/photo`,
+          avatar: `/api/users/${data[i].id}/photo`,
           losses: data[i].losses,
           wins: data[i].wins,
           accountDeactivated: data[i].accountDeactivated,

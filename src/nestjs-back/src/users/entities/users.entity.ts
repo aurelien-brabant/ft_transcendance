@@ -3,13 +3,12 @@ import {
     Entity,
     JoinTable,
     ManyToMany,
+    ManyToOne,
     OneToMany,
     PrimaryGeneratedColumn
 } from "typeorm";
 import { Channel } from 'src/chat/channels/entities/channels.entity';
 import { Game } from "src/games/entities/games.entity";
-import { IsOptional } from "class-validator";
-//import { GamesInvite } from "src/gamesInvites/entities/gamesInvites.entity";
 
 @Entity()
 export class User {
@@ -28,8 +27,8 @@ export class User {
     @Column({ nullable: true })
     phone: string;
 
-    @Column({ nullable: true })
-    tfa: string;
+    @Column({ default: false })
+    tfa: boolean;
 
     @Column({ nullable: true })
     pic: string;
@@ -54,29 +53,24 @@ export class User {
     @JoinTable()
     friends: User[];
 
-/*    @JoinTable()
-    @ManyToMany(
-        type => GamesInvite,
-        (invite) => invite.sender,
-    )
-    gamesInviteSender: GamesInvite[];
-
-    @JoinTable()
-    @ManyToMany(
-        type => GamesInvite,
-        (invite) => invite.receiver,
-    )
-    gamesInviteReceiver: GamesInvite[];
-    */
-
     @OneToMany(() => Channel, channel => channel.owner, {
         cascade: true,
     })
     ownedChannels: Channel[];
+
+    @OneToMany(() => User, blockedUser => blockedUser.user)
+    blockedUsers: User[];
+    
+    @ManyToOne(() => User, user => user.blockedUsers)
+    user: User;
 
     @ManyToMany(() => Channel, joinedChannels => joinedChannels.users)
     joinedChannels: Channel[];
 
     @Column({default: false})
     accountDeactivated: boolean;
+
+    @Column({ nullable: true })
+    tfaSecret: string;  
 }
+

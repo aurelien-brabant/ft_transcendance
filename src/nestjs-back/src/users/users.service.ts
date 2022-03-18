@@ -11,6 +11,8 @@ import { PaginationQueryDto } from 'src/common/dto/pagination-query.dto';
 import { downloadResource } from 'src/utils/download';
 import { join } from 'path';
 import { faker } from '@faker-js/faker';
+import { authenticator } from 'otplib';
+import { toFileStream } from 'qrcode';
 
 @Injectable()
 export class UsersService {
@@ -42,10 +44,10 @@ export class UsersService {
         return user;
     }
 
-   /* async findOneByEmail(email: string): Promise<User> | null {
+    async findOneByEmail(email: string): Promise<User> | null {
         const user = await this.usersRepository.findOne({ email });
         return user;
-    }*/
+    }
 
     async findOneByDuoQuadraLogin(login: string): Promise<User> | null {
         return this.usersRepository.findOne({
@@ -139,20 +141,21 @@ export class UsersService {
         // repeats until the username is unique at this point in time
         do {
             username = prefixWithRandomAdjective(baseUsername, 50);
-            u = await this.usersRepository.findOne({ username });
+            u = await this.usersRepository.findOne({ username: username });
         } while (u);
 
         // hash the password with bcrypt using 10 salt rounds
         const hashedPwd = await hashPassword(createUserDto.password, 10);
 
-        const randomPic = faker.image.nature();
+        const imageLoc= join('/upload', 'avatars', username);
 
-        await downloadResource(randomPic, join('/upload', 'avatars', username));
+        await downloadResource(faker.image.nature(), imageLoc);
 
         const user = this.usersRepository.create({
             ...createUserDto,
             username,
             password: hashedPwd,
+            pic: username
         });
 
         return this.usersRepository.save(user);
@@ -205,5 +208,71 @@ export class UsersService {
                 rank = String(i + 1);
         }
         return rank;
+    }
+
+    async setTfaSecret(secret: string, id: string) {
+        return this.usersRepository.update(id, {
+          tfaSecret: secret
+        });
+    }
+
+    async enableTfa(id: string) {
+        return this.usersRepository.update(id, {
+          tfa: true
+        });
+    }
+
+    async generateTfaSecret(user: User) {
+        const secret = authenticator.generateSecret();
+        const tfaAppName = "ft_transcendance";
+     
+        const otpauthUrl = authenticator.keyuri(user.email, tfaAppName, secret);
+     
+        await this.setTfaSecret(secret, String(user.id));
+     
+        return {
+          secret,
+          otpauthUrl
+        }
+      }
+    
+    async pipeQrCodeStream(stream: any, otpauthUrl: string) {
+        return toFileStream(stream, otpauthUrl);
+    }
+    
+    async isTfaCodeValid(tfaCode: string, user: User) {
+
+        return authenticator.verify({
+          token: tfaCode,
+          secret: user.tfaSecret
+        })
+    }
+
+    async uploadAvatar(id: string, filename: string) {
+        await this.usersRepository.update(id, {
+            pic: filename
+        });
+
+        return {upload: "success"};
+    }
+
+    async getRandomAvatar(id: string) {
+        let user = await this.usersRepository.findOne(id);
+
+        const imageLoc= join('/upload', 'avatars', user.pic);
+
+        await downloadResource(faker.image.nature(), imageLoc);
+
+        return {upload: "success"};
+    }
+
+    async getAvatar42(id: string) {
+        let user = await this.usersRepository.findOne(id);
+
+        const imageLoc= join('/upload', 'avatars', user.pic);
+
+        await downloadResource(`https://cdn.intra.42.fr/users/${user.duoquadra_login}.jpg`, imageLoc);
+
+        return {upload: "success"};
     }
 }
