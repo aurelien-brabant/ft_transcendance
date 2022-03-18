@@ -29,7 +29,7 @@ export class SeederService {
         ownedChannels: [],
         joinedChannels: [],
         accountDeactivated: false,
-});
+        });
         user = await this.usersService.update(user.id.toString(), {
             username: username,
             phone: faker.phone.phoneNumber(),
@@ -66,7 +66,7 @@ export class SeederService {
 
         for (let i = 0; i < 10; ++i) {
             const winner = await this.usersService.findOne(String(i + 1));
-            const looser = await this.usersService.findOne(String(i + 2));    
+            const looser = await this.usersService.findOne(String(i + 2));
 
             let game = await this.gamesService.create({
                 createdAt: String(Date.now() + i),
@@ -109,8 +109,8 @@ export class SeederService {
 
     async seedFakeGroups() {
         const fakeOwner = await this.usersService.findOne('1');
-        const randomUser = await this.usersService.findOne('2');
-        const fakeFriend = await this.createFakeUser('fakeFriend');
+        const fakeFriend = await this.usersService.findOne('2');
+        const randomUser = await this.usersService.findOne('3');
 
         for (let i = 0; i < 10; ++i) {
             let channel = await this.channelsService.create({
@@ -131,13 +131,8 @@ export class SeederService {
         }
     }
 
-<<<<<<< HEAD
     async seedFakeDMs() {
         const fakeOwner = await this.usersService.findOne('1');
-=======
-    async seedFakeChannels() {
-        const fakeOwner = await this.createFakeUser("fakeOwner", 12);
->>>>>>> 5280e7cedcd50a85fd5b1d9d2ae2ac53628d308b
 
         for (let i = 2; i < 11; ++i) {
             const fakeFriend = await this.usersService.findOne(i.toString())
