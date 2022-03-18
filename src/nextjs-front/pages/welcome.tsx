@@ -408,10 +408,10 @@ const Welcome: NextPageWithLayout = () => {
         <Fragment>
         <div className="flex flex-col items-center gap-y-4">
           <div className="relative w-48 h-48">
-            <img
+           <img
               className="object-cover object-center w-full h-full rounded drop-shadow-md"
               src={`/api/users/${getUserData().id}/photo`}
-            />
+            /> 
 
             {pendingPic ?
             <div className="absolute p-2 bg-white border-2 border-gray-900 rounded-full -top-4 -right-4">

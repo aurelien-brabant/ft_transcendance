@@ -46,7 +46,7 @@ const Table: React.FC<{ list: List[], type: string }> = ({
 
 
   return (
-    <ul className="place-items-stretch grid grid-cols-3 gap-10 text-center pt-10 pb-10">
+    <ul className="place-items-stretch grid md:grid grid-cols-2 md:grid-cols-3 gap-10 text-center pt-10 pb-10">
       <ResponsiveFade 
         useMediaQueryArg={{ query: "(min-width: 1280px)" }}
         cascade triggerOnce duration={500}
@@ -56,11 +56,11 @@ const Table: React.FC<{ list: List[], type: string }> = ({
           className="text-pink-600 justity-items-center p-5 bg-gray-800/70 border border-pink-600 rounded  hover:border-white hover:bg-pink-700 hover:text-inherit md:transition md:transform md:ease-in md:duration-500 md:hover:-translate-y-2"
           key={id}
         >
-          <p className="pb-5 place-content-evenly text-ellipsis overflow-hidden cursor-pointer font-bold">
+          <p className="pb-0 md:pb-5 place-content-evenly text-ellipsis overflow-hidden cursor-pointer font-bold">
             {username}
           </p>
         
-          <div className="absolute left-0 right-0 flex items-center justify-center -bottom-4 gap-x-2">
+          <div className="relative md:absolute left-0 right-0 flex items-center justify-center -bottom-4 gap-x-2">
           {(type === 'suggested' || type === 'blocked')  &&
             <Tooltip className='font-bold bg-gray-900 text-neutral-200' content="Add as friend">
               <button className="p-2 text-2xl text-gray-900 bg-white rounded-full transition hover:scale-105">
@@ -93,12 +93,14 @@ const Table: React.FC<{ list: List[], type: string }> = ({
 
           <Link href={`/users/${id}`}>
             <a>
-              <img
-		  	        className="justify-content-center cursor-pointer"
+              <div>
+                <img
+		  	        className="justify-content-center"
 	  		        src={`/api/users/${id}/photo`}
   	        		height="100%"
 	  	  	      width="100%"
               />
+            </div>
             </a>
           </Link>
         </li>
