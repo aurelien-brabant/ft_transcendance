@@ -44,16 +44,13 @@ const Table: React.FC<{ type: string, list: List[], setList: any, suggested: Lis
     });
 
     if (req.ok && req2.ok) {
-      const reqData = await fetch (`/api/users/${id}`)
-      const data = await reqData.json();
-      //setList([...list, data]);
-      const removed = list.filter(
+      const removed = friends.filter(
         item => item.id < id
       );
       setSuggested(removed);
       setAlert({ type: 'info', content: `Friend request sent to ${username}` });
-    //  setFriendsLen(friendsLen + 1);
-      //setSuggestedLen(suggestedLen - 1);
+      setFriendsLen(friendsLen + 1);
+      setSuggestedLen(suggestedLen - 1);
      // router.reload();
     }
     else
@@ -61,7 +58,6 @@ const Table: React.FC<{ type: string, list: List[], setList: any, suggested: Lis
   }
   
   const blockUser = async (id: string, username: string) => {
-    console.log('block user ID', id);
     const req = await fetch (`/api/users/${getUserData().id}`, {
       method: "PATCH",
       headers: {
@@ -82,8 +78,6 @@ const Table: React.FC<{ type: string, list: List[], setList: any, suggested: Lis
   }
   
   const removeRelation = async (id: string, username:string, action: string) => {
-    console.log('update relation ID', id, action);
-
     const req = await fetch (`/api/users/${getUserData().id}/${id}/${action}`, {
       method: "DELETE",
       headers: {
@@ -93,20 +87,20 @@ const Table: React.FC<{ type: string, list: List[], setList: any, suggested: Lis
     if (req.ok) {
       let updated: List[];
       updated = (action === 'unblock') ? blockedUsers.filter(
-        item => item.id < id
-      ) : blockedUsers.filter(
-        item => item.id < id
+        item => item.id !== id
+      ) : friends.filter(
+        item => item.id !== id
       );
       (action === 'friend') ? setFriends(updated) : setBlockedUsers(updated);
-      setAlert({ type: 'success', content: `${action === 'friend' ? `Friendship with {username} destroyed` : `User ${username} unblocked successfully`}` });
+      setAlert({ type: 'success', content: `${action === 'friend' ? `Friendship with ${username} destroyed` : `User ${username} unblocked successfully`}` });
       (action === 'unblock') && setBlockedLen(blockedLen - 1);
       (action === 'friend') && setFriendsLen(friendsLen - 1);
     }
     else
-      setAlert({ type: 'error', content: `${action === 'friend' ? `Error while killing friendship with {username}` : `Error while unblocking ${username}`}` });
+      setAlert({ type: 'error', content: `${action === 'friend' ? `Error while killing friendship with ${username}` : `Error while unblocking ${username}`}` });
 
-    const res = await req.json();
-    console.log(res);
+ //   const res = await req.json();
+   // console.log(res);
   }
 
 
@@ -150,7 +144,7 @@ const Table: React.FC<{ type: string, list: List[], setList: any, suggested: Lis
           {(type === 'friends' || type === 'friends42') &&
           <Tooltip className='font-bold bg-gray-900 text-neutral-200' content="Remove friendship">
               <button className="p-2 text-2xl text-gray-900 bg-white rounded-full transition hover:scale-105">
-                <AiOutlineUserDelete onClick={() => {if (confirm(`Destroy friendship with ${username}?\n\nYou can add as a friend again later...`) == true) removeRelation(id, username, 'friend')}} />
+                <AiOutlineUserDelete onClick={() => {removeRelation(id, username, 'friend')}} />
               </button>
             </Tooltip>
           }
