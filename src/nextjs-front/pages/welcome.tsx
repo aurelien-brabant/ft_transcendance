@@ -295,7 +295,7 @@ const Welcome: NextPageWithLayout = () => {
             </h1>
             {content}
           </div>
-          <div className="flex justify-center m-5">
+          <div className="flex justify-center p-5">
             <MdOutlineArrowBackIos className="font-bold text-2xl text-pink-600 hover:animate-bounceBack hover:cursor-pointer" onClick={() => {setPendingQR(false)}}/>
           </div>  
         </div>
@@ -432,32 +432,28 @@ const Welcome: NextPageWithLayout = () => {
               </div>
             </div>
             :
-            <Fragment>
-            <div className="absolute p-2 bg-white border-2 border-gray-900 rounded-full -top-4 -left-4">
-              <div className="absolute left-0 right-0 flex items-center justify-center -bottom-4 gap-x-2">
+            <div>
+              <div className="absolute flex -top-4 -left-4">
                 <Tooltip className="font-bold bg-gray-900 text-neutral-200" content="Random avatar">
                   <button className="p-2 text-xl text-gray-900 bg-white rounded-full transition hover:scale-105">
                     <MdCameraswitch
-                      className="text-gray-900"
+                      className="text-gray-900 hover:text-pink-600"
                       onClick={() => {getRandomPic()}}
                     />
                   </button>
                 </Tooltip>
               </div>
-            </div>
-            <div className="absolute p-2 bg-white border-2 border-gray-900 rounded-full -top-4 -right-4">
-              <div className="absolute left-0 right-0 flex items-center justify-center -bottom-4 gap-x-2">
+              <div className="absolute flex -top-4 -right-4">
                 <Tooltip className="font-bold bg-gray-900 text-neutral-200" content="Upload avatar">
                   <button className="p-2 text-xl text-gray-900 bg-white rounded-full transition hover:scale-105">
                     <FiEdit2
-                      className="text-gray-900"
+                      className="text-gray-900 hover:text-pink-600"
                       onClick={() => {setPendingPic(true)}}
                     />
                   </button>
                 </Tooltip>
               </div>
             </div>
-            </Fragment>
             }
           </div>
 
@@ -465,7 +461,9 @@ const Welcome: NextPageWithLayout = () => {
           <UploadPic />
           :
           <div className="text-center">
-          <h2 className="text-xl font-bold text-pink-600">{getUserData().username}</h2>
+            <h2 className="text-xl font-bold text-pink-600">
+              {getUserData().username}
+            </h2>
             <Link href={`/users/${getUserData().id}`}>
               <a className="block py-1 text-sm uppercase text-neutral-200 hover:underline">
                 See public profile

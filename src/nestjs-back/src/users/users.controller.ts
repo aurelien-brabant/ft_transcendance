@@ -80,6 +80,14 @@ export class UsersController {
         return this.usersService.remove(id);
     }
   
+    @Delete(':id/:user/:action')
+    removeFriend(
+        @Param('id') id: string,
+        @Param('user') userToUpdate: string,
+        @Param('action') action: string) {
+            return this.usersService.removeRelation(id, userToUpdate, action);
+    }
+  
     @Get(':id/randomAvatar')
     async getRandomAvatar(@Param('id') id: string) {
         return this.usersService.getRandomAvatar(id);        

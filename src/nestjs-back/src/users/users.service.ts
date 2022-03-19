@@ -302,4 +302,38 @@ export class UsersService {
 
         return {upload: "success"};
     }
+
+    async removeRelation(id: string, userToUpdate: string, action: string) {
+        let user = await this.findOne(id);
+        if (!user)
+            throw new NotFoundException(`Cannot update user[${id}]: Not found`);
+
+        let oldList: any;
+        if (action === 'friend')
+            oldList = user.friends;
+        else if (action === 'unblock')
+            oldList = user.blockedUsers;
+
+        let updated = [];
+        for (let i in oldList) {
+            if (String(oldList[i].id) !== userToUpdate)
+                updated.push({id: oldList[i].id})
+        }
+        if (updated.length !== oldList.length && action === 'friend') {
+            console.log('ICI');
+            user = await this.usersRepository.preload({
+                id: +id,
+                friends: updated
+            });
+        }
+        else if (updated.length !== oldList.length && action === 'unblock') {
+            console.log('LA');
+            user = await this.usersRepository.preload({
+                id: +id,
+                blockedUsers: updated
+            });
+        }
+
+        return this.usersRepository.save(user);
+    }
 }

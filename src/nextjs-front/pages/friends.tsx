@@ -13,29 +13,21 @@ import { RiUserHeartLine, RiUserSettingsLine } from "react-icons/ri";
 import { useRouter } from "next/router";
 import { AiOutlineUserAdd, AiOutlineUserDelete } from "react-icons/ai";
 import Link from "next/link";
+import alertContext, { AlertContextType } from "../context/alert/alertContext";
 
 export type List = {
   id: string;
   username: string;
-  avatar: string;
-  losses: number,
-  wins: number,
-  accountDeactivated: boolean,
-  ratio: number,
 };
 
-const Table: React.FC<{ list: List[], type: string }> = ({
-  list, type
+const Table: React.FC<{ type: string, list: List[], setList: any, suggested: List[], setSuggested: any, friendsLen: number, setFriendsLen: any, suggestedLen: number, setSuggestedLen: any, blockedLen: number, setBlockedLen: any, blockedUsers: List[], setBlockedUsers: any, friends: List[], setFriends: any }> = ({
+  type, list, setList, suggested, setSuggested, friendsLen, setFriendsLen, suggestedLen, setSuggestedLen, blockedLen, setBlockedLen, blockedUsers, setBlockedUsers, friends, setFriends
 }) => {
 
+  const { setAlert } = useContext(alertContext) as AlertContextType;
   const { getUserData } = useContext(authContext) as AuthContextType;
-    
-  const removeFriend = (id: string) => {
-    console.log('remove friend ID', id);
-  }
-
-  const requestFriend = async (id: string) => {
-    console.log('request friend ID', id);
+  
+  const requestFriend = async (id: string, username: string) => {
     const req = await fetch (`/api/users/${getUserData().id}`, {
       method: "PATCH",
       headers: {
@@ -43,11 +35,32 @@ const Table: React.FC<{ list: List[], type: string }> = ({
       },
       body: JSON.stringify({friends: [{"id": id}]}),
     });
-    const res = await req.json();
-    console.log(res);
-  }
+    const req2 = await fetch (`/api/users/${id}`, {
+      method: "PATCH",
+      headers: {
+          "Content-Type": "application/json",
+      },
+      body: JSON.stringify({friends: [{"id": getUserData().id}]}),
+    });
 
-  const blockUser = async (id: string) => {
+    if (req.ok && req2.ok) {
+      const reqData = await fetch (`/api/users/${id}`)
+      const data = await reqData.json();
+      //setList([...list, data]);
+      const removed = list.filter(
+        item => item.id < id
+      );
+      setSuggested(removed);
+      setAlert({ type: 'info', content: `Friend request sent to ${username}` });
+    //  setFriendsLen(friendsLen + 1);
+      //setSuggestedLen(suggestedLen - 1);
+     // router.reload();
+    }
+    else
+      setAlert({ type: 'error', content: `Error while sending friend request to ${username}` });
+  }
+  
+  const blockUser = async (id: string, username: string) => {
     console.log('block user ID', id);
     const req = await fetch (`/api/users/${getUserData().id}`, {
       method: "PATCH",
@@ -56,12 +69,44 @@ const Table: React.FC<{ list: List[], type: string }> = ({
       },
       body: JSON.stringify({blockedUsers: [{"id": id}]}),
     });
+    if (req.ok) {
+      setBlockedUsers([...blockedUsers, {"id": id, "username": username}]);
+      setAlert({ type: 'success', content: `User ${username} blocked` });
+      setBlockedLen(blockedLen + 1);
+    }
+    else
+      setAlert({ type: 'error', content: `Error while blocking ${username}` });
+
     const res = await req.json();
     console.log(res);
   }
+  
+  const removeRelation = async (id: string, username:string, action: string) => {
+    console.log('update relation ID', id, action);
 
-  const unblockUser = (id: string) => {
-    console.log('unblock user ID', id);
+    const req = await fetch (`/api/users/${getUserData().id}/${id}/${action}`, {
+      method: "DELETE",
+      headers: {
+          "Content-Type": "application/json",
+      },
+    });
+    if (req.ok) {
+      let updated: List[];
+      updated = (action === 'unblock') ? blockedUsers.filter(
+        item => item.id < id
+      ) : blockedUsers.filter(
+        item => item.id < id
+      );
+      (action === 'friend') ? setFriends(updated) : setBlockedUsers(updated);
+      setAlert({ type: 'success', content: `${action === 'friend' ? `Friendship with {username} destroyed` : `User ${username} unblocked successfully`}` });
+      (action === 'unblock') && setBlockedLen(blockedLen - 1);
+      (action === 'friend') && setFriendsLen(friendsLen - 1);
+    }
+    else
+      setAlert({ type: 'error', content: `${action === 'friend' ? `Error while killing friendship with {username}` : `Error while unblocking ${username}`}` });
+
+    const res = await req.json();
+    console.log(res);
   }
 
 
@@ -84,7 +129,7 @@ const Table: React.FC<{ list: List[], type: string }> = ({
           {(type === 'suggested' || type === 'blocked')  &&
             <Tooltip className='font-bold bg-gray-900 text-neutral-200' content="Add as friend">
               <button className="p-2 text-2xl text-gray-900 bg-white rounded-full transition hover:scale-105">
-                <AiOutlineUserAdd onClick={() => {requestFriend(id)}} />
+                <AiOutlineUserAdd onClick={() => {requestFriend(id, username)}} />
               </button>
             </Tooltip>
           }
@@ -92,20 +137,20 @@ const Table: React.FC<{ list: List[], type: string }> = ({
           {(type !== 'blocked') &&
             <Tooltip className='font-bold bg-gray-900 text-neutral-200' content="Block user">
               <button className="p-2 text-2xl text-gray-900 bg-white rounded-full transition hover:scale-105">
-                <FaUserSlash onClick={() => {blockUser(id)}} />
+                <FaUserSlash onClick={() => {blockUser(id, username)}} />
               </button>
             </Tooltip>
           }
           {(type === 'blocked') && <Tooltip className='font-bold bg-gray-900 text-neutral-200' content="Unblock user">
               <button className="p-2 text-2xl text-gray-900 bg-white rounded-full transition hover:scale-105">
-                <RiUserHeartLine onClick={() => {unblockUser(id)}} />
+                <RiUserHeartLine onClick={() => {removeRelation(id, username, 'unblock')}} />
               </button>
             </Tooltip>
           }
           {(type === 'friends' || type === 'friends42') &&
-          <Tooltip className='font-bold bg-gray-900 text-neutral-200' content="Unblock user">
+          <Tooltip className='font-bold bg-gray-900 text-neutral-200' content="Remove friendship">
               <button className="p-2 text-2xl text-gray-900 bg-white rounded-full transition hover:scale-105">
-                <AiOutlineUserDelete onClick={() => {removeFriend(id)}} />
+                <AiOutlineUserDelete onClick={() => {if (confirm(`Destroy friendship with ${username}?\n\nYou can add as a friend again later...`) == true) removeRelation(id, username, 'friend')}} />
               </button>
             </Tooltip>
           }
@@ -183,10 +228,14 @@ const FriendsPage: NextPageWithLayout = ({}) => {
   const [friendsLen, setFriendsLen] = useState(0);
   const [friends42Len, setFriends42Len] = useState(0);
   const [blockedLen, setBlockedLen] = useState(0);
+  const [suggestedLen, setSuggestedLen] = useState(0);
   const [isLoading, setIsLoading] = useState(true);
   const [selected, setSelected] = useState(0);
   const { getUserData } = useContext(authContext) as AuthContextType;
   const router = useRouter();
+
+//  let baseFriends: any;
+  //let baseSuggested: any;
 
   const createLists = (data: any) => {
 
@@ -209,12 +258,13 @@ const FriendsPage: NextPageWithLayout = ({}) => {
 
     for (var i in data) {
       if (data[i].id !== getUserData().id) {
-        for (var j in blocked) {
+        suggested = [...suggested, data[i]]
+/*        for (var j in blocked) {
           if (blocked[j].id !== data[i].id) {
             suggested = [...suggested, data[i]];
           }
         }
-      }
+      */    }
     }
 
     const filtered = suggested.filter(function(ele , pos){
@@ -222,16 +272,28 @@ const FriendsPage: NextPageWithLayout = ({}) => {
     })
     
     setFriends(friends);
+    // = friends;
+    //baseSuggested = suggested;
     setFriends42(friends42);
     setBlockedUsers(blocked);
-    setSuggested(filtered);
+    setSuggested(suggested);
 
     friends.length && setFriendsLen(friends.length);
     friends42.length && setFriends42Len(friends42.length);
     blocked.length && setBlockedLen(blocked.length);
+    suggested.length && setSuggestedLen(suggested.length);
 
     setIsLoading(false);
   }
+
+//  const friendsChanged = useMemo(
+  //  () => JSON.stringify(friends) !== JSON.stringify(baseFriends),
+    //[friendsLen]
+  //);
+ // const suggestedChanged = useMemo(
+   // () => JSON.stringify(suggested) !== JSON.stringify(baseSuggested),
+    //[suggestedLen]
+  //);
 
   useEffect(() => {
     const fetchData = async () => {
@@ -244,8 +306,10 @@ const FriendsPage: NextPageWithLayout = ({}) => {
   
     fetchData()
     .catch(console.error);
-  }, [])
+  }, [selected])
 
+  console.log('suggested', suggested);
+  
   return (
     <div className="min-h-screen overflow-x-auto text-white bg-fixed bg-center bg-fill grow" style={{
       backgroundImage: "url('/triangles.png')"
@@ -293,20 +357,20 @@ const FriendsPage: NextPageWithLayout = ({}) => {
             items={[
               {
                 label: "Friends",
-                component: <Table list={friends} type={'friends'}/>,
+                component: <Table type={'friends'} list={friends} setList={setFriends} suggested={suggested} setSuggested={setSuggested} friendsLen={friendsLen} setFriendsLen={setFriendsLen} suggestedLen={suggestedLen} setSuggestedLen={setSuggestedLen} blockedLen={blockedLen} setBlockedLen={setBlockedLen} blockedUsers={blockedUsers} setBlockedUsers={setBlockedUsers} friends={friends} setFriends={setFriends}/>,
               },
               {
                 label: "Friends @42",
-                component: <Table list={friends42} type={'friends42'}/>,
+                component: <Table type={'friends42'} list={friends42} setList={setFriends42} suggested={suggested} setSuggested={setSuggested} friendsLen={friendsLen} setFriendsLen={setFriendsLen} suggestedLen={suggestedLen} setSuggestedLen={setSuggestedLen} blockedLen={blockedLen} setBlockedLen={setBlockedLen} blockedUsers={blockedUsers} setBlockedUsers={setBlockedUsers} friends={friends} setFriends={setFriends}/>,
               },
               {
                 label: "Blocked Users",
-                component:  <Table list={blockedUsers} type={'blocked'}/>,
+                component: <Table type={'blocked'} list={blockedUsers} setList={setBlockedUsers} suggested={suggested} setSuggested={setSuggested} friendsLen={friendsLen} setFriendsLen={setFriendsLen} suggestedLen={suggestedLen} setSuggestedLen={setSuggestedLen} blockedLen={blockedLen} setBlockedLen={setBlockedLen} blockedUsers={blockedUsers} setBlockedUsers={setBlockedUsers} friends={friends} setFriends={setFriends}/>,
               },
               {
                 label: "Suggested Friends",
-                component:  <Table list={suggested} type={'suggested'}/>,
-              }
+                component: <Table type={'suggested'} list={suggested} setList={setSuggested} suggested={suggested} setSuggested={setSuggested} friendsLen={friendsLen} setFriendsLen={setFriendsLen} suggestedLen={suggestedLen} setSuggestedLen={setSuggestedLen} blockedLen={blockedLen} setBlockedLen={setBlockedLen} blockedUsers={blockedUsers} setBlockedUsers={setBlockedUsers} friends={friends} setFriends={setFriends}/>,
+              },
             ]} />
         </div>
       </div>
