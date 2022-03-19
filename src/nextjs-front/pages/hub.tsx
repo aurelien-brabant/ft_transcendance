@@ -5,9 +5,12 @@ import withDashboardLayout from "../components/hoc/withDashboardLayout";
 import Canvas from "../components/Canvas";
 import { IRoom, User } from "../gameObjects/GameObject";
 import alertContext, { AlertContextType } from "../context/alert/alertContext";
-import { NextPageWithLayout } from "./_app";
 import { useSession } from "../hooks/use-session";
+import { NextPageWithLayout } from "./_app";
 // import socketContext, { SocketContextType } from "../context/socket/socketContext";
+import { Feature, features } from "../constants/feature";
+import ResponsiveFade from "../components/ResponsiveFade";
+import Link from "next/link";
 
 let socket: Socket;
 
@@ -88,6 +91,56 @@ const Hub: NextPageWithLayout = () => {
 		}
   }, []);
 
+
+  const lastGames = async () => {
+
+    const req = await fetch(`/api/games`, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json'
+        },
+//        body: JSON.stringify({accountDeactivated: false})
+      });
+      const res = await req.json();
+      console.log('req', req);
+      console.log('res', res)
+  }
+
+  const FeatureItem: React.FC<Feature> = ({ label, description, Icon }) => (
+	<div className="flex flex-col items-center justify-between h-full text-xl text-center text-neutral-200 gap-y-8">
+	  <div className="flex flex-col items-center gap-8">
+		<div className="flex items-center justify-center p-5 text-white bg-pink-600 rounded-full drop-shadow-md">
+		  <Icon className="text-6xl fill-white" />
+		</div>
+		<ResponsiveFade
+		  useMediaQueryArg={{ query: "(min-width: 1280px)" }}
+		  direction="down"
+		  duration={800}
+		>
+		  <h3 className="text-3xl font-bold text-white">{label}</h3>
+		</ResponsiveFade>
+	  </div>
+	  <ResponsiveFade useMediaQueryArg={{ query: "(min-width: 1280px)" }}>
+		<p>{description}</p>
+	  </ResponsiveFade>
+	</div>
+  );
+
+
+//     const competitors = async () => {
+
+//     const req = await fetch(`/api/users`, {
+//         method: 'POST',
+//         headers: {
+//           'Content-Type': 'application/json'
+//         },
+//       });
+//       const res = await req.json();
+// 	  console.log('req', req);
+//       console.log('res', res)
+//   }
+  
+
 	return (
 		<Fragment>
 			<Head>
@@ -97,6 +150,7 @@ const Hub: NextPageWithLayout = () => {
 					content="This is the Hub"
 				/>
 			</Head>
+			
 			{
 				displayGame ?
 						<Canvas socketProps={socket} roomProps={room}></Canvas>
@@ -104,6 +158,21 @@ const Hub: NextPageWithLayout = () => {
 				(
 					<>
 						<h1>Hello World!</h1>
+						<section id="features" className="bg-gray-900">
+							<div className="flex flex-col items-center py-16 md:mx-auto md:container gap-y-8">
+								<div className="relative grid md:grid-cols-3 gap-16">
+								<div className="absolute hidden h-1 bg-white rounded left-48 right-48 top-12 lg:block" />
+								{/* {features.map((feature) => (
+									<FeatureItem key={feature.label} {...feature} />
+								))} */}
+								</div>
+								<Link href="/">
+								<a className="px-10 py-2 mx-auto mt-4 text-xl font-bold uppercase bg-pink-600 drop-shadow-md text-bold text-neutral-200">
+									Enter the fight
+								</a>
+								</Link>
+							</div>
+						</section>
 						{
 						inQueue ?
 							<button onClick={leaveQueue} className="px-6 py-2 text-xl uppercase bg-grey-600 drop-shadow-md text-bold text-neutral-200">Cancel</button>
@@ -115,13 +184,14 @@ const Hub: NextPageWithLayout = () => {
 						</button>
 					</>
 				)
-
 			}
-
+			
 
 		</Fragment>
+		
 	);
 }
+
 
 Hub.getLayout = withDashboardLayout;
 Hub.authConfig = true;
