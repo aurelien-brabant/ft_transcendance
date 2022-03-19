@@ -333,6 +333,8 @@ const Welcome: NextPageWithLayout = () => {
       }
       else if (req.status === 406)
         setAlert({type: 'warning', content: 'Only JPG/JPEG/PNG/GIF are accepted'})
+      else if (req.status === 413)
+        setAlert({type: 'warning', content: 'File size too big!'})
       else
         setAlert({type: 'error', content: 'Error while uploading!'})
     };

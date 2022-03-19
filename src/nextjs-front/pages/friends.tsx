@@ -27,6 +27,8 @@ const Table: React.FC<{ type: string, list: List[], setList: any, suggested: Lis
   const { setAlert } = useContext(alertContext) as AlertContextType;
   const { getUserData } = useContext(authContext) as AuthContextType;
   
+  //TODO transofmr adding to requesting 
+  //TODO update friends42,list
   const requestFriend = async (id: string, username: string) => {
     const req = await fetch (`/api/users/${getUserData().id}`, {
       method: "PATCH",
@@ -44,13 +46,11 @@ const Table: React.FC<{ type: string, list: List[], setList: any, suggested: Lis
     });
 
     if (req.ok && req2.ok) {
-      const removed = friends.filter(
-        item => item.id < id
-      );
-      setSuggested(removed);
-      setAlert({ type: 'info', content: `Friend request sent to ${username}` });
+      setSuggested(suggested.filter(
+        item => item.id !== id
+      ));
       setFriendsLen(friendsLen + 1);
-      setSuggestedLen(suggestedLen - 1);
+      setAlert({ type: 'info', content: `Friend request sent to ${username}` });
      // router.reload();
     }
     else
@@ -67,16 +67,17 @@ const Table: React.FC<{ type: string, list: List[], setList: any, suggested: Lis
     });
     if (req.ok) {
       setBlockedUsers([...blockedUsers, {"id": id, "username": username}]);
-      setAlert({ type: 'success', content: `User ${username} blocked` });
       setBlockedLen(blockedLen + 1);
+      setSuggested(suggested.filter(
+        item => item.id !== id
+      ));
+      setAlert({ type: 'success', content: `User ${username} blocked` });
     }
     else
       setAlert({ type: 'error', content: `Error while blocking ${username}` });
-
-    const res = await req.json();
-    console.log(res);
   }
   
+
   const removeRelation = async (id: string, username:string, action: string) => {
     const req = await fetch (`/api/users/${getUserData().id}/${id}/${action}`, {
       method: "DELETE",
@@ -91,16 +92,15 @@ const Table: React.FC<{ type: string, list: List[], setList: any, suggested: Lis
       ) : friends.filter(
         item => item.id !== id
       );
-      (action === 'friend') ? setFriends(updated) : setBlockedUsers(updated);
-      setAlert({ type: 'success', content: `${action === 'friend' ? `Friendship with ${username} destroyed` : `User ${username} unblocked successfully`}` });
+      (action === 'friend') ? setFriends(updated) : setBlockedUsers(updated) && setSuggested(updated.filter(
+        item => item.id !== id
+      ));;
       (action === 'unblock') && setBlockedLen(blockedLen - 1);
       (action === 'friend') && setFriendsLen(friendsLen - 1);
+      setAlert({ type: 'success', content: `${action === 'friend' ? `Friendship with ${username} destroyed` : `User ${username} unblocked successfully`}` });
     }
     else
       setAlert({ type: 'error', content: `${action === 'friend' ? `Error while killing friendship with ${username}` : `Error while unblocking ${username}`}` });
-
- //   const res = await req.json();
-   // console.log(res);
   }
 
 
@@ -228,15 +228,12 @@ const FriendsPage: NextPageWithLayout = ({}) => {
   const { getUserData } = useContext(authContext) as AuthContextType;
   const router = useRouter();
 
-//  let baseFriends: any;
-  //let baseSuggested: any;
-
-  const createLists = (data: any) => {
+  const createLists = (data: any, suggestedList: List[]) => {
 
     let friends: List[] = [];
     let friends42: List[] = [];
     let blocked: List[] = [];
-    let suggested: List[] = [];
+    let suggested: List[] = suggestedList;
 
     for (var i in data) {
       if (data[i].id === getUserData().id) {
@@ -250,44 +247,39 @@ const FriendsPage: NextPageWithLayout = ({}) => {
       }
     }
 
-    for (var i in data) {
-      if (data[i].id !== getUserData().id) {
-        suggested = [...suggested, data[i]]
-/*        for (var j in blocked) {
-          if (blocked[j].id !== data[i].id) {
-            suggested = [...suggested, data[i]];
+    const checkSuggested = (list: List[], id: String) => {
+      for (var i in list) {
+        if (list[i].id === id) {
+          return false;
+        }
+      }
+      return true;
+    }
+  
+    if (!suggested.length) {
+      for (var i in data) {
+        if (data[i].id !== getUserData().id
+          && checkSuggested(blocked, data[i].id)
+          && checkSuggested(friends, data[i].id)) {
+            suggested = [...suggested, data[i]]
           }
         }
-      */    }
     }
 
-    const filtered = suggested.filter(function(ele , pos){
-      return suggested.indexOf(ele) == pos;
-    })
     
     setFriends(friends);
-    // = friends;
-    //baseSuggested = suggested;
     setFriends42(friends42);
     setBlockedUsers(blocked);
-    setSuggested(suggested);
+    setSuggested(suggested.filter(function(ele , pos){
+      return suggested.indexOf(ele) == pos;
+    }));
 
     friends.length && setFriendsLen(friends.length);
     friends42.length && setFriends42Len(friends42.length);
     blocked.length && setBlockedLen(blocked.length);
-    suggested.length && setSuggestedLen(suggested.length);
-
+ 
     setIsLoading(false);
   }
-
-//  const friendsChanged = useMemo(
-  //  () => JSON.stringify(friends) !== JSON.stringify(baseFriends),
-    //[friendsLen]
-  //);
- // const suggestedChanged = useMemo(
-   // () => JSON.stringify(suggested) !== JSON.stringify(baseSuggested),
-    //[suggestedLen]
-  //);
 
   useEffect(() => {
     const fetchData = async () => {
@@ -295,7 +287,7 @@ const FriendsPage: NextPageWithLayout = ({}) => {
       const req = await fetch('/api/users/');
       const data = await req.json();
       
-      createLists(data);
+      createLists(data, suggested);
     }
   
     fetchData()

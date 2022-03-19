@@ -81,7 +81,7 @@ export class UsersController {
     }
   
     @Delete(':id/:user/:action')
-    removeFriend(
+    removeRelation(
         @Param('id') id: string,
         @Param('user') userToUpdate: string,
         @Param('action') action: string) {
