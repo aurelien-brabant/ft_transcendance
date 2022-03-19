@@ -95,16 +95,15 @@ const Hub: NextPageWithLayout = () => {
   const lastGames = async () => {
 
     const req = await fetch(`/api/games`, {
-        method: 'GET',
+        method: 'POST',
         headers: {
           'Content-Type': 'application/json'
         },
 //        body: JSON.stringify({accountDeactivated: false})
       });
       const res = await req.json();
-    //   console.log('req', req);
-    //   console.log('res', res)
-	  return (JSON.parse(JSON.stringify(res)))
+      console.log('req', req);
+      console.log('res', res)
   }
 
   const FeatureItem: React.FC<Feature> = ({ label, description, Icon }) => (
@@ -153,8 +152,10 @@ const Hub: NextPageWithLayout = () => {
 			</Head>
 			
 			{
+				
 				displayGame ?
 						<Canvas socketProps={socket} roomProps={room}></Canvas>
+						
 				:
 				(
 					<>
@@ -184,10 +185,8 @@ const Hub: NextPageWithLayout = () => {
 							Spectate
 						</button>
 					</>
-				)
+				)				
 			}
-			
-
 		</Fragment>
 		
 	);
