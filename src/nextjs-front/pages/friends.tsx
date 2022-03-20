@@ -374,6 +374,7 @@ const FriendsPage: NextPageWithLayout = ({}) => {
     let suggestedList: User[] = [];  
     if (!suggested.length) {
       for (var i in users) {
+        console.log(users[i])
         if (users[i].id !== getUserData().id
           && checkSuggested(blocked, users[i].id)
           && checkSuggested(friends, users[i].id))
@@ -387,7 +388,7 @@ const FriendsPage: NextPageWithLayout = ({}) => {
 
     setIsLoading(false);
   }
-
+console.log(suggested);
   useEffect(() => {
     createLists(suggested);
   }, [])

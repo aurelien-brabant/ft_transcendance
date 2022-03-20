@@ -15,8 +15,6 @@ import withDashboardLayout from "../../components/hoc/withDashboardLayout";
 import chatContext, {ChatContextType} from "../../context/chat/chatContext";
 import { useRouter } from "next/router";
 import alertContext, { AlertContextType } from "../../context/alert/alertContext";
-import notificationsContext, { NotificationsContextType } from "../../context/notifications/notificationsContext";
-
 
 export type GameSummary = {
   winnerScore: number;
@@ -146,7 +144,6 @@ const UserProfilePage: NextPageWithLayout = ({}) => {
   const actionTooltipStyles = 'font-bold bg-gray-900 text-neutral-200';
   const { getUserData } = useContext(authContext) as AuthContextType;
   const { setAlert } = useContext(alertContext) as AlertContextType;
-  //const { notify } = useContext(notificationsContext) as NotificationsContextType;
   const { setChatView, openChat } = useContext(chatContext) as ChatContextType;
   const [gamesHistory, setGamesHistory] = useState([]);
   const url: string = window.location.href;

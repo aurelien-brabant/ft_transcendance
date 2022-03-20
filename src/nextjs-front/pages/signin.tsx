@@ -85,13 +85,14 @@ const SignIn: NextPageWithLayout = () => {
   };
     
   useEffect(() => {
-    
-    if (isAuthenticated) {
-      router.push("/welcome");
+    const checkAuth = async () => {
+      if (isAuthenticated)
+        await router.push("/welcome");
+      if (isPreAuthenticated)
+        await router.push("/validate-tfa");
     }
-    if (isPreAuthenticated) {
-      router.push("/validate-tfa");
-    }
+
+    checkAuth();
   }, []);
       
   return (
