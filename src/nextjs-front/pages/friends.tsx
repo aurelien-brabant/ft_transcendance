@@ -29,27 +29,25 @@ const Table: React.FC<{ type: string, list: User[], suggested: User[], setSugges
     pendingFriendsReceived, setPendingFriendsReceived, pendingFriendsSent, setPendingFriendsSent
    } = useContext(authContext) as AuthContextType;
   
-  const updateFriendsRequests = async (id: string) => {
-    const upd = await fetch (`/api/users/${getUserData().id}/${id}/removeFriendsReceived`, {
+  const updateFriendsRequests = (id: string) => {
+    fetch (`/api/users/${getUserData().id}/${id}/removeFriendsReceived`, {
       method: "DELETE",
       headers: {
         "Content-Type": "application/json",
       },
     });
-    const resUpd = await upd.json();
-    const upd2 = await fetch (`/api/users/${id}/${getUserData().id}/removeFriendsSent`, {
+    fetch (`/api/users/${id}/${getUserData().id}/removeFriendsSent`, {
       method: "DELETE",
       headers: {
           "Content-Type": "application/json",
       },
     });
-    const resUpd2 = await upd2.json();
   }
 
   const requestFriend = async (id: string, username: string, isDuoQuadra: boolean) => {
     
-    const r = await fetch (`/api/users/${getUserData().id}`);
-    const data = await r.json();
+    const req = await fetch (`/api/users/${getUserData().id}`);
+    const data = await req.json();
     const received = data.pendingFriendsReceived;
     
     let isAsking: boolean = false;
@@ -59,21 +57,21 @@ const Table: React.FC<{ type: string, list: User[], suggested: User[], setSugges
     }
     if (isAsking) {
       updateFriendsRequests(id);
-      const up = await fetch (`/api/users/${getUserData().id}`, {
+      const addFriend = await fetch (`/api/users/${getUserData().id}`, {
           method: "PATCH",
           headers: {
             "Content-Type": "application/json",
           },
           body: JSON.stringify({friends: [{"id": id}]}),
         });
-      const up2 = await fetch (`/api/users/${id}`, {
+      const addFriend2 = await fetch (`/api/users/${id}`, {
           method: "PATCH",
           headers: {
             "Content-Type": "application/json",
           },
           body: JSON.stringify({friends: [{"id": getUserData().id}]}),
         });
-        if (up.ok && up2.ok) {
+        if (addFriend.ok && addFriend2.ok) {
           setSuggested(suggested.filter(
             item => item.id !== id
           ));
@@ -116,25 +114,24 @@ const Table: React.FC<{ type: string, list: User[], suggested: User[], setSugges
   }
   
   const blockUser = async (id: string, username: string) => {
-    const r = await fetch (`/api/users/${getUserData().id}`);
-    const data = await r.json();
-    const received = data.pendingFriendsReceived;
-    
+ //   const r = await fetch (`/api/users/${getUserData().id}`);
+   // const data = await r.json();
+    //const received = data.pendingFriendsReceived;
     let isAsking: boolean = false;
-    for (let i in received) {
-      if (received[i].id === id)
+    for (let i in pendingFriendsReceived) {
+      if (pendingFriendsReceived[i].id === id)
         isAsking = true;    
     }
     isAsking && updateFriendsRequests(id);
 
-    const req = await fetch (`/api/users/${getUserData().id}`, {
+    const block = await fetch (`/api/users/${getUserData().id}`, {
       method: "PATCH",
       headers: {
           "Content-Type": "application/json",
       },
       body: JSON.stringify({blockedUsers: [{"id": id}]}),
     });
-    if (req.ok) {
+    if (block.ok) {
       setBlocked([...blocked, {"id": id, "username": username}]);
       setSuggested(suggested.filter(
         item => item.id !== id
@@ -147,13 +144,13 @@ const Table: React.FC<{ type: string, list: User[], suggested: User[], setSugges
   
 
   const removeRelation = async (id: string, username:string, action: string, list42: boolean) => {
-    const req = await fetch (`/api/users/${getUserData().id}/${id}/${action}`, {
+    const remove = await fetch (`/api/users/${getUserData().id}/${id}/${action}`, {
       method: "DELETE",
       headers: {
           "Content-Type": "application/json",
       },
     });
-    if (req.ok) {
+    if (remove.ok) {
       let updated: User[];
       let updated42: User[] = [];
 
@@ -173,6 +170,12 @@ const Table: React.FC<{ type: string, list: User[], suggested: User[], setSugges
         setFriends(updated);
         list42 && setFriends42(updated42);
         setSuggested([...suggested, {"id": id, "username": username}]);
+        await fetch (`/api/users/${id}/${getUserData().id}/${action}`, {
+          method: "DELETE",
+          headers: {
+              "Content-Type": "application/json",
+          },
+        });
       }
       else if (action === 'unblock') {
         setBlocked(updated);
@@ -388,7 +391,7 @@ const FriendsPage: NextPageWithLayout = ({}) => {
 
     setIsLoading(false);
   }
-console.log(suggested);
+
   useEffect(() => {
     createLists(suggested);
   }, [])
