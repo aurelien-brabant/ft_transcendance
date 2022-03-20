@@ -19,8 +19,8 @@ const SignIn: NextPageWithLayout = () => {
   const [isLoading, setIsLoading] = useState(false);
   const { isAuthenticated } = useContext(authContext) as AuthContextType;
   const { setAlert } = useContext(alertContext) as AlertContextType;
+  //const { notify } = useContext(notificationsContext) as NotificationsContextType;
   const router = useRouter();
-  
   const formConfig: ProgressiveFormConfig = {
     steps: [
       {
@@ -76,13 +76,15 @@ const SignIn: NextPageWithLayout = () => {
         type: "error",
       });
     }
-
+  
     setIsLoading(false);
   };
 
   useEffect(() => {
+    
     if (isAuthenticated) {
       router.push("/validate-tfa");
+  
     }
   }, []);
 

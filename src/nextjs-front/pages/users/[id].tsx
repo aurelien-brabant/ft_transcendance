@@ -15,6 +15,7 @@ import withDashboardLayout from "../../components/hoc/withDashboardLayout";
 import chatContext, {ChatContextType} from "../../context/chat/chatContext";
 import { useRouter } from "next/router";
 import alertContext, { AlertContextType } from "../../context/alert/alertContext";
+import notificationsContext, { NotificationsContextType } from "../../context/notifications/notificationsContext";
 
 
 export type GameSummary = {
@@ -145,6 +146,8 @@ const UserProfilePage: NextPageWithLayout = ({}) => {
   const actionTooltipStyles = 'font-bold bg-gray-900 text-neutral-200';
   const { getUserData } = useContext(authContext) as AuthContextType;
   const { setAlert } = useContext(alertContext) as AlertContextType;
+  //const { notify } = useContext(notificationsContext) as NotificationsContextType;
+  const { setChatView, openChat } = useContext(chatContext) as ChatContextType;
   const [gamesHistory, setGamesHistory] = useState([]);
   const url: string = window.location.href;
   const userId: number = parseInt(url.substring(url.lastIndexOf('/') + 1));
@@ -167,9 +170,7 @@ const UserProfilePage: NextPageWithLayout = ({}) => {
   );
 
   const router = useRouter();
-
-  const {  setChatView, openChat } = useContext(chatContext) as ChatContextType;
-
+  
   const handleMessage = () => {
     setChatView('dm', 'direct message', { targetUsername: userId });
     openChat();
@@ -233,6 +234,7 @@ const UserProfilePage: NextPageWithLayout = ({}) => {
       if (friends[i].id === userId)
         return true;
     }
+    
     return false
   }
 
@@ -253,10 +255,12 @@ const UserProfilePage: NextPageWithLayout = ({}) => {
         setRank(res);
       }
 
-      setAlreadyFriend(alreadyFriendOrAsked(getUserData().pendingFriendsSent, getUserData().friends));
-  
+      const already = alreadyFriendOrAsked(getUserData().pendingFriendsSent, getUserData().friends)
+      setAlreadyFriend(already);
+     
       setIsLoading(false);
-    }
+    } 
+    
   
     fetchData()
     .catch(console.error);

@@ -13,6 +13,7 @@ import { useRouter } from 'next/router';
 import Tooltip from '../components/Tooltip';
 import ResponsiveSlide from '../components/ResponsiveSlide';
 import { MdCameraswitch, MdCancel, MdOutlineArrowBackIos } from 'react-icons/md';
+import notificationsContext, { NotificationsContextType } from "../context/notifications/notificationsContext";
 
 const labelClassName = "grow uppercase text-neutral-400";
 const inputClassName =
@@ -80,12 +81,24 @@ const Welcome: NextPageWithLayout = () => {
       body: JSON.stringify({accountDeactivated: false})
     });
   }
-
+  
+  const { notify } = useContext(notificationsContext) as NotificationsContextType;
+    
+  const checkPendingFriendsRequests = () => {
+    
+    const data = getUserData().pendingFriendsReceived;
+    if (data.length) {
+      for (let i in data)
+        notify({category: 'Friend request', content: `${data[i].username} wants to be you friend`});
+    }
+  }
+  
   useEffect(() => {
     if (getUserData().accountDeactivated)
       reactivateAccount();
 
     baseObject = getUserData();
+    checkPendingFriendsRequests();
   }, [])
 
   // recompute this only when formData changes
