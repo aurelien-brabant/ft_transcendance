@@ -17,9 +17,8 @@ import alertContext, { AlertContextType } from "../context/alert/alertContext";
 
 const SignIn: NextPageWithLayout = () => {
   const [isLoading, setIsLoading] = useState(false);
-  const { isAuthenticated } = useContext(authContext) as AuthContextType;
+  const { authenticateUser, isPreAuthenticated, isAuthenticated, token, setToken, setIsAuthenticated, setUserData, setIsPreAuthenticated, getUserData } = useContext(authContext) as AuthContextType;
   const { setAlert } = useContext(alertContext) as AlertContextType;
-  //const { notify } = useContext(notificationsContext) as NotificationsContextType;
   const router = useRouter();
   const formConfig: ProgressiveFormConfig = {
     steps: [
@@ -61,14 +60,26 @@ const SignIn: NextPageWithLayout = () => {
     });
    
     if (res.status === 201) {
+//      setIsPreAuthenticated(true);   
       const { access_token } = await res.json();
-      window.localStorage.setItem("bearer", access_token);
+    
+  /*    const reqTfa = await fetch(`/api/users/${id}`);
+      setUserData(await reqTfa.json());
+  */
+// authenticateUser(access_token);  
       setAlert({
         type: "success",
         content: "Logged in successfully, redirecting...",
       });
-      await router.push(`/validate-tfa`);
-      return;
+      if (data.tfa) {
+        setToken(access_token);
+        await router.push(`/validate-tfa`);
+      }
+      else {
+        window.localStorage.setItem("bearer", access_token);
+       // authenticateUser(access_token)//setIsAuthenticated(true);
+        await router.push(`/welcome`);  
+      }
     }
     else {
       setAlert({
@@ -79,15 +90,18 @@ const SignIn: NextPageWithLayout = () => {
   
     setIsLoading(false);
   };
-
+  console.log(getUserData());
+    
   useEffect(() => {
     
     if (isAuthenticated) {
+      router.push("/welcome");
+    }
+    if (isPreAuthenticated) {
       router.push("/validate-tfa");
-  
     }
   }, []);
-
+      
   return (
     <Fragment>
       <Head>

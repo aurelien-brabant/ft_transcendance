@@ -1,14 +1,18 @@
 import { useEffect, useLayoutEffect, useState } from "react";
+import { MdAirlineSeatFlatAngled } from "react-icons/md";
 import authContext from "./authContext";
 
 const AuthProvider: React.FC = ({ children }) => {
 	const [userData, setUserData] = useState<any>(null);
+	const [isPreAuthenticated, setIsPreAuthenticated] = useState(false);
 	const [isAuthenticated, setIsAuthenticated] = useState(false);
-
+	const [token, setToken] = useState<string>('');
+	
 	const loadBearer = () => window.localStorage.getItem("bearer");
 
 	const logout = () => {
 		window.localStorage.removeItem('bearer');
+		setIsPreAuthenticated(false);
 		setIsAuthenticated(false);
 	}
 
@@ -77,7 +81,7 @@ const AuthProvider: React.FC = ({ children }) => {
 		}
 
 		setUserData(await res.json());
-		setIsAuthenticated(true);
+		setIsPreAuthenticated(true);
 		return true;
 	}
 
@@ -88,9 +92,15 @@ const AuthProvider: React.FC = ({ children }) => {
 				getUserData,
 				authenticateUser,
 				logout,
+				isPreAuthenticated,
 				isAuthenticated,
+				setIsAuthenticated,
+				setIsPreAuthenticated,
+				setUserData,
 				clearUser,
-				mergeUserData
+				mergeUserData,
+				token,
+				setToken,
 			}}
 		>
 			{children}
