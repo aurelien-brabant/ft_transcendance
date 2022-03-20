@@ -1,9 +1,14 @@
-import { useEffect, useLayoutEffect, useState } from "react";
-import { MdAirlineSeatFlatAngled } from "react-icons/md";
-import authContext from "./authContext";
+import { useState } from "react";
+import authContext, { User } from "./authContext";
 
 const AuthProvider: React.FC = ({ children }) => {
-	const [userData, setUserData] = useState<any>(null);
+	const [userData, setUserData] = useState<User | null>();
+	const [users, setUsers] = useState<User[]>([]);
+	const [friends, setFriends] = useState<User[]>([]);
+	const [friends42, setFriends42] = useState<User[]>([]);
+	const [blocked, setBlocked] = useState<User[]>([]);
+	const [pendingFriendsReceived, setPendingFriendsReceived] = useState<User[]>([]);
+	const [pendingFriendsSent, setPendingFriendsSent] = useState<User[]>([]);
 	const [isPreAuthenticated, setIsPreAuthenticated] = useState(false);
 	const [isAuthenticated, setIsAuthenticated] = useState(false);
 	const [token, setToken] = useState<string>('');
@@ -68,6 +73,29 @@ const AuthProvider: React.FC = ({ children }) => {
 	 * require an extra API call.
 	 */
 
+	const getRelationships = async (id: string) => {
+		
+		const req = await fetch(`/api/users/${id}`);
+		const data = await req.json();
+		
+		setFriends(data.friends);
+		setBlocked(data.blockedUsers);
+		setPendingFriendsReceived(data.pendingFriendsReceived);
+		setPendingFriendsSent(data.pendingFriendsSent);
+
+		let friendsList: User[] = [];
+		for (var i in data.friends) {
+		  if (data.friends[i].duoquadra_login)
+			friendsList = [...friendsList, data.friends[i]];  
+		}
+		setFriends42(friendsList);
+	}
+
+	const getUsers = async () => {
+		const req = await fetch('/api/users/');
+		setUsers(await req.json());
+	}
+
 	const authenticateUser = async (refresh: boolean = false): Promise<boolean> => {
 		if (isAuthenticated && !refresh) return true; /* already authenticated */
 		const bearer = loadBearer();
@@ -80,8 +108,13 @@ const AuthProvider: React.FC = ({ children }) => {
 			return false;
 		}
 
-		setUserData(await res.json());
+		const data = await res.json();
+		setUserData(data);
+		getUsers();
+		getRelationships(data.id);
+		
 		setIsPreAuthenticated(true);
+
 		return true;
 	}
 
@@ -101,6 +134,18 @@ const AuthProvider: React.FC = ({ children }) => {
 				mergeUserData,
 				token,
 				setToken,
+				users,
+				setUsers,
+				friends,
+				setFriends,
+				friends42,
+				setFriends42,
+				blocked,
+				setBlocked,
+				pendingFriendsReceived,
+				setPendingFriendsReceived,
+				pendingFriendsSent,
+				setPendingFriendsSent
 			}}
 		>
 			{children}

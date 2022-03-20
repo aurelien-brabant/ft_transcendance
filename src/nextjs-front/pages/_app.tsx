@@ -25,13 +25,13 @@ function MyApp({ Component, pageProps, ...rest }: AppPropsWithLayout) {
     <AlertProvider>
       <AuthProvider>
         <Authenticator
-          key={router.asPath}
-          authConfig={
-            Component.isAuthRestricted
-              ? Component.authConfig
-              : { shouldBeAuthenticated: false }
-          }
-        >
+            key={router.asPath}
+            authConfig={
+              Component.isAuthRestricted
+                ? Component.authConfig
+                : { shouldBeAuthenticated: false }
+            }
+          >
           {getLayout(<Component {...pageProps} />)}
         </Authenticator>
       </AuthProvider>

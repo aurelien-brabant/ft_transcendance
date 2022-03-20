@@ -49,7 +49,7 @@ const Authenticator: React.FC<{ authConfig?: Partial<AuthConfig> }> = ({
 	if (isLoading) {
 		return <LoadingScreen />
 	}
-console.log(getUserData())
+
 	return <Fragment>{children}</Fragment>;
 };
 

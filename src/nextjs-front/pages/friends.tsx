@@ -6,7 +6,7 @@ import Image from 'next/image';
 import { useContext, useEffect, useState } from "react";
 import { BounceLoader } from "react-spinners";
 import { FaMedal, FaUserClock, FaUserFriends, FaUserSlash, FaUsersSlash } from "react-icons/fa";
-import authContext, { AuthContextType } from "../context/auth/authContext";
+import authContext, { AuthContextType, User } from "../context/auth/authContext";
 import { UserStatusItem } from "../components/UserStatus";
 import Tooltip from "../components/Tooltip";
 import { RiUserHeartLine, RiUserSettingsLine } from "react-icons/ri";
@@ -16,24 +16,18 @@ import Link from "next/link";
 import alertContext, { AlertContextType } from "../context/alert/alertContext";
 import { MdCancel } from "react-icons/md";
 
-export type List = {
-  id: string;
-  username: string;
-  duoquadra_login: boolean;
-  wins: number;
-  losses: number;
-  draws: number;
-};
-
-const Table: React.FC<{ type: string, list: List[], suggested: List[], setSuggested: any, friendsLen: number, setFriendsLen: any, blockedLen: number, setBlockedLen: any, blockedUsers: List[], setBlockedUsers: any, friends: List[], setFriends: any, friends42Len: number, setFriends42Len: any, friends42: List[], setFriends42: any, pendingFriendsSent: List[], setPendingFriendsSent: any, pendingFriendsReceived: List[], setPendingFriendsReceived: any, pendingLen: number, setPendingLen: any }> = ({
-  type, list, suggested, setSuggested, friendsLen, setFriendsLen, blockedLen, setBlockedLen, blockedUsers, setBlockedUsers, friends, setFriends, friends42Len, setFriends42Len, friends42, setFriends42, pendingFriendsSent, setPendingFriendsSent, pendingFriendsReceived, setPendingFriendsReceived, pendingLen, setPendingLen
+const Table: React.FC<{ type: string, list: User[], suggested: User[], setSuggested: any }> = ({
+  type, list, suggested, setSuggested
 }) => {
 
   if (!list)
   return null;
 
   const { setAlert } = useContext(alertContext) as AlertContextType;
-  const { getUserData } = useContext(authContext) as AuthContextType;
+  const { 
+    getUserData, friends, setFriends, friends42, setFriends42, blocked, setBlocked,
+    pendingFriendsReceived, setPendingFriendsReceived, pendingFriendsSent, setPendingFriendsSent
+   } = useContext(authContext) as AuthContextType;
   
   const updateFriendsRequests = async (id: string) => {
     const upd = await fetch (`/api/users/${getUserData().id}/${id}/removeFriendsReceived`, {
@@ -42,9 +36,7 @@ const Table: React.FC<{ type: string, list: List[], suggested: List[], setSugges
         "Content-Type": "application/json",
       },
     });
-   const resUpd = await upd.json();
-    console.log('upd', upd);
-    console.log('resupd', resUpd);
+    const resUpd = await upd.json();
     const upd2 = await fetch (`/api/users/${id}/${getUserData().id}/removeFriendsSent`, {
       method: "DELETE",
       headers: {
@@ -52,8 +44,6 @@ const Table: React.FC<{ type: string, list: List[], suggested: List[], setSugges
       },
     });
     const resUpd2 = await upd2.json();
-    console.log('upd2', upd2);
-    console.log('resupd2', resUpd2);
   }
 
   const requestFriend = async (id: string, username: string, isDuoQuadra: boolean) => {
@@ -76,7 +66,6 @@ const Table: React.FC<{ type: string, list: List[], suggested: List[], setSugges
           },
           body: JSON.stringify({friends: [{"id": id}]}),
         });
-      console.log('up', up);
       const up2 = await fetch (`/api/users/${id}`, {
           method: "PATCH",
           headers: {
@@ -84,7 +73,6 @@ const Table: React.FC<{ type: string, list: List[], suggested: List[], setSugges
           },
           body: JSON.stringify({friends: [{"id": getUserData().id}]}),
         });
-        console.log('up2', up2);
         if (up.ok && up2.ok) {
           setSuggested(suggested.filter(
             item => item.id !== id
@@ -92,12 +80,7 @@ const Table: React.FC<{ type: string, list: List[], suggested: List[], setSugges
           setPendingFriendsReceived(pendingFriendsReceived.filter(
             item => item.id !== id
           ));
-          setPendingLen(pendingLen - 1);
-          setFriendsLen(friendsLen + 1);
-          console.log('friendsLen', friendsLen);
           setFriends([...friends, {"id": id, "username": username}]);
-          console.log('friends after', [...friends, {"id": id, "username": username}]);
-          isDuoQuadra && setFriends42Len(friends42Len + 1);
           isDuoQuadra && setFriends42([...friends42, {"id": id, "username": username}]);
           setAlert({ type: 'info', content: `New friend: ${username}` });
         }
@@ -152,8 +135,7 @@ const Table: React.FC<{ type: string, list: List[], suggested: List[], setSugges
       body: JSON.stringify({blockedUsers: [{"id": id}]}),
     });
     if (req.ok) {
-      setBlockedUsers([...blockedUsers, {"id": id, "username": username}]);
-      setBlockedLen(blockedLen + 1);
+      setBlocked([...blocked, {"id": id, "username": username}]);
       setSuggested(suggested.filter(
         item => item.id !== id
       ));
@@ -172,11 +154,11 @@ const Table: React.FC<{ type: string, list: List[], suggested: List[], setSugges
       },
     });
     if (req.ok) {
-      let updated: List[];
-      let updated42: List[] = [];
+      let updated: User[];
+      let updated42: User[] = [];
 
       if (action === 'unblock') 
-        updated = blockedUsers.filter(
+        updated = blocked.filter(
           item => item.id !== id
       )
       else {
@@ -189,14 +171,11 @@ const Table: React.FC<{ type: string, list: List[], suggested: List[], setSugges
       }
       if (action === 'friend') {
         setFriends(updated);
-        setFriendsLen(updated.length);
         list42 && setFriends42(updated42);
-        list42 && setFriendsLen(updated42.length);
         setSuggested([...suggested, {"id": id, "username": username}]);
       }
       else if (action === 'unblock') {
-        setBlockedUsers(updated);
-        setBlockedLen(updated.length);
+        setBlocked(updated);
         setSuggested(updated.filter(
           item => item.id !== id
         ));
@@ -207,7 +186,7 @@ const Table: React.FC<{ type: string, list: List[], suggested: List[], setSugges
       setAlert({ type: 'error', content: `${action === 'friend' ? `Error while killing friendship with ${username}` : `Error while unblocking ${username}`}` });
   }
 
-  const checkRelation = (id: string, list: List[]) => {
+  const checkRelation = (id: string, list: User[]) => {
     for (let i in list) {
       if (list[i].id === id) {
         return true;
@@ -268,7 +247,7 @@ const Table: React.FC<{ type: string, list: List[], suggested: List[], setSugges
             </Tooltip>
           }
           
-          {(!checkRelation(id, blockedUsers)) ?
+          {(!checkRelation(id, blocked)) ?
             <Tooltip className='font-bold bg-gray-900 text-neutral-200' content="Block user">
               <button className="p-2 text-2xl text-gray-900 bg-white rounded-full transition hover:scale-105">
                 <FaUserSlash onClick={() => {blockUser(id, username)}} />
@@ -373,46 +352,17 @@ const HighlightItem: React.FC<Highlight> = ({ n, label, hint, nColor }) => {
 
 const FriendsPage: NextPageWithLayout = ({}) => {
 
-  const [friends, setFriends] = useState<List[]>([]);
-  const [friends42, setFriends42] = useState<List[]>([]);
-  const [blockedUsers, setBlockedUsers] = useState<List[]>([]);
-  const [suggested, setSuggested] = useState<List[]>([]);
-  const [pendingFriendsSent, setPendingFriendsSent] = useState<List[]>([]);
-  const [pendingFriendsReceived, setPendingFriendsReceived] = useState<List[]>([]);
-  const [friendsLen, setFriendsLen] = useState(0);
-  const [friends42Len, setFriends42Len] = useState(0);
-  const [blockedLen, setBlockedLen] = useState(0);
-  const [pendingLen, setPendingLen] = useState(0);
+  const [suggested, setSuggested] = useState<User[]>([]);
   const [isLoading, setIsLoading] = useState(true);
   const [selected, setSelected] = useState(0);
-  const { getUserData } = useContext(authContext) as AuthContextType;
+  const { getUserData, users, friends, friends42, setFriends42,
+    blocked, pendingFriendsReceived
+   } = useContext(authContext) as AuthContextType;
   const router = useRouter();
-console.log('friendsLen', friendsLen)
-  const createLists = (data: any, suggestedList: List[]) => {
 
-    let friends: List[] = [];
-    let friends42: List[] = [];
-    let blocked: List[] = [];
-    let pendingReceived: List[] = [];
-    let suggested: List[] = suggestedList;
-
-    for (var i in data) {
-      if (data[i].id === getUserData().id) {
-        setFriends(data[i].friends);
-        setBlockedUsers(data[i].blockedUsers);
-        setPendingFriendsSent(data[i].pendingFriendsSent);
-        pendingReceived = data[i].pendingFriendsReceived;
-        setPendingFriendsReceived(pendingReceived);
-
-        for (var j in data[i].friends) {
-          if (data[i].friends[j].duoquadra_login)
-            friends42 = [...friends42, data[i].friends[j]];  
-        }
-      }
-    }
-    setFriends42(friends42);
-
-    const checkSuggested = (list: List[], id: String) => {
+  const createLists = (suggested: User[]) => {
+    
+    const checkSuggested = (list: User[], id: String) => {
       for (var i in list) {
         if (list[i].id === id) {
           return false;
@@ -420,41 +370,28 @@ console.log('friendsLen', friendsLen)
       }
       return true;
     }
-  
+
+    let suggestedList: User[] = [];  
     if (!suggested.length) {
-      for (var i in data) {
-        if (data[i].id !== getUserData().id
-          && checkSuggested(blocked, data[i].id)
-          && checkSuggested(friends, data[i].id))
-            suggested = [...suggested, data[i]]
+      for (var i in users) {
+        if (users[i].id !== getUserData().id
+          && checkSuggested(blocked, users[i].id)
+          && checkSuggested(friends, users[i].id))
+            suggestedList = [...suggestedList, users[i]]
       }
     }
     
-    setSuggested(suggested.filter(function(ele , pos){
-      return suggested.indexOf(ele) == pos;
+    setSuggested(suggestedList.filter(function(ele , pos){
+      return suggestedList.indexOf(ele) == pos;
     }));
 
-    friends.length && setFriendsLen(friends.length);
-    friends42.length && setFriends42Len(friends42.length);
-    blocked.length && setBlockedLen(blocked.length);
-    pendingReceived.length && setPendingLen(pendingReceived.length);
- console.log('friends.length', friends.length)
     setIsLoading(false);
   }
 
   useEffect(() => {
-    const fetchData = async () => {
+    createLists(suggested);
+  }, [])
 
-      const req = await fetch('/api/users/');
-      const data = await req.json();
-      
-      createLists(data, suggested);
-    }
-  
-    fetchData()
-    .catch(console.error);
-  }, [selected])
- 
   return (
     <div className="min-h-screen overflow-x-auto text-white bg-fixed bg-center bg-fill grow" style={{
       backgroundImage: "url('/triangles.png')"
@@ -482,22 +419,22 @@ console.log('friendsLen', friendsLen)
        
           <div className="space-y-7 md:space-y-0 w-full p-2 bg-gray-800 border-2 border-gray-800 rounded drop-shadow-md grid grid-cols-2 md:grid-cols-4 items-end">
             <HighlightItem
-              n={friendsLen}
+              n={friends.length}
               label="friends"
               hint="Friends"
               nColor="text-blue-600" />
             <HighlightItem
-              n={friends42Len}
+              n={friends42.length}
               label="friends42"
               hint="Friends @42"
               nColor="text-green-500" />
             <HighlightItem
-              n={pendingLen}
+              n={pendingFriendsReceived.length}
               label="pending"
               hint="Pending Requests"
               nColor="text-purple-600" />
             <HighlightItem
-              n={blockedLen}
+              n={blocked.length}
               label="blocked"
               hint="Blocked Users"
               nColor="text-red-600" />
@@ -507,24 +444,24 @@ console.log('friendsLen', friendsLen)
             items={[
               {
                 label: "Friends",
-                component: <Table type={'friends'} list={friends} suggested={suggested} setSuggested={setSuggested} friendsLen={friendsLen} setFriendsLen={setFriendsLen} blockedLen={blockedLen} setBlockedLen={setBlockedLen} blockedUsers={blockedUsers} setBlockedUsers={setBlockedUsers} friends={friends} setFriends={setFriends} friends42Len={friends42Len} setFriends42Len={setFriends42Len} friends42={friends42} setFriends42={setFriends42} pendingFriendsSent={pendingFriendsSent} setPendingFriendsSent={setPendingFriendsSent} pendingFriendsReceived={pendingFriendsReceived} setPendingFriendsReceived={setPendingFriendsReceived} pendingLen={pendingLen} setPendingLen={setPendingLen}/>,
+                component: <Table type={'friends'} list={friends} suggested={suggested} setSuggested={setSuggested}/>,
               },
               {
                 label: "Friends @42",
-                component: <Table type={'friends42'} list={friends42} suggested={suggested} setSuggested={setSuggested} friendsLen={friendsLen} setFriendsLen={setFriendsLen} blockedLen={blockedLen} setBlockedLen={setBlockedLen} blockedUsers={blockedUsers} setBlockedUsers={setBlockedUsers} friends={friends} setFriends={setFriends} friends42Len={friends42Len} setFriends42Len={setFriends42Len} friends42={friends42} setFriends42={setFriends42} pendingFriendsSent={pendingFriendsSent} setPendingFriendsSent={setPendingFriendsSent} pendingFriendsReceived={pendingFriendsReceived} setPendingFriendsReceived={setPendingFriendsReceived} pendingLen={pendingLen} setPendingLen={setPendingLen}/>,
+                component: <Table type={'friends42'} list={friends42} suggested={suggested} setSuggested={setSuggested}/>,
               },
               {
                 label: "Pending Requests",
-                component: <Table type={'pending'} list={pendingFriendsReceived} suggested={suggested} setSuggested={setSuggested} friendsLen={friendsLen} setFriendsLen={setFriendsLen} blockedLen={blockedLen} setBlockedLen={setBlockedLen} blockedUsers={blockedUsers} setBlockedUsers={setBlockedUsers} friends={friends} setFriends={setFriends} friends42Len={friends42Len} setFriends42Len={setFriends42Len} friends42={friends42} setFriends42={setFriends42} pendingFriendsSent={pendingFriendsSent} setPendingFriendsSent={setPendingFriendsSent} pendingFriendsReceived={pendingFriendsReceived} setPendingFriendsReceived={setPendingFriendsReceived} pendingLen={pendingLen} setPendingLen={setPendingLen}/>,
+                component: <Table type={'pending'} list={pendingFriendsReceived} suggested={suggested} setSuggested={setSuggested}/>,
               },
               {
                 label: "Blocked Users",
-                component: <Table type={'blocked'} list={blockedUsers} suggested={suggested} setSuggested={setSuggested} friendsLen={friendsLen} setFriendsLen={setFriendsLen} blockedLen={blockedLen} setBlockedLen={setBlockedLen} blockedUsers={blockedUsers} setBlockedUsers={setBlockedUsers} friends={friends} setFriends={setFriends} friends42Len={friends42Len} setFriends42Len={setFriends42Len} friends42={friends42} setFriends42={setFriends42} pendingFriendsSent={pendingFriendsSent} setPendingFriendsSent={setPendingFriendsSent} pendingFriendsReceived={pendingFriendsReceived} setPendingFriendsReceived={setPendingFriendsReceived} pendingLen={pendingLen} setPendingLen={setPendingLen}/>,
+                component: <Table type={'blocked'} list={blocked} suggested={suggested} setSuggested={setSuggested}/>,
               },
               
               {
                 label: "Suggested Friends",
-                component: <Table type={'suggested'} list={suggested} suggested={suggested} setSuggested={setSuggested} friendsLen={friendsLen} setFriendsLen={setFriendsLen} blockedLen={blockedLen} setBlockedLen={setBlockedLen} blockedUsers={blockedUsers} setBlockedUsers={setBlockedUsers} friends={friends} setFriends={setFriends} friends42Len={friends42Len} setFriends42Len={setFriends42Len} friends42={friends42} setFriends42={setFriends42} pendingFriendsSent={pendingFriendsSent} setPendingFriendsSent={setPendingFriendsSent} pendingFriendsReceived={pendingFriendsReceived} setPendingFriendsReceived={setPendingFriendsReceived} pendingLen={pendingLen} setPendingLen={setPendingLen}/>,
+                component: <Table type={'suggested'} list={suggested} suggested={suggested} setSuggested={setSuggested}/>,
               }
             ]} />
         </div>

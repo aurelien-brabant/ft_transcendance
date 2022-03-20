@@ -17,7 +17,7 @@ import alertContext, { AlertContextType } from "../context/alert/alertContext";
 
 const SignIn: NextPageWithLayout = () => {
   const [isLoading, setIsLoading] = useState(false);
-  const { authenticateUser, isPreAuthenticated, isAuthenticated, token, setToken, setIsAuthenticated, setUserData, setIsPreAuthenticated, getUserData } = useContext(authContext) as AuthContextType;
+  const { isPreAuthenticated, isAuthenticated, setToken } = useContext(authContext) as AuthContextType;
   const { setAlert } = useContext(alertContext) as AlertContextType;
   const router = useRouter();
   const formConfig: ProgressiveFormConfig = {
@@ -60,13 +60,7 @@ const SignIn: NextPageWithLayout = () => {
     });
    
     if (res.status === 201) {
-//      setIsPreAuthenticated(true);   
       const { access_token } = await res.json();
-    
-  /*    const reqTfa = await fetch(`/api/users/${id}`);
-      setUserData(await reqTfa.json());
-  */
-// authenticateUser(access_token);  
       setAlert({
         type: "success",
         content: "Logged in successfully, redirecting...",
@@ -77,7 +71,6 @@ const SignIn: NextPageWithLayout = () => {
       }
       else {
         window.localStorage.setItem("bearer", access_token);
-       // authenticateUser(access_token)//setIsAuthenticated(true);
         await router.push(`/welcome`);  
       }
     }
@@ -90,7 +83,6 @@ const SignIn: NextPageWithLayout = () => {
   
     setIsLoading(false);
   };
-  console.log(getUserData());
     
   useEffect(() => {
     
