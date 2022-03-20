@@ -16,9 +16,12 @@ export type SeedUser = {
     games: SeedGame[];
     wins: number;
     losses: number;
+    draws: number;
     ratio: number;
     friends: User[];
     blockedUsers: User[];
+    pendingFriendsSent: User[];
+    pendingFriendsReceived: User[];
     ownedChannels: SeedChannel[];
     joinedChannels: SeedChannel[];
     accountDeactivated: boolean;

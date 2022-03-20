@@ -33,7 +33,17 @@ export class CreateUserDto {
     readonly losses: number;
 
     @IsOptional()
+    @IsInt()
+    readonly draws: number;
+
+    @IsOptional()
     readonly friends: User[];
+
+    @IsOptional()
+    readonly pendingFriendsSent: User[];
+
+    @IsOptional()
+    readonly pendingFriendsReceived: User[];
 
     @IsOptional()
     readonly blockedUsers: User[];

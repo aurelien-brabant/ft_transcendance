@@ -24,7 +24,7 @@ export class UsersService {
     findAll(paginationQuery: PaginationQueryDto) {
         const {offset, limit} = paginationQuery;
         return this.usersRepository.find({
-            relations: ['games', 'friends', 'blockedUsers'],
+            relations: ['games', 'friends', 'blockedUsers', 'pendingFriendsSent', 'pendingFriendsReceived'],
             skip: offset,
             take: limit,
             order: {
@@ -57,7 +57,7 @@ export class UsersService {
 
     async findOne(id: string) {
         const user = await this.usersRepository.findOne(id, {
-            relations: ['games', 'friends', 'blockedUsers'],
+            relations: ['games', 'friends', 'blockedUsers', 'pendingFriendsSent', 'pendingFriendsReceived'],
         });
         if (!user) throw new NotFoundException(`User [${id}] not found`);
         return user;
@@ -210,6 +210,36 @@ export class UsersService {
                 blockedUsers: updated,
             });
         }
+        else if (updateUserDto.pendingFriendsReceived) {
+            user = await this.findOne(id);
+            const old = (user.pendingFriendsReceived);
+            
+            let updated = [];
+            for (let i in old)
+                updated.push({id: old[i].id})
+            for (let i in updateUserDto.pendingFriendsReceived)
+                updated.push({id: updateUserDto.pendingFriendsReceived[i].id})
+            
+            user = await this.usersRepository.preload({
+                id: +id,
+                pendingFriendsReceived: updated,
+            });
+        }
+        else if (updateUserDto.pendingFriendsSent) {
+            user = await this.findOne(id);
+            const old = (user.pendingFriendsSent);
+            
+            let updated = [];
+            for (let i in old)
+                updated.push({id: old[i].id})
+            for (let i in updateUserDto.pendingFriendsSent)
+                updated.push({id: updateUserDto.pendingFriendsSent[i].id})
+            
+            user = await this.usersRepository.preload({
+                id: +id,
+                pendingFriendsSent: updated,
+            });
+        }
         else
             user = await this.usersRepository.preload({
                 id: +id,
@@ -313,27 +343,39 @@ export class UsersService {
             oldList = user.friends;
         else if (action === 'unblock')
             oldList = user.blockedUsers;
-
+        else if (action === 'removeFriendsSent')
+            oldList = user.pendingFriendsSent;
+        else if (action === 'removeFriendsReceived')
+            oldList = user.pendingFriendsReceived;
         let updated = [];
         for (let i in oldList) {
             if (String(oldList[i].id) !== userToUpdate)
                 updated.push({id: oldList[i].id})
         }
         if (updated.length !== oldList.length && action === 'friend') {
-            console.log('ICI');
             user = await this.usersRepository.preload({
                 id: +id,
                 friends: updated
             });
         }
         else if (updated.length !== oldList.length && action === 'unblock') {
-            console.log('LA');
             user = await this.usersRepository.preload({
                 id: +id,
                 blockedUsers: updated
             });
         }
-
+        else if (updated.length !== oldList.length && action === 'removeFriendsSent') {
+            user = await this.usersRepository.preload({
+                id: +id,
+                pendingFriendsSent: updated
+            });
+        }
+        else if (updated.length !== oldList.length && action === 'removeFriendsReceived') {
+            user = await this.usersRepository.preload({
+                id: +id,
+                pendingFriendsReceived: updated
+            });
+        }
         return this.usersRepository.save(user);
     }
 }

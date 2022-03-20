@@ -46,12 +46,23 @@ export class User {
     @Column({ default: 0 })
     losses: number;
 
+    @Column({ default: 0 })
+    draws: number;
+
     @Column({ type: 'decimal', default: 0 })
     ratio: number;
 
     @ManyToMany(() => User)
     @JoinTable()
     friends: User[];
+
+    @ManyToMany(() => User)
+    @JoinTable()
+    pendingFriendsSent: User[];
+
+    @ManyToMany(() => User)
+    @JoinTable()
+    pendingFriendsReceived: User[];
 
     @ManyToMany(() => User)
     @JoinTable()
