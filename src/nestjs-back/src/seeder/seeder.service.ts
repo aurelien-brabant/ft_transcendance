@@ -122,7 +122,7 @@ export class SeederService {
             } as SeedChannel);
             if (channel.privacy === 'protected') {
                 channel = await this.channelsService.update(channel.id.toString(), {
-                    password: faker.internet.password()
+                    password: 'test'
                 });
             }
 

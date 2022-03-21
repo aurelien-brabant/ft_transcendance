@@ -66,8 +66,11 @@ const Groups: React.FC<{viewParams: Object;}> = ({ viewParams }) => {
 	/* Update last message for all conversations */
 	const updateLastMessage = async (channel: chatGroups) => {
 		const data = await fetchChannelData(channel.id).catch(console.error);
-		const message = getLastMessage(JSON.parse(JSON.stringify(data)));
+		const dm = JSON.parse(JSON.stringify(data));
 
+		if (dm.privacy === "protected")
+			return ;
+		const message = getLastMessage(dm);
 		channel.lastMessage = message;
 		updateChatGroups(channel);
 	}

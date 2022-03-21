@@ -1,9 +1,14 @@
-import { Injectable, NotFoundException } from '@nestjs/common';
+import { Injectable, NotFoundException, UnauthorizedException } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Repository } from 'typeorm';
+import {
+  hash as hashPassword,
+  compare as comparePassword
+} from 'bcrypt';
 import { Channel } from './entities/channels.entity';
 import { CreateChannelDto } from './dto/create-channel.dto';
 import { UpdateChannelDto } from './dto/update-channel.dto';
+import { User } from '../../users/entities/users.entity';
 
 @Injectable()
 export class ChannelsService {
@@ -28,7 +33,7 @@ export class ChannelsService {
     return channel;
   }
 
-  create(createChannelDto: CreateChannelDto) {
+  async create(createChannelDto: CreateChannelDto) {
     const channel = this.channelsRepository.create(createChannelDto);
     return this.channelsRepository.save(channel);
   }
@@ -45,10 +50,44 @@ export class ChannelsService {
   }
 
   async remove(id: string) { 
-    const channel = await this.findOne(id);
+    const channel = await this.channelsRepository.findOne(id);
     if (!channel) {
       throw new NotFoundException(`Channel [${id}] not found`);
     }
     return this.channelsRepository.remove(channel);
+  }
+
+  async getChannelPassword(id: string) {
+    const channel = await this.channelsRepository
+      .createQueryBuilder('channel')
+      .select('channel.password')
+      .where('channel.id = :id', { id })
+      .getOne();
+    return channel.password;
+  }
+
+  async getChannelUsers(id: string, privacy: string) {
+    const channel = await this.channelsRepository
+      .createQueryBuilder('channel')
+      .innerJoinAndSelect('channel.users', 'users')
+      .where('channel.id = :id', { id })
+      .andWhere('channel.privacy = :privacy', { privacy })
+      .getOne();
+    return channel;
+  }
+
+  async joinProtectedChan(id: string, userId: string, password: string) {
+    const channel = await this.channelsRepository.findOne(id, {
+      where: { privacy: 'protected' }
+    });
+    if (channel) {
+      const chanPassword = await this.getChannelPassword(id);
+      // const passIsValid = await comparePassword(password, chanPassword)
+      const passIsValid = (password === chanPassword); // tmp
+      if (passIsValid) {
+        return channel;
+      }
+    }
+    throw new UnauthorizedException();
   }
 }

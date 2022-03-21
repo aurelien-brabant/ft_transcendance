@@ -192,7 +192,7 @@ const ChatProvider: React.FC = ({ children }) => {
 				groups.push({
 					id: channel.id,
 					label: channel.name,
-					lastMessage: message,
+					lastMessage: (channel.privacy === "protected") ? "" : message,
 					in: !!channel.users.find(findUserById),
 					isAdmin: (channel.owner === userId),
 					peopleCount: usersInChan,
