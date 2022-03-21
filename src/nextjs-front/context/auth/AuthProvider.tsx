@@ -1,15 +1,9 @@
 import { useState } from "react";
-import authContext, { User } from "./authContext";
+import authContext from "./authContext";
+import { User } from "../relationship/relationshipContext";
 
 const AuthProvider: React.FC = ({ children }) => {
 	const [userData, setUserData] = useState<User | null>();
-	const [users, setUsers] = useState<User[]>([]);
-	const [friends, setFriends] = useState<User[]>([]);
-	const [friends42, setFriends42] = useState<User[]>([]);
-	const [blocked, setBlocked] = useState<User[]>([]);
-	const [pendingFriendsReceived, setPendingFriendsReceived] = useState<User[]>([]);
-	const [pendingFriendsSent, setPendingFriendsSent] = useState<User[]>([]);
-	const [suggested, setSuggested] = useState<User[]>([]);
   	const [isPreAuthenticated, setIsPreAuthenticated] = useState(false);
 	const [isAuthenticated, setIsAuthenticated] = useState(false);
 	const [token, setToken] = useState<string>('');
@@ -74,54 +68,6 @@ const AuthProvider: React.FC = ({ children }) => {
 	 * require an extra API call.
 	 */
 
-	const createSuggested = (users: User[], friends: User[], blocked: User[]) => {
-		
-		const checkSuggested = (list: User[], id: String) => {
-			for (var i in list) {
-			  	if (list[i].id === id) {
-					return false;
-			  	}
-			}
-			return true;
-		}
-	  
-		let suggestedList: User[] = [];  
-		for (var i in users) {
-			if (users[i].id !== getUserData().id
-				&& checkSuggested(blocked, users[i].id)
-				&& checkSuggested(friends, users[i].id))
-					suggestedList = [...suggestedList, users[i]]
-		}
-		  
-		setSuggested(suggestedList.filter(function(ele , pos){
-			return suggestedList.indexOf(ele) == pos;
-		}));	  
-	}
-
-	const getRelationships = async (usersList: User[], id: string) => {
-		
-		const req = await fetch(`/api/users/${id}`);
-		const data = await req.json();
-		
-		setFriends(data.friends);
-		setBlocked(data.blockedUsers);
-		setPendingFriendsReceived(data.pendingFriendsReceived);
-		setPendingFriendsSent(data.pendingFriendsSent);
-
-		let friendsList: User[] = [];
-		for (var i in data.friends) {
-		  if (data.friends[i].duoquadra_login)
-			friendsList = [...friendsList, data.friends[i]];  
-		}
-		setFriends42(friendsList);
-		createSuggested(usersList, friendsList, data.blockedUsers);
-	}
-
-	const getUsers = async () => {
-		const req = await fetch('/api/users/');
-		setUsers(await req.json());
-	}
-
 	const authenticateUser = async (refresh: boolean = false): Promise<boolean> => {
 		if (isAuthenticated && !refresh) return true; /* already authenticated */
 		const bearer = loadBearer();
@@ -134,10 +80,7 @@ const AuthProvider: React.FC = ({ children }) => {
 			return false;
 		}
 
-		const data = await res.json();
-		setUserData(data);
-		getUsers();
-		getRelationships(users, data.id);
+		setUserData(await res.json());
 		setIsPreAuthenticated(true);
 		return true;
 	}
@@ -158,22 +101,6 @@ const AuthProvider: React.FC = ({ children }) => {
 				mergeUserData,
 				token,
 				setToken,
-				users,
-				setUsers,
-				friends,
-				setFriends,
-				friends42,
-				setFriends42,
-				blocked,
-				setBlocked,
-				pendingFriendsReceived,
-				setPendingFriendsReceived,
-				pendingFriendsSent,
-				setPendingFriendsSent,
-				getRelationships,
-				createSuggested,
-				suggested,
-				setSuggested
 			}}
 		>
 			{children}

@@ -9,7 +9,6 @@ import { dashboardNavItems } from "../constants/nav";
 import notificationsContext from "../context/notifications/notificationsContext";
 import authContext, {AuthContextType} from "../context/auth/authContext";
 import alertContext, {AlertContextType} from "../context/alert/alertContext";
-import { BsFillQuestionCircleFill } from "react-icons/bs";
 
 type SearchBarProps = {
 	className?: string;

@@ -1,16 +1,16 @@
 import Link from "next/link";
 import Image from 'next/image';
-import { Fragment, useContext } from "react";
+import { useContext } from "react";
 import { AiOutlineFall, AiOutlineUserAdd, AiOutlineUserDelete } from "react-icons/ai";
 import { FaMedal, FaUserSlash } from "react-icons/fa";
 import { MdCancel } from "react-icons/md";
 import { RiUserHeartLine } from "react-icons/ri";
 import alertContext, { AlertContextType } from "../context/alert/alertContext";
-import authContext, { AuthContextType, User } from "../context/auth/authContext";
+import authContext, { AuthContextType } from "../context/auth/authContext";
 import ResponsiveFade from "./ResponsiveFade";
 import Tooltip from "./Tooltip";
 import { IoIosArrowForward } from "react-icons/io";
-import { FiRefreshCcw } from "react-icons/fi";
+import relationshipContext, { RelationshipContextType, User } from "../context/relationship/relationshipContext";
 
 const FriendsTable: React.FC<{ type: string, list: User[], suggested: User[], setSuggested: any, setSelected: any }> = ({
   type, list, suggested, setSuggested, setSelected
@@ -19,11 +19,11 @@ const FriendsTable: React.FC<{ type: string, list: User[], suggested: User[], se
   return null;
 
   const { setAlert } = useContext(alertContext) as AlertContextType;
-  const { 
-    getUserData, friends, setFriends, friends42, setFriends42, blocked, setBlocked,
+  const { getUserData } = useContext(authContext) as AuthContextType;
+   const { friends, setFriends, friends42, setFriends42, blocked, setBlocked,
     pendingFriendsReceived, setPendingFriendsReceived, pendingFriendsSent, setPendingFriendsSent
-   } = useContext(authContext) as AuthContextType;
-  
+   } = useContext(relationshipContext) as RelationshipContextType;
+
   const updateFriendsRequests = (id: string) => {
     fetch (`/api/users/${getUserData().id}/${id}/removeFriendsReceived`, {
       method: "DELETE",

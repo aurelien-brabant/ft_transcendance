@@ -5,12 +5,13 @@ import Image from 'next/image';
 import { useContext, useEffect, useState } from "react";
 import { BounceLoader } from "react-spinners";
 import { FaUserClock, FaUserFriends, FaUsersSlash } from "react-icons/fa";
-import authContext, { AuthContextType, User } from "../context/auth/authContext";
+import authContext, { AuthContextType } from "../context/auth/authContext";
 import { UserStatusItem } from "../components/UserStatus";
 import Tooltip from "../components/Tooltip";
 import { useRouter } from "next/router";
 import { RiUserSettingsLine } from "react-icons/ri";
 import FriendsTable from "../components/FriendsTable";
+import relationshipContext, { RelationshipContextType } from "../context/relationship/relationshipContext";
 
 export type Highlight = {
   n: number;
@@ -60,11 +61,20 @@ const FriendsPage: NextPageWithLayout = ({}) => {
 
   const [isLoading, setIsLoading] = useState(true);
   const [selected, setSelected] = useState(0);
-  const { getUserData, users, friends, friends42, blocked, pendingFriendsReceived, getRelationships, suggested, setSuggested, createSuggested
-   } = useContext(authContext) as AuthContextType;
-  const router = useRouter();
+  const { getUserData } = useContext(authContext) as AuthContextType;
+  const { getData, getRelationships, createSuggested, setSuggested, suggested,
+    users, friends, friends42, blocked, pendingFriendsReceived
+   } = useContext(relationshipContext) as RelationshipContextType;
+  
+   const router = useRouter();
 
+   useEffect(() => {
+      getData();
+      setIsLoading(false);
+    }, [])
+  
   useEffect(() => {
+    setIsLoading(true);
     getRelationships(users, getUserData().id);
     createSuggested(users, friends, blocked);
     setIsLoading(false);
