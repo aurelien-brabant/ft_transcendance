@@ -68,7 +68,6 @@ const Canvas: React.FC<{socketProps: Socket, roomProps: any}> = ({socketProps, r
 
 		const draw: Draw = new Draw(canvas);
 
-		// if not a spectator
 		window.addEventListener("keydown", downHandler);
 		window.addEventListener("keyup", upHandler);
 
