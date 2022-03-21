@@ -5,7 +5,6 @@ import { AuthModule } from './auth/auth.module';
 import { FriendsInvitesModule } from './friendsInvites/friendsInvites.module';
 import { GamesModule } from './games/games.module';
 import { GamesInvitesModule } from './gamesInvites/gamesInvites.module';
-import { GatewayModule } from './gateway/gateway.module';
 import { ChannelsModule } from './chat/channels/channels.module';
 import { MessagesModule } from './chat/messages/messages.module';
 import { SeederModule } from './seeder/seeder.module';
@@ -21,7 +20,6 @@ import { ChatModule } from './chat/chat.module';
     FriendsInvitesModule,
     GamesModule,
     GamesInvitesModule,
-    GatewayModule,
     ChannelsModule,
     MessagesModule,
     SeederModule,
