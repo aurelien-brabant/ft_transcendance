@@ -41,6 +41,7 @@ const ValidateFortyTwo: NextPageWithLayout = () => {
       setUserData(resTfa);
       setAlert({ type: 'success', content: 'The 42 API authorized the connexion. Redirecting...' });   
       if (!resTfa.tfa) {
+        window.localStorage.setItem("bearer", access_token);
         setIsAuthenticated(true);
         router.push("/welcome");
       }

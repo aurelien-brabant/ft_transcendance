@@ -47,6 +47,10 @@ export type AuthContextType = {
 	setPendingFriendsReceived: (data: any) => any;
 	pendingFriendsSent: User[];
 	setPendingFriendsSent: (data: any) => any;
+	getRelationships: (users: User[], id: string) => any;
+	createSuggested: (users: User[], friends: User[], blocked: User[]) => any;
+	suggested: User[]
+	setSuggested: (data: any) => any;
 	}
 
 const authContext = createContext<AuthContextType | null>(null);

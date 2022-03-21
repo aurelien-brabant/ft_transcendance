@@ -9,7 +9,8 @@ const AuthProvider: React.FC = ({ children }) => {
 	const [blocked, setBlocked] = useState<User[]>([]);
 	const [pendingFriendsReceived, setPendingFriendsReceived] = useState<User[]>([]);
 	const [pendingFriendsSent, setPendingFriendsSent] = useState<User[]>([]);
-	const [isPreAuthenticated, setIsPreAuthenticated] = useState(false);
+	const [suggested, setSuggested] = useState<User[]>([]);
+  	const [isPreAuthenticated, setIsPreAuthenticated] = useState(false);
 	const [isAuthenticated, setIsAuthenticated] = useState(false);
 	const [token, setToken] = useState<string>('');
 	
@@ -73,7 +74,31 @@ const AuthProvider: React.FC = ({ children }) => {
 	 * require an extra API call.
 	 */
 
-	const getRelationships = async (id: string) => {
+	const createSuggested = (users: User[], friends: User[], blocked: User[]) => {
+		
+		const checkSuggested = (list: User[], id: String) => {
+			for (var i in list) {
+			  	if (list[i].id === id) {
+					return false;
+			  	}
+			}
+			return true;
+		}
+	  
+		let suggestedList: User[] = [];  
+		for (var i in users) {
+			if (users[i].id !== getUserData().id
+				&& checkSuggested(blocked, users[i].id)
+				&& checkSuggested(friends, users[i].id))
+					suggestedList = [...suggestedList, users[i]]
+		}
+		  
+		setSuggested(suggestedList.filter(function(ele , pos){
+			return suggestedList.indexOf(ele) == pos;
+		}));	  
+	}
+
+	const getRelationships = async (usersList: User[], id: string) => {
 		
 		const req = await fetch(`/api/users/${id}`);
 		const data = await req.json();
@@ -89,6 +114,7 @@ const AuthProvider: React.FC = ({ children }) => {
 			friendsList = [...friendsList, data.friends[i]];  
 		}
 		setFriends42(friendsList);
+		createSuggested(usersList, friendsList, data.blockedUsers);
 	}
 
 	const getUsers = async () => {
@@ -111,10 +137,8 @@ const AuthProvider: React.FC = ({ children }) => {
 		const data = await res.json();
 		setUserData(data);
 		getUsers();
-		getRelationships(data.id);
-		
+		getRelationships(users, data.id);
 		setIsPreAuthenticated(true);
-
 		return true;
 	}
 
@@ -145,7 +169,11 @@ const AuthProvider: React.FC = ({ children }) => {
 				pendingFriendsReceived,
 				setPendingFriendsReceived,
 				pendingFriendsSent,
-				setPendingFriendsSent
+				setPendingFriendsSent,
+				getRelationships,
+				createSuggested,
+				suggested,
+				setSuggested
 			}}
 		>
 			{children}
