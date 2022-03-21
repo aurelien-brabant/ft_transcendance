@@ -1,4 +1,4 @@
-import React, { useState } from "react";
+import React, { useState, useContext } from "react";
 // import styles from '../styles/Canvas.module.css';
 import {Socket} from 'socket.io-client';
 
@@ -10,9 +10,10 @@ import styles from "../styles/Canvas.module.css";
 // import { GameConstants, GameState, gameConstants } from "../constants/gameConstants"
 import { Draw } from "../gameObjects/Draw";
 import { canvasHeight, canvasWidth, countDown, GameState, IRoom } from "../gameObjects/GameObject";
+import authContext, { AuthContextType } from "../context/auth/authContext"
 
 const Canvas: React.FC<{socketProps: Socket, roomProps: any}> = ({socketProps, roomProps}) => {
-
+	const { getUserData }: any = useContext(authContext) as AuthContextType;
 	/*
 		Canvas ref and size
 	*/
@@ -29,7 +30,7 @@ const Canvas: React.FC<{socketProps: Socket, roomProps: any}> = ({socketProps, r
 	let oldTimestamp: number = 0;
 	let secondElapsed: number = 0;
 	let seconds: number = 0;
-	let display: number = 0;	
+	let display: number = 0;
 
 	const leaveRoom = () => {
 		socket.emit("leaveRoom", roomId);
@@ -39,11 +40,11 @@ const Canvas: React.FC<{socketProps: Socket, roomProps: any}> = ({socketProps, r
 		Handle key controls
 	*/
 	const downHandler = (event: KeyboardEvent): void => {
-		socket.emit("keyDown", {roomId: roomId, key: event.key});
+		socket.emit("keyDown", {roomId: roomId, key: event.key, username: getUserData().username});
 	};
 
 	const upHandler = (event: KeyboardEvent): void => {
-		socket.emit("keyUp", {roomId: roomId, key: event.key});
+		socket.emit("keyUp", {roomId: roomId, key: event.key, username: getUserData().username});
 	};
 
 	/*
@@ -70,9 +71,9 @@ const Canvas: React.FC<{socketProps: Socket, roomProps: any}> = ({socketProps, r
 		canvas.width = canvasWidth;
 		canvas.height = canvasHeight;
 
-		
+
 		const draw: Draw = new Draw(canvas);
-		
+
 		window.addEventListener("keydown", downHandler);
 		window.addEventListener("keyup", upHandler);
 
@@ -120,7 +121,7 @@ const Canvas: React.FC<{socketProps: Socket, roomProps: any}> = ({socketProps, r
 				let count: number = (Date.now() - room.timestampStart) / 1000;
 				draw.drawRectangle(0, 0, canvasWidth, canvasHeight, "rgba(0, 0, 0, 0.5)");
 				draw.drawCountDown(countDown[Math.floor(count)]);
-		
+
 			}
 			if (room.gameState === GameState.PLAYING) {
 				draw.resetParticles();
@@ -155,10 +156,10 @@ const Canvas: React.FC<{socketProps: Socket, roomProps: any}> = ({socketProps, r
 				<div className={styles.container}>
 					<canvas ref={canvasRef} className={styles.canvas} ></canvas>
 					{
-						room.playerOne.id === socket.id ?
+						room.playerOne.id === getUserData().username ?
 						<div className="grid grid-cols-2">
 							<div>
-								<p>You are {socket.id}</p>
+								<p>You are {room.playerOne.id}</p>
 							</div>
 							<div>
 								<p className="text-right">Opponents is {room.playerTwo.id}</p>
@@ -170,7 +171,7 @@ const Canvas: React.FC<{socketProps: Socket, roomProps: any}> = ({socketProps, r
 								<p>Opponents is {room.playerOne.id}</p>
 							</div>
 							<div>
-								<p className="text-right">You are {socket.id}</p>
+								<p className="text-right">You are {room.playerTwo.id}</p>
 							</div>
 						</div>
 					}

@@ -3,23 +3,22 @@ import { io, Socket } from 'socket.io-client';
 import Head from "next/head";
 import withDashboardLayout from "../components/hoc/withDashboardLayout";
 import Canvas from "../components/Canvas";
-import { GameState, IRoom } from "../gameObjects/GameObject";
+import { IRoom } from "../gameObjects/GameObject";
 import authContext, { AuthContextType } from "../context/auth/authContext"
 import { NextPageWithLayout } from "./_app";
 
 let socket: Socket;
 
 const Hub: NextPageWithLayout = () => {
-	const { getUserData } = useContext(authContext) as AuthContextType;	
+	const { getUserData }: any = useContext(authContext) as AuthContextType;
 	let lastRoom: IRoom;
 
 	const [displayGame, setDisplayGame] = useState(false);
 	const [room, setRoom] = useState<IRoom | null>(null);
 	let roomId: string;
 
-
 	const joinQueue = () => {
-		socket.emit("joinQueue");
+		socket.emit("joinQueue", getUserData().username);
 	}
 
 	// const refreshCurrentGames = () => {
@@ -31,6 +30,9 @@ const Hub: NextPageWithLayout = () => {
 		socket = io("localhost");
 
 		socket.on("connect", () => {
+			// Allow reconnection
+			socket.emit("handleUserConnect", getUserData().username);
+
 			socket.on("newRoom", function(newRoom: IRoom) {
 					socket.emit("joinRoom", newRoom.id);
 					lastRoom = newRoom;

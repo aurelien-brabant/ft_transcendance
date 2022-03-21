@@ -1,40 +1,43 @@
-export interface IQueue<T> {
-    enqueue(item: T): void;
-    dequeue(): T | undefined;
-    size(): number;
-    find(item: T): T;
-    remove(item: T): void;
+export type User = {
+	username: string;
+	socketId: string;
 }
+//
+// export interface IQueue<T> {
+//     enqueue(item: T): void;
+//     dequeue(): T | undefined;
+//     size(): number;
+//     find(item: string): T;
+//     remove(item: T): void;
+// }
+// export default class Queue<T> implements IQueue<T> {
 
-export default class Queue<T> implements IQueue<T> {
-    private storage: T[] = [];
+export default class Queue {
+    private storage: User[] = [];
 
     constructor(private capacity: number = Infinity) {}
 
-    enqueue(item: T): void {
+    enqueue(item: User): void {
         if (this.size() === this.capacity) {
             throw Error("Queue has reached max capacity, you cannot add more items");
         }
         this.storage.push(item);
     }
-    dequeue(): T | undefined {
+    dequeue(): User | undefined {
         return this.storage.shift();
     }
     size(): number {
         return this.storage.length;
     }
 
-    find(item: T): T {
-        return this.storage.find(el => el === item);
+    find(username: string): User {
+        return this.storage.find(el => el.username === username);
     }
 
-    remove(item: T): void {
-        for (let i = 0; i < this.storage.length; i++) {
-            if (this.storage[i] === item)
-            {
-                this.storage.splice(i, 1);
-                return ;
-            }
-        }
+    remove(username: string): void {
+		let userIndex: number = this.connectedUser.findIndex(user => user.username === username);
+		if (userIndex !== -1) {
+			this.storage.splice(userIndex, 1);
+		}
     }
-}  
+}

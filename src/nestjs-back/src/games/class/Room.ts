@@ -32,7 +32,7 @@ export class Player implements IPlayer {
 	speed: number;
 	goal: number;
 	color: string;
-	
+
 	// Controls
 	up: boolean;
 	down: boolean;
@@ -60,7 +60,7 @@ export class Player implements IPlayer {
 
 	update (secondPassed: number) {
 		if (this.color !== "rgba(255, 255, 255, 0.8)" && this.step <= timing)
-		{			
+		{
 			this.color = "rgb(" + (127 + ((this.step/timing) * 128)) + ", " + ((this.step/timing) * 255) + ", " + ((this.step/timing) * 255) + ", 0.8)";
 			this.step++;
 		} else {
@@ -248,7 +248,7 @@ export default class Room implements IRoom {
 
     constructor(roomId: string, players: string[], customisation: {maxGoal?: number} = {maxGoal: 3}) {
         this.id = roomId;
-		this.gameState = GameState.STARTING;
+		this.gameState = GameState.WAITING;
         this.playerOne = new Player(players[0], 10);
         this.playerTwo = new Player(players[1], canvasWidth-40);
 		this.ball = new Ball();
@@ -258,7 +258,7 @@ export default class Room implements IRoom {
 		this.goalTimestamp = Date.now();
 		this.maxGoal = customisation.maxGoal;
     }
-	
+
 	changeGameState(newGameState: GameState) {
 		this.gameState = newGameState;
 	}
@@ -272,7 +272,7 @@ export default class Room implements IRoom {
 	update() {
 		let secondPassed: number = (Date.now() - this.lastUpdate) / 1000;
 		this.lastUpdate = Date.now();
-		
+
 		this.playerOne.update(secondPassed);
 		this.playerTwo.update(secondPassed);
 		this.ball.update(secondPassed, this.playerOne, this.playerTwo);
