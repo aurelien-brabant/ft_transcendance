@@ -16,7 +16,13 @@ import { FaUserFriends } from "react-icons/fa";
 
 /* All group conversations tab */
 const Groups: React.FC<{viewParams: Object;}> = ({ viewParams }) => {
-	const { openChatView, chatGroups } = useContext(chatContext) as ChatContextType;
+	const {
+		openChatView,
+		chatGroups,
+		fetchChannelData,
+		getLastMessage,
+		updateChatGroups
+	} = useContext(chatContext) as ChatContextType;
 
 	const baseChatGroups = useMemo(() =>
 		chatGroups
@@ -32,6 +38,16 @@ const Groups: React.FC<{viewParams: Object;}> = ({ viewParams }) => {
 	const [visiblityFilter, setVisiblityFilter] = useState<ChatGroupPrivacy | null>(null);
 	const searchInputRef = useRef<HTMLInputElement>(null);
 
+	/* Select all | private | public | protected */
+	const handleSelect = (e: React.ChangeEvent<HTMLSelectElement>) => {
+		setVisiblityFilter(
+			e.target.value !== "all"
+				? (e.target.value as ChatGroupPrivacy)
+				: null
+		);
+	};
+
+	/* Search a group */
 	const handleSearch = (term: string) => {
 		const searchTerm = term.toLowerCase();
 		setFilteredGroups(
@@ -43,17 +59,25 @@ const Groups: React.FC<{viewParams: Object;}> = ({ viewParams }) => {
 		);
 	};
 
-	const handleSelect = (e: React.ChangeEvent<HTMLSelectElement>) => {
-		setVisiblityFilter(
-			e.target.value !== "all"
-				? (e.target.value as ChatGroupPrivacy)
-				: null
-		);
-	};
-
 	useEffect(() => {
 		handleSearch((searchInputRef.current as HTMLInputElement).value);
 	}, [visiblityFilter]);
+
+	/* Update last message for all conversations */
+	const updateLastMessage = async (channel: chatGroups) => {
+		const data = await fetchChannelData(channel.id).catch(console.error);
+		const message = getLastMessage(JSON.parse(JSON.stringify(data)));
+
+		channel.lastMessage = message;
+		updateChatGroups(channel);
+	}
+
+	useEffect(async () => {
+		const updatePreviews = async () => {
+			return Promise.all(chatGroups.map((gm) => updateLastMessage(gm)));
+		};
+		await updatePreviews();
+	}, []);
 
 	return (
 		<Fragment>

@@ -142,15 +142,32 @@ const ChatProvider: React.FC = ({ children }) => {
 		setViewStack(viewStack.slice(0, -n));
 	};
 
+	/* Utils */
+	const updateChatGroups = (group: ChatGroups) => {
+		setChatGroups([
+			...chatGroups, group
+		]);
+	}
+
+	const updateDirectMessages = (dm: DirectMessage) => {
+		setDirectMessages([
+			...directMessages, dm
+		]);
+	}
+
+	const getLastMessage = (channel: any) => {
+		return channel.messages[channel.messages.length - 1].content;
+	}
+
+	const findUserById = (user: BaseUserData) => {
+		return user.id === userId;
+	}
+
 	/* Fetch the data of a specific channel */
 	const fetchChannelData = async (id: string) => {
 		const res = await fetch(`/api/channels/${id}`);
 		const data = await res.json();
 		return data;
-	}
-
-	const findUserById = (user: BaseUserData) => {
-		return user.id === userId;
 	}
 
 	/* Load all channels on mount */
@@ -161,7 +178,7 @@ const ChatProvider: React.FC = ({ children }) => {
 		for (var i in channels) {
 			const channel = channels[i];
 			const usersInChan = channel.users.length;
-			const message = channel.messages[channel.messages.length - 1].content;
+			const message = getLastMessage(channel);
 
 			if (usersInChan === 2) {
 				const friend = (channel.users[0].id === userId) ? channel.users[1] : channel.users[0];
@@ -197,8 +214,6 @@ const ChatProvider: React.FC = ({ children }) => {
 		fetchUserChannels().catch(console.error);
 	}, [])
 
-	// TODO: update last message
-
 	return (
 		<chatContext.Provider
 			value={{
@@ -210,6 +225,9 @@ const ChatProvider: React.FC = ({ children }) => {
 				closeRightmostView,
 				chatGroups,
 				directMessages,
+				updateChatGroups,
+				updateDirectMessages,
+				getLastMessage,
 				fetchChannelData
 			}}
 		>

@@ -10,11 +10,28 @@ import { UserStatusItem } from "../UserStatus";
 
 /* All DM conversations tab */
 const DirectMessages: React.FC<{ viewParams: Object; }> = ({ viewParams }) => {
-	const { openChatView, directMessages } = useContext(chatContext) as ChatContextType;
+	const {
+		openChatView,
+		directMessages,
+		fetchChannelData,
+		getLastMessage,
+		updateDirectMessages
+	} = useContext(chatContext) as ChatContextType;
+
 	const [filteredDms, setFilteredDms] = useState(directMessages);
 	const [visiblityFilter, setVisiblityFilter] = useState<ChatGroupPrivacy | null>(null);
 	const searchInputRef = useRef<HTMLInputElement>(null);
 
+	/* Select all | friends | blocked */
+	const handleSelect = (e: React.ChangeEvent<HTMLSelectElement>) => {
+		setVisiblityFilter(
+			e.target.value !== "all"
+				? (e.target.value as ChatGroupPrivacy)
+				: null
+		);
+	};
+
+	/* Search a user */
 	const handleSearch = (term: string) => {
 		const searchTerm = term.toLowerCase();
 		setFilteredDms(
@@ -25,17 +42,25 @@ const DirectMessages: React.FC<{ viewParams: Object; }> = ({ viewParams }) => {
 		);
 	};
 
-	const handleSelect = (e: React.ChangeEvent<HTMLSelectElement>) => {
-		setVisiblityFilter(
-			e.target.value !== "all"
-				? (e.target.value as ChatGroupPrivacy)
-				: null
-		);
-	};
-
 	useEffect(() => {
 		handleSearch((searchInputRef.current as HTMLInputElement).value);
 	}, [visiblityFilter]);
+
+	/* Update last message for all conversations */
+	const updateLastMessage = async (channel: DirectMessage) => {
+		const data = await fetchChannelData(channel.id).catch(console.error);
+		const message = getLastMessage(JSON.parse(JSON.stringify(data)));
+
+		channel.lastMessage = message;
+		updateDirectMessages(channel);
+	}
+
+	useEffect(async () => {
+		const updatePreviews = async () => {
+			return Promise.all(directMessages.map((dm) => updateLastMessage(dm)));
+		};
+		await updatePreviews();
+	}, []);
 
 	return (
 		<Fragment>

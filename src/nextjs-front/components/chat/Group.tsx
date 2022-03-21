@@ -52,7 +52,7 @@ const Group: React.FC<{ viewParams: { [key: string]: any } }> = ({
 	const channelId = viewParams.groupId;
 	const userId = getUserData().id;
 
-	const updateMessages = (message: any) => {
+	const updateMessages = (message: ChatMessage) => {
 		setMessages([
 			...messages, {
 				id: message.id,
@@ -61,7 +61,6 @@ const Group: React.FC<{ viewParams: { [key: string]: any } }> = ({
 				isMe: (message.author.id === userId)
 			}
 		]);
-		viewParams.updateState("newGroupMessage");
 	}
 
 	/* Send new message */
