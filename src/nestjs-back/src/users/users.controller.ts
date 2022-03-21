@@ -46,6 +46,11 @@ export class UsersController {
         return userData;
     }
 
+    @Post('/:id/stats/:status')
+    async updateStats(@Param('id') id: string, @Param('status') status: string) {
+        return this.usersService.updateStats(id, status);
+    }
+
     @Get('/:id/photo')
     async findPhoto(@Param('id') id: string, @Response() res: any) {
         const user = await this.usersService.findOne(id);

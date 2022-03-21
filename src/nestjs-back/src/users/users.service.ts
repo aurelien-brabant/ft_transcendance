@@ -161,19 +161,14 @@ export class UsersService {
 
     async update(id: string, updateUserDto: UpdateUserDto) {
         let user: User | null = null;
-        let ratio: number, winsTmp: number, lossesTmp: number;
-
-        winsTmp = updateUserDto.wins ? updateUserDto.wins : null;
-        lossesTmp = updateUserDto.losses ? updateUserDto.losses : null;
-
-        if (winsTmp || lossesTmp) {
+    
+        if (updateUserDto.wins || updateUserDto.losses || updateUserDto.losses) {
             user = await this.usersRepository.findOne(id);
-            if (winsTmp && lossesTmp)
-                ratio = (Math.round(winsTmp / lossesTmp * 100) / 100)
-            else if (winsTmp && !lossesTmp)
-                ratio = (Math.round(winsTmp / user.losses * 100) / 100)
-            else if (lossesTmp && !winsTmp)
-                ratio = (Math.round(user.wins / lossesTmp * 100) / 100)
+            const wins = updateUserDto.wins ? updateUserDto.wins : user.wins;
+            const losses = updateUserDto.losses ? updateUserDto.losses : user.losses;
+            const draws = updateUserDto.draws ? updateUserDto.draws : user.draws;
+            const ratio = (Math.round((wins + (draws * .5)) / (wins + draws + losses) * 100) / 100)
+    
             user = await this.usersRepository.preload({
                     id: +id,
                     ratio: ratio,
@@ -376,6 +371,42 @@ export class UsersService {
                 pendingFriendsReceived: updated
             });
         }
+        return this.usersRepository.save(user);
+    }
+
+    async updateStats(id: string, action: string) {
+        let user = await this.findOne(id);
+        if (!user)
+            throw new NotFoundException(`Cannot update user[${id}]: Not found`);
+ 
+       if (action === 'win') {
+            const wins = user.wins + 1;
+            const ratio = (Math.round((wins + (user.draws * .5)) / (wins + user.draws + user.losses) * 100) / 100)
+            user = await this.usersRepository.preload({
+                id: +id,
+                wins: wins,
+                ratio: ratio
+            });
+        }
+        else if (action === 'loose') {
+            const losses = user.losses + 1;
+            const ratio = (Math.round((user.wins + (user.draws * .5)) / (user.wins + user.draws + losses) * 100) / 100)
+            user = await this.usersRepository.preload({
+                id: +id,
+                losses: losses,
+                ratio: ratio
+            });
+        }
+        else  {
+            const draws = user.draws + 1;
+            const ratio = (Math.round((user.wins + (draws * .5)) / (user.wins + draws + user.losses) * 100) / 100)
+            user = await this.usersRepository.preload({
+                id: +id,
+                draws: draws,
+                ratio: ratio
+            });
+        }
+
         return this.usersRepository.save(user);
     }
 }
