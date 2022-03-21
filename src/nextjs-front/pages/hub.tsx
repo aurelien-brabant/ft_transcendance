@@ -15,7 +15,6 @@ const Hub: NextPageWithLayout = () => {
 	const { user } = useSession();
 	const { setAlert } = useContext(alertContext) as AlertContextType;
 	// const { socket } = useContext(socketContext) as SocketContextType;
-
 	const [displayGame, setDisplayGame] = useState(false);
 	const [inQueue, setInQueue] = useState(false);
 	const [room, setRoom] = useState<IRoom | null>(null);
@@ -25,7 +24,7 @@ const Hub: NextPageWithLayout = () => {
 	let userData: User = {id: user.id, username: user.username};
 
 	const joinQueue = () => {
-		socket.emit("joinQueue");
+		socket.emit("joinQueue", userData.username);
 	}
 
 	const leaveQueue = () => {

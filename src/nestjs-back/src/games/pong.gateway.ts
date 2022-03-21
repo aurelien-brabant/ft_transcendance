@@ -10,7 +10,6 @@ import {
 	WebSocketGateway,
 	WebSocketServer
 } from "@nestjs/websockets";
-
 import { GamesService } from './games.service';
 import { UsersService } from 'src/users/users.service';
 
@@ -27,8 +26,8 @@ export class PongGateway implements OnGatewayInit, OnGatewayConnection, OnGatewa
 	private logger: Logger = new Logger('gameGateway');
     private readonly queue: Queue = new Queue();
     private readonly rooms: Map<string, Room> = new Map();
+	private readonly connectedUser: User[] = new Array();
 
-	// see if it can be done another way
 	private readonly connectedUsers: ConnectedUsers = new ConnectedUsers();
 
 	async findMatches(server: Server, queue: Queue, rooms: Map<string, Room>) {

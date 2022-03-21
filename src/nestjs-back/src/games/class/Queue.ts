@@ -1,4 +1,20 @@
+<<<<<<< HEAD
 import { User } from "./Room";
+=======
+export type User = {
+	username: string;
+	socketId: string;
+}
+//
+// export interface IQueue<T> {
+//     enqueue(item: T): void;
+//     dequeue(): T | undefined;
+//     size(): number;
+//     find(item: string): T;
+//     remove(item: T): void;
+// }
+// export default class Queue<T> implements IQueue<T> {
+>>>>>>> prevent players to be added multiple times in queue, switch socket id for username, handling client reconnection when in game, controls not working needs rework
 
 export default class Queue {
     private storage: User[] = [];
@@ -22,6 +38,7 @@ export default class Queue {
         return this.storage.find(el => el.username === username);
     }
 
+<<<<<<< HEAD
     remove(userRm: User): void {
         let userIndex: number = this.storage.findIndex(user => user.username === userRm.username);
         if (userIndex !== -1)
@@ -31,4 +48,12 @@ export default class Queue {
     isInQueue(user: User): boolean {
         return (this.find(user.username) !== undefined);
     }
+=======
+    remove(username: string): void {
+		let userIndex: number = this.connectedUser.findIndex(user => user.username === username);
+		if (userIndex !== -1) {
+			this.storage.splice(userIndex, 1);
+		}
+    }
+>>>>>>> prevent players to be added multiple times in queue, switch socket id for username, handling client reconnection when in game, controls not working needs rework
 }
