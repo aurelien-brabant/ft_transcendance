@@ -48,7 +48,7 @@ const DirectMessage: React.FC<{ viewParams: { [key: string]: any } }> = ({
 	const dmId = viewParams.targetId;
 	const userId = getUserData().id;
 
-	const updateMessages = (message: ChatMessage) => {
+	const updateMessages = (message: any) => {
 		setMessages([
 			...messages, {
 				id: message.id,

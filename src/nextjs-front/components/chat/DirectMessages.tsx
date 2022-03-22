@@ -5,7 +5,7 @@ import {
 	useRef,
 	useState,
 } from "react";
-import chatContext, { ChatContextType, ChatGroupPrivacy } from "../../context/chat/chatContext";
+import chatContext, { ChatContextType, ChatGroupPrivacy, DirectMessage } from "../../context/chat/chatContext";
 import { UserStatusItem } from "../UserStatus";
 
 /* All DM conversations tab */
@@ -55,11 +55,11 @@ const DirectMessages: React.FC<{ viewParams: Object; }> = ({ viewParams }) => {
 		updateDirectMessages(channel);
 	}
 
-	useEffect(async () => {
+	useEffect(() => {
 		const updatePreviews = async () => {
 			return Promise.all(directMessages.map((dm) => updateLastMessage(dm)));
 		};
-		await updatePreviews();
+		updatePreviews();
 	}, []);
 
 	return (
@@ -85,10 +85,10 @@ const DirectMessages: React.FC<{ viewParams: Object; }> = ({ viewParams }) => {
 				<button
 					className="px-2 py-1 text-sm font-bold uppercase bg-pink-600 rounded"
 					onClick={() => {
-						openChatView("group_new", "Create a new group", {});
+						openChatView("dm_new", "Chat with a friend", {});
 					}}
 				>
-					+group
+					+new
 				</button>
 			</div>
 			<div className="h-[85%] overflow-x-auto">

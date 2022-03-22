@@ -52,7 +52,7 @@ const Group: React.FC<{ viewParams: { [key: string]: any } }> = ({
 	const channelId = viewParams.groupId;
 	const userId = getUserData().id;
 
-	const updateMessages = (message: ChatMessage) => {
+	const updateMessages = (message: any) => {
 		setMessages([
 			...messages, {
 				id: message.id,

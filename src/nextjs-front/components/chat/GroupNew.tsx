@@ -1,5 +1,7 @@
 import { useState, Fragment, useContext } from "react";
 import { BsArrowLeftShort } from "react-icons/bs";
+import alertContext, { AlertContextType } from "../../context/alert/alertContext";
+import authContext, { AuthContextType } from "../../context/auth/authContext";
 import chatContext, { ChatContextType, ChatGroupPrivacy } from "../../context/chat/chatContext";
 
 type NewGroupData = {
@@ -45,7 +47,14 @@ export const GroupNewHeader: React.FC = () => {
 }
 
 const GroupNew: React.FC = () => {
-	const { closeRightmostView } = useContext(chatContext) as ChatContextType;
+	const { getUserData } = useContext(authContext) as AuthContextType;
+	const { setAlert } = useContext(alertContext) as AlertContextType;
+	const {
+		openChatView,
+		updateChatGroups,
+		setChatGroupData
+	} = useContext(chatContext) as ChatContextType;
+
 	const [formData, setFormData] = useState<NewGroupData>({
 		groupName: "",
 		privacy: "private",
@@ -67,7 +76,7 @@ const GroupNew: React.FC = () => {
 		});
 	};
 
-	const handleSubmit = (e: React.FormEvent<HTMLFormElement>) => {
+	const handleSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
 		e.preventDefault();
 		const errors: Partial<NewGroupData> = {};
 
@@ -84,13 +93,48 @@ const GroupNew: React.FC = () => {
 		}
 
 		if (Object.keys(errors).length === 0) {
-			//TODO: create the actual group. Currently creating view is simply discarded.
-			
-			closeRightmostView();
+			await createGroup(formData);
 		}
-
 		setFieldErrors(errors);
 	};
+
+	const createGroup = async (formData: any) => {
+		const res = await fetch("/api/channels", {
+			method: "POST",
+			headers: {
+				"Content-Type": "application/json",
+			},
+			body: JSON.stringify({
+				name: formData.groupName,
+				owner: getUserData(),
+				privacy: formData.privacy,
+				password: (formData.password.length !== 0) ? formData.password : undefined,
+				users: [ getUserData() ]
+			}),
+		});
+
+		if (res.status === 201) {
+			const data = await res.json();
+			const gm = setChatGroupData(JSON.parse(JSON.stringify(data)));
+			console.log(gm);
+			updateChatGroups(gm);
+				openChatView(gm.privacy === 'protected' ? 'password_protection' : 'group', gm.label, {
+					groupName: gm.label,
+					groupId: gm.id
+				}
+			);
+		} else if (res.status === 401) {
+			setAlert({
+				type: "warning",
+				content: `Group '${formData.groupName}' already exists`
+			});
+		} else {
+			setAlert({
+				type: "error",
+				content: "Failed to create group"
+			});
+		}
+	}
 
 	const inputGroupClassName = "flex flex-col gap-y-2";
 	const inputClassName =

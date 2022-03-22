@@ -6,7 +6,7 @@ import {
 	useRef,
 	useState,
 } from "react";
-import chatContext, { ChatContextType, ChatGroupPrivacy } from "../../context/chat/chatContext";
+import chatContext, { ChatContextType, ChatGroup, ChatGroupPrivacy } from "../../context/chat/chatContext";
 import {
 	AiFillLock,
 	AiFillUnlock,
@@ -64,7 +64,7 @@ const Groups: React.FC<{viewParams: Object;}> = ({ viewParams }) => {
 	}, [visiblityFilter]);
 
 	/* Update last message for all conversations */
-	const updateLastMessage = async (channel: chatGroups) => {
+	const updateLastMessage = async (channel: ChatGroup) => {
 		const data = await fetchChannelData(channel.id).catch(console.error);
 		const dm = JSON.parse(JSON.stringify(data));
 
@@ -75,11 +75,12 @@ const Groups: React.FC<{viewParams: Object;}> = ({ viewParams }) => {
 		updateChatGroups(channel);
 	}
 
-	useEffect(async () => {
+	useEffect(() => {
 		const updatePreviews = async () => {
+			// TODO: sort by most recent message
 			return Promise.all(chatGroups.map((gm) => updateLastMessage(gm)));
 		};
-		await updatePreviews();
+		updatePreviews();
 	}, []);
 
 	return (
@@ -106,7 +107,7 @@ const Groups: React.FC<{viewParams: Object;}> = ({ viewParams }) => {
 				<button className="px-2 py-1 text-sm font-bold uppercase bg-pink-600 rounded" onClick={() => {
 					openChatView('group_new', 'Create a new group', {});
 				}}>
-					New
+					+Group
 				</button>
 			</div>
 			<div className="h-[85%] overflow-x-auto">

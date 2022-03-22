@@ -1,6 +1,6 @@
 import { createContext } from 'react';
 
-export type ChatView = 'groups' | 'group' | 'dms' | 'dm' | 'groupadd' | 'password_protection' | 'group_users' | 'group_settings' | 'group_new'; // plural form denotes the list, singular the chat itself
+export type ChatView = 'groups' | 'group' | 'dms' | 'dm' | 'dm_new' | 'groupadd' | 'password_protection' | 'group_users' | 'group_settings' | 'group_new'; // plural form denotes the list, singular the chat itself
 
 export type ChatMessage = {
 	id: string;
@@ -19,6 +19,7 @@ export type ChatGroup = {
 	isAdmin: boolean;
 	peopleCount: number;
 	privacy: ChatGroupPrivacy;
+	updatedAt: string;
 };
 
 export type DirectMessage = {
@@ -26,6 +27,7 @@ export type DirectMessage = {
 	username: string;
 	avatar: string;
 	lastMessage: string;
+	updatedAt: string;
 };
 
 export type ChatContextType = {
@@ -45,9 +47,10 @@ export type ChatContextType = {
 	directMessages: DirectMessage[];
 
 	/* Utils */
-	updateChatGroups: (group: ChatGroups) => void;
+	updateChatGroups: (group: ChatGroup) => void;
 	updateDirectMessages: (dm: DirectMessage) => void;
 	getLastMessage: (channel: any) => string;
+	setChatGroupData: (channel: any) => ChatGroup;
 
 	/* data fetching */
 	fetchChannelData: (id: string) => Promise<any>;

@@ -26,7 +26,7 @@ export class ChannelsService {
 
   async findOne(id: string) {
     const channel =  await this.channelsRepository.findOne(id, {
-      relations: ['owner', 'users', 'messages', 'messages.author'] // tmp
+      relations: ['owner', 'messages', 'messages.author'] // TODO: protect messages
     });
     if (!channel) {
       throw new NotFoundException(`Channel [${id}] not found`);
@@ -35,7 +35,20 @@ export class ChannelsService {
   }
 
   async create(createChannelDto: CreateChannelDto) {
-    const channel = this.channelsRepository.create(createChannelDto);
+    const ownedChannels = await this.usersService.getOwnedChannels(createChannelDto.owner.id.toString());
+    if (ownedChannels.length !== 0) {
+      const chanExists = !!ownedChannels.find(channel => {
+        return channel.name === createChannelDto.name;
+      })
+      if (chanExists) {
+        throw new UnauthorizedException(`Channel with name '${createChannelDto.name}' already exist`);
+      }
+    }
+    const hashedPwd = (createChannelDto.password) ? await hashPassword(createChannelDto.password, 10) : "";
+    const channel = this.channelsRepository.create({
+      ...createChannelDto,
+      password: hashedPwd
+    });
     return this.channelsRepository.save(channel);
   }
 
@@ -65,6 +78,7 @@ export class ChannelsService {
     return this.channelsRepository.remove(channel);
   }
 
+  /* Getters */
   async getChannelPassword(id: string) {
     const channel = await this.channelsRepository
       .createQueryBuilder('channel')
@@ -74,24 +88,27 @@ export class ChannelsService {
     return channel.password;
   }
 
-  async getChannelUsers(id: string, privacy: string) {
+  async getChannelUsers(id: string) {
     const channel = await this.channelsRepository
       .createQueryBuilder('channel')
       .innerJoinAndSelect('channel.users', 'users')
       .where('channel.id = :id', { id })
-      .andWhere('channel.privacy = :privacy', { privacy })
       .getOne();
     return channel;
   }
 
+  /* Join */
   async joinProtectedChan(id: string, userId: string, password: string) {
-    const channel = await this.getChannelUsers(id, 'protected');
+    let channel = await this.channelsRepository.findOne(id, {
+      where: { privacy: 'protected' }
+    });
     const user = await this.usersService.findOne(userId);
 
-    if (channel && user) {
+    if (channel) {
       const chanPassword = await this.getChannelPassword(id);
       const passIsValid = await comparePassword(password, chanPassword);
       if (passIsValid) {
+        channel = await this.getChannelUsers(id);
         channel.users.push(user);
         return this.channelsRepository.save(channel);
       }

@@ -1,8 +1,8 @@
 import { useContext } from "react";
 import { AiFillLock } from "react-icons/ai";
 import { BsArrowLeftShort } from "react-icons/bs";
-import authContext, { AuthContextType } from "../../context/auth/authContext";
 import alertContext, { AlertContextType } from "../../context/alert/alertContext";
+import authContext, { AuthContextType } from "../../context/auth/authContext";
 import chatContext, { ChatContextType } from "../../context/chat/chatContext";
 
 export const PasswordProtectionHeader: React.FC<{ viewParams: any }> = ({ viewParams}) => {

@@ -54,6 +54,13 @@ const views: { [key: string]: ChatViewItem } = {
 		Component: ChatDirectMessageView,
 		CustomHeaderComponent: DirectMessageHeader
 	},
+	dm_new: {
+		label: 'Chat with a friend',
+		params: {},
+		isAction: false,
+		Component: GroupNew,
+		CustomHeaderComponent: GroupNewHeader
+	},
 	groupadd: {
 		label: 'Add to group',
 		params: {},
@@ -143,7 +150,7 @@ const ChatProvider: React.FC = ({ children }) => {
 	};
 
 	/* Utils */
-	const updateChatGroups = (group: ChatGroups) => {
+	const updateChatGroups = (group: ChatGroup) => {
 		setChatGroups([
 			...chatGroups, group
 		]);
@@ -156,11 +163,31 @@ const ChatProvider: React.FC = ({ children }) => {
 	}
 
 	const getLastMessage = (channel: any) => {
-		return channel.messages[channel.messages.length - 1].content;
+		if (channel.messages) {
+			const i = channel.messages.length - 1;
+			if (i > 0 && channel.privacy !== "protected") {
+				return channel.messages[i].content;
+			}
+		}
+		return "";
 	}
 
 	const findUserById = (user: BaseUserData) => {
 		return user.id === userId;
+	}
+
+	const setChatGroupData = (channel: any) => {
+		const group: ChatGroup = {
+			id: channel.id,
+			label: channel.name,
+			lastMessage: getLastMessage(channel),
+			in: !!channel.users.find(findUserById),
+			isAdmin: (channel.owner.id === userId),
+			peopleCount: channel.users.length,
+			privacy: channel.privacy,
+			updatedAt: Date.now().toString()
+		}
+		return group;
 	}
 
 	/* Fetch the data of a specific channel */
@@ -187,17 +214,10 @@ const ChatProvider: React.FC = ({ children }) => {
 					username: friend.username,
 					avatar: !friend.pic ? "" : friend.pic.startsWith("https://") ? friend.pic : `/api/users/${friend.id}/photo`,
 					lastMessage: message,
+					updatedAt: Date.now().toString()
 				});
 			} else {
-				groups.push({
-					id: channel.id,
-					label: channel.name,
-					lastMessage: (channel.privacy === "protected") ? "" : message,
-					in: !!channel.users.find(findUserById),
-					isAdmin: (channel.owner === userId),
-					peopleCount: usersInChan,
-					privacy: channel.privacy as ChatGroupPrivacy
-				});
+				groups.push(setChatGroupData(channel, userId));
 			}
 		}
 		setChatGroups(groups);
@@ -206,7 +226,7 @@ const ChatProvider: React.FC = ({ children }) => {
 
 	useEffect(() => {
 		const fetchUserChannels = async () => {
-			const res = await fetch(`/api/users/${userId}/joinedChannels`);
+			const res = await fetch(`/api/users/${userId}/channels`);
 			const data = await res.json();
 
 			loadChannelsOnMount(JSON.parse(JSON.stringify(data)));
@@ -228,6 +248,7 @@ const ChatProvider: React.FC = ({ children }) => {
 				updateChatGroups,
 				updateDirectMessages,
 				getLastMessage,
+				setChatGroupData,
 				fetchChannelData
 			}}
 		>

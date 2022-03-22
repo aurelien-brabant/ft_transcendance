@@ -122,14 +122,12 @@ export class SeederService {
 
             if (i % 2) {
                 message = await this.messagesService.create({
-                    createdAt: faker.datatype.datetime(),
                     content: `I am ${fakeSender.username}`,
                     author: fakeSender,
                     channel: dstChannel
                 });
             } else {
                 message = await this.messagesService.create({
-                    createdAt: faker.datatype.datetime(),
                     content: `I am ${fakeFriend.username}`,
                     author: fakeFriend,
                     channel: dstChannel
@@ -150,11 +148,11 @@ export class SeederService {
                 owner: fakeOwner,
                 privacy: ['private', 'public', 'protected'][Math.floor(Math.random() * 3)],
                 users: [fakeOwner, fakeFriend, randomUser],
-                messages: []
+                messages: [],
             } as SeedChannel);
             if (channel.privacy === 'protected') {
                 channel = await this.channelsService.update(channel.id.toString(), {
-                    password: 'test'
+                    password: 'test' + i
                 });
             }
 
