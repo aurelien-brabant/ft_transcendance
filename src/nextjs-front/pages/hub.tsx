@@ -35,7 +35,6 @@ const Hub: NextPageWithLayout = () => {
 		socket.emit("spectateRoom", "funny_test212&ancient_test211");
 	}
 
-
 	useEffect((): any => {
 		// connect to socket server
 		socket = io("localhost:8080");
@@ -66,6 +65,14 @@ const Hub: NextPageWithLayout = () => {
 					type: "info",
 					content: "You were removed from Queue"
 				});	
+			});
+
+			socket.on("joinedQueue", (data: IRoom) => {
+				setInQueue(true);
+			});
+
+			socket.on("leavedQueue", (data: IRoom) => {
+				setInQueue(false);
 			});
 
 			socket.on("joinedRoom", (data: IRoom) => {
@@ -106,18 +113,11 @@ const Hub: NextPageWithLayout = () => {
 					<>
 						<h1>Hello World!</h1>
 						{
-							inQueue ? 
-							<button onClick={leaveQueue} className="px-6 py-2 text-xl uppercase bg-gray-600 drop-shadow-md text-bold text-neutral-200">
-								Cancel
-							</button>
-							:
-							<button onClick={joinQueue} className="px-6 py-2 text-xl uppercase bg-pink-600 drop-shadow-md text-bold text-neutral-200">
-								Find a match
-							</button>
+						inQueue ?
+							<button onClick={leaveQueue} className="px-6 py-2 text-xl uppercase bg-grey-600 drop-shadow-md text-bold text-neutral-200">Cancel</button>
+						:
+							<button onClick={joinQueue} className="px-6 py-2 text-xl uppercase bg-pink-600 drop-shadow-md text-bold text-neutral-200">Find a match</button>
 						}
-						<button onClick={spectate} className="px-6 py-2 text-xl uppercase bg-pink-600 drop-shadow-md text-bold text-neutral-200">
-							Spectate
-						</button>
 					</>
 				)
 
