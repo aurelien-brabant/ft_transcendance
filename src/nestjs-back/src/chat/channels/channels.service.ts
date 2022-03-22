@@ -8,13 +8,14 @@ import {
 import { Channel } from './entities/channels.entity';
 import { CreateChannelDto } from './dto/create-channel.dto';
 import { UpdateChannelDto } from './dto/update-channel.dto';
-import { User } from '../../users/entities/users.entity';
+import { UsersService } from 'src/users/users.service';
 
 @Injectable()
 export class ChannelsService {
   constructor(
     @InjectRepository(Channel)
     private readonly channelsRepository: Repository<Channel>,
+    private readonly usersService: UsersService,
   ) {}
 
   findAll() {
@@ -38,11 +39,18 @@ export class ChannelsService {
     return this.channelsRepository.save(channel);
   }
 
-  async update(id: string, updateChannelDto: UpdateChannelDto) { 
-    const channel = await this.channelsRepository.preload({
+  async update(id: string, updateChannelDto: UpdateChannelDto) {
+    let channel = await this.channelsRepository.preload({
       id: +id,
-      ...updateChannelDto,
+      ...updateChannelDto
     });
+    if (channel && updateChannelDto.password) {
+      const hashedPwd = await hashPassword(updateChannelDto.password, 10);
+      channel = await this.channelsRepository.preload({
+        id: +id,
+        password: hashedPwd
+      });
+    }
     if (!channel) {
       throw new NotFoundException(`Cannot update Channel [${id}]: Not found`);
     }
@@ -77,15 +85,15 @@ export class ChannelsService {
   }
 
   async joinProtectedChan(id: string, userId: string, password: string) {
-    const channel = await this.channelsRepository.findOne(id, {
-      where: { privacy: 'protected' }
-    });
-    if (channel) {
+    const channel = await this.getChannelUsers(id, 'protected');
+    const user = await this.usersService.findOne(userId);
+
+    if (channel && user) {
       const chanPassword = await this.getChannelPassword(id);
-      // const passIsValid = await comparePassword(password, chanPassword)
-      const passIsValid = (password === chanPassword); // tmp
+      const passIsValid = await comparePassword(password, chanPassword);
       if (passIsValid) {
-        return channel;
+        channel.users.push(user);
+        return this.channelsRepository.save(channel);
       }
     }
     throw new UnauthorizedException();

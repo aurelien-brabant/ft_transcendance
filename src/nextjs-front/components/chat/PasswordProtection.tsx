@@ -37,11 +37,9 @@ const PasswordProtection: React.FC<{ viewParams: any }> = ({ viewParams }) => {
 			"Content-Type": "application/json",
 			},
 		});
-		const data = res.json();
 
 		if (res.status === 201) {
 			setChatView('group', viewParams.groupName, { ...viewParams });
-			// TODO: add user to group?
 		} else {
 			setAlert({
 				type: "error",
