@@ -35,7 +35,7 @@ export default class Queue {
     }
 
     remove(username: string): void {
-		let userIndex: number = this.connectedUser.findIndex(user => user.username === username);
+		let userIndex: number = this.storage.findIndex(user => user.username === username);
 		if (userIndex !== -1) {
 			this.storage.splice(userIndex, 1);
 		}

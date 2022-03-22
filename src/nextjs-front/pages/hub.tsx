@@ -14,6 +14,7 @@ const Hub: NextPageWithLayout = () => {
 	let lastRoom: IRoom;
 
 	const [displayGame, setDisplayGame] = useState(false);
+	const [inQueue, setInQueue] = useState(false);
 	const [room, setRoom] = useState<IRoom | null>(null);
 	let roomId: string;
 
@@ -21,9 +22,9 @@ const Hub: NextPageWithLayout = () => {
 		socket.emit("joinQueue", getUserData().username);
 	}
 
-	// const refreshCurrentGames = () => {
-	// 	socket.emit("refreshCurrentGames");
-	// }
+	const leaveQueue = () => {
+		socket.emit("leaveQueue", getUserData().username);
+	}
 
 	useEffect((): any => {
 		// connect to socket server
@@ -38,6 +39,14 @@ const Hub: NextPageWithLayout = () => {
 					lastRoom = newRoom;
 					roomId = newRoom.id;
 					setRoom(newRoom);
+			});
+
+			socket.on("joinedQueue", (data: IRoom) => {
+				setInQueue(true);
+			});
+
+			socket.on("leavedQueue", (data: IRoom) => {
+				setInQueue(false);
 			});
 
 			socket.on("joinedRoom", (data: IRoom) => {
@@ -71,8 +80,12 @@ const Hub: NextPageWithLayout = () => {
 				(
 					<>
 						<h1>Hello World!</h1>
-						{/* <button onClick={refreshCurrentGames} className="px-6 py-2 text-xl uppercase bg-pink-600 drop-shadow-md text-bold text-neutral-200">Refresh</button> */}
+						{
+						inQueue ? 
+						<button onClick={leaveQueue} className="px-6 py-2 text-xl uppercase bg-grey-600 drop-shadow-md text-bold text-neutral-200">Cancel</button>
+						:
 						<button onClick={joinQueue} className="px-6 py-2 text-xl uppercase bg-pink-600 drop-shadow-md text-bold text-neutral-200">Find a match</button>
+						}
 					</>
 				)
 

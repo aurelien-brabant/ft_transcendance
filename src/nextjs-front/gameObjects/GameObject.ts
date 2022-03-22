@@ -9,6 +9,7 @@ export enum GameState {
 	STARTING,
 	PLAYING,
 	PAUSED,
+	RESUMED,
 	GOAL,
 	END
 }
@@ -42,11 +43,15 @@ export interface IRoom {
 	playerOne: IPlayer;
 	playerTwo: IPlayer;
 	ball: IBall;
+
 	timestampStart: number;
 	lastUpdate: number;
 	goalTimestamp: number;
 	lastGoal: string;
+	pauseTime: {pause: number, resume: number}[];
 
 	winner: string;
 	loser: string;
+
+	maxGoal: number;
 }

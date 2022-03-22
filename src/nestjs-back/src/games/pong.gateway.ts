@@ -63,10 +63,10 @@ export class PongGateway implements OnGatewayInit, OnGatewayConnection, OnGatewa
 			if (room.playerOne.id === username || room.playerTwo.id === username)
 			{
 				this.server.to(client.id).emit("newRoom", room);
-				// If the game is paused change state
 				if (room.gameState === GameState.PAUSED)
 				{
-					// room.changeGameState(GameState.PAUSED);
+					room.changeGameState(GameState.RESUMED);
+					room.pauseTime[room.pauseTime.length - 1].resume = Date.now();
 				}
 			}
 		}
@@ -85,16 +85,18 @@ export class PongGateway implements OnGatewayInit, OnGatewayConnection, OnGatewa
 						this.logger.log("No player left in the room deleting it...");
 						this.rooms.delete(room.id);
 					}
-					else if (room.gameState !== GameState.END)
+					else if (room.gameState !== GameState.END) {
 						room.changeGameState(GameState.PAUSED);
+						room.pauseTime.push({pause: Date.now(), resume: 0});
+					}
 					client.leave(room.id);
 				}
 			}
 			// remove from queue and connected user
 			this.queue.remove(username);
 			this.connectedUser.splice(userIndex, 1);
+			this.logger.log(`Client ${username} disconnected: ${client.id}`);
 		}
-		this.logger.log(`Client ${username} disconnected: ${client.id}`);
 	}
 
 	// Etape 1 : Player JoinQueue
@@ -104,7 +106,19 @@ export class PongGateway implements OnGatewayInit, OnGatewayConnection, OnGatewa
 		if (this.queue.find(username) === undefined)
 		{
 			this.queue.enqueue({username: username, socketId: client.id});
+			this.server.to(client.id).emit('joinedQueue');
 			this.logger.log(`Client ${username}: ${client.id} was added to queue !`);
+		}
+	}
+
+	// Etape 1 : Player JoinQueue
+	@SubscribeMessage('leaveQueue')
+	handleLeaveQueue(@ConnectedSocket() client: Socket, @MessageBody() username: string) {
+		// check if not already in queue
+		if (this.queue.find(username))
+		{
+			this.queue.remove(username);
+			this.server.to(client.id).emit('leavedQueue');
 		}
 	}
 
@@ -128,21 +142,24 @@ export class PongGateway implements OnGatewayInit, OnGatewayConnection, OnGatewa
 		}
 		else if (room.gameState === GameState.PLAYING)
 			room.update();
-		else if (room.gameState === GameState.GOAL && (Date.now() - room.goalTimestamp) >= 3500)
-		{
+		else if (room.gameState === GameState.GOAL && (Date.now() - room.goalTimestamp) >= 3500) {
 			room.resetPosition();
 			room.changeGameState(GameState.PLAYING);
 			room.lastUpdate = Date.now();
+		} else if (room.gameState === GameState.RESUMED && (Date.now() - room.pauseTime[room.pauseTime.length - 1].resume) >= 3500)
+		{
+			room.lastUpdate = Date.now();
+			room.changeGameState(GameState.PLAYING);
 		}
 		this.server.to(client.id).emit("updateRoom", room);
 	}
 
 	// Controls
 	@SubscribeMessage('keyDown')
-	async handleKeyUp(@ConnectedSocket() client: Socket, @MessageBody() data: {roomId: string, key: string}) {
+	async handleKeyUp(@ConnectedSocket() client: Socket, @MessageBody() data: {roomId: string, key: string, username: string}) {
 		const room: Room = this.rooms.get(data.roomId);
 
-		if (room.playerOne.id === client.id)
+		if (room.playerOne.id === data.username)
 		{
 			if (data.key === 'ArrowUp')
 				room.playerOne.up = true;
@@ -150,7 +167,7 @@ export class PongGateway implements OnGatewayInit, OnGatewayConnection, OnGatewa
 				room.playerOne.down = true;
 
 		}
-		else if (room.playerTwo.id === client.id)
+		else if (room.playerTwo.id === data.username)
 		{
 			if (data.key === 'ArrowUp')
 				room.playerTwo.up = true;
@@ -163,7 +180,7 @@ export class PongGateway implements OnGatewayInit, OnGatewayConnection, OnGatewa
 	async handleKeyDown(@ConnectedSocket() client: Socket, @MessageBody() data: {roomId: string, key: string, username: string}) {
 		const room: Room = this.rooms.get(data.roomId);
 
-		if (room.playerOne.id === username)
+		if (room.playerOne.id === data.username)
 		{
 			if (data.key === 'ArrowUp')
 				room.playerOne.up = false;
@@ -171,7 +188,7 @@ export class PongGateway implements OnGatewayInit, OnGatewayConnection, OnGatewa
 				room.playerOne.down = false;
 
 		}
-		else if (room.playerTwo.id === username)
+		else if (room.playerTwo.id === data.username)
 		{
 			if (data.key === 'ArrowUp')
 				room.playerTwo.up = false;

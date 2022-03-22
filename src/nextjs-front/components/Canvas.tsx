@@ -130,6 +130,11 @@ const Canvas: React.FC<{socketProps: Socket, roomProps: any}> = ({socketProps, r
 				loading();
 			} else if (room.gameState === GameState.PAUSED) {
 				draw.drawPauseButton();
+			} else if (room.gameState === GameState.RESUMED) {
+				let count: number = (Date.now() - room.pauseTime[room.pauseTime.length - 1].resume) / 1000;
+				draw.drawRectangle(0, 0, canvasWidth, canvasHeight, "rgba(0, 0, 0, 0.5)");
+				draw.drawCountDown(countDown[Math.floor(count)]);
+
 			} else if (room.gameState === GameState.GOAL) {
 				goal();
 			}
@@ -159,19 +164,47 @@ const Canvas: React.FC<{socketProps: Socket, roomProps: any}> = ({socketProps, r
 						room.playerOne.id === getUserData().username ?
 						<div className="grid grid-cols-2">
 							<div>
+								{/* <img
+									className="hidden rounded-full sm:block"
+									height="45px"
+									width="45px"
+									src={`/api/users/${getUserData().id}/photo`}
+									alt="user's avatar"
+								/> */}
 								<p>You are {room.playerOne.id}</p>
 							</div>
 							<div>
 								<p className="text-right">Opponents is {room.playerTwo.id}</p>
+								{/* <img
+									className="hidden rounded-full sm:block"
+									height="45px"
+									width="45px"
+									src={`/api/users/${getUserData().id}/photo`}
+									alt="user's avatar"
+								/> */}
 							</div>
 						</div>
 							:
 						<div className="grid grid-cols-2">
 							<div>
+								{/* <img
+									className="hidden rounded-full sm:block"
+									height="45px"
+									width="45px"
+									src={`/api/users/${getUserData().id}/photo`}
+									alt="user's avatar"
+								/> */}
 								<p>Opponents is {room.playerOne.id}</p>
 							</div>
 							<div>
 								<p className="text-right">You are {room.playerTwo.id}</p>
+								{/* <img
+									className="hidden rounded-full sm:block"
+									height="45px"
+									width="45px"
+									src={`/api/users/${getUserData().id}/photo`}
+									alt="user's avatar"
+								/> */}
 							</div>
 						</div>
 					}

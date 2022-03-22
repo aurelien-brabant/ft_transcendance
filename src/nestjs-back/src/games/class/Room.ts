@@ -8,6 +8,7 @@ export enum GameState {
 	STARTING,
 	PLAYING,
 	PAUSED,
+	RESUMED,
 	GOAL,
 	END
 }
@@ -217,10 +218,13 @@ export interface IRoom {
 	playerOne: Player;
 	playerTwo: Player;
 	ball: Ball;
+
+	// Game timestamps
 	timestampStart: number;
 	lastUpdate: number;
 	goalTimestamp: number;
 	lastGoal: string;
+	pauseTime: {pause: number, resume: number}[];
 
 	winner: string;
 	loser: string;
@@ -235,10 +239,12 @@ export default class Room implements IRoom {
 	playerOne: Player;
 	playerTwo: Player;
 	ball: Ball;
+
 	timestampStart: number;
 	lastUpdate: number;
 	goalTimestamp: number;
 	lastGoal: string;
+	pauseTime: {pause: number, resume: number}[];
 
 	winner: string;
 	loser: string;
@@ -248,7 +254,7 @@ export default class Room implements IRoom {
 
     constructor(roomId: string, players: string[], customisation: {maxGoal?: number} = {maxGoal: 3}) {
         this.id = roomId;
-		this.gameState = GameState.WAITING;
+		this.gameState = GameState.STARTING;
         this.playerOne = new Player(players[0], 10);
         this.playerTwo = new Player(players[1], canvasWidth-40);
 		this.ball = new Ball();
@@ -256,6 +262,8 @@ export default class Room implements IRoom {
 		this.timestampStart = Date.now();
 		this.lastUpdate = Date.now();
 		this.goalTimestamp = Date.now();
+		this.pauseTime = [];
+
 		this.maxGoal = customisation.maxGoal;
     }
 
