@@ -190,6 +190,17 @@ const ChatProvider: React.FC = ({ children }) => {
 		return group;
 	}
 
+	const setDirectMessageData = (channel: any, friend: any) => {
+		const dm: DirectMessage = {
+			id: channel.id,
+			username: friend.username,
+			avatar: !friend.pic ? "" : friend.pic.startsWith("https://") ? friend.pic : `/api/users/${friend.id}/photo`,
+			lastMessage: getLastMessage(channel),
+			updatedAt: Date.now().toString()
+		}
+		return dm;
+	}
+
 	/* Fetch the data of a specific channel */
 	const fetchChannelData = async (id: string) => {
 		const res = await fetch(`/api/channels/${id}`);
@@ -205,19 +216,12 @@ const ChatProvider: React.FC = ({ children }) => {
 		for (var i in channels) {
 			const channel = channels[i];
 			const usersInChan = channel.users.length;
-			const message = getLastMessage(channel);
 
 			if (usersInChan === 2) {
 				const friend = (channel.users[0].id === userId) ? channel.users[1] : channel.users[0];
-				dms.push({
-					id: channel.id,
-					username: friend.username,
-					avatar: !friend.pic ? "" : friend.pic.startsWith("https://") ? friend.pic : `/api/users/${friend.id}/photo`,
-					lastMessage: message,
-					updatedAt: Date.now().toString()
-				});
+				dms.push(setDirectMessageData(channel, friend));
 			} else {
-				groups.push(setChatGroupData(channel, userId));
+				groups.push(setChatGroupData(channel));
 			}
 		}
 		setChatGroups(groups);
@@ -249,6 +253,7 @@ const ChatProvider: React.FC = ({ children }) => {
 				updateDirectMessages,
 				getLastMessage,
 				setChatGroupData,
+				setDirectMessageData,
 				fetchChannelData
 			}}
 		>
