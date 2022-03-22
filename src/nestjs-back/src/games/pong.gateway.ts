@@ -16,8 +16,8 @@ import {
 // import { CreateGameDto } from 'src/games/dto/create-game.dto';
 // import { UpdateGameDto } from 'src/games/dto/update-game.dto';
 
-import Queue, { User } from './class/Queue';
-import Room, { GameState } from './class/Room';
+import Queue from './class/Queue';
+import Room, { GameState, User } from './class/Room';
 
 @WebSocketGateway({ cors: true })
 export class PongGateway implements OnGatewayInit, OnGatewayConnection, OnGatewayDisconnect {
@@ -39,7 +39,7 @@ export class PongGateway implements OnGatewayInit, OnGatewayConnection, OnGatewa
 			players.push(queue.dequeue());
 
 			let roomId: string = `${players[0].username}&${players[1].username}`
-            room = new Room(roomId, [players[0].username, players[1].username], {maxGoal: 3});
+            room = new Room(roomId, players, {maxGoal: 3});
 
 			server.to(players[0].socketId).emit("newRoom", room);
 			server.to(players[1].socketId).emit("newRoom",  room);
@@ -56,11 +56,12 @@ export class PongGateway implements OnGatewayInit, OnGatewayConnection, OnGatewa
 	}
 
 	@SubscribeMessage('handleUserConnect')
-	handlUserConnect(@ConnectedSocket() client: Socket, @MessageBody() username: string) {
-		this.connectedUser.push({username: username, socketId: client.id});
+	handlUserConnect(@ConnectedSocket() client: Socket, @MessageBody() user: User) {
+		this.connectedUser.push({id: user.id, username: user.username, socketId: client.id});
 		// Verify that player is not already in a game
 		for (let room of this.rooms.values()) {
-			if (room.playerOne.id === username || room.playerTwo.id === username)
+			let users: User[] = room.getUsers();
+			if (users[0].username === user.username || users[1].username === user.username)
 			{
 				this.server.to(client.id).emit("newRoom", room);
 				if (room.gameState === GameState.PAUSED)
@@ -78,7 +79,8 @@ export class PongGateway implements OnGatewayInit, OnGatewayConnection, OnGatewa
 		if (userIndex !== -1) {
 			let username: string = this.connectedUser[userIndex].username;
 			for (let room of this.rooms.values()) {
-				if (room.playerOne.id === username || room.playerTwo.id === username)
+				let users: User[] = room.getUsers();
+				if (users[0].username === username || users[1].username === username)
 				{
 					if (room.gameState === GameState.PAUSED)
 					{
@@ -93,7 +95,8 @@ export class PongGateway implements OnGatewayInit, OnGatewayConnection, OnGatewa
 				}
 			}
 			// remove from queue and connected user
-			this.queue.remove(username);
+			if (this.queue.find(username) !== undefined)
+				this.queue.remove(username);
 			this.connectedUser.splice(userIndex, 1);
 			this.logger.log(`Client ${username} disconnected: ${client.id}`);
 		}
@@ -101,32 +104,45 @@ export class PongGateway implements OnGatewayInit, OnGatewayConnection, OnGatewa
 
 	// Etape 1 : Player JoinQueue
 	@SubscribeMessage('joinQueue')
-	handleJoinQueue(@ConnectedSocket() client: Socket, @MessageBody() username: string) {
+	handleJoinQueue(@ConnectedSocket() client: Socket, @MessageBody() user: User) {
 		// check if not already in queue
-		if (this.queue.find(username) === undefined)
+		if (this.queue.find(user.username) === undefined)
 		{
-			this.queue.enqueue({username: username, socketId: client.id});
+			this.queue.enqueue({id: user.id, username: user.username, socketId: client.id});
 			this.server.to(client.id).emit('joinedQueue');
-			this.logger.log(`Client ${username}: ${client.id} was added to queue !`);
+			this.logger.log(`Client ${user.username}: ${client.id} was added to queue !`);
 		}
 	}
 
 	// Etape 1 : Player JoinQueue
 	@SubscribeMessage('leaveQueue')
-	handleLeaveQueue(@ConnectedSocket() client: Socket, @MessageBody() username: string) {
-		// check if not already in queue
-		if (this.queue.find(username))
+	handleLeaveQueue(@ConnectedSocket() client: Socket, @MessageBody() user: User) {
+		// check if user is in queue
+		if (this.queue.find(user.username) !== undefined)
 		{
-			this.queue.remove(username);
+			this.queue.remove(user.username);
 			this.server.to(client.id).emit('leavedQueue');
 		}
 	}
 
 	// Etape 2 : The player was assigned a Room and received the roomId we add him to the room
 	@SubscribeMessage('joinRoom')
-	handleJoinRoom(@ConnectedSocket() client: Socket, @MessageBody() room: string) {
-		client.join(room);
+	handleJoinRoom(@ConnectedSocket() client: Socket, @MessageBody() roomId: string) {
+		const room: Room = this.rooms.get(roomId);
+
+		client.join(roomId);
 		this.server.to(client.id).emit("joinedRoom");
+		this.server.to(client.id).emit("updateRoom", room);
+	}
+
+
+	@SubscribeMessage('leaveRoom')
+	handleLeaveRoom(@ConnectedSocket() client: Socket, @MessageBody() roomId: string) {
+		const room: Room = this.rooms.get(roomId);
+
+		client.leave(roomId);
+		this.logger.log(`Client ${client.id} leaved room ${roomId} !`);
+		this.server.to(client.id).emit("leaveRoom");
 	}
 
 	// Etape 3 : Players ask for the last room Updates
@@ -151,7 +167,7 @@ export class PongGateway implements OnGatewayInit, OnGatewayConnection, OnGatewa
 			room.lastUpdate = Date.now();
 			room.changeGameState(GameState.PLAYING);
 		}
-		this.server.to(client.id).emit("updateRoom", room);
+		this.server.to(room.id).emit("updateRoom", room);
 	}
 
 	// Controls
@@ -159,7 +175,7 @@ export class PongGateway implements OnGatewayInit, OnGatewayConnection, OnGatewa
 	async handleKeyUp(@ConnectedSocket() client: Socket, @MessageBody() data: {roomId: string, key: string, username: string}) {
 		const room: Room = this.rooms.get(data.roomId);
 
-		if (room.playerOne.id === data.username)
+		if (room.playerOne.user.username === data.username)
 		{
 			if (data.key === 'ArrowUp')
 				room.playerOne.up = true;
@@ -167,7 +183,7 @@ export class PongGateway implements OnGatewayInit, OnGatewayConnection, OnGatewa
 				room.playerOne.down = true;
 
 		}
-		else if (room.playerTwo.id === data.username)
+		else if (room.playerTwo.user.username === data.username)
 		{
 			if (data.key === 'ArrowUp')
 				room.playerTwo.up = true;
@@ -180,7 +196,7 @@ export class PongGateway implements OnGatewayInit, OnGatewayConnection, OnGatewa
 	async handleKeyDown(@ConnectedSocket() client: Socket, @MessageBody() data: {roomId: string, key: string, username: string}) {
 		const room: Room = this.rooms.get(data.roomId);
 
-		if (room.playerOne.id === data.username)
+		if (room.playerOne.user.username === data.username)
 		{
 			if (data.key === 'ArrowUp')
 				room.playerOne.up = false;
@@ -188,19 +204,12 @@ export class PongGateway implements OnGatewayInit, OnGatewayConnection, OnGatewa
 				room.playerOne.down = false;
 
 		}
-		else if (room.playerTwo.id === data.username)
+		else if (room.playerTwo.user.username === data.username)
 		{
 			if (data.key === 'ArrowUp')
 				room.playerTwo.up = false;
 			if (data.key === 'ArrowDown')
 				room.playerTwo.down = false;
 		}
-	}
-
-	@SubscribeMessage('leaveRoom')
-	handleLeaveRoom(@ConnectedSocket() client: Socket, @MessageBody() roomId: string) {
-		client.leave(roomId);
-		this.logger.log(`Client ${client.id} leaved room ${roomId} !`);
-		this.server.to(client.id).emit("leaveRoom");
 	}
 }

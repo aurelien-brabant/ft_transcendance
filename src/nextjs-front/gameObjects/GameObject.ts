@@ -14,8 +14,14 @@ export enum GameState {
 	END
 }
 
+export type User = {
+    id: number;
+	username: string;
+	socketId?: string;
+}
+
 export interface IPlayer {
-	id: string;
+	user: User;
 	x: number;
 	y: number;
 	width: number;
@@ -40,6 +46,7 @@ export interface IBall {
 export interface IRoom {
 	id: string;
 	gameState: GameState;
+	users: User[];
 	playerOne: IPlayer;
 	playerTwo: IPlayer;
 	ball: IBall;

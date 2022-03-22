@@ -3,27 +3,29 @@ import { io, Socket } from 'socket.io-client';
 import Head from "next/head";
 import withDashboardLayout from "../components/hoc/withDashboardLayout";
 import Canvas from "../components/Canvas";
-import { IRoom } from "../gameObjects/GameObject";
+import { IRoom, User } from "../gameObjects/GameObject";
 import authContext, { AuthContextType } from "../context/auth/authContext"
 import { NextPageWithLayout } from "./_app";
 
 let socket: Socket;
 
 const Hub: NextPageWithLayout = () => {
-	const { getUserData }: any = useContext(authContext) as AuthContextType;
-	let lastRoom: IRoom;
+		const { getUserData }: any = useContext(authContext) as AuthContextType;
 
 	const [displayGame, setDisplayGame] = useState(false);
 	const [inQueue, setInQueue] = useState(false);
 	const [room, setRoom] = useState<IRoom | null>(null);
+
+	let roomData: IRoom;
 	let roomId: string;
+	let user: User = {id: getUserData().id, username: getUserData().username};
 
 	const joinQueue = () => {
-		socket.emit("joinQueue", getUserData().username);
+		socket.emit("joinQueue", user);
 	}
 
 	const leaveQueue = () => {
-		socket.emit("leaveQueue", getUserData().username);
+		socket.emit("leaveQueue", user);
 	}
 
 	useEffect((): any => {
@@ -32,13 +34,13 @@ const Hub: NextPageWithLayout = () => {
 
 		socket.on("connect", () => {
 			// Allow reconnection
-			socket.emit("handleUserConnect", getUserData().username);
+			socket.emit("handleUserConnect", user);
 
-			socket.on("newRoom", function(newRoom: IRoom) {
-					socket.emit("joinRoom", newRoom.id);
-					lastRoom = newRoom;
-					roomId = newRoom.id;
-					setRoom(newRoom);
+			socket.on("newRoom", (newRoomData: IRoom) => {
+					socket.emit("joinRoom", newRoomData.id);
+					roomData = newRoomData;
+					roomId = newRoomData.id;
+					setRoom(roomData);
 			});
 
 			socket.on("joinedQueue", (data: IRoom) => {
@@ -55,6 +57,7 @@ const Hub: NextPageWithLayout = () => {
 
 			socket.on("leaveRoom", (data: IRoom) => {
 				setDisplayGame(false);
+				setRoom(null);
 			});
 		});
 
@@ -81,10 +84,14 @@ const Hub: NextPageWithLayout = () => {
 					<>
 						<h1>Hello World!</h1>
 						{
-						inQueue ? 
-						<button onClick={leaveQueue} className="px-6 py-2 text-xl uppercase bg-grey-600 drop-shadow-md text-bold text-neutral-200">Cancel</button>
-						:
-						<button onClick={joinQueue} className="px-6 py-2 text-xl uppercase bg-pink-600 drop-shadow-md text-bold text-neutral-200">Find a match</button>
+							inQueue ? 
+							<button onClick={leaveQueue} className="px-6 py-2 text-xl uppercase bg-gray-600 drop-shadow-md text-bold text-neutral-200">
+								Cancel
+							</button>
+							:
+							<button onClick={joinQueue} className="px-6 py-2 text-xl uppercase bg-pink-600 drop-shadow-md text-bold text-neutral-200">
+								Find a match
+							</button>
 						}
 					</>
 				)

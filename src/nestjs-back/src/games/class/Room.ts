@@ -13,8 +13,14 @@ export enum GameState {
 	END
 }
 
+export type User = {
+    id: number;
+	username: string;
+	socketId?: string;
+}
+
 export interface IPlayer {
-	id: string;
+	user: User;
 	x: number;
 	y: number;
 	width: number;
@@ -25,7 +31,7 @@ export interface IPlayer {
 }
 
 export class Player implements IPlayer {
-	id: string;
+	user: User; 
 	x: number;
 	y: number;
 	width: number;
@@ -41,8 +47,8 @@ export class Player implements IPlayer {
 	// UI
 	step: number;
 
-	constructor(id: string, x: number) {
-		this.id = id;
+	constructor(user: User, x: number) {
+		this.user = user;
 		this.width = 30;
 		this.height = 200;
 		this.x = x;
@@ -215,6 +221,7 @@ export class Ball implements IBall {
 export interface IRoom {
 	id: string;
 	gameState: GameState;
+	users: User[];
 	playerOne: Player;
 	playerTwo: Player;
 	ball: Ball;
@@ -236,6 +243,7 @@ export interface IRoom {
 export default class Room implements IRoom {
 	id: string;
     gameState: GameState;
+	users: User[];
 	playerOne: Player;
 	playerTwo: Player;
 	ball: Ball;
@@ -252,11 +260,12 @@ export default class Room implements IRoom {
 	// settings customisation
 	maxGoal: number;
 
-    constructor(roomId: string, players: string[], customisation: {maxGoal?: number} = {maxGoal: 3}) {
+    constructor(roomId: string, users: User[], customisation: {maxGoal?: number} = {maxGoal: 3}) {
         this.id = roomId;
 		this.gameState = GameState.STARTING;
-        this.playerOne = new Player(players[0], 10);
-        this.playerTwo = new Player(players[1], canvasWidth-40);
+		this.users = users;
+        this.playerOne = new Player(users[0], 10);
+        this.playerTwo = new Player(users[1], canvasWidth-40);
 		this.ball = new Ball();
 
 		this.timestampStart = Date.now();
@@ -266,6 +275,10 @@ export default class Room implements IRoom {
 
 		this.maxGoal = customisation.maxGoal;
     }
+
+	getUsers(): User[] {
+		return this.users;
+	}
 
 	changeGameState(newGameState: GameState) {
 		this.gameState = newGameState;
@@ -290,13 +303,13 @@ export default class Room implements IRoom {
 			this.goalTimestamp = Date.now();
 			if (this.playerOne.goal === this.maxGoal || this.playerTwo.goal === this.maxGoal)
 			{
-				this.winner = this.playerOne.goal === this.maxGoal ? this.playerOne.id : this.playerTwo.id;
-				this.loser = this.playerOne.goal === this.maxGoal ? this.playerTwo.id : this.playerOne.id;
+				this.winner = this.playerOne.goal === this.maxGoal ? this.playerOne.user.username : this.playerTwo.user.username;
+				this.loser = this.playerOne.goal === this.maxGoal ? this.playerTwo.user.username : this.playerOne.user.username;
 				this.changeGameState(GameState.END);
 			}
 			else
 			{
-				this.lastGoal = (this.ball.x < canvasWidth/2) ? this.playerTwo.id : this.playerOne.id;
+				this.lastGoal = (this.ball.x < canvasWidth/2) ? this.playerTwo.user.username : this.playerOne.user.username;
 				this.changeGameState(GameState.GOAL);
 			}
 			this.ball.goal = false;

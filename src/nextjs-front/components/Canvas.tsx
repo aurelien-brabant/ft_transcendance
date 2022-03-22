@@ -160,54 +160,28 @@ const Canvas: React.FC<{socketProps: Socket, roomProps: any}> = ({socketProps, r
 			room &&
 				<div className={styles.container}>
 					<canvas ref={canvasRef} className={styles.canvas} ></canvas>
-					{
-						room.playerOne.id === getUserData().username ?
-						<div className="grid grid-cols-2">
-							<div>
-								{/* <img
-									className="hidden rounded-full sm:block"
+						<div className="flex justify-between pt-5">
+							<div className="grid grid-cols-2 justify-items-start">
+								<img
+									className="rounded-full sm:block"
 									height="45px"
 									width="45px"
-									src={`/api/users/${getUserData().id}/photo`}
+									src={`/api/users/${room.users[0].id}/photo`}
 									alt="user's avatar"
-								/> */}
-								<p>You are {room.playerOne.id}</p>
+								/>
+								<div>{room.users[0].username}</div>
 							</div>
-							<div>
-								<p className="text-right">Opponents is {room.playerTwo.id}</p>
-								{/* <img
-									className="hidden rounded-full sm:block"
+							<div className="grid grid-cols-2 justify-items-end">
+								<div>{room.users[1].username}</div>
+								<img
+									className="rounded-full sm:block"
 									height="45px"
 									width="45px"
-									src={`/api/users/${getUserData().id}/photo`}
+									src={`/api/users/${room.users[1].id}/photo`}
 									alt="user's avatar"
-								/> */}
+								/>
 							</div>
 						</div>
-							:
-						<div className="grid grid-cols-2">
-							<div>
-								{/* <img
-									className="hidden rounded-full sm:block"
-									height="45px"
-									width="45px"
-									src={`/api/users/${getUserData().id}/photo`}
-									alt="user's avatar"
-								/> */}
-								<p>Opponents is {room.playerOne.id}</p>
-							</div>
-							<div>
-								<p className="text-right">You are {room.playerTwo.id}</p>
-								{/* <img
-									className="hidden rounded-full sm:block"
-									height="45px"
-									width="45px"
-									src={`/api/users/${getUserData().id}/photo`}
-									alt="user's avatar"
-								/> */}
-							</div>
-						</div>
-					}
 					{
 						gameEnded &&
 						<button onClick={leaveRoom} className="px-6 py-2 text-xl uppercase bg-pink-600 drop-shadow-md text-bold text-neutral-200">Leave Room</button>

@@ -1,16 +1,4 @@
-export type User = {
-	username: string;
-	socketId: string;
-}
-//
-// export interface IQueue<T> {
-//     enqueue(item: T): void;
-//     dequeue(): T | undefined;
-//     size(): number;
-//     find(item: string): T;
-//     remove(item: T): void;
-// }
-// export default class Queue<T> implements IQueue<T> {
+import { User } from "./Room";
 
 export default class Queue {
     private storage: User[] = [];
