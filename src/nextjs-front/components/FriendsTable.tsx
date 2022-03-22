@@ -15,8 +15,6 @@ import relationshipContext, { RelationshipContextType, User } from "../context/r
 const FriendsTable: React.FC<{ type: string, list: User[], suggested: User[], setSuggested: any, setSelected: any }> = ({
   type, list, suggested, setSuggested, setSelected
 }) => {
-  if (!list)
-  return null;
 
   const { setAlert } = useContext(alertContext) as AlertContextType;
   const { getUserData } = useContext(authContext) as AuthContextType;
