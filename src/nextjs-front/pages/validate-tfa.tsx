@@ -9,9 +9,9 @@ import authContext, { AuthContextType } from "../context/auth/authContext";
 import { FiRefreshCcw } from "react-icons/fi";
 
 const ValidateCode = () => {
-    
+
     const { setAlert } = useContext(alertContext) as AlertContextType;
-    const { getUserData } = useContext(authContext) as AuthContextType;
+    const { getUserData, token, setToken, setIsAuthenticated } = useContext(authContext) as AuthContextType;
     const [tfaCode, setTfaCode] = useState('');
     const router = useRouter();
     const [currentStep, setCurrentStep] = useState(0);
@@ -31,6 +31,9 @@ const ValidateCode = () => {
     
         if (res.tfaValidated) {
             setAlert({ type: 'success', content: '2FA validated. Redirecting...' });
+            window.localStorage.setItem("bearer", token);
+            setToken('');
+            setIsAuthenticated(true);
             router.push('/welcome')
         }
         else {
@@ -39,7 +42,6 @@ const ValidateCode = () => {
             setCurrentStep(0);
         }
     }
-
     useEffect(() => {
       
         if (!tfaCode.length) {
@@ -124,14 +126,19 @@ const ValidateCode = () => {
     );
 }
 
-const ValidateTfa: NextPageWithLayout = () => {
+const ValidateTfaPage: NextPageWithLayout = () => {
 
-    const { getUserData } = useContext(authContext) as AuthContextType;
+    const { isAuthenticated } = useContext(authContext) as AuthContextType;
     const [isLoading, setIsLoading] = useState(true);
-    const [tfa] = useState(getUserData().tfa);
+    const { setAlert } = useContext(alertContext) as AlertContextType;
 
     useEffect(() => {
-        (!tfa) ? Router.push('/welcome') : setIsLoading(false);
+        if (isAuthenticated)
+           Router.push('/welcome')
+        else {
+            setAlert({ type: 'info', content: '2FA verification code needed' });   
+            setIsLoading(false);
+        }
     }, [])
 
     return (
@@ -170,5 +177,6 @@ const ValidateTfa: NextPageWithLayout = () => {
     );
 }
 
+ValidateTfaPage.isAuthRestricted = false;
 
-export default ValidateTfa;
+export default ValidateTfaPage;

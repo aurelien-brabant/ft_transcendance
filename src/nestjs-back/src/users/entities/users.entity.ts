@@ -46,6 +46,9 @@ export class User {
     @Column({ default: 0 })
     losses: number;
 
+    @Column({ default: 0 })
+    draws: number;
+
     @Column({ type: 'decimal', default: 0 })
     ratio: number;
 
@@ -53,16 +56,22 @@ export class User {
     @JoinTable()
     friends: User[];
 
+    @ManyToMany(() => User)
+    @JoinTable()
+    pendingFriendsSent: User[];
+
+    @ManyToMany(() => User)
+    @JoinTable()
+    pendingFriendsReceived: User[];
+
+    @ManyToMany(() => User)
+    @JoinTable()
+    blockedUsers: User[];
+
     @OneToMany(() => Channel, channel => channel.owner, {
         cascade: true,
     })
     ownedChannels: Channel[];
-
-    @OneToMany(() => User, blockedUser => blockedUser.user)
-    blockedUsers: User[];
-    
-    @ManyToOne(() => User, user => user.blockedUsers)
-    user: User;
 
     @ManyToMany(() => Channel, joinedChannels => joinedChannels.users)
     joinedChannels: Channel[];

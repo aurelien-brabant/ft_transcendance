@@ -123,7 +123,7 @@ const LeaderboardPage: NextPageWithLayout = ({}) => {
 
   const [ranking, setRanking] = useState<RankingList[]>([]);
   const [ranking42, setRanking42] = useState<RankingList[]>([]);
-  const [isLoading, setIsLoading] = useState(false);
+  const [isLoading, setIsLoading] = useState(true);
   const [activeRank, setActiveRank] = useState<RankingList[]>([]);
   const [selected, setSelected] = useState(0);
 	 
@@ -235,5 +235,6 @@ const LeaderboardPage: NextPageWithLayout = ({}) => {
 }
 
 LeaderboardPage.getLayout = withDashboardLayout;
+LeaderboardPage.isAuthRestricted = true;
 
 export default LeaderboardPage;

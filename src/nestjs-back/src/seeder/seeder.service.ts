@@ -25,7 +25,11 @@ export class SeederService {
         games: [],
         wins: 0,
         losses: 0,
+        draws: 0,
         friends: [],
+        blockedUsers: [],
+        pendingFriendsSent: [],
+        pendingFriendsReceived: [],
         ownedChannels: [],
         joinedChannels: [],
         accountDeactivated: false,
@@ -35,8 +39,30 @@ export class SeederService {
             phone: faker.phone.phoneNumber(),
             duoquadra_login: (i % 2) ? null : username + "_42",
             wins: faker.datatype.number(),
-            blockedUsers: [],
-            losses: faker.datatype.number()
+            losses: faker.datatype.number(),
+        } as SeedUser);
+        return user;
+    }
+
+    async updateFakeUser(i: number) {
+
+        let user = await this.usersService.update(String(i + 1), {
+            friends: [
+                {
+                    "id": i === 2 ? 3 : 2,
+                },
+                {
+                    "id": i === 5 ? 4 : 5,
+                }
+            ],
+            blockedUsers: [
+                {
+                    "id": i === 6 ? 7 : 6,
+                },
+                {
+                    "id": i === 8 ? 8 : 9,
+                }
+            ]
         } as SeedUser);
         return user;
     }
@@ -59,6 +85,12 @@ export class SeederService {
             const user = await this.createFakeUser(pseudo, i);
 
             console.log('User [%s] => [%s] [%s] created', user.id, user.duoquadra_login, user.email);
+        }
+        for (let i = 0; i <=10; ++i) {
+            const user = await this.updateFakeUser(i);
+
+            console.log("User [%s] => [%s] [%s] updated", user.id, user.duoquadra_login, user.email);
+        
         }
     }
 

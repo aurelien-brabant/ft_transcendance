@@ -33,7 +33,4 @@ export class UpdateUserDto extends PartialType(CreateUserDto) {
     @IsOptional()
     @IsString()
     readonly tfaSecret: string;
-
-    @IsOptional()
-    readonly blockedUsers: User[];
 }

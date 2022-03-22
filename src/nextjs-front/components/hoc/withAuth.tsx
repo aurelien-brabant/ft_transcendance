@@ -23,7 +23,7 @@ const Authenticator: React.FC<{ authConfig?: Partial<AuthConfig> }> = ({
 		...(authConfig ? { ...authConfig } : {}),
 	};
 
-	const { authenticateUser, isAuthenticated } = useContext(
+	const { authenticateUser, isAuthenticated, getUserData } = useContext(
 		authContext
 	) as AuthContextType;
 	const [isLoading, setIsLoading] = useState(!isAuthenticated);
