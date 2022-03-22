@@ -5,6 +5,7 @@ import withDashboardLayout from "../components/hoc/withDashboardLayout";
 import Canvas from "../components/Canvas";
 import { GameState, IRoom } from "../gameObjects/GameObject";
 import authContext, { AuthContextType } from "../context/auth/authContext"
+import { NextPageWithLayout } from "./_app";
 
 let socket: Socket;
 

@@ -11,12 +11,12 @@ import styles from "../styles/Canvas.module.css";
 import { Draw } from "../gameObjects/Draw";
 import { canvasHeight, canvasWidth, countDown, GameState, IRoom } from "../gameObjects/GameObject";
 
-const Canvas: React.FC<{socketProps: Socket, roomProps: IRoom}> = ({socketProps, roomProps}) => {
+const Canvas: React.FC<{socketProps: Socket, roomProps: any}> = ({socketProps, roomProps}) => {
 
 	/*
 		Canvas ref and size
 	*/
-	const canvasRef = useRef<HTMLCanvasElement>();
+	const canvasRef = useRef<HTMLCanvasElement>(null);
 
     let socket: Socket = socketProps;
     let room: IRoom = roomProps;
