@@ -1,8 +1,8 @@
 import faker from "@faker-js/faker";
 import { useState } from "react";
-import notificationsContext, { NotificationItem } from "./notificationsContext";
+import relationContext, { NotificationItem } from "./notificationsContext";
 
-const NotificationsProvider: React.FC = ({ children }) => {
+const RelationProvider: React.FC = ({ children }) => {
 	const [notifications, setNotifications] = useState<NotificationItem[]>([]);
 
 	const notify = (item: { category: string; content: string }) => {
@@ -27,12 +27,12 @@ const NotificationsProvider: React.FC = ({ children }) => {
 	const markAsRead = (_notificationId: string) => {};
 
 	return (
-		<notificationsContext.Provider
+		<relationContext.Provider
 			value={{ notifications, notify, markAsRead, markAllAsRead }}
 		>
 			{children}
-		</notificationsContext.Provider>
+		</relationContext.Provider>
 	);
 };
 
-export default NotificationsProvider;
+export default RelationProvider;

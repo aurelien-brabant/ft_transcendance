@@ -11,8 +11,9 @@ import authContext, {AuthContextType} from '../context/auth/authContext';
 import alertContext, {AlertContextType} from "../context/alert/alertContext";
 import { useRouter } from 'next/router';
 import Tooltip from '../components/Tooltip';
-import { Slide } from 'react-awesome-reveal';
-import { MdCameraswitch, MdCancel } from 'react-icons/md';
+import ResponsiveSlide from '../components/ResponsiveSlide';
+import { MdCameraswitch, MdCancel, MdOutlineArrowBackIos } from 'react-icons/md';
+import notificationsContext, { NotificationsContextType } from "../context/notifications/notificationsContext";
 
 const labelClassName = "grow uppercase text-neutral-400";
 const inputClassName =
@@ -80,12 +81,24 @@ const Welcome: NextPageWithLayout = () => {
       body: JSON.stringify({accountDeactivated: false})
     });
   }
-
+  
+  const { notify } = useContext(notificationsContext) as NotificationsContextType;
+    
+  const checkPendingFriendsRequests = () => {
+    
+    const data = getUserData().pendingFriendsReceived;
+    if (data.length) {
+      for (let i in data)
+        notify({category: 'Friend request', content: `${data[i].username} wants to be you friend`});
+    }
+  }
+  
   useEffect(() => {
     if (getUserData().accountDeactivated)
       reactivateAccount();
 
     baseObject = getUserData();
+    checkPendingFriendsRequests();
   }, [])
 
   // recompute this only when formData changes
@@ -287,12 +300,17 @@ const Welcome: NextPageWithLayout = () => {
       }
 
       return (
-        <div className="space-x-3 md:space-x-5 my-5 text-center">
-          <h1 className="my-10 text-center text-xl text-pink-700 uppercase animate-pulse">
+        <div>
+          <div className="space-x-3 md:space-x-5 my-5 text-center">
+            <h1 className="my-10 text-center text-xl text-pink-700 uppercase animate-pulse">
                     Enter the 6-digit code from your Authenticator App<br/>
                     Press ECHAP to cancel
-          </h1>
-          {content}
+            </h1>
+            {content}
+          </div>
+          <div className="flex justify-center p-5">
+            <MdOutlineArrowBackIos className="font-bold text-2xl text-pink-600 hover:animate-bounceBack hover:cursor-pointer" onClick={() => {setPendingQR(false)}}/>
+          </div>  
         </div>
       );
   };
@@ -328,13 +346,18 @@ const Welcome: NextPageWithLayout = () => {
       }
       else if (req.status === 406)
         setAlert({type: 'warning', content: 'Only JPG/JPEG/PNG/GIF are accepted'})
+      else if (req.status === 413)
+        setAlert({type: 'warning', content: 'File size too big!'})
       else
         setAlert({type: 'error', content: 'Error while uploading!'})
     };
 
     return (
     
-    <Slide direction="left" duration={200} triggerOnce >
+    <ResponsiveSlide
+      useMediaQueryArg={{ query: "(min-width: 1280px)" }}
+      direction="left" duration={200} triggerOnce
+    >
       <div className="flex justify-center text-pink-600 space-x-5 text-center items-center">
         <input
           type="file"
@@ -344,7 +367,7 @@ const Welcome: NextPageWithLayout = () => {
         />
         <FiUploadCloud onClick={uploadToServer} className="text-3xl hover:animate-pulse"/>
       </div>
-    </Slide>
+    </ResponsiveSlide>
     )
   }
 
@@ -405,10 +428,10 @@ const Welcome: NextPageWithLayout = () => {
         <Fragment>
         <div className="flex flex-col items-center gap-y-4">
           <div className="relative w-48 h-48">
-            <img
+           <img
               className="object-cover object-center w-full h-full rounded drop-shadow-md"
               src={`/api/users/${getUserData().id}/photo`}
-            />
+            /> 
 
             {pendingPic ?
             <div className="absolute p-2 bg-white border-2 border-gray-900 rounded-full -top-4 -right-4">
@@ -424,32 +447,28 @@ const Welcome: NextPageWithLayout = () => {
               </div>
             </div>
             :
-            <Fragment>
-            <div className="absolute p-2 bg-white border-2 border-gray-900 rounded-full -top-4 -left-4">
-              <div className="absolute left-0 right-0 flex items-center justify-center -bottom-4 gap-x-2">
+            <div>
+              <div className="absolute flex -top-4 -left-4">
                 <Tooltip className="font-bold bg-gray-900 text-neutral-200" content="Random avatar">
                   <button className="p-2 text-xl text-gray-900 bg-white rounded-full transition hover:scale-105">
                     <MdCameraswitch
-                      className="text-gray-900"
+                      className="text-gray-900 hover:text-pink-600"
                       onClick={() => {getRandomPic()}}
                     />
                   </button>
                 </Tooltip>
               </div>
-            </div>
-            <div className="absolute p-2 bg-white border-2 border-gray-900 rounded-full -top-4 -right-4">
-              <div className="absolute left-0 right-0 flex items-center justify-center -bottom-4 gap-x-2">
+              <div className="absolute flex -top-4 -right-4">
                 <Tooltip className="font-bold bg-gray-900 text-neutral-200" content="Upload avatar">
                   <button className="p-2 text-xl text-gray-900 bg-white rounded-full transition hover:scale-105">
                     <FiEdit2
-                      className="text-gray-900"
+                      className="text-gray-900 hover:text-pink-600"
                       onClick={() => {setPendingPic(true)}}
                     />
                   </button>
                 </Tooltip>
               </div>
             </div>
-            </Fragment>
             }
           </div>
 
@@ -457,7 +476,9 @@ const Welcome: NextPageWithLayout = () => {
           <UploadPic />
           :
           <div className="text-center">
-          <h2 className="text-xl font-bold text-pink-600">{getUserData().username}</h2>
+            <h2 className="text-xl font-bold text-pink-600">
+              {getUserData().username}
+            </h2>
             <Link href={`/users/${getUserData().id}`}>
               <a className="block py-1 text-sm uppercase text-neutral-200 hover:underline">
                 See public profile

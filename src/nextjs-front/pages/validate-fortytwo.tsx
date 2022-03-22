@@ -8,11 +8,13 @@ import Head from "next/head";
 import { authorizationLink } from "../constants/authorize42";
 import {NextPageWithLayout} from "./_app";
 import alertContext, {AlertContextType} from "../context/alert/alertContext";
+import authContext, { AuthContextType } from "../context/auth/authContext";
 
 const ValidateFortyTwo: NextPageWithLayout = () => {
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState<null | string>(null);
   const { setAlert } = useContext(alertContext) as AlertContextType;  
+  const { setToken, setIsPreAuthenticated, setIsAuthenticated, setUserData } = useContext(authContext) as AuthContextType;
   
   const router = useRouter();
 
@@ -33,18 +35,26 @@ const ValidateFortyTwo: NextPageWithLayout = () => {
     const access_token = res.access_token;
     
     if (req.status === 201) {
-      setAlert({ type: 'success', content: 'The 42 API authorized the connexion. Redirecting...' });
-      window.localStorage.setItem("bearer", access_token);
+      setIsPreAuthenticated(true);   
       const reqTfa = await fetch(`/api/users/${id}`);
       const resTfa = await reqTfa.json();
-      !resTfa.tfa ? router.push("/welcome") : router.push(`/validate-tfa`);
+      setUserData(resTfa);
+      setAlert({ type: 'success', content: 'The 42 API authorized the connexion. Redirecting...' });   
+      if (!resTfa.tfa) {
+        window.localStorage.setItem("bearer", access_token);
+        setIsAuthenticated(true);
+        router.push("/welcome");
+      }
+      else {
+        setToken(access_token);
+        router.push(`/validate-tfa`);
+      }
     }
     else {
       setAlert({ type: 'error', content: 'Could not log in using 42 API' });
       setError("An error occured");
       setIsLoading(false);
     }
-
   }
   
   useEffect(() => {
@@ -113,7 +123,5 @@ const ValidateFortyTwo: NextPageWithLayout = () => {
     </Fragment>
   );
 };
-
-//ValidateFortyTwo.getLayout = withWildLayout;
 
 export default ValidateFortyTwo;

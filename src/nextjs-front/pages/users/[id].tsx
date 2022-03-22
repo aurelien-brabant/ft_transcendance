@@ -14,7 +14,7 @@ import { UserStatusItem } from "../../components/UserStatus";
 import withDashboardLayout from "../../components/hoc/withDashboardLayout";
 import chatContext, {ChatContextType} from "../../context/chat/chatContext";
 import { useRouter } from "next/router";
-
+import alertContext, { AlertContextType } from "../../context/alert/alertContext";
 
 export type GameSummary = {
   winnerScore: number;
@@ -32,9 +32,11 @@ type CurrentUser = {
   avatar: string;
   losses: number;
   wins: number;
+  draws: number;
   ratio: number | string;
   id: number;
   accountDeactivated: boolean;
+  pendingFriendsReceived: CurrentUser[]
 };
 
 const renderScore = (score: [number, number]) => {
@@ -141,10 +143,13 @@ const UserProfilePage: NextPageWithLayout = ({}) => {
 
   const actionTooltipStyles = 'font-bold bg-gray-900 text-neutral-200';
   const { getUserData } = useContext(authContext) as AuthContextType;
+  const { setAlert } = useContext(alertContext) as AlertContextType;
+  const { setChatView, openChat } = useContext(chatContext) as ChatContextType;
   const [gamesHistory, setGamesHistory] = useState([]);
   const url: string = window.location.href;
   const userId: number = parseInt(url.substring(url.lastIndexOf('/') + 1));
   const [isLoading, setIsLoading] = useState(true);
+  const [alreadyFriend, setAlreadyFriend] = useState(false);
   const [selected, setSelected] = useState(0);
   const [rank, setRank] = useState("-");
   const [userData, setUserData] = useState<CurrentUser>(
@@ -154,13 +159,44 @@ const UserProfilePage: NextPageWithLayout = ({}) => {
       avatar: getUserData().pic,
       losses: getUserData().losses,
       wins: getUserData().wins,
+      draws: getUserData().draws,
       accountDeactivated: getUserData().accountDeactivated,
+      pendingFriendsReceived: getUserData().pendingFriendsReceived,
       ratio: (!getUserData().wins && !getUserData().losses) ? "-" : getUserData().ratio,
     }
   );
 
   const router = useRouter();
+  
+  const handleMessage = () => {
+    setChatView('dm', 'direct message', { targetUsername: userId });
+    openChat();
+  }
 
+  const requestFriend = async (id: string, username: string) => {
+    const reqSent = await fetch (`/api/users/${getUserData().id}`, {
+      method: "PATCH",
+      headers: {
+        "Content-Type": "application/json",
+      },
+      body: JSON.stringify({pendingFriendsSent: [{"id": id}]}),
+    });
+    const reqReceived = await fetch (`/api/users/${id}`, {
+      method: "PATCH",
+      headers: {
+        "Content-Type": "application/json",
+      },
+      body: JSON.stringify({pendingFriendsReceived: [{"id": getUserData().id}]}),
+    });
+
+    if (reqSent.ok && reqReceived.ok) {
+      setAlreadyFriend(true);
+      setAlert({ type: 'info', content: `Friend request sent to ${username}` });
+    }
+    else
+      setAlert({ type: 'error', content: `Error while sending friend request to ${username}` });
+
+  }
   const updateGamesHistory = async (games: any) => {
     for (var i in games) {
       const opponentId = (games[i].winnerId === userId) ? games[i].looserId : games[i].winnerId;
@@ -178,9 +214,25 @@ const UserProfilePage: NextPageWithLayout = ({}) => {
       avatar: !data.pic ? "" : data.pic.startsWith("https://") ? data.pic : `/api/users/${data.id}/photo`,
       losses: data.losses,
       wins: data.wins,
+      draws: data.draws,
       accountDeactivated: data.accountDeactivated,
-      ratio: (!data.wins && !data.losses) ? "-" : data.ratio,
+      pendingFriendsReceived: data.pendingFriendsReceived,
+      ratio: (!data.wins && !data.losses && data.draws) ? "-" : data.ratio,
     });
+  }
+
+  const alreadyFriendOrAsked = (pending: CurrentUser[], friends: CurrentUser[]) => {
+
+    for (let i in pending) {
+      if (pending[i].id === userId)
+        return true;
+    }
+    for (let i in friends) {
+      if (friends[i].id === userId)
+        return true;
+    }
+    
+    return false
   }
 
   useEffect(() => {
@@ -191,29 +243,25 @@ const UserProfilePage: NextPageWithLayout = ({}) => {
       
       updateUserData(data);
       updateGamesHistory(JSON.parse(JSON.stringify(data)).games);
-
+    
       if (!data.wins && !data.losses)
         setRank("-");
-
       else {
         const reqRank = await fetch(`/api/users/${userId}/rank`);
         const res = await reqRank.json();
         setRank(res);
       }
-      
+
+      const already = alreadyFriendOrAsked(getUserData().pendingFriendsSent, getUserData().friends)
+      setAlreadyFriend(already);
+     
       setIsLoading(false);
-    }
+    } 
+    
   
     fetchData()
     .catch(console.error);
   }, [userId])
-
-  const {  setChatView, openChat } = useContext(chatContext) as ChatContextType;
-
-  const handleMessage = () => {
-    setChatView('dm', 'direct message', { targetUsername: userId });
-    openChat();
-  }
 
   return (
     <div className="min-h-screen overflow-x-auto text-white bg-fixed bg-center bg-fill grow" style={{
@@ -254,8 +302,12 @@ const UserProfilePage: NextPageWithLayout = ({}) => {
               </Tooltip>
 
               <Tooltip className={actionTooltipStyles} content="Add as friend">
-                <button className="p-2 text-2xl text-gray-900 bg-white rounded-full transition hover:scale-105">
-                  <IoMdPersonAdd className="text-black" />
+                <button className={`${alreadyFriend ? "bg-black text-gray-100 cursor-normal" : "cursor-pointer text-gray-900 bg-white"} p-2 text-2xl rounded-full transition hover:scale-105`}>
+                  {alreadyFriend ?
+                  <IoMdPersonAdd onClick={() => setAlert({ type: 'warning', content: `You already asked to ${userData.username}`})}/>
+                  :
+                  <IoMdPersonAdd onClick={() => requestFriend(String(userId), userData.username)}/>
+                  }
                 </button>
               </Tooltip>
             </div>
@@ -313,5 +365,6 @@ const UserProfilePage: NextPageWithLayout = ({}) => {
 }
 
 UserProfilePage.getLayout = withDashboardLayout;
+UserProfilePage.isAuthRestricted = true;
 
 export default UserProfilePage;

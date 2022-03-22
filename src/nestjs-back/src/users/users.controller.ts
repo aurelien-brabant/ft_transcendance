@@ -46,6 +46,11 @@ export class UsersController {
         return userData;
     }
 
+    @Post('/:id/stats/:status')
+    async updateStats(@Param('id') id: string, @Param('status') status: string) {
+        return this.usersService.updateStats(id, status);
+    }
+
     @Get('/:id/photo')
     async findPhoto(@Param('id') id: string, @Response() res: any) {
         const user = await this.usersService.findOne(id);
@@ -78,6 +83,14 @@ export class UsersController {
     @Delete(':id')
     remove(@Param('id') id: string) {
         return this.usersService.remove(id);
+    }
+  
+    @Delete(':id/:user/:action')
+    removeRelation(
+        @Param('id') id: string,
+        @Param('user') userToUpdate: string,
+        @Param('action') action: string) {
+            return this.usersService.removeRelation(id, userToUpdate, action);
     }
   
     @Get(':id/randomAvatar')
