@@ -50,7 +50,6 @@ export class PongGateway implements OnGatewayInit, OnGatewayConnection, OnGatewa
 			roomId = `${players[0].username}&${players[1].username}`;
 
             room = new Room(roomId, players, {maxGoal: 1});
-
 			server.to(players[0].socketId).emit("newRoom", room);
 			server.to(players[1].socketId).emit("newRoom",  room);
             rooms.set(roomId, room);
@@ -226,6 +225,7 @@ export class PongGateway implements OnGatewayInit, OnGatewayConnection, OnGatewa
 
 			this.server.to(room.roomId).emit("updateRoom", room);
 		}
+		this.server.to(room.id).emit("updateRoom", room);
 	}
 
 	// Controls

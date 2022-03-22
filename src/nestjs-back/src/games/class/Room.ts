@@ -75,7 +75,6 @@ export class ConnectedUsers {
 		let user: User = this.getUser(socketId);
 		user.setUserStatus(status);
 	}
-	
 }
 
 export interface IPlayer {

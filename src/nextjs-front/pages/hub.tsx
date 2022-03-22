@@ -64,14 +64,6 @@ const Hub: NextPageWithLayout = () => {
 				});	
 			});
 
-			socket.on("joinedQueue", (data: IRoom) => {
-				setInQueue(true);
-			});
-
-			socket.on("leavedQueue", (data: IRoom) => {
-				setInQueue(false);
-			});
-
 			socket.on("joinedRoom", (data: IRoom) => {
 				setDisplayGame(true);
 				setAlert({
