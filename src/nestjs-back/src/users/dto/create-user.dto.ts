@@ -18,6 +18,10 @@ export class CreateUserDto {
     readonly email: string;
 
     @IsOptional()
+    @IsString()
+    readonly pic: string;
+
+    @IsOptional()
     readonly games: Game[];
 
     @IsOptional()
@@ -29,7 +33,20 @@ export class CreateUserDto {
     readonly losses: number;
 
     @IsOptional()
+    @IsInt()
+    readonly draws: number;
+
+    @IsOptional()
     readonly friends: User[];
+
+    @IsOptional()
+    readonly pendingFriendsSent: User[];
+
+    @IsOptional()
+    readonly pendingFriendsReceived: User[];
+
+    @IsOptional()
+    readonly blockedUsers: User[];
 
     @IsOptional()
     readonly ownedChannels: Channel[];
@@ -40,7 +57,4 @@ export class CreateUserDto {
     @IsOptional()
     @IsBoolean()
     readonly accountDeactivated: boolean;
-
-    @IsOptional()
-    readonly blockedUsers: User[];
 }

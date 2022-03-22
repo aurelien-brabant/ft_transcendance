@@ -34,7 +34,7 @@ const Tooltip: React.FC<TooltipProps> = ({ children, content, className }) => {
 							{child.props.children}
 							{isVisible && (
 								<div
-									className={`absolute left-0 p-1 text-xs uppercase whitespace-nowrap translate-y-4 ${className}`}
+									className={`absolute hover:bg-pink-500 left-0 p-1 text-xs uppercase whitespace-nowrap translate-y-4 ${className}`}
 								>
 									{content}
 								</div>

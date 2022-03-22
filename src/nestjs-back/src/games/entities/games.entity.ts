@@ -12,20 +12,6 @@ export class Game {
     @PrimaryGeneratedColumn()
     id: number;
 
-    /*
-    @ManyToMany(
-        type => Users,
-        user => user.gamesInviteSender
-    )
-    gameInviteSender: Users;
-
-    @ManyToMany(
-        type => Users,
-        user => user.gamesInviteReceiver
-    )
-    gameInviteReceiver: Users;
-    */
-
     @ManyToMany(
         () => User,
         player => player.games

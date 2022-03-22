@@ -40,7 +40,7 @@ export const dashboardNavItems: DashboardNavItem[] = [
 	{
 		id: "play",
 		label: "Play",
-		href: "/play",
+		href: "/hub",
 		Icon: IoLogoGameControllerA,
 	},
 	{
