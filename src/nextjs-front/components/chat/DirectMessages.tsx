@@ -99,8 +99,9 @@ const DirectMessages: React.FC<{ viewParams: Object; }> = ({ viewParams }) => {
 						onClick={() => {
 							openChatView(
 								'dm', 'dm', {
-									targetUsername: dm.friendUsername,
-									targetId: dm.friendId
+									dmId: dm.id,
+									friendUsername: dm.friendUsername,
+									friendId: dm.friendId
 								}
 							)
 						}}

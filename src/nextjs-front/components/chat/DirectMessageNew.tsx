@@ -5,6 +5,10 @@ import authContext, { AuthContextType } from "../../context/auth/authContext";
 import chatContext, { ChatContextType, DirectMessage } from "../../context/chat/chatContext";
 import { User } from "../../context/relationship/relationshipContext";
 
+/*
+Total WIP
+*/
+
 type NewDmData = {
 	targetUsername: string;
 };

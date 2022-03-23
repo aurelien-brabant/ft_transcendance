@@ -25,7 +25,7 @@ export class Channel {
   })
   owner: User;
 
-  /* public, private, protected */
+  /* public, private, protected, dm */
   @Column({ default: "private" })
   privacy: string
 

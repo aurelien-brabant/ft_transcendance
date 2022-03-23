@@ -169,7 +169,7 @@ export class SeederService {
             let channel = await this.channelsService.create({
                 name: 'fakeDM_' + i,
                 owner: fakeOwner,
-                privacy: 'private',
+                privacy: 'dm',
                 users: [fakeOwner, fakeFriend],
                 messages: []
             } as SeedChannel);

@@ -27,8 +27,8 @@ export const DirectMessageHeader: React.FC<{ viewParams: any }> = ({ viewParams 
 				><BsArrowLeftShort /></button>
 			</div>
 			<div className="flex items-center gap-x-3">
-			<Link href={`/users/${viewParams.targetId}`}><h6 className="font-bold hover:text-pink-600">
-				{viewParams.targetUsername}
+			<Link href={`/users/${viewParams.friendId}`}><h6 className="font-bold hover:text-pink-600">
+				{viewParams.friendUsername}
 			</h6></Link> <UserStatusItem status="online" withText={false} />
 			</div>
 			<Tooltip className={actionTooltipStyles} content="play">
@@ -50,7 +50,7 @@ const DirectMessage: React.FC<{ viewParams: { [key: string]: any } }> = ({
 	const [messages, setMessages] = useState<ChatMessage[]>([]);
 	const [currentMessage, setCurrentMessage] = useState("");
 	const chatBottom = useRef<HTMLDivElement>(null);
-	const dmId = viewParams.targetId;
+	const dmId = viewParams.dmId;
 	const userId = getUserData().id;
 
 	const updateMessages = (message: any) => {

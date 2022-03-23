@@ -12,7 +12,7 @@ import Selector from "../../components/Selector";
 import Tooltip from "../../components/Tooltip";
 import { UserStatusItem } from "../../components/UserStatus";
 import withDashboardLayout from "../../components/hoc/withDashboardLayout";
-import chatContext, {ChatContextType} from "../../context/chat/chatContext";
+import chatContext, { ChatContextType } from "../../context/chat/chatContext";
 import { useRouter } from "next/router";
 import alertContext, { AlertContextType } from "../../context/alert/alertContext";
 
@@ -143,7 +143,7 @@ const UserProfilePage: NextPageWithLayout = ({}) => {
   const actionTooltipStyles = 'font-bold bg-gray-900 text-neutral-200';
   const { getUserData } = useContext(authContext) as AuthContextType;
   const { setAlert } = useContext(alertContext) as AlertContextType;
-  const { openChatView, openChat } = useContext(chatContext) as ChatContextType;
+  const { openChatView, openChat, createDirectMessage } = useContext(chatContext) as ChatContextType;
   const [gamesHistory, setGamesHistory] = useState([]);
   const url: string = window.location.href;
   const userId: number = parseInt(url.substring(url.lastIndexOf('/') + 1));
@@ -168,11 +168,19 @@ const UserProfilePage: NextPageWithLayout = ({}) => {
   const router = useRouter();
 
   /* Send DM to user */
-  const handleMessage = () => {
-    openChatView('dm', 'direct message', {
-      targetUsername: userData.username,
-      targetId: userData.id
-    });
+  const handleMessage = async () => {
+    const res = await fetch(`/api/users/${userId}/directmessages?friendId=${userData.id}`);
+    const data = await res.json();
+
+    if (res.status === 200) {
+      openChatView('dm', 'direct message', {
+        dmId: JSON.parse(JSON.stringify(data)).id,
+        friendUsername: userData.username,
+        friendId: userData.id
+      });
+    } else {
+      createDirectMessage(userId.toString(), userData.id.toString());
+    }
     openChat();
   }
 

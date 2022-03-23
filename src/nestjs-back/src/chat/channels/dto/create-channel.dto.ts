@@ -20,7 +20,7 @@ export class CreateChannelDto {
   readonly owner: User;
 
   @IsString()
-  @IsIn(["public", "private", "protected"])
+  @IsIn(["public", "private", "protected", "dm"])
   readonly privacy: string;
 
   @IsOptional()

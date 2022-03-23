@@ -98,7 +98,7 @@ const GroupNew: React.FC = () => {
 		setFieldErrors(errors);
 	};
 
-	const createGroup = async (formData: any) => {
+	const createGroup = async (formData: NewGroupData) => {
 		const res = await fetch("/api/channels", {
 			method: "POST",
 			headers: {

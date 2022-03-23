@@ -1,5 +1,6 @@
 import { useContext, useEffect, useState } from "react";
 import { BsFillChatDotsFill } from "react-icons/bs";
+import alertContext, { AlertContextType } from "../../context/alert/alertContext";
 import authContext, { AuthContextType } from "../auth/authContext";
 import Chat from "../../components/Chat";
 import ChatGroupsView from "../../components/chat/Groups";
@@ -59,8 +60,10 @@ const views: { [key: string]: ChatViewItem } = {
 		label: 'Chat with a friend',
 		params: {},
 		isAction: false,
-		Component: DirectMessageNew,
-		CustomHeaderComponent: DirectMessageNewHeader
+		Component: GroupNew,
+		CustomHeaderComponent: GroupNewHeader
+		// Component: DirectMessageNew,
+		// CustomHeaderComponent: DirectMessageNewHeader
 	},
 	groupadd: {
 		label: 'Add to group',
@@ -101,6 +104,7 @@ const views: { [key: string]: ChatViewItem } = {
 
 const ChatProvider: React.FC = ({ children }) => {
 	const { getUserData } = useContext(authContext) as AuthContextType;
+	const { setAlert } = useContext(alertContext) as AlertContextType;
 	const userId = getUserData().id;
 	const [isChatOpened, setIsChatOpened] = useState(false);
 	const [viewStack, setViewStack] = useState<ChatViewItem[]>([]);
@@ -203,6 +207,42 @@ const ChatProvider: React.FC = ({ children }) => {
 		return dm;
 	}
 
+	const createDirectMessage = async (userId: string, friendId: string) => {
+		const userData = await (await fetch(`/api/users/${userId}`)).json();
+		const friendData = await (await fetch(`/api/users/${friendId}`)).json();
+
+		const res = await fetch("/api/channels", {
+			method: "POST",
+			headers: {
+				"Content-Type": "application/json",
+			},
+			body: JSON.stringify({
+				name: friendData.username,
+				owner: userData,
+				privacy: "dm",
+				users: [ userData, friendData ]
+			}),
+		});
+
+		if (res.status === 201) {
+			const data = await res.json();
+			const dm = setDirectMessageData(JSON.parse(JSON.stringify(data)), friendData);
+			updateDirectMessages(dm);
+			openChatView(
+				'dm', 'dm', {
+					dmId: dm.id,
+					friendUsername: dm.friendUsername,
+					friendId: dm.friendId
+				}
+			);
+		} else {
+			setAlert({
+				type: "error",
+				content: "Failed to create DM"
+			});
+		}
+	}
+
 	/* Fetch the data of a specific channel */
 	const fetchChannelData = async (id: string) => {
 		const res = await fetch(`/api/channels/${id}`);
@@ -217,9 +257,8 @@ const ChatProvider: React.FC = ({ children }) => {
 
 		for (var i in channels) {
 			const channel = channels[i];
-			const usersInChan = channel.users.length;
 
-			if (usersInChan === 2) {
+			if (channel.privacy === "dm") {
 				const friend = (channel.users[0].id === userId) ? channel.users[1] : channel.users[0];
 				dms.push(setDirectMessageData(channel, friend));
 			} else {
@@ -256,6 +295,7 @@ const ChatProvider: React.FC = ({ children }) => {
 				getLastMessage,
 				setChatGroupData,
 				setDirectMessageData,
+				createDirectMessage,
 				fetchChannelData
 			}}
 		>

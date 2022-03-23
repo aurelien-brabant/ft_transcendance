@@ -53,6 +53,7 @@ export type ChatContextType = {
 	getLastMessage: (channel: any) => string;
 	setChatGroupData: (channel: any) => ChatGroup;
 	setDirectMessageData: (channel: any, friend: any) => DirectMessage;
+	createDirectMessage: (userId: string, friendId: string) => Promise<void>;
 
 	/* data fetching */
 	fetchChannelData: (id: string) => Promise<any>;

@@ -87,6 +87,32 @@ export class UsersService {
         return user.joinedChannels;
     }
 
+    async getDirectMessages(id: string, friendId: string) {
+        const user = await this.usersRepository
+            .createQueryBuilder('user')
+            .innerJoinAndSelect('user.joinedChannels', 'channel')
+            .innerJoinAndSelect('channel.users', 'users')
+            .where('user.id = :id', { id })
+            .andWhere('channel.privacy = :privacy', { privacy: 'dm' })
+            .getOne();
+
+        if (user) {
+            const dms = user.joinedChannels;
+            if (!friendId) {
+                return dms;
+            }
+            var result = dms.filter(dm =>
+                dm.users.find(user => {
+                    return user.id.toString() === friendId
+                })
+            );
+            if (result) {
+                return result[0]; // bof
+            }
+        }
+        throw new NotFoundException(`User [${id}] sent no DM`);
+    }
+
     async createDuoQuadra({
         email,
         phone,

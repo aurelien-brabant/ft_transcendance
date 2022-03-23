@@ -33,6 +33,12 @@ export class UsersController {
         return this.usersService.getJoinedChannels(id);
     }
 
+    @Get('/:id/directmessages')
+    getDirectMessages(@Param('id') id: string, @Query() friendDmQuery) {
+        const { friendId } = friendDmQuery;
+        return this.usersService.getDirectMessages(id, friendId);
+    }
+
     @Post()
     async create(@Body() createUserDto: CreateUserDto) {
         const createdUser = await this.usersService.create(createUserDto);
