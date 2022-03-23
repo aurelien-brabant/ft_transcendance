@@ -2,33 +2,36 @@ import {
 	Fragment,
 	useContext,
 	useEffect,
-	useMemo,
 	useRef,
 	useState,
 } from "react";
-import chatContext, {
-	ChatContextType,
-	ChatGroup,
-	ChatGroupPrivacy,
-} from "../../context/chat/chatContext";
-import {UserStatusItem} from "../UserStatus";
+import chatContext, { ChatContextType, ChatGroupPrivacy, DirectMessage } from "../../context/chat/chatContext";
+import { UserStatusItem } from "../UserStatus";
 
-const DirectMessages: React.FC<{
-	viewParams: Object;
-}> = ({ viewParams }) => {
-	const { openChatView, directMessages } = useContext(
-		chatContext
-	) as ChatContextType;
+/* All DM conversations tab */
+const DirectMessages: React.FC<{ viewParams: Object; }> = ({ viewParams }) => {
+	const {
+		openChatView,
+		directMessages,
+		fetchChannelData,
+		getLastMessage,
+		updateDirectMessages
+	} = useContext(chatContext) as ChatContextType;
 
 	const [filteredDms, setFilteredDms] = useState(directMessages);
-	const [visiblityFilter, setVisiblityFilter] =
-		useState<ChatGroupPrivacy | null>(null);
+	const [visiblityFilter, setVisiblityFilter] = useState<ChatGroupPrivacy | null>(null);
 	const searchInputRef = useRef<HTMLInputElement>(null);
 
-	useEffect(() => {
-		handleSearch((searchInputRef.current as HTMLInputElement).value);
-	}, [visiblityFilter]);
+	/* Select all | friends | blocked */
+	const handleSelect = (e: React.ChangeEvent<HTMLSelectElement>) => {
+		setVisiblityFilter(
+			e.target.value !== "all"
+				? (e.target.value as ChatGroupPrivacy)
+				: null
+		);
+	};
 
+	/* Search a user */
 	const handleSearch = (term: string) => {
 		const searchTerm = term.toLowerCase();
 		setFilteredDms(
@@ -39,13 +42,25 @@ const DirectMessages: React.FC<{
 		);
 	};
 
-	const handleSelect = (e: React.ChangeEvent<HTMLSelectElement>) => {
-		setVisiblityFilter(
-			e.target.value !== "all"
-				? (e.target.value as ChatGroupPrivacy)
-				: null
-		);
-	};
+	useEffect(() => {
+		handleSearch((searchInputRef.current as HTMLInputElement).value);
+	}, [visiblityFilter]);
+
+	/* Update last message for all conversations */
+	const updateLastMessage = async (channel: DirectMessage) => {
+		const data = await fetchChannelData(channel.id).catch(console.error);
+		const message = getLastMessage(JSON.parse(JSON.stringify(data)));
+
+		channel.lastMessage = message;
+		updateDirectMessages(channel);
+	}
+
+	useEffect(() => {
+		const updatePreviews = async () => {
+			return Promise.all(directMessages.map((dm) => updateLastMessage(dm)));
+		};
+		updatePreviews();
+	}, []);
 
 	return (
 		<Fragment>
@@ -70,10 +85,10 @@ const DirectMessages: React.FC<{
 				<button
 					className="px-2 py-1 text-sm font-bold uppercase bg-pink-600 rounded"
 					onClick={() => {
-						openChatView("group_new", "Create a new group", {});
+						openChatView("dm_new", "Chat with a friend", {});
 					}}
 				>
-					+group
+					+new
 				</button>
 			</div>
 			<div className="h-[85%] overflow-x-auto">
@@ -83,7 +98,10 @@ const DirectMessages: React.FC<{
 						className="relative items-center px-10 py-5 border-b-2 border-gray-800 grid grid-cols-3 bg-gray-900/90 hover:bg-gray-800/90 transition"
 						onClick={() => {
 							openChatView(
-								'dm', 'dm', { targetUsername: dm.username }
+								'dm', 'dm', {
+									targetUsername: dm.username,
+									targetId: dm.id
+								}
 							)
 						}}
 					>

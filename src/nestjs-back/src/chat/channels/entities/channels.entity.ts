@@ -1,5 +1,6 @@
 import {
   Column,
+  CreateDateColumn,
   Entity,
   JoinTable,
   ManyToMany,
@@ -16,7 +17,7 @@ export class Channel {
   @PrimaryGeneratedColumn()
   id: number;
 
-  @Column({ length: 50, unique: true })
+  @Column({ length: 50 })
   name: string;
 
   @ManyToOne(() => User, owner => owner.ownedChannels, {
@@ -26,10 +27,10 @@ export class Channel {
 
   /* public, private, protected */
   @Column({ default: "private" })
-  visibility: string
+  privacy: string
 
   @IsOptional()
-  @Column({ select: false, length: 50, nullable: true })
+  @Column({ select: false, nullable: true })
   password: string;
 
   @ManyToMany(() => User, user => user.joinedChannels)

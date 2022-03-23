@@ -21,14 +21,14 @@ export class CreateChannelDto {
 
   @IsString()
   @IsIn(["public", "private", "protected"])
-  readonly visibility: string
+  readonly privacy: string;
 
   @IsOptional()
   @IsString()
-  @MaxLength(50)
   @MinLength(8)
   readonly password?: string;
 
+  @IsNotEmpty()
   readonly users: User[];
 
   @IsOptional()

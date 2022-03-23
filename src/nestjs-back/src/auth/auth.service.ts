@@ -1,21 +1,19 @@
 import { Injectable } from '@nestjs/common';
-import { compare as comparePassword } from 'bcrypt';
-import { User } from 'src/users/entities/users.entity';
-import { UsersService } from 'src/users/users.service';
 import { JwtService } from '@nestjs/jwt';
-import { Socket } from 'socket.io';
+import { ConfigService } from '@nestjs/config';
+import { compare as comparePassword } from 'bcrypt';
 import fetch from 'node-fetch';
 import * as FormData from 'form-data';
-
-export interface CustomSocket extends Socket { 
-  user: User;
-}
+import { User } from 'src/users/entities/users.entity';
+import { UsersService } from 'src/users/users.service';
+import { TokenPayload } from './tokenPayload.interface';
 
 @Injectable()
 export class AuthService {
   constructor(
     private usersService: UsersService,
     private readonly jwtService: JwtService,
+    private readonly configService: ConfigService
   ) {}
 
   async validateUser(email: string, password: string): Promise<any> {
@@ -96,5 +94,14 @@ export class AuthService {
       id: duoQuadraUser.id,
       access_token: this.jwtService.sign({ sub: ''+duoQuadraUser.id })
     });
+  }
+
+  async getUserFromAuthToken(token: string) {
+    const payload: TokenPayload = this.jwtService.verify(token, {
+      secret: this.configService.get('JWT_ACCESS_TOKEN_SECRET')
+    });
+    if (payload.id) {
+      return this.usersService.findOne(payload.id);
+    }
   }
 }
