@@ -37,7 +37,7 @@ const DirectMessages: React.FC<{ viewParams: Object; }> = ({ viewParams }) => {
 		setFilteredDms(
 			directMessages.filter(
 				(dm) =>
-					dm.username.toLowerCase().includes(searchTerm)
+					dm.friendUsername.toLowerCase().includes(searchTerm)
 			)
 		);
 	};
@@ -94,13 +94,13 @@ const DirectMessages: React.FC<{ viewParams: Object; }> = ({ viewParams }) => {
 			<div className="h-[85%] overflow-x-auto">
 				{filteredDms.map((dm) => (
 					<div
-						key={dm.username}
+						key={dm.friendUsername}
 						className="relative items-center px-10 py-5 border-b-2 border-gray-800 grid grid-cols-3 bg-gray-900/90 hover:bg-gray-800/90 transition"
 						onClick={() => {
 							openChatView(
 								'dm', 'dm', {
-									targetUsername: dm.username,
-									targetId: dm.id
+									targetUsername: dm.friendUsername,
+									targetId: dm.friendId
 								}
 							)
 						}}
@@ -109,14 +109,14 @@ const DirectMessages: React.FC<{ viewParams: Object; }> = ({ viewParams }) => {
 							<div
 								className="relative z-20 flex items-center justify-center w-16 h-16 text-4xl rounded-full"
 							>
-								<img src={dm.avatar} className="object-fill w-full h-full rounded-full" />
+								<img src={dm.friendPic} className="object-fill w-full h-full rounded-full" />
 								<UserStatusItem withText={false} status={Math.random() > 0.3 ? 'offline' : 'online'} className="absolute bottom-0 right-0 z-50"  />
 							</div>
 						</div>
 						<div className="col-span-2">
 							<div className="flex items-center justify-between">
 								<h6 className="text-lg font-bold">
-									{dm.username}
+									{dm.friendUsername}
 								</h6>
 							</div>
 							<p className="text-sm text-neutral-200">{dm.lastMessage.substr(0, 60) + (dm.lastMessage.length > 60 ? '...' : '')}</p>

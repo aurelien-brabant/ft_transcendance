@@ -118,7 +118,9 @@ const Groups: React.FC<{viewParams: Object;}> = ({ viewParams }) => {
 						onClick={() => {
 							openChatView(gm.privacy === 'protected' ? 'password_protection' : 'group', gm.label, {
 									groupName: gm.label,
-									groupId: gm.id
+									groupId: gm.id,
+									groupMembers: gm.peopleCount,
+									groupPrivacy: gm.privacy
 								}
 							);
 						}}

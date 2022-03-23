@@ -24,8 +24,9 @@ export type ChatGroup = {
 
 export type DirectMessage = {
 	id: string;
-	username: string;
-	avatar: string;
+	friendId: string;
+	friendUsername: string;
+	friendPic: string;
 	lastMessage: string;
 	updatedAt: string;
 };

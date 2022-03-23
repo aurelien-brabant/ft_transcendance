@@ -1,8 +1,10 @@
+import Link from 'next/link';
 import { useContext, useEffect, useRef, useState } from "react";
 import { AiOutlineClose, AiOutlineUser } from "react-icons/ai";
 import { BsArrowLeftShort } from 'react-icons/bs';
 import { FiSend } from "react-icons/fi";
-import { MdPeopleAlt } from 'react-icons/md';
+import { RiPingPongLine } from 'react-icons/ri';
+import Tooltip from "../../components/Tooltip";
 import alertContext, { AlertContextType } from "../../context/alert/alertContext";
 import authContext, { AuthContextType } from "../../context/auth/authContext";
 import chatContext, { ChatContextType, ChatMessage } from "../../context/chat/chatContext";
@@ -10,27 +12,30 @@ import { UserStatusItem } from "../UserStatus";
 
 /* Header */
 export const DirectMessageHeader: React.FC<{ viewParams: any }> = ({ viewParams }) => {
-	const { closeChat, openChatView, setChatView } = useContext(
+	const { closeChat, setChatView } = useContext(
 		chatContext
 	) as ChatContextType;
+	const actionTooltipStyles = 'font-bold bg-gray-900 text-neutral-200';
 
 	return (
 		<div className="flex items-center justify-between p-3 px-5">
 			<div className="flex gap-x-2">
 				<button className="text-2xl" onClick={() => { closeChat() }}><AiOutlineClose /></button>
-				<button className="text-4xl" onClick={() => { setChatView('dms', 'Direct messages', {})}}><BsArrowLeftShort /></button>
+				<button className="text-4xl" onClick={() => {
+					setChatView('dms', 'Direct messages', {})
+				}}
+				><BsArrowLeftShort /></button>
 			</div>
 			<div className="flex items-center gap-x-3">
-			<h6 className="font-bold">{viewParams.targetUsername}</h6> <UserStatusItem status="online" withText={false} />
+			<Link href={`/users/${viewParams.targetId}`}><h6 className="font-bold hover:text-pink-600">
+				{viewParams.targetUsername}
+			</h6></Link> <UserStatusItem status="online" withText={false} />
 			</div>
-			<button onClick={() => {
-				openChatView('groupadd', 'groupadd', {
-						targetUsername: viewParams.targetUsername
-					})
-				}}
-			>
-			<MdPeopleAlt className="text-3xl" />
-			</button>
+			<Tooltip className={actionTooltipStyles} content="play">
+				<button className="p-2 text-2xl text-gray-900 bg-white rounded-full transition hover:scale-105"> 
+					<RiPingPongLine />
+				</button>
+			</Tooltip>
 		</div>
 	);
 }

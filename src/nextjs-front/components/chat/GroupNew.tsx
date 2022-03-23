@@ -41,7 +41,7 @@ export const GroupNewHeader: React.FC = () => {
 					<BsArrowLeftShort />
 				</button>
 			</div>
-			<h6>Create a new group</h6>
+			<h6>New group settings</h6>
 		</div>
 	);
 }

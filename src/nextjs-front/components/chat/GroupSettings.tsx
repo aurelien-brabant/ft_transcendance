@@ -30,15 +30,15 @@ const GroupSettings: React.FC<{ viewParams: any }> = ({ viewParams }) => {
 			<div className="">
 				<div className="flex justify-between">
 					<span>Name</span>
-					<span>Group name</span>
+					<span>{viewParams.groupName}</span>
 				</div>
 				<div className="flex justify-between">
 					<span>Visibility</span>
-					<span>Public</span>
+					<span>{viewParams.groupPrivacy}</span>
 				</div>
 				<div className="flex justify-between">
 					<span>Members</span>
-					<span>20</span>
+					<span>{viewParams.groupMembers}</span>
 				</div>
 			</div>
 			<div className="flex flex-col gap-y-4">

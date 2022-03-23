@@ -27,12 +27,20 @@ export const GroupHeader: React.FC<{ viewParams: any }> = ({ viewParams }) => {
 				openChatView('group_users', 'group users', {
 						groupName: viewParams.groupName,
 						groupId: viewParams.groupId
-				}
+					}
 				)}}
 			>
 			<MdPeopleAlt className="text-3xl" />
 			</button>
-			<button onClick={() => { openChatView('group_settings', 'group settings', { targetUsername: viewParams.targetUsername })}}>
+			<button onClick={() => {
+				openChatView('group_settings', 'group settings', {
+						groupName: viewParams.groupName,
+						groupId: viewParams.groupId,
+						groupMembers: viewParams.groupMembers,
+						groupPrivacy: viewParams.groupPrivacy
+					}
+				)}}
+			>
 			<RiSettings5Line className="text-3xl" />
 			</button>
 		</div>

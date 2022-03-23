@@ -6,9 +6,10 @@ import ChatGroupsView from "../../components/chat/Groups";
 import ChatGroupView, { GroupHeader } from "../../components/chat/Group";
 import ChatDirectMessagesView from "../../components/chat/DirectMessages";
 import ChatDirectMessageView, { DirectMessageHeader } from "../../components/chat/DirectMessage";
-import chatContext, { ChatGroup, ChatGroupPrivacy, ChatView, DirectMessage } from "./chatContext";
+import chatContext, { ChatGroup, ChatView, DirectMessage } from "./chatContext";
 import Groupadd, { GroupaddHeader } from "../../components/chat/Groupadd";
 import GroupNew, { GroupNewHeader } from "../../components/chat/GroupNew";
+import DirectMessageNew, { DirectMessageNewHeader } from "../../components/chat/DirectMessageNew";
 import GroupUsers, { GroupUsersHeader } from "../../components/chat/GroupUsers";
 import GroupSettings, { GroupSettingsHeader } from "../../components/chat/GroupSettings";
 import PasswordProtection, { PasswordProtectionHeader } from "../../components/chat/PasswordProtection";
@@ -58,8 +59,8 @@ const views: { [key: string]: ChatViewItem } = {
 		label: 'Chat with a friend',
 		params: {},
 		isAction: false,
-		Component: GroupNew,
-		CustomHeaderComponent: GroupNewHeader
+		Component: DirectMessageNew,
+		CustomHeaderComponent: DirectMessageNewHeader
 	},
 	groupadd: {
 		label: 'Add to group',
@@ -193,8 +194,9 @@ const ChatProvider: React.FC = ({ children }) => {
 	const setDirectMessageData = (channel: any, friend: any) => {
 		const dm: DirectMessage = {
 			id: channel.id,
-			username: friend.username,
-			avatar: !friend.pic ? "" : friend.pic.startsWith("https://") ? friend.pic : `/api/users/${friend.id}/photo`,
+			friendId: friend.id,
+			friendUsername: friend.username,
+			friendPic: !friend.pic ? "" : friend.pic.startsWith("https://") ? friend.pic : `/api/users/${friend.id}/photo`,
 			lastMessage: getLastMessage(channel),
 			updatedAt: Date.now().toString()
 		}
