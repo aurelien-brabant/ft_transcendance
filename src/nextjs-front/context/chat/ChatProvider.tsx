@@ -60,10 +60,8 @@ const views: { [key: string]: ChatViewItem } = {
 		label: 'Chat with a friend',
 		params: {},
 		isAction: false,
-		Component: GroupNew,
-		CustomHeaderComponent: GroupNewHeader
-		// Component: DirectMessageNew,
-		// CustomHeaderComponent: DirectMessageNewHeader
+		Component: DirectMessageNew,
+		CustomHeaderComponent: DirectMessageNewHeader
 	},
 	groupadd: {
 		label: 'Add to group',
@@ -228,19 +226,27 @@ const ChatProvider: React.FC = ({ children }) => {
 			const data = await res.json();
 			const dm = setDirectMessageData(JSON.parse(JSON.stringify(data)), friendData);
 			updateDirectMessages(dm);
-			openChatView(
-				'dm', 'dm', {
-					dmId: dm.id,
-					friendUsername: dm.friendUsername,
-					friendId: dm.friendId
-				}
-			);
 		} else {
 			setAlert({
 				type: "error",
 				content: "Failed to create DM"
 			});
 		}
+	}
+
+	/* Find existing DM or create a new one */
+	const openDirectMessage = async (userId: string, friend: any) => {
+		const res = await fetch(`/api/users/${userId}/directmessages?friendId=${friend.id}`);
+		const data = await res.json();
+
+		if (res.status !== 200) {
+			createDirectMessage(userId.toString(), friend.id.toString());
+		}
+		openChatView('dm', 'direct message', {
+			dmId: JSON.parse(JSON.stringify(data)).id,
+			friendUsername: friend.username,
+			friendId: friend.id
+		});
 	}
 
 	/* Fetch the data of a specific channel */
@@ -296,6 +302,7 @@ const ChatProvider: React.FC = ({ children }) => {
 				setChatGroupData,
 				setDirectMessageData,
 				createDirectMessage,
+				openDirectMessage,
 				fetchChannelData
 			}}
 		>

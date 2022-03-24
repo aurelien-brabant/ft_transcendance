@@ -143,7 +143,7 @@ const UserProfilePage: NextPageWithLayout = ({}) => {
   const actionTooltipStyles = 'font-bold bg-gray-900 text-neutral-200';
   const { getUserData } = useContext(authContext) as AuthContextType;
   const { setAlert } = useContext(alertContext) as AlertContextType;
-  const { openChatView, openChat, createDirectMessage } = useContext(chatContext) as ChatContextType;
+  const { openChat, openDirectMessage } = useContext(chatContext) as ChatContextType;
   const [gamesHistory, setGamesHistory] = useState([]);
   const url: string = window.location.href;
   const userId: number = parseInt(url.substring(url.lastIndexOf('/') + 1));
@@ -169,18 +169,7 @@ const UserProfilePage: NextPageWithLayout = ({}) => {
 
   /* Send DM to user */
   const handleMessage = async () => {
-    const res = await fetch(`/api/users/${userId}/directmessages?friendId=${userData.id}`);
-    const data = await res.json();
-
-    if (res.status === 200) {
-      openChatView('dm', 'direct message', {
-        dmId: JSON.parse(JSON.stringify(data)).id,
-        friendUsername: userData.username,
-        friendId: userData.id
-      });
-    } else {
-      createDirectMessage(userId.toString(), userData.id.toString());
-    }
+    await openDirectMessage(userId.toString(), userData);
     openChat();
   }
 

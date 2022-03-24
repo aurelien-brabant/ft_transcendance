@@ -133,7 +133,6 @@ export class SeederService {
                     channel: dstChannel
                 });
             }
-            // console.log("Message [%s] => ['%s'] sent by User [%s]", message.id, message.content, message.author.id);
         }
     }
 
