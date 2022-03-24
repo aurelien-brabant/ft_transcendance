@@ -34,6 +34,7 @@ export class GamesService {
     }
 
     async update(id: string, updateGameDto: UpdateGameDto) { 
+        
         const game = await this.gamesRepository.preload({
             id: +id,
             ...updateGameDto,

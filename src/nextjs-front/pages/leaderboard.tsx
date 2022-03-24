@@ -7,7 +7,9 @@ import { useEffect, useState } from "react";
 import { GiLaurelsTrophy, GiPodiumSecond, GiPodiumThird, GiPodiumWinner } from "react-icons/gi";
 import { BounceLoader } from "react-spinners";
 import { BsFillQuestionCircleFill } from "react-icons/bs";
-
+import { useMediaQuery } from "react-responsive";
+import Achievements from "../components/Achievements";
+  
 export type RankingList = {
   id: string;
   username: string;
@@ -126,7 +128,8 @@ const LeaderboardPage: NextPageWithLayout = ({}) => {
   const [isLoading, setIsLoading] = useState(true);
   const [activeRank, setActiveRank] = useState<RankingList[]>([]);
   const [selected, setSelected] = useState(0);
-	 
+	const [mobileScreen] = useState(useMediaQuery({ query: "(min-width: 1280px)"}));
+
   const createRankingLists = (data: any) => {
 
     let rank: RankingList[] = [];
@@ -190,18 +193,34 @@ const LeaderboardPage: NextPageWithLayout = ({}) => {
             <GiLaurelsTrophy className="text-9xl text-yellow-500"/>
           </div>
           <div className="w-full p-5 bg-gray-800 border-2 border-gray-800 rounded drop-shadow-md grid lg:grid-cols-3">
+            {mobileScreen ?
             <HighlightItem
               label="second"
               hint="#2"
               nColor="text-zinc-400"
               ranking={activeRank}
-            />
+            /> : 
             <HighlightItem
               label="first"
               hint="#1"
               nColor="text-yellow-500"
               ranking={activeRank}
             />
+            }
+            {mobileScreen ?
+            <HighlightItem
+              label="first"
+              hint="#1"
+              nColor="text-yellow-500"
+              ranking={activeRank}
+            />
+            :<HighlightItem
+              label="second"
+              hint="#2"
+              nColor="text-zinc-400"
+              ranking={activeRank}
+            />
+            }
             <HighlightItem
               label="third"
               hint="#3"
@@ -219,6 +238,10 @@ const LeaderboardPage: NextPageWithLayout = ({}) => {
                 label: "42 ranking",
                 component:  <HistoryTable ranking={ranking42} />,
               },
+              {
+                label: "Achievements",
+                component:  <Achievements />,
+              }
             ]} />
         </div>
       </div>

@@ -18,6 +18,7 @@ export type SeedUser = {
     losses: number;
     draws: number;
     ratio: number;
+    achievements: Achievement[];
     friends: User[];
     blockedUsers: User[];
     pendingFriendsSent: User[];

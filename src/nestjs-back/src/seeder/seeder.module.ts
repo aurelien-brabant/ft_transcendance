@@ -10,17 +10,20 @@ import { ChannelsService } from 'src/chat/channels/channels.service';
 import { Message } from 'src/chat/messages/entities/messages.entity';
 import { MessagesService } from 'src/chat/messages/messages.service';
 import { SeederService } from './seeder.service';
+import { AchievementsService } from 'src/achievements/achievements.service';
+import { Achievement } from 'src/achievements/entities/achievements.entity';
 
 @Module({
   imports: [
     UsersModule,
-    TypeOrmModule.forFeature([User, Game, Channel, Message])],
+    TypeOrmModule.forFeature([User, Game, Channel, Message, Achievement])],
   providers: [
     UsersService,
     GamesService,
     ChannelsService,
     MessagesService,
-    SeederService ],
+    SeederService,
+    AchievementsService ],
   exports: [SeederModule]
 })
 export class SeederModule {}

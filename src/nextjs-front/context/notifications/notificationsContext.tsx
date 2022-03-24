@@ -12,14 +12,16 @@ export type NotificationsContextType = {
 	notifications: NotificationItem[];
 	notify: (item: { category: string, content: string }) => void
 	markAsRead: (notificationId: string) => void
-	markAllAsRead: () => void
+	markAllAsRead: () => void,
+	setNotifications: (data: any) => any
 };
 
 const notificationsContext = createContext<NotificationsContextType>({
 	notifications: [],
 	notify: () => {},
 	markAsRead: () => {},
-	markAllAsRead: () => {}
+	markAllAsRead: () => {},
+	setNotifications: () => {},
 });
 
 export default notificationsContext;

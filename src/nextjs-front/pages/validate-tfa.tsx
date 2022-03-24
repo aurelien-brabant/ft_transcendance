@@ -3,7 +3,7 @@ import { BounceLoader } from "react-spinners";
 import { NextPageWithLayout } from "./_app";
 import Image from 'next/image';
 import Head from "next/head";
-import Router, { useRouter } from "next/router";
+import { useRouter } from "next/router";
 import alertContext, { AlertContextType } from "../context/alert/alertContext";
 import authContext, { AuthContextType } from "../context/auth/authContext";
 import { FiRefreshCcw } from "react-icons/fi";
@@ -128,19 +128,29 @@ const ValidateCode = () => {
 
 const ValidateTfaPage: NextPageWithLayout = () => {
 
-    const { isAuthenticated } = useContext(authContext) as AuthContextType;
+    const { isAuthenticated, setIsAuthenticated, isPreAuthenticated, getUserData } = useContext(authContext) as AuthContextType;
     const [isLoading, setIsLoading] = useState(true);
     const { setAlert } = useContext(alertContext) as AlertContextType;
-
+    const router = useRouter();
+ 
     useEffect(() => {
-        if (isAuthenticated)
-           Router.push('/welcome')
+        const tfaEnabled = () => {
+            const tfa = getUserData().tfa;
+            console.log('tfa', tfa);
+            if (!tfa)
+                setIsAuthenticated(true);
+            return tfa;
+        }
+
+        if (isAuthenticated || (isPreAuthenticated && !tfaEnabled()))
+            router.push('/welcome')
         else {
             setAlert({ type: 'info', content: '2FA verification code needed' });   
             setIsLoading(false);
         }
     }, [])
-
+//console.log('isAuth tfa', isAuthenticated)
+//console.log('isPreAuth tfa', isPreAuthenticated)
     return (
 
     <Fragment>
@@ -177,6 +187,6 @@ const ValidateTfaPage: NextPageWithLayout = () => {
     );
 }
 
-ValidateTfaPage.isAuthRestricted = false;
+ValidateTfaPage.isAuthRestricted = true;
 
 export default ValidateTfaPage;

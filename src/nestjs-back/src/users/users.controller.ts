@@ -6,7 +6,7 @@ import { UpdateUserDto } from './dto/update-user.dto';
 import { createReadStream, statSync } from 'fs';
 import { join } from 'path/posix';
 import { FileInterceptor } from '@nestjs/platform-express';
-import { editFileName, imageFileFilter } from 'src/common/upload-utils';
+import { editFileName, imageFileFilter } from 'src/utils/upload';
 import { diskStorage } from 'multer';
   
 @Controller('users')

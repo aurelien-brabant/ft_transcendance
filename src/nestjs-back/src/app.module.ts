@@ -10,6 +10,7 @@ import { ChannelsModule } from './chat/channels/channels.module';
 import { MessagesModule } from './chat/messages/messages.module';
 import { SeederModule } from './seeder/seeder.module';
 import { TypeOrmModule } from '@nestjs/typeorm';
+import { AchievementsModule } from './achievements/achievements.module';
 
 @Module({
   imports: [
@@ -20,6 +21,7 @@ import { TypeOrmModule } from '@nestjs/typeorm';
     GamesInvitesModule,
     ChannelsModule,
     MessagesModule,
+    AchievementsModule,
     SeederModule,
     TypeOrmModule.forRoot({
       type: 'postgres',

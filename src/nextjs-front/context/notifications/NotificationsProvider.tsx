@@ -28,7 +28,7 @@ const RelationProvider: React.FC = ({ children }) => {
 
 	return (
 		<relationContext.Provider
-			value={{ notifications, notify, markAsRead, markAllAsRead }}
+			value={{ notifications, setNotifications, notify, markAsRead, markAllAsRead }}
 		>
 			{children}
 		</relationContext.Provider>

@@ -3,12 +3,12 @@ import {
     Entity,
     JoinTable,
     ManyToMany,
-    ManyToOne,
     OneToMany,
     PrimaryGeneratedColumn
 } from "typeorm";
 import { Channel } from 'src/chat/channels/entities/channels.entity';
 import { Game } from "src/games/entities/games.entity";
+import { Achievement } from "src/achievements/entities/achievements.entity";
 
 @Entity()
 export class User {
@@ -51,6 +51,9 @@ export class User {
 
     @Column({ type: 'decimal', default: 0 })
     ratio: number;
+
+    @ManyToMany(() => Achievement, achievement => achievement.users)
+    achievements: Achievement[];
 
     @ManyToMany(() => User)
     @JoinTable()
