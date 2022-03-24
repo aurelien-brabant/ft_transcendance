@@ -1,18 +1,14 @@
-import { useContext, Fragment, useState } from "react";
+import { useContext, Fragment, useState, useEffect } from "react";
 import Image from "next/image";
 import { FiSearch } from "react-icons/fi";
 import { GiHamburgerMenu } from "react-icons/gi";
 import { useRouter } from "next/router";
 import { BiBell } from "react-icons/bi";
-import { genUser } from "../seed/user";
 import Link from "next/link";
-import { faker } from "@faker-js/faker";
 import { dashboardNavItems } from "../constants/nav";
 import notificationsContext from "../context/notifications/notificationsContext";
 import authContext, {AuthContextType} from "../context/auth/authContext";
 import alertContext, {AlertContextType} from "../context/alert/alertContext";
-
-const user = genUser();
 
 type SearchBarProps = {
 	className?: string;
@@ -52,15 +48,15 @@ const SearchBar: React.FC<SearchBarProps> = ({ className }) => {
 
 	// TODO: we will eventually need to think about something less retarded
 	const fetchUsers = async () => {
-		const res = await fetch("https://jsonplaceholder.typicode.com/users");
+		const res = await fetch("/api/users/");
 
 		if (res.status === 200) {
-			const users = (await res.json()) as Array<{ username: string }>;
+			const users = (await res.json()) as Array<{ username: string, id: string }>;
 			const searchableUsers = users.map<Searchable>((user) => ({
 				type: "user",
 				content: user.username,
-				href: `/users/${user.username}`,
-				id: faker.datatype.uuid()
+				href: `/users/${user.id}`,
+				id: user.id
 			}));
 
 			setSearchables([
@@ -121,6 +117,7 @@ const SearchBar: React.FC<SearchBarProps> = ({ className }) => {
 				{searchValue &&
 					searchResults.map((searchable, index) => (
 						<Fragment key={searchable.id}>
+							<a href={searchable.href}>
 							<hr />
 							<article
 								className={`flex justify-between px-4 py-3 ${
@@ -136,6 +133,7 @@ const SearchBar: React.FC<SearchBarProps> = ({ className }) => {
 									{searchable.type}
 								</span>
 							</article>
+							</a>
 						</Fragment>
 					))}
 			</div>
@@ -152,12 +150,11 @@ const DashboardTopNav: React.FC<DashboardTopNavProps> = ({
 }) => {
 	const [hasNotificationsOpened, setHasNotificationsOpened] = useState(false);
 	const [isUserMenuOpened, setIsUserMenuOpened] = useState(false);
-	const { notifications, markAllAsRead } =
-		useContext(notificationsContext);
+	const { notifications, markAllAsRead } = useContext(notificationsContext);
   	const { getUserData, logout, clearUser } = useContext(authContext) as AuthContextType;
 	const { setAlert } = useContext(alertContext) as AlertContextType;
 	const router = useRouter();
-
+	
 	const handleLogout = async () => {
 		setAlert({type: 'success', content: 'Logged out'});
 		logout();
@@ -166,7 +163,7 @@ const DashboardTopNav: React.FC<DashboardTopNavProps> = ({
 	}
 
 	return (
-		<div className="sticky top-0 z-20 z-30 flex items-center gap-x-8 bg-neutral-100 h-14 drop-shadow-lg">
+		<div className="sticky top-0 z-30 flex items-center gap-x-8 bg-neutral-100 h-14 drop-shadow-lg">
 			<div className="flex items-center h-full gap-x-4 md:gap-x-">
 				<div className="flex items-center justify-center w-24 h-full bg-gray-900">
 					<Image
@@ -262,7 +259,7 @@ const DashboardTopNav: React.FC<DashboardTopNavProps> = ({
 										Edit profile
 									</a>
 								</Link>
-								<Link href={`/users/${user.username}`}>
+								<Link href={`/users/${getUserData().id}`}>
 									<a className="block p-2 text-sm font-bold transition hover:bg-neutral-200">
 										See profile
 									</a>

@@ -1,14 +1,18 @@
-import faker from "@faker-js/faker";
 import { useContext, useEffect, useRef, useState } from "react";
-import chatContext, { ChatContextType, ChatMessage } from "../../context/chat/chatContext";
+import { AiOutlineClose } from "react-icons/ai";
+import { BsArrowLeftShort } from "react-icons/bs";
 import { FiSend } from 'react-icons/fi';
-import {BsArrowLeftShort} from "react-icons/bs";
-import {AiOutlineClose} from "react-icons/ai";
-import {MdPeopleAlt} from "react-icons/md";
-import {RiSettings5Line} from "react-icons/ri";
+import { MdPeopleAlt } from "react-icons/md";
+import { RiSettings5Line } from "react-icons/ri";
+import chatContext, { ChatContextType, ChatMessage } from "../../context/chat/chatContext";
+import authContext, { AuthContextType } from "../../context/auth/authContext";
+import alertContext, { AlertContextType } from "../../context/alert/alertContext";
 
-export const GroupHeader: React.FC<{ viewParams: any  }> = ({ viewParams }) => {
-	const { openChatView, closeChat, setChatView } = useContext(chatContext) as ChatContextType;
+/* Header */
+export const GroupHeader: React.FC<{ viewParams: any }> = ({ viewParams }) => {
+	const { closeChat, openChatView, setChatView } = useContext(
+		chatContext
+	) as ChatContextType;
 
 	return (
 		<div className="flex items-center justify-between p-3 px-5">
@@ -19,7 +23,13 @@ export const GroupHeader: React.FC<{ viewParams: any  }> = ({ viewParams }) => {
 			<div className="flex items-center gap-x-3">
 				<h6 className="font-bold">{viewParams.groupName}</h6>
 			</div>
-			<button onClick={() => { openChatView('group_users', 'group users', { groupName: viewParams.groupName })}}>
+			<button onClick={() => {
+				openChatView('group_users', 'group users', {
+						groupName: viewParams.groupName,
+						groupId: viewParams.groupId
+				}
+				)}}
+			>
 			<MdPeopleAlt className="text-3xl" />
 			</button>
 			<button onClick={() => { openChatView('group_settings', 'group settings', { targetUsername: viewParams.targetUsername })}}>
@@ -29,45 +39,85 @@ export const GroupHeader: React.FC<{ viewParams: any  }> = ({ viewParams }) => {
 	);
 }
 
+/* Conversation */
 const Group: React.FC<{ viewParams: { [key: string]: any } }> = ({
 	viewParams,
 }) => {
+	const { setAlert } = useContext(alertContext) as AlertContextType;
+	const { getUserData } = useContext(authContext) as AuthContextType;
+	const { fetchChannelData } = useContext(chatContext) as ChatContextType;
 	const [messages, setMessages] = useState<ChatMessage[]>([]);
 	const [currentMessage, setCurrentMessage] = useState("");
 	const chatBottom = useRef<HTMLDivElement>(null);
-	
-	useEffect(() => {
-		const messages: ChatMessage[] = [];
+	const channelId = viewParams.groupId;
+	const userId = getUserData().id;
 
-		for (let i = 0; i != 50; ++i) {
-			messages.push({
-				isMe: Math.random() <= 0.5,
-				content: faker.lorem.sentence(),
-				id: faker.datatype.uuid(),
-				author: faker.name.findName(),
+	const updateMessages = (message: any) => {
+		setMessages([
+			...messages, {
+				id: message.id,
+				author: message.author.username,
+				content: message.content,
+				isMe: (message.author.id === userId)
+			}
+		]);
+	}
+
+	/* Send new message */
+	const handleGroupMessageSubmit = async () => {
+		if (currentMessage.length === 0) return;
+
+		const channelData = await fetchChannelData(channelId).catch(console.error);
+		const res = await fetch("/api/messages", {
+			method: "POST",
+			headers: {
+				"Content-Type": "application/json",
+			},
+			body: JSON.stringify({
+				author: getUserData(),
+				content: currentMessage,
+				channel: channelData
+			}),
+		});
+		const data = await res.json();
+
+		if (res.status === 201) {
+			updateMessages(data);
+			setCurrentMessage('');
+			return;
+		} else {
+			setAlert({
+				type: "error",
+				content: "Failed to send message"
 			});
 		}
-		setMessages(messages);
-	}, []);
+	};
 
+	/* Scroll to bottom if new message is sent */
 	useEffect(() => {
 		chatBottom.current?.scrollIntoView();
 	}, [messages]);
 
-	const handleSubmit = () => {
+	/* Load all messages on mount */
+	const loadGroupOnMount = async () => {
+		const data = await fetchChannelData(channelId).catch(console.error);
+		const groupMessages = JSON.parse(JSON.stringify(data)).messages;
+		const messages: ChatMessage[] = [];
 
-		if (currentMessage.length === 0) return;
-		setMessages([
-			...messages,
-			{
-				isMe: true,
-				content: currentMessage,
-				id: faker.datatype.uuid(),
-				author: "random",
-			},
-		]);
-		setCurrentMessage("");
-	};
+		for (var i in groupMessages) {
+			messages.push({
+				id: groupMessages[i].id,
+				author: groupMessages[i].author.username,
+				content: groupMessages[i].content,
+				isMe: (groupMessages[i].author.id === userId)
+			});
+		}
+		setMessages(messages);
+	}
+
+	useEffect(() => {
+		loadGroupOnMount();
+	}, []);
 
 	return (
 		<div className="h-full">
@@ -100,7 +150,7 @@ const Group: React.FC<{ viewParams: { [key: string]: any } }> = ({
 						setCurrentMessage(e.target.value);
 					}}
 				/>
-				<button onClick={handleSubmit} className="self-stretch px-3 py-2 text-lg text-white uppercase bg-pink-600 rounded">
+				<button onClick={handleGroupMessageSubmit} className="self-stretch px-3 py-2 text-lg text-white uppercase bg-pink-600 rounded">
 					<FiSend />
 				</button>
 			</div>

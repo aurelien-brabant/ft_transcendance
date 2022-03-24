@@ -1,8 +1,6 @@
 import { useRouter } from "next/router";
 import { Fragment, useContext, useEffect, useState } from "react";
 import authContext, { AuthContextType } from "../../context/auth/authContext";
-import { NextPageWithLayout } from "../../pages/_app";
-import AuthProvider from "../../context/auth/AuthProvider";
 import LoadingScreen from "../LoadingScreen";
 
 export type AuthConfig = {
@@ -25,9 +23,7 @@ const Authenticator: React.FC<{ authConfig?: Partial<AuthConfig> }> = ({
 		...(authConfig ? { ...authConfig } : {}),
 	};
 
-	console.log(config);
-
-	const { authenticateUser, isAuthenticated } = useContext(
+	const { authenticateUser, isAuthenticated, getUserData } = useContext(
 		authContext
 	) as AuthContextType;
 	const [isLoading, setIsLoading] = useState(!isAuthenticated);

@@ -77,7 +77,6 @@ const SignUp: NextPageWithLayout = () => {
     } else {
       const userLoginRes = await fetch("/api/auth/login", reqMeta);
       let tmp = setAlert({ type: "info", content: "Account created" });
-
       if (userLoginRes.status != 201) {
         setAlert({ type: "error", content: "Could not login" }, tmp);
       } else {

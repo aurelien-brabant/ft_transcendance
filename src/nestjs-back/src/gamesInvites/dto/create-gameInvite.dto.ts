@@ -1,18 +1,18 @@
 import { IsString, IsDate, IsInt } from 'class-validator';
-import { Users } from 'src/users/entities/users.entity';
+// import { User } from 'src/users/entities/users.entity';
 
 export class CreateGameInviteDto {
-//    readonly sender: Users;
-  //  readonly receiver: Users;   
+    // readonly sender: User;
+    // readonly receiver: User;
     @IsInt()
-    readonly sender: number; 
+    readonly sender: number;
 
     @IsInt()
-    readonly receiver: number;  
+    readonly receiver: number;
 
     @IsString()
-    readonly status: string;    
+    readonly status: string;
 
     @IsDate()
-    readonly requestedAt: Date;  
+    readonly requestedAt: Date;
 }

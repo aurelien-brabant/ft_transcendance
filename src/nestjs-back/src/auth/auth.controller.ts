@@ -1,6 +1,6 @@
 import { Request, Body, UseGuards, Post, Controller, Get, UnauthorizedException, NotFoundException } from '@nestjs/common';
 import { AuthGuard } from '@nestjs/passport';
-import {AuthService} from './auth.service';
+import { AuthService } from './auth.service';
 import { JwtAuthGuard } from './jwt-auth.guard';
 import { Login42Dto } from './dto/login-42.dto';
 import { UsersService } from '../users/users.service';
@@ -25,7 +25,6 @@ export class AuthController {
     return user;
   }
 
-  // use local passport strategy to protect this route
   @UseGuards(AuthGuard('local'))
   @Post('/login')
   async loginUser(@Request() req: any) {
@@ -34,13 +33,24 @@ export class AuthController {
 
   @Post('/login42')
   async loginDuoQuadra(@Body() login42Dto: Login42Dto) {
-    const accessToken = await this.authService.loginDuoQuadra(login42Dto.apiCode);
-
-    if (!accessToken) {
+    const data = await this.authService.loginDuoQuadra(login42Dto.apiCode);
+    const accessToken = JSON.parse(data).access_token;
+    if (!accessToken)
       throw new UnauthorizedException;
-    }
 
-    return { access_token: accessToken };
+    const id = JSON.parse(data).id;
+    if (!id)
+      throw new NotFoundException;
+
+    return {
+      id: id,
+      access_token: accessToken
+    };
+  }
+
+  @Post('/loginTfa')
+  async loginTfa(@Request() req: any) {
+      return this.authService.generateJWT(req.user);
   }
 
   @UseGuards(JwtAuthGuard)

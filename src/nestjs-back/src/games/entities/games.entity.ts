@@ -1,47 +1,41 @@
-import { IsOptional } from "class-validator";
-import { Users } from "src/users/entities/users.entity";
-import { Column, Entity, ManyToMany, PrimaryGeneratedColumn } from "typeorm";
+import {
+    Column,
+    Entity,
+    JoinTable,
+    ManyToMany,
+    PrimaryGeneratedColumn
+} from "typeorm";
+import { User } from "src/users/entities/users.entity";
 
 @Entity()
-export class Games {
+export class Game {
     @PrimaryGeneratedColumn()
     id: number;
 
-    @IsOptional()
     @ManyToMany(
-        type => Users,
-        user => user.games,
+        () => User,
+        player => player.games
     )
-    players: Users[];
+    @JoinTable()
+    players: User[];
 
-/*    @IsOptional()
-    @ManyToMany(
-        type => Users,
-        user => user.gamesInviteSender
-    )
-    gameInviteSender: Users;
+    @Column({ nullable: true })
+    winnerId: number;
 
-    @IsOptional()
-    @ManyToMany(
-        type => Users,
-        user => user.gamesInviteReceiver
-    )
-    gameInviteReceiver: Users;
-
-    @IsOptional()
-    @OneToMany(
-        type => Users,
-        user => user.win
-    )
-    winner: Users;*/
-
-    @IsOptional()
-    @Column( {nullable: true} )
-    winner: number;
+    @Column({ nullable: true })
+    looserId: number;
 
     @Column({
-        type: 'date',
-        default: () => 'CURRENT_DATE',
+        default: () => 'CURRENT_TIMESTAMP',
     })
-    createdAt: Date;
+    createdAt: string;
+
+    @Column({ nullable: true })
+    endedAt: string;
+
+    @Column({ nullable: true })
+    winnerScore: number;
+
+    @Column({ nullable: true })
+    looserScore: number;
 }

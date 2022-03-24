@@ -1,46 +1,64 @@
 import { useRouter } from "next/router";
 import { Fragment, useContext, useEffect, useState } from "react";
 import HashLoader from "react-spinners/HashLoader";
-import { BiSad } from "react-icons/bi";
 import Image from "next/image";
-import withWildLayout from "../components/hoc/withWildLayout";
 
 import Head from "next/head";
 
 import { authorizationLink } from "../constants/authorize42";
 import {NextPageWithLayout} from "./_app";
 import alertContext, {AlertContextType} from "../context/alert/alertContext";
+import authContext, { AuthContextType } from "../context/auth/authContext";
 
 const ValidateFortyTwo: NextPageWithLayout = () => {
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState<null | string>(null);
-  const { setAlert } = useContext(alertContext) as AlertContextType;
-
+  const { setAlert } = useContext(alertContext) as AlertContextType;  
+  const { setToken, setIsPreAuthenticated, setIsAuthenticated, setUserData } = useContext(authContext) as AuthContextType;
+  
   const router = useRouter();
 
-  useEffect(() => {
+  const fetchData = async () => {
+
     const searchParams = new URLSearchParams(window.location.search);
     const requestURI = `/api/auth/login42`;
 
-    fetch(requestURI, {
+    const req = await fetch(requestURI, {
       method: "POST",
       headers: {
         "Content-Type": "application/json",
       },
       body: JSON.stringify({ apiCode: searchParams.get("code") }),
-    }).then((res) => {
-      if (res.status === 201) {
-        setAlert({ type: 'success', content: 'The 42 API authorized the connexion. Redirecting...' });
-        res.json().then(({ access_token }) => {
-          window.localStorage.setItem("bearer", access_token);
-          router.push("/welcome");
-        });
-      } else {
-        setAlert({ type: 'error', content: 'Could not log in using 42 API' });
-        setError("An error occured");
-        setIsLoading(false);
+    })
+    const res = await req.json();
+    const id = res.id;
+    const access_token = res.access_token;
+    
+    if (req.status === 201) {
+      setIsPreAuthenticated(true);   
+      const reqTfa = await fetch(`/api/users/${id}`);
+      const resTfa = await reqTfa.json();
+      setUserData(resTfa);
+      setAlert({ type: 'success', content: 'The 42 API authorized the connexion. Redirecting...' });   
+      if (!resTfa.tfa) {
+        window.localStorage.setItem("bearer", access_token);
+        setIsAuthenticated(true);
+        router.push("/welcome");
       }
-    });
+      else {
+        setToken(access_token);
+        router.push(`/validate-tfa`);
+      }
+    }
+    else {
+      setAlert({ type: 'error', content: 'Could not log in using 42 API' });
+      setError("An error occured");
+      setIsLoading(false);
+    }
+  }
+  
+  useEffect(() => {
+    fetchData();
   }, []);
 
   return (
@@ -82,7 +100,7 @@ const ValidateFortyTwo: NextPageWithLayout = () => {
             <Fragment>
               <Image src={"/this_is_fine.gif"} width={498} height={280} />
               <div className="flex flex-col text-center gap-y-2">
-                <h1 className="text-3xl font-bold text-white text-red-600 left-4 top-4">
+                <h1 className="text-3xl font-bold text-red-600 left-4 top-4">
                   An error occured during the authorization process.
                 </h1>
                 <small className="text-xl leading-normal text-left text-neutral-200">
@@ -105,7 +123,5 @@ const ValidateFortyTwo: NextPageWithLayout = () => {
     </Fragment>
   );
 };
-
-//ValidateFortyTwo.getLayout = withWildLayout;
 
 export default ValidateFortyTwo;

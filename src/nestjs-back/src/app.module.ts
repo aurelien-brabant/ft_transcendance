@@ -1,16 +1,30 @@
 import { Module } from '@nestjs/common';
 import { AppController } from './app.controller';
 import { AppService } from './app.service';
-import { UsersModule } from './users/users.module';
+import { AuthModule } from './auth/auth.module';
+import { FriendsInvitesModule } from './friendsInvites/friendsInvites.module';
 import { GamesModule } from './games/games.module';
 import { GamesInvitesModule } from './gamesInvites/gamesInvites.module';
-import { FriendsInvitesModule } from './friendsInvites/friendsInvites.module';
-import { TypeOrmModule } from '@nestjs/typeorm';
-import { AuthModule } from './auth/auth.module';
+import { ChannelsModule } from './chat/channels/channels.module';
+import { MessagesModule } from './chat/messages/messages.module';
 import { SeederModule } from './seeder/seeder.module';
+import { UsersModule } from './users/users.module';
+import { TypeOrmModule } from '@nestjs/typeorm';
+import { ChatModule } from './chat/chat.module';
+
 
 @Module({
-  imports: [SeederModule, UsersModule, GamesModule, GamesInvitesModule, FriendsInvitesModule, TypeOrmModule.forRoot({
+  imports: [
+    AuthModule,
+    ChatModule,
+    FriendsInvitesModule,
+    GamesModule,
+    GamesInvitesModule,
+    ChannelsModule,
+    MessagesModule,
+    SeederModule,
+    UsersModule,
+    TypeOrmModule.forRoot({
       type: 'postgres',
       host: `${process.env.POSTGRES_HOST}`,
       port: 5432,
@@ -20,7 +34,7 @@ import { SeederModule } from './seeder/seeder.module';
       autoLoadEntities: true,
       synchronize: true,         // true in Dev // false in production
       keepConnectionAlive: true,
-    }), AuthModule,
+    }),
   ],
   controllers: [AppController],
   providers: [AppService],

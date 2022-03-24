@@ -5,7 +5,6 @@ import { IoIosClose } from "react-icons/io";
 import { v4 as uuidv4 } from "uuid";
 import { Bounce } from "react-awesome-reveal";
 import { Fragment } from "react";
-import useAsyncState from "../../hooks/useAsyncState";
 
 type AlertMeta = {
 	bg: string;

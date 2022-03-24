@@ -1,16 +1,24 @@
-import { Games } from "src/games/entities/games.entity";
-//import { GamesInvites } from "src/gamesInvites/entities/gamesInvites.entity";
-import { Column, Entity, JoinTable, ManyToMany, PrimaryGeneratedColumn } from "typeorm";
+import {
+    Column,
+    Entity,
+    JoinTable,
+    ManyToMany,
+    ManyToOne,
+    OneToMany,
+    PrimaryGeneratedColumn
+} from "typeorm";
+import { Channel } from 'src/chat/channels/entities/channels.entity';
+import { Game } from "src/games/entities/games.entity";
 
 @Entity()
-export class Users {
+export class User {
     @PrimaryGeneratedColumn()
     id: number;
 
     @Column({ unique: true })
     username: string;
 
-    @Column({ nullable: true })
+    @Column({ select: false, nullable: true })
     password: string;
 
     @Column({ unique: true })
@@ -19,6 +27,9 @@ export class Users {
     @Column({ nullable: true })
     phone: string;
 
+    @Column({ default: false })
+    tfa: boolean;
+
     @Column({ nullable: true })
     pic: string;
 
@@ -26,57 +37,49 @@ export class Users {
     @Column({ nullable: true, unique: true })
     duoquadra_login: string;
 
+    @ManyToMany(() => Game, game => game.players)
+    games: Game[];
+
+    @Column({ default: 0 })
+    wins: number;
+
+    @Column({ default: 0 })
+    losses: number;
+
+    @Column({ default: 0 })
+    draws: number;
+
+    @Column({ type: 'decimal', default: 0 })
+    ratio: number;
+
+    @ManyToMany(() => User)
+    @JoinTable()
+    friends: User[];
+
+    @ManyToMany(() => User)
+    @JoinTable()
+    pendingFriendsSent: User[];
+
+    @ManyToMany(() => User)
+    @JoinTable()
+    pendingFriendsReceived: User[];
+
+    @ManyToMany(() => User)
+    @JoinTable()
+    blockedUsers: User[];
+
+    @OneToMany(() => Channel, channel => channel.owner, {
+        cascade: true,
+    })
+    ownedChannels: Channel[];
+
+    @ManyToMany(() => Channel, joinedChannels => joinedChannels.users)
+    joinedChannels: Channel[];
+
+    @Column({default: false})
+    accountDeactivated: boolean;
+
     @Column({ nullable: true })
-    rank: number;
+    tfaSecret: string;  
+}
 
-    @Column({ default: 0 })
-    win: number;
-
-    @Column({ default: 0 })
-    loose: number;
-
-    @JoinTable()
-    @ManyToMany(() => Games)
-//    @ManyToMany(
-  //      type => Games,
-    //    (games) => games.players,
-//        {
-  //          cascade: true,
-    //    }
-    //)
-    games: Games[];
-
-   /* @JoinTable()
-    @OneToMany(
-        type => Games,
-        (games) => games.winner,
-    )
-    win: Games;
-*/
-//    @Column()
-//    @JoinTable()
-  //  @ManyToMany(
-    //    type => Friends,
-      //  (friends) => friends.friends,
-   // )
-    //friends: Friends[];
-//    friends: Users[];
-//    friends: number[]
-    @JoinTable()
-    @ManyToMany(() => Users)
-    friends: Users[];
-/*
-    @JoinTable()
-    @ManyToMany(
-        type => GamesInvites,
-        (invites) => invites.sender,
-    )
-    gamesInviteSender: GamesInvites[];
-
-    @JoinTable()
-    @ManyToMany(
-        type => GamesInvites,
-        (invites) => invites.receiver,
-    )
-    gamesInviteReceiver: GamesInvites[];
-    */}

@@ -18,6 +18,7 @@
     "react-responsive": "^9.0.0-beta.6",
     "react-spinners": "^0.11.0",
     "sharp": "^0.29.3",
+    "socket.io-client": "^4.4.1",
     "transcendance-types": "../transcendance-types/",
     "uuid": "^8.3.2",
     "validator": "^13.7.0"

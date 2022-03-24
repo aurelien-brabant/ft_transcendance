@@ -20,13 +20,24 @@ module.exports = {
           from: { transform: "translateY(0)" },
           to: { transform: "translateY(.05em)" },
         },
+        bounceBack: {
+          from: { transform: "translateX(0)" },
+          to: { transform: "translateX(-.5em)" },
+        },
+        bounceForward: {
+          from: { transform: "translateX(0)" },
+          to: { transform: "translateX(.5em)" },
+        }
       },
       animation: {
         slowRotateFull: "rotateFull 10s infinite linear",
         blinkSlow: "blink 3s infinite linear",
         fuse: "fuse 3s infinite linear",
         upAndDown: "upAndDown .7s infinite alternate",
-      },
+        bounceBack: "bounceBack 1s ease-in infinite",
+        bounceForward: "bounceForward 1s ease-in infinite",
+        'ping-3': 'ping 0.5s ease-in 3',
+        },
     },
   },
   plugins: [],

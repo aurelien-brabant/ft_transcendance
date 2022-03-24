@@ -1,8 +1,9 @@
-export type UserStatus = 'online' | 'offline';
+export type UserStatus = 'online' | 'offline' | 'deactivated';
 
 const statusColors = {
 	'online': 'bg-green-500',
-	'offline': 'bg-gray-700'
+	'offline': 'bg-red-500',
+	'deactivated': 'bg-gray-700'
 };
 
 export const UserStatusItem: React.FC<{ status: UserStatus, withText?: boolean, className?: string }> = ({ status, withText, className }) => (

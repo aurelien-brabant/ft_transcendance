@@ -1,15 +1,19 @@
 import { useState } from "react";
-import {LoggedUser} from "transcendance-types";
+import { LoggedUser } from "transcendance-types";
 import authContext from "./authContext";
+import { User } from "../relationship/relationshipContext";
 
 const AuthProvider: React.FC = ({ children }) => {
-	const [userData, setUserData] = useState<any>(null);
+	const [userData, setUserData] = useState<User | null>();
+  	const [isPreAuthenticated, setIsPreAuthenticated] = useState(false);
 	const [isAuthenticated, setIsAuthenticated] = useState(false);
-
+	const [token, setToken] = useState<string>('');
+	
 	const loadBearer = () => window.localStorage.getItem("bearer");
 
 	const logout = () => {
 		window.localStorage.removeItem('bearer');
+		setIsPreAuthenticated(false);
 		setIsAuthenticated(false);
 	}
 
@@ -78,7 +82,7 @@ const AuthProvider: React.FC = ({ children }) => {
 		}
 
 		setUserData(await res.json());
-		setIsAuthenticated(true);
+		setIsPreAuthenticated(true);
 		return true;
 	}
 
@@ -89,9 +93,15 @@ const AuthProvider: React.FC = ({ children }) => {
 				getUserData,
 				authenticateUser,
 				logout,
+				isPreAuthenticated,
 				isAuthenticated,
+				setIsAuthenticated,
+				setIsPreAuthenticated,
+				setUserData,
 				clearUser,
-				mergeUserData
+				mergeUserData,
+				token,
+				setToken,
 			}}
 		>
 			{children}

@@ -1,6 +1,13 @@
-import { IsString, IsEmail, IsOptional, IsInt, IsPhoneNumber } from 'class-validator';
-import { Games } from 'src/games/entities/games.entity';
-import { Users } from '../entities/users.entity';
+import {
+  IsBoolean,
+  IsEmail,
+  IsInt,
+  IsOptional,
+  IsString
+} from 'class-validator';
+import { Channel } from 'src/chat/channels/entities/channels.entity';
+import { Game } from 'src/games/entities/games.entity';
+import { User } from '../entities/users.entity';
 
 export class CreateUserDto {
     @IsOptional()
@@ -11,12 +18,43 @@ export class CreateUserDto {
     readonly email: string;
 
     @IsOptional()
-    //    @IsInt({ each: true })
-      //  readonly games: number[];
-    readonly games: Games [];
-    
+    @IsString()
+    readonly pic: string;
+
     @IsOptional()
-    //    @IsInt({ each: true })
-    //    readonly friends: number [];
-    readonly friends: Users [];
+    readonly games: Game[];
+
+    @IsOptional()
+    @IsInt()
+    readonly wins: number;
+
+    @IsOptional()
+    @IsInt()
+    readonly losses: number;
+
+    @IsOptional()
+    @IsInt()
+    readonly draws: number;
+
+    @IsOptional()
+    readonly friends: User[];
+
+    @IsOptional()
+    readonly pendingFriendsSent: User[];
+
+    @IsOptional()
+    readonly pendingFriendsReceived: User[];
+
+    @IsOptional()
+    readonly blockedUsers: User[];
+
+    @IsOptional()
+    readonly ownedChannels: Channel[];
+
+    @IsOptional()
+    readonly joinedChannels: Channel[];
+
+    @IsOptional()
+    @IsBoolean()
+    readonly accountDeactivated: boolean;
 }

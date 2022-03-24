@@ -1,10 +1,10 @@
 import { IsOptional } from "class-validator";
-import { Games } from "src/games/entities/games.entity";
-import { Users } from "src/users/entities/users.entity";
+import { Game } from "src/games/entities/games.entity";
+import { User } from "src/users/entities/users.entity";
 import { Column, Entity, ManyToMany, PrimaryGeneratedColumn } from "typeorm";
 
 @Entity()
-export class GamesInvites {
+export class GamesInvite {
     @PrimaryGeneratedColumn()
     id: number;
 
@@ -18,17 +18,17 @@ export class GamesInvites {
 
 /*    @IsOptional()
     @ManyToMany(
-        type => Games,
+        type => Game,
         game => game.gameInviteSender
     )
     sender: Users;
 
     @IsOptional()
     @ManyToMany(
-        type => Games,
+        type => Game,
         game => game.gameInviteReceiver
     )
-    receiver: Users;
+    receiver: User;
 */
     @IsOptional()
     @Column()
