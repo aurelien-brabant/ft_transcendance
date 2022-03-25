@@ -95,15 +95,16 @@ const Hub: NextPageWithLayout = () => {
   const lastGames = async () => {
 
     const req = await fetch(`/api/games`, {
-        method: 'POST',
+        method: 'GET',
         headers: {
           'Content-Type': 'application/json'
         },
 //        body: JSON.stringify({accountDeactivated: false})
       });
       const res = await req.json();
-      console.log('req', req);
-      console.log('res', res)
+    //   console.log('req', req);
+    //   console.log('res', res)
+	  return (JSON.parse(JSON.stringify(res)))
   }
 
   const FeatureItem: React.FC<Feature> = ({ label, description, Icon }) => (
