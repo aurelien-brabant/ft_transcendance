@@ -75,10 +75,6 @@ export class ConnectedUsers {
 		let user: User = this.getUser(socketId);
 		user.setUserStatus(status);
 	}
-<<<<<<< HEAD
-=======
-	
->>>>>>> Cleaned code and started adding logic for spectators, added connectedUsers classes, corrected few bugs
 }
 
 export interface IPlayer {
@@ -332,11 +328,7 @@ export default class Room implements IRoom {
     constructor(roomId: string, users: User[], customisation: {maxGoal?: number} = {maxGoal: 3}) {
 		this.roomId = roomId;
 		this.gameState = GameState.STARTING;
-<<<<<<< HEAD
 		this.players = [];
-=======
-		this.users = [];
->>>>>>> Cleaned code and started adding logic for spectators, added connectedUsers classes, corrected few bugs
         this.playerOne = new Player(users[0], 10);
         this.playerTwo = new Player(users[1], canvasWidth-40);
 		this.ball = new Ball();
@@ -352,7 +344,6 @@ export default class Room implements IRoom {
 
 	isAPlayer(user: User): boolean {
 		return (this.playerOne.user.username === user.username || this.playerTwo.user.username === user.username);
-<<<<<<< HEAD
 	}
 
 	addUser(user: User) {
@@ -373,19 +364,15 @@ export default class Room implements IRoom {
 			duration -= (pause.pause - pause.resume) - 3500;
 		});
 		return duration;
-=======
 	}
 
-	addUser(user: User) {
-		// console.log(user, " added to ", this.users);
-		this.users.push(user);
-	}
+	getDuration(): number {
+		let duration = Date.now() - this.timestampStart;
 
-	removeUser(userRm: User) {
-		const userIndex: number = this.users.findIndex(user => user.username === userRm.username);
-		if (userIndex !== -1)
-			this.users.splice(userIndex, 1);
->>>>>>> Cleaned code and started adding logic for spectators, added connectedUsers classes, corrected few bugs
+		this.pauseTime.forEach((pause) => {
+			duration -= (pause.pause - pause.resume) - 3500;
+		});
+		return duration;
 	}
 
 	changeGameState(newGameState: GameState): void {

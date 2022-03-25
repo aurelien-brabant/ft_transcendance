@@ -48,9 +48,6 @@ export class PongGateway implements OnGatewayInit, OnGatewayConnection, OnGatewa
 			server.to(players[0].socketId).emit("newRoom", room);
 			server.to(players[1].socketId).emit("newRoom",  room);
             rooms.set(roomId, room);
-
-			// emit rooms change event for spectator
-
         }
     }
 
@@ -232,7 +229,6 @@ export class PongGateway implements OnGatewayInit, OnGatewayConnection, OnGatewa
 				room.lastUpdate = Date.now();
 				room.changeGameState(GameState.PLAYING);
 			}
-
 			this.server.to(room.roomId).emit("updateRoom", room);
 		}
 	}
