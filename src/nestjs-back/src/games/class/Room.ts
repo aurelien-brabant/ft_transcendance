@@ -366,6 +366,15 @@ export default class Room implements IRoom {
 		return duration;
 	}
 
+	getDuration(): number {
+		let duration = Date.now() - this.timestampStart;
+
+		this.pauseTime.forEach((pause) => {
+			duration -= (pause.pause - pause.resume) - 3500;
+		});
+		return duration;
+	}
+
 	changeGameState(newGameState: GameState): void {
 		this.gameState = newGameState;
 	}

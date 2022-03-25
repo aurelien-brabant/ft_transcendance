@@ -53,9 +53,6 @@ export class PongGateway implements OnGatewayInit, OnGatewayConnection, OnGatewa
 			server.to(players[0].socketId).emit("newRoom", room);
 			server.to(players[1].socketId).emit("newRoom",  room);
             rooms.set(roomId, room);
-
-			// emit rooms change event for spectator
-
         }
     }
 
@@ -224,8 +221,16 @@ export class PongGateway implements OnGatewayInit, OnGatewayConnection, OnGatewa
 			} else if (room.gameState === GameState.RESUMED && (currentTimestamp - room.pauseTime[room.pauseTime.length - 1].resume) >= 3500) {
 				room.lastUpdate = Date.now();
 				room.changeGameState(GameState.PLAYING);
+			} else if (room.gameState === GameState.END) {
+				await this.gamesService.update(room.id.toString(), {
+					winnerId: room.winnerId,
+					looserId: room.winnerId,
+					endedAt: Date.now(),
+					gameDuration: room.getDuration(),
+					winnerScore: room.winnerScore,
+					looserScore: room.loserScore,
+				});
 			}
-
 			this.server.to(room.roomId).emit("updateRoom", room);
 		}
 	}
