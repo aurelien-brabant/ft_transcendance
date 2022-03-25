@@ -29,7 +29,6 @@ export class PongGateway implements OnGatewayInit, OnGatewayConnection, OnGatewa
 	private logger: Logger = new Logger('gameGateway');
     private readonly queue: Queue = new Queue();
     private readonly rooms: Map<string, Room> = new Map();
-	private readonly connectedUser: User[] = new Array();
 
 	// see if it can be done another way
 	private readonly connectedUsers: ConnectedUsers = new ConnectedUsers();
@@ -53,6 +52,9 @@ export class PongGateway implements OnGatewayInit, OnGatewayConnection, OnGatewa
 			server.to(players[0].socketId).emit("newRoom", room);
 			server.to(players[1].socketId).emit("newRoom",  room);
             rooms.set(roomId, room);
+
+			// emit rooms change event for spectator
+
         }
     }
 
@@ -225,7 +227,6 @@ export class PongGateway implements OnGatewayInit, OnGatewayConnection, OnGatewa
 
 			this.server.to(room.roomId).emit("updateRoom", room);
 		}
-		this.server.to(room.id).emit("updateRoom", room);
 	}
 
 	// Controls
