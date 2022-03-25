@@ -37,9 +37,9 @@ const Hub: NextPageWithLayout = () => {
 			socket.emit("handleUserConnect", user);
 
 			socket.on("newRoom", (newRoomData: IRoom) => {
-					socket.emit("joinRoom", newRoomData.id);
+					socket.emit("joinRoom", newRoomData.roomId);
 					roomData = newRoomData;
-					roomId = newRoomData.id;
+					roomId = newRoomData.roomId;
 					setRoom(roomData);
 					setInQueue(false);
 			});

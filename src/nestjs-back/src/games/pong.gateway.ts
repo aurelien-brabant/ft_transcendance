@@ -12,8 +12,8 @@ import {
 } from "@nestjs/websockets";
 
 // Not yet in place
-// import { User } from "src/users/entities/users.entity";
-// import { GamesService } from './games.service';
+import { GamesService } from './games.service';
+import { UsersService } from 'src/users/users.service';
 // import { CreateGameDto } from 'src/games/dto/create-game.dto';
 // import { UpdateGameDto } from 'src/games/dto/update-game.dto';
 
@@ -22,7 +22,8 @@ import Room, { ConnectedUsers, GameState, User, userStatus } from './class/Room'
 
 @WebSocketGateway({ cors: true })
 export class PongGateway implements OnGatewayInit, OnGatewayConnection, OnGatewayDisconnect {
-	constructor() {}
+	constructor(private readonly gamesService: GamesService,
+				private readonly usersService: UsersService) {}
 
 	@WebSocketServer()
 	server: Server;
@@ -33,7 +34,7 @@ export class PongGateway implements OnGatewayInit, OnGatewayConnection, OnGatewa
 	// see if it can be done another way
 	private readonly connectedUsers: ConnectedUsers = new ConnectedUsers();
 
-	findMatches(server: Server, queue: Queue, rooms: Map<string, Room>) {
+	async findMatches(server: Server, queue: Queue, rooms: Map<string, Room>) {
 		if (queue.size() > 1) {
 			let players: User[] = Array();
 			let roomId: string;
@@ -43,15 +44,22 @@ export class PongGateway implements OnGatewayInit, OnGatewayConnection, OnGatewa
 			// Match players based on ratio, etc...
 			players.push(queue.dequeue());
 
-			roomId = `${players[0].username}&${players[1].username}`
-            room = new Room(roomId, players, {maxGoal: 3});
+			// emit rooms change event for spectator or create a game in DB
+			const playerOne = await this.usersService.findOne(String(players[0].id));
+			const playerTwo = await this.usersService.findOne(String(players[1].id));
+			
+	
+			let game = await this.gamesService.create({
+				createdAt: room.timestampStart,
+				players: [playerOne, playerTwo]
+			});
+			roomId = `${players[0].username}&${players[1].username}`;
+
+            room = new Room(game.id, roomId, players, {maxGoal: 3});
 
 			server.to(players[0].socketId).emit("newRoom", room);
 			server.to(players[1].socketId).emit("newRoom",  room);
             rooms.set(roomId, room);
-
-			// emit rooms change event for spectator
-
         }
     }
 
@@ -74,7 +82,7 @@ export class PongGateway implements OnGatewayInit, OnGatewayConnection, OnGatewa
 			if (room.isAPlayer(newUser) && room.gameState !== GameState.END)
 			{
 				newUser.setUserStatus(userStatus.PLAYING);
-				newUser.setRoomId(room.id);
+				newUser.setRoomId(room.roomId);
 				this.server.to(client.id).emit("newRoom", room);
 				if (room.gameState === GameState.PAUSED)
 				{
@@ -83,13 +91,11 @@ export class PongGateway implements OnGatewayInit, OnGatewayConnection, OnGatewa
 				}
 				return ;
 			}
-
 		});
 		this.connectedUsers.addUser(newUser);
 	}
 
 	async handleDisconnect(@ConnectedSocket() client: Socket) {
-		// Handle this part elsewhere and use it when to leave room too
 		let user: User = this.connectedUsers.getUser(client.id);
 
 		if (user) {
@@ -99,14 +105,14 @@ export class PongGateway implements OnGatewayInit, OnGatewayConnection, OnGatewa
 					if (room.users.length === 0)
 					{
 						this.logger.log("No player left in the room deleting it...");
-						this.rooms.delete(room.id);
+						this.rooms.delete(room.roomId);
 					}
 					else if (room.gameState !== GameState.END) {
 						if (room.gameState === GameState.GOAL)
 							room.resetPosition();
 						room.pause();
 					}
-					client.leave(room.id);
+					client.leave(room.roomId);
 					return ;
 				}
 			});
@@ -158,7 +164,6 @@ export class PongGateway implements OnGatewayInit, OnGatewayConnection, OnGatewa
 			this.server.to(client.id).emit("joinedRoom");
 			this.server.to(client.id).emit("updateRoom", room);
 		}
-	
 	}
 
 
@@ -171,11 +176,11 @@ export class PongGateway implements OnGatewayInit, OnGatewayConnection, OnGatewa
 			room.removeUser(user);
 			if (room.users.length === 0) {
 				this.logger.log("No user left in the room deleting it...");
-				this.rooms.delete(room.id);
+				this.rooms.delete(room.roomId);
 			}
 			if (room.isAPlayer(user) && room.gameState !== GameState.END)
 				room.pause();
-			client.leave(room.id);
+			client.leave(room.roomId);
 			this.connectedUsers.changeUserStatus(client.id, userStatus.INHUB);
 		}
 		this.server.to(client.id).emit("leavedRoom");
@@ -183,7 +188,7 @@ export class PongGateway implements OnGatewayInit, OnGatewayConnection, OnGatewa
 
 	// Etape 3 : Players ask for the last room Updates
 	@SubscribeMessage('requestUpdate')
-	handleRequestUpdate(@ConnectedSocket() client: Socket, @MessageBody() roomId: string) {
+	async handleRequestUpdate(@ConnectedSocket() client: Socket, @MessageBody() roomId: string) {
 		const room: Room = this.rooms.get(roomId);
 
 		if (room) {
@@ -201,8 +206,17 @@ export class PongGateway implements OnGatewayInit, OnGatewayConnection, OnGatewa
 			} else if (room.gameState === GameState.RESUMED && (Date.now() - room.pauseTime[room.pauseTime.length - 1].resume) >= 3500) {
 				room.lastUpdate = Date.now();
 				room.changeGameState(GameState.PLAYING);
+			} else if (room.gameState === GameState.END) {
+				await this.gamesService.update(room.id.toString(), {
+					winnerId: room.winnerId,
+					looserId: room.winnerId,
+					endedAt: Date.now(),
+					gameDuration: room.getDuration(),
+					winnerScore: room.winnerScore,
+					looserScore: room.loserScore,
+				});
 			}
-			this.server.to(room.id).emit("updateRoom", room);
+			this.server.to(room.roomId).emit("updateRoom", room);
 		}
 	}
 

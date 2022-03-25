@@ -4,8 +4,8 @@ import { User } from 'src/users/entities/users.entity';
 import { CreateGameDto } from './create-game.dto';
 
 export class UpdateGameDto extends PartialType(CreateGameDto) {
-    @IsOptional()
-    readonly players: User[];
+    // @IsOptional()
+    // readonly players: User[];
 
     @IsOptional()
     readonly winnerId: number;
@@ -15,7 +15,11 @@ export class UpdateGameDto extends PartialType(CreateGameDto) {
 
     @IsOptional()
     @IsString()
-    readonly endedAt: string;
+    readonly endedAt: number;
+
+    @IsOptional()
+    @IsInt()
+    readonly gameDuration: number;
 
     @IsOptional()
     @IsInt()

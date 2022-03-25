@@ -18,7 +18,7 @@ const Canvas: React.FC<{socketProps: Socket, roomProps: any}> = ({socketProps, r
 
     let socket: Socket = socketProps;
     let room: IRoom = roomProps;
-	let roomId: string | undefined = room?.id;
+	let roomId: string | undefined = room?.roomId;
 	const [gameEnded, setGameEnded] = useState(false);
 
 	let oldTimestamp: number = 0;
@@ -108,7 +108,7 @@ const Canvas: React.FC<{socketProps: Socket, roomProps: any}> = ({socketProps, r
 
 		const gameLoop = (timestamp = 0) => {
 			if (room.gameState !== GameState.END)
-				socket.emit("requestUpdate", room?.id);
+				socket.emit("requestUpdate", room?.roomId);
 			secondElapsed = (timestamp - oldTimestamp) / 1000;
 			oldTimestamp = timestamp;
 

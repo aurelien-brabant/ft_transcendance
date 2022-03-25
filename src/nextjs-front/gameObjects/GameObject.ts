@@ -43,7 +43,7 @@ export interface IBall {
 }
 
 export interface IRoom {
-	id: string;
+	roomId: string;
 	gameState: GameState;
 	users: User[];
 	playerOne: IPlayer;

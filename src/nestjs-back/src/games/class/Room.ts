@@ -278,7 +278,8 @@ export class Ball implements IBall {
 }
 
 export interface IRoom {
-	id: string;
+	id: number;
+	roomId: string;
 	gameState: GameState;
 	users: User[];
 	playerOne: Player;
@@ -294,13 +295,16 @@ export interface IRoom {
 
 	winner: string;
 	loser: string;
+	winnerId: number;
+	loserId: number;
 
 	// settings customisation
 	maxGoal: number;
 }
 
 export default class Room implements IRoom {
-	id: string;
+	id: number;
+	roomId: string;
     gameState: GameState;
 	users: User[];
 	playerOne: Player;
@@ -315,12 +319,17 @@ export default class Room implements IRoom {
 
 	winner: string;
 	loser: string;
+	winnerId: number;
+	loserId: number;
+	winnerScore: number;
+	loserScore: number;
 
 	// settings customisation
 	maxGoal: number;
 
-    constructor(roomId: string, users: User[], customisation: {maxGoal?: number} = {maxGoal: 3}) {
-        this.id = roomId;
+    constructor(id: number, roomId: string, users: User[], customisation: {maxGoal?: number} = {maxGoal: 3}) {
+        this.id = id;
+		this.roomId = roomId;
 		this.gameState = GameState.STARTING;
 		this.users = [];
         this.playerOne = new Player(users[0], 10);
@@ -348,6 +357,15 @@ export default class Room implements IRoom {
 		const userIndex: number = this.users.findIndex(user => user.username === userRm.username);
 		if (userIndex !== -1)
 			this.users.splice(userIndex, 1);
+	}
+
+	getDuration(): number {
+		let duration = Date.now() - this.timestampStart;
+
+		this.pauseTime.forEach((pause) => {
+			duration -= (pause.pause - pause.resume) - 3500;
+		});
+		return duration;
 	}
 
 	changeGameState(newGameState: GameState): void {
@@ -379,6 +397,24 @@ export default class Room implements IRoom {
 			this.goalTimestamp = Date.now();
 			if (this.playerOne.goal === this.maxGoal || this.playerTwo.goal === this.maxGoal)
 			{
+				if (this.playerOne.goal === this.maxGoal) {
+					this.winner = this.playerOne.user.username;
+					this.winnerId = this.playerOne.user.id;
+					this.winnerScore = this.playerOne.goal;
+					this.loser = this.playerTwo.user.username;
+					this.loserId = this.playerTwo.user.id;
+					this.loserScore = this.playerTwo.goal;
+
+				} else {
+					this.winner = this.playerTwo.user.username;
+					this.winnerId = this.playerTwo.user.id;
+					this.winnerScore = this.playerTwo.goal;
+					this.loser = this.playerOne.user.username;
+					this.loserId = this.playerOne.user.id;
+					this.loserScore = this.playerOne.goal;
+
+
+				}
 				this.winner = this.playerOne.goal === this.maxGoal ? this.playerOne.user.username : this.playerTwo.user.username;
 				this.loser = this.playerOne.goal === this.maxGoal ? this.playerTwo.user.username : this.playerOne.user.username;
 				this.changeGameState(GameState.END);

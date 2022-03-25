@@ -101,15 +101,16 @@ export class SeederService {
             const looser = await this.usersService.findOne(String(i + 2));
 
             let game = await this.gamesService.create({
-                createdAt: String(Date.now() + i),
+                players: [winner, looser],
+                createdAt: Date.now() + i
             });
             game = await this.gamesService.update(game.id.toString(), {
-                players: [winner, looser],
                 winnerId: (i < 9) ? i + 1 : 1,
                 looserId: (i < 8) ? i + 2 : 2,
-                endedAt: String(Date.now() + i + 180),
+                endedAt: Date.now() + i + 180,
                 winnerScore: faker.datatype.number(),
                 looserScore: faker.datatype.number(),
+                gameDuration: 0
             } as SeedGame);
 
             console.log('Game [%s] created', game.id);
