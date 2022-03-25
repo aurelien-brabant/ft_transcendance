@@ -14,12 +14,7 @@ import DirectMessageNew, { DirectMessageNewHeader } from "../../components/chat/
 import GroupUsers, { GroupUsersHeader } from "../../components/chat/GroupUsers";
 import GroupSettings, { GroupSettingsHeader } from "../../components/chat/GroupSettings";
 import PasswordProtection, { PasswordProtectionHeader } from "../../components/chat/PasswordProtection";
-
-/* Tmp: will come from the package */
-type BaseUserData = {
-	id: string;
-	username: string;
-};
+import { BaseUserData } from 'transcendance-types';
 
 export type ChatViewItem = {
 	label: string;
