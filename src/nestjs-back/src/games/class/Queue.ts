@@ -22,10 +22,13 @@ export default class Queue {
         return this.storage.find(el => el.username === username);
     }
 
-    remove(username: string): void {
-		let userIndex: number = this.storage.findIndex(user => user.username === username);
-		if (userIndex !== -1) {
+    remove(userRm: User): void {
+		let userIndex: number = this.storage.findIndex(user => user.username === userRm.username);
+		if (userIndex !== -1)
 			this.storage.splice(userIndex, 1);
-		}
+    }
+
+    isInQueue(user: User): boolean {
+        return (this.find(user.username) !== undefined);
     }
 }

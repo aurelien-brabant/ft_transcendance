@@ -14,18 +14,12 @@ import authContext, { AuthContextType } from "../context/auth/authContext"
 
 const Canvas: React.FC<{socketProps: Socket, roomProps: any}> = ({socketProps, roomProps}) => {
 	const { getUserData }: any = useContext(authContext) as AuthContextType;
-	/*
-		Canvas ref and size
-	*/
 	const canvasRef = useRef<HTMLCanvasElement>(null);
 
     let socket: Socket = socketProps;
     let room: IRoom = roomProps;
 	let roomId: string | undefined = room?.id;
-
 	const [gameEnded, setGameEnded] = useState(false);
-
-	// let start = Date.now();
 
 	let oldTimestamp: number = 0;
 	let secondElapsed: number = 0;
@@ -53,11 +47,11 @@ const Canvas: React.FC<{socketProps: Socket, roomProps: any}> = ({socketProps, r
 	const drawGame = (canvas: HTMLCanvasElement, draw: Draw, room: IRoom): void => {
 		draw.clear();
 		draw.drawNet();
+		draw.drawScore(room.playerOne, room.playerTwo);
 		draw.drawPaddle(room.playerOne);
 		draw.drawPaddle(room.playerTwo);
 		if (room.gameState !== GameState.GOAL && room.gameState !== GameState.END)
 			draw.drawBall(room.ball);
-		draw.drawScore(room.playerOne, room.playerTwo);
 		draw.animateNeon(canvas);
 	}
 
@@ -74,6 +68,7 @@ const Canvas: React.FC<{socketProps: Socket, roomProps: any}> = ({socketProps, r
 
 		const draw: Draw = new Draw(canvas);
 
+		// if not a spectator
 		window.addEventListener("keydown", downHandler);
 		window.addEventListener("keyup", upHandler);
 
@@ -112,7 +107,8 @@ const Canvas: React.FC<{socketProps: Socket, roomProps: any}> = ({socketProps, r
 		}
 
 		const gameLoop = (timestamp = 0) => {
-			socket.emit("requestUpdate", room?.id);
+			if (room.gameState !== GameState.END)
+				socket.emit("requestUpdate", room?.id);
 			secondElapsed = (timestamp - oldTimestamp) / 1000;
 			oldTimestamp = timestamp;
 
@@ -149,6 +145,7 @@ const Canvas: React.FC<{socketProps: Socket, roomProps: any}> = ({socketProps, r
 
 		return () => {
 			window.cancelAnimationFrame(animationFrameId);
+			// if not a spectator
 			window.removeEventListener("keydown", downHandler);
 			window.removeEventListener("keyup", upHandler);
 		};
@@ -160,32 +157,32 @@ const Canvas: React.FC<{socketProps: Socket, roomProps: any}> = ({socketProps, r
 			room &&
 				<div className={styles.container}>
 					<canvas ref={canvasRef} className={styles.canvas} ></canvas>
-						<div className="flex justify-between pt-5">
+						<div className="flex justify-between pt-5 pb-5">
 							<div className="grid grid-cols-2 justify-items-start">
 								<img
 									className="rounded-full sm:block"
 									height="45px"
 									width="45px"
-									src={`/api/users/${room.users[0].id}/photo`}
+									src={`/api/users/${room.playerOne.user.id}/photo`}
 									alt="user's avatar"
 								/>
-								<div>{room.users[0].username}</div>
+								<div>{room.playerOne.user.username}</div>
 							</div>
 							<div className="grid grid-cols-2 justify-items-end">
-								<div>{room.users[1].username}</div>
+								<div>{room.playerTwo.user.username}</div>
 								<img
 									className="rounded-full sm:block"
 									height="45px"
 									width="45px"
-									src={`/api/users/${room.users[1].id}/photo`}
+									src={`/api/users/${room.playerTwo.user.id}/photo`}
 									alt="user's avatar"
 								/>
 							</div>
 						</div>
-					{
-						gameEnded &&
-						<button onClick={leaveRoom} className="px-6 py-2 text-xl uppercase bg-pink-600 drop-shadow-md text-bold text-neutral-200">Leave Room</button>
-					}
+						{
+							gameEnded &&
+							<button onClick={leaveRoom} className="px-6 py-2 text-xl uppercase bg-pink-600 drop-shadow-md text-bold text-neutral-200">Leave Room</button>
+						}
 				</div>
 		}
 		</>

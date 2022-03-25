@@ -13,10 +13,69 @@ export enum GameState {
 	END
 }
 
-export type User = {
+export enum userStatus {
+	// DISCONNEC	TED,
+	INHUB,
+	INQUEUE,
+	SPECTATING,
+	PLAYING
+}
+
+
+export class User {
     id: number;
 	username: string;
+	status?: userStatus;
 	socketId?: string;
+	roomId?: string;
+
+	constructor(id: number, username: string, socketId: string) {
+		this.id = id;
+		this.username = username;
+		this.socketId = socketId
+	}
+
+	setSocketId(socketId: string) {
+		this.socketId = socketId;
+	}
+
+	setUserStatus(status: userStatus) {
+		this.status = status;
+	}
+
+	setRoomId(roomId: string | undefined) {
+		this.roomId = roomId;
+	}
+
+}
+
+export class ConnectedUsers {
+	private users: Array<User> = new Array();
+
+	constructor(private maxUser: number = Infinity) {}
+
+	addUser(user: User) {
+		this.users.push(user);
+	}
+
+	removeUser(userRm: User) {
+		let userIndex: number = this.users.findIndex(user => user.socketId === userRm.socketId);
+		if (userIndex !== -1)
+			this.users.splice(userIndex, 1);
+	}
+
+	getUser(socketId: string): User | undefined {
+		let userIndex: number = this.users.findIndex(user => user.socketId === socketId);
+		if (userIndex === -1)
+			return undefined;
+		return this.users[userIndex];
+	}
+
+	changeUserStatus(socketId: string, status: userStatus) {
+		let user: User = this.getUser(socketId);
+		user.setUserStatus(status);
+	}
+	
 }
 
 export interface IPlayer {
@@ -263,7 +322,7 @@ export default class Room implements IRoom {
     constructor(roomId: string, users: User[], customisation: {maxGoal?: number} = {maxGoal: 3}) {
         this.id = roomId;
 		this.gameState = GameState.STARTING;
-		this.users = users;
+		this.users = [];
         this.playerOne = new Player(users[0], 10);
         this.playerTwo = new Player(users[1], canvasWidth-40);
 		this.ball = new Ball();
@@ -276,21 +335,38 @@ export default class Room implements IRoom {
 		this.maxGoal = customisation.maxGoal;
     }
 
-	getUsers(): User[] {
-		return this.users;
+	isAPlayer(user: User): boolean {
+		return (this.playerOne.user.username === user.username || this.playerTwo.user.username === user.username);
 	}
 
-	changeGameState(newGameState: GameState) {
+	addUser(user: User) {
+		// console.log(user, " added to ", this.users);
+		this.users.push(user);
+	}
+
+	removeUser(userRm: User) {
+		const userIndex: number = this.users.findIndex(user => user.username === userRm.username);
+		if (userIndex !== -1)
+			this.users.splice(userIndex, 1);
+	}
+
+	changeGameState(newGameState: GameState): void {
 		this.gameState = newGameState;
 	}
 
-	resetPosition() {
+	pause(): void {
+		this.changeGameState(GameState.PAUSED);
+		this.pauseTime.push({pause: Date.now(), resume: 0});
+
+	}
+
+	resetPosition(): void {
 		this.playerOne.reset();
 		this.playerTwo.reset();
 		this.ball.reset();
 	}
 
-	update() {
+	update(): void {
 		let secondPassed: number = (Date.now() - this.lastUpdate) / 1000;
 		this.lastUpdate = Date.now();
 

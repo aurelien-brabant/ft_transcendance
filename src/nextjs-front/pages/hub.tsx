@@ -17,15 +17,15 @@ const Hub: NextPageWithLayout = () => {
 	const [room, setRoom] = useState<IRoom | null>(null);
 
 	let roomData: IRoom;
-	let roomId: string;
+	let roomId: string | undefined;
 	let user: User = {id: getUserData().id, username: getUserData().username};
 
 	const joinQueue = () => {
-		socket.emit("joinQueue", user);
+		socket.emit("joinQueue");
 	}
 
 	const leaveQueue = () => {
-		socket.emit("leaveQueue", user);
+		socket.emit("leaveQueue");
 	}
 
 	useEffect((): any => {
@@ -41,6 +41,7 @@ const Hub: NextPageWithLayout = () => {
 					roomData = newRoomData;
 					roomId = newRoomData.id;
 					setRoom(roomData);
+					setInQueue(false);
 			});
 
 			socket.on("joinedQueue", (data: IRoom) => {
@@ -55,7 +56,8 @@ const Hub: NextPageWithLayout = () => {
 				setDisplayGame(true);
 			});
 
-			socket.on("leaveRoom", (data: IRoom) => {
+			socket.on("leavedRoom", (data: IRoom) => {
+				roomId = undefined;
 				setDisplayGame(false);
 				setRoom(null);
 			});

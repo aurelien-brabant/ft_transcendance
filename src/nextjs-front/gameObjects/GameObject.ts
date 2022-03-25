@@ -15,9 +15,8 @@ export enum GameState {
 }
 
 export type User = {
-    id: number;
+	id: number;
 	username: string;
-	socketId?: string;
 }
 
 export interface IPlayer {
