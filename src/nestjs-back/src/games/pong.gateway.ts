@@ -30,8 +30,6 @@ export class PongGateway implements OnGatewayInit, OnGatewayConnection, OnGatewa
 	// see if it can be done another way
 	private readonly connectedUsers: ConnectedUsers = new ConnectedUsers();
 
-	private readonly connectedUsers: ConnectedUsers = new ConnectedUsers();
-
 	async findMatches(server: Server, queue: Queue, rooms: Map<string, Room>) {
 		if (queue.size() > 1) {
 			let players: User[] = Array();
