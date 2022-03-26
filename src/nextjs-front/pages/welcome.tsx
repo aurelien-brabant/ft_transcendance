@@ -1,18 +1,17 @@
 import Link from 'next/link';
 import Image from "next/image";
-import { Fragment, useContext, useEffect, useMemo, useRef } from "react";
-import withDashboardLayout from "../components/hoc/withDashboardLayout";
+import { useRouter } from 'next/router';
+import { Fragment, useContext, useEffect, useMemo, useRef, useState } from "react";
 import { FiEdit2, FiUploadCloud } from "react-icons/fi";
-import { useState } from "react";
+import { MdCameraswitch, MdCancel, MdOutlineArrowBackIos } from 'react-icons/md';
 import isEmail from "validator/lib/isEmail";
 import isMobilePhone from "validator/lib/isMobilePhone";
-import {NextPageWithLayout} from './_app';
-import authContext, {AuthContextType} from '../context/auth/authContext';
-import alertContext, {AlertContextType} from "../context/alert/alertContext";
-import { useRouter } from 'next/router';
+import { NextPageWithLayout } from './_app';
 import Tooltip from '../components/Tooltip';
 import ResponsiveSlide from '../components/ResponsiveSlide';
-import { MdCameraswitch, MdCancel, MdOutlineArrowBackIos } from 'react-icons/md';
+import withDashboardLayout from "../components/hoc/withDashboardLayout";
+import authContext, { AuthContextType } from '../context/auth/authContext';
+import alertContext, { AlertContextType } from "../context/alert/alertContext";
 import notificationsContext, { NotificationsContextType } from "../context/notifications/notificationsContext";
 
 const labelClassName = "grow uppercase text-neutral-400";

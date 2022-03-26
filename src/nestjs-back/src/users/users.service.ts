@@ -1,6 +1,6 @@
 import { Injectable, NotFoundException } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
-import { Repository } from 'typeorm';
+import { Repository, getConnection } from 'typeorm';
 import { User } from './entities/users.entity';
 import { CreateDuoQuadraDto } from './dto/create-duoquadra.dto';
 import { CreateUserDto } from './dto/create-user.dto';
@@ -68,26 +68,26 @@ export class UsersService {
     }
 
     async getOwnedChannels(id: string) {
-        const user = await this.usersRepository
-            .createQueryBuilder("user")
-            .innerJoinAndSelect("user.ownedChannels", "channel")
-            .where("user.id = :id", { id: id })
-            .getOne();
-
+        const user = await this.usersRepository.findOne(id, {
+            relations: ['ownedChannels'],
+        });
         if (!user)
             throw new NotFoundException(`User [${id}] not found`);
         return user.ownedChannels;
     }
 
     async getJoinedChannels(id: string) {
-        const user = await this.usersRepository
-            .createQueryBuilder("user")
-            .innerJoinAndSelect("user.joinedChannels", "channel")
-            .where("user.id = :id", { id: id })
-            .getOne();
-
+        const user = await this.usersRepository.findOne(id, {
+            relations: [
+                'joinedChannels',
+                'joinedChannels.owner',
+                'joinedChannels.users',
+                'joinedChannels.messages',
+                'joinedChannels.messages.author'
+            ],
+        });
         if (!user)
-            throw new NotFoundException(`User [${id}] not found`);
+            throw new NotFoundException(`User [${id}] joined no channels`);
         return user.joinedChannels;
     }
 

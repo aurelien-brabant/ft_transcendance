@@ -1,9 +1,9 @@
-import {useContext} from "react";
-import {
-	AiFillLock,
-} from "react-icons/ai";
-import {BsArrowLeftShort} from "react-icons/bs";
-import chatContext, {ChatContextType} from "../../context/chat/chatContext";
+import { useContext } from "react";
+import { AiFillLock } from "react-icons/ai";
+import { BsArrowLeftShort } from "react-icons/bs";
+import alertContext, { AlertContextType } from "../../context/alert/alertContext";
+import authContext, { AuthContextType } from "../../context/auth/authContext";
+import chatContext, { ChatContextType } from "../../context/chat/chatContext";
 
 export const PasswordProtectionHeader: React.FC<{ viewParams: any }> = ({ viewParams}) => {
 	const { setChatView } = useContext(chatContext) as ChatContextType;
@@ -22,13 +22,30 @@ export const PasswordProtectionHeader: React.FC<{ viewParams: any }> = ({ viewPa
 }
 
 const PasswordProtection: React.FC<{ viewParams: any }> = ({ viewParams }) => {
-
+	const { getUserData } = useContext(authContext) as AuthContextType;
+	const userId = getUserData().id;
 	const { setChatView } = useContext(chatContext) as ChatContextType;
+	const { setAlert } = useContext(alertContext) as AlertContextType;
 
-	const handleSubmit = (e: React.FormEvent<HTMLFormElement>) => {
+	/* Check password is correct */
+	const handleSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
 		e.preventDefault();
+		const input = (e.currentTarget.elements[0] as HTMLInputElement).value;
+		const res = await fetch(`/api/channels/${viewParams.groupId}/join?userId=${userId}&password=${input}`, {
+			method: "POST",
+			headers: {
+			"Content-Type": "application/json",
+			},
+		});
 
-		setChatView('group', viewParams.groupName, { ...viewParams });
+		if (res.status === 201) {
+			setChatView('group', viewParams.groupName, { ...viewParams });
+		} else {
+			setAlert({
+				type: "error",
+				content: "Invalid password"
+			});
+		}
 	};
 
 	return <div className = "flex flex-col items-center justify-center p-5 gap-y-4">

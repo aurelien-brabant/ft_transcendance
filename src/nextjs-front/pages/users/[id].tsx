@@ -139,7 +139,6 @@ const HighlightItem: React.FC<Highlight> = ({ n, label, hint, nColor }) => (
   </article>
 );
 
-
 const UserProfilePage: NextPageWithLayout = ({}) => {
 
   const actionTooltipStyles = 'font-bold bg-gray-900 text-neutral-200';
@@ -168,36 +167,14 @@ const UserProfilePage: NextPageWithLayout = ({}) => {
   );
 
   const router = useRouter();
-  
+
+  /* Send DM to user */
   const handleMessage = () => {
-    setChatView('dm', 'direct message', { targetUsername: userId });
+    setChatView('dm', 'direct message', { targetUsername: userData.username });
     openChat();
   }
 
-  const requestFriend = async (id: string, username: string) => {
-    const reqSent = await fetch (`/api/users/${getUserData().id}`, {
-      method: "PATCH",
-      headers: {
-        "Content-Type": "application/json",
-      },
-      body: JSON.stringify({pendingFriendsSent: [{"id": id}]}),
-    });
-    const reqReceived = await fetch (`/api/users/${id}`, {
-      method: "PATCH",
-      headers: {
-        "Content-Type": "application/json",
-      },
-      body: JSON.stringify({pendingFriendsReceived: [{"id": getUserData().id}]}),
-    });
-
-    if (reqSent.ok && reqReceived.ok) {
-      setAlreadyFriend(true);
-      setAlert({ type: 'info', content: `Friend request sent to ${username}` });
-    }
-    else
-      setAlert({ type: 'error', content: `Error while sending friend request to ${username}` });
-
-  }
+  /* Update user's information */
   const updateGamesHistory = async (games: any) => {
     for (var i in games) {
       const opponentId = (games[i].winnerId === userId) ? games[i].looserId : games[i].winnerId;
@@ -222,6 +199,31 @@ const UserProfilePage: NextPageWithLayout = ({}) => {
     });
   }
 
+  /* Send friendship invite */
+  const requestFriend = async (id: string, username: string) => {
+    const reqSent = await fetch (`/api/users/${getUserData().id}`, {
+      method: "PATCH",
+      headers: {
+        "Content-Type": "application/json",
+      },
+      body: JSON.stringify({pendingFriendsSent: [{"id": id}]}),
+    });
+    const reqReceived = await fetch (`/api/users/${id}`, {
+      method: "PATCH",
+      headers: {
+        "Content-Type": "application/json",
+      },
+      body: JSON.stringify({pendingFriendsReceived: [{"id": getUserData().id}]}),
+    });
+
+    if (reqSent.ok && reqReceived.ok) {
+      setAlreadyFriend(true);
+      setAlert({ type: 'info', content: `Friend request sent to ${username}` });
+    }
+    else
+      setAlert({ type: 'error', content: `Error while sending friend request to ${username}` });
+  }
+
   const alreadyFriendOrAsked = (pending: CurrentUser[], friends: CurrentUser[]) => {
 
     for (let i in pending) {
@@ -232,7 +234,7 @@ const UserProfilePage: NextPageWithLayout = ({}) => {
       if (friends[i].id === userId)
         return true;
     }
-    
+
     return false
   }
 
@@ -241,10 +243,9 @@ const UserProfilePage: NextPageWithLayout = ({}) => {
 
       const req = await fetch(`/api/users/${userId}`);
       const data = await req.json();
-      
+
       updateUserData(data);
       updateGamesHistory(JSON.parse(JSON.stringify(data)).games);
-    
       if (!data.wins && !data.losses && !data.draws)
         setRank("-");
       else {
@@ -255,11 +256,10 @@ const UserProfilePage: NextPageWithLayout = ({}) => {
 
       const already = alreadyFriendOrAsked(getUserData().pendingFriendsSent, getUserData().friends)
       setAlreadyFriend(already);
-     
+
       setIsLoading(false);
-    } 
-    
-  
+    }
+
     fetchData()
     .catch(console.error);
   }, [userId])

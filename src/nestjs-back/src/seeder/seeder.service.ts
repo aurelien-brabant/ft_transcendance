@@ -45,7 +45,7 @@ export class SeederService {
         ownedChannels: [],
         joinedChannels: [],
         accountDeactivated: false,
-});
+        });
         user = await this.usersService.update(user.id.toString(), {
             username: username,
             phone: faker.phone.phoneNumber(),
@@ -87,16 +87,18 @@ export class SeederService {
         await this.seedFakeUsers();
         console.log('[+] Seeding fake games...');
         await this.seedFakeGames();
-        console.log('[+] Seeding fake channels...');
-        await this.seedFakeChannels();
+        console.log('[+] Seeding fake chat groups..');
+        await this.seedFakeGroups();
+        console.log('[+] Seeding fake DMs...');
+        await this.seedFakeDMs();
     }
 
     async seedFakeUsers() {
-        for (let i = 0; i <= 10; ++i) {
+        for (let i = 0; i <= 11; ++i) {
             let pseudo = faker.internet.userName();
             const user = await this.createFakeUser(pseudo, i);
 
-            console.log("User [%s] => [%s] [%s] created", user.id, user.duoquadra_login, user.email);
+            console.log('User [%s] => [%s] [%s] created', user.id, user.duoquadra_login, user.email);
         }
         for (let i = 0; i <=10; ++i) {
             const user = await this.updateFakeUser(i);
@@ -110,7 +112,7 @@ export class SeederService {
 
         for (let i = 0; i < 10; ++i) {
             const winner = await this.usersService.findOne(String(i + 1));
-            const looser = await this.usersService.findOne(String(i + 2));    
+            const looser = await this.usersService.findOne(String(i + 2));
 
             let game = await this.gamesService.create({
                 createdAt: String(Date.now() + i),
@@ -124,38 +126,70 @@ export class SeederService {
                 looserScore: faker.datatype.number(),
             } as SeedGame);
 
-            console.log("Game [%s] created", game.id);
+            console.log('Game [%s] created', game.id);
         }
     }
 
-    async seedFakeMessages(dstChannel: SeedChannel, fakeSender: SeedUser) {
+    async seedFakeMessages(dstChannel: SeedChannel, fakeSender: SeedUser, fakeFriend: SeedUser) {
         for (let i = 0; i < 10; ++i) {
-            const message = await this.messagesService.create({
-                createdAt: faker.datatype.datetime(),
-                content: faker.lorem.sentence(5),
-                author: fakeSender,
-                channel: dstChannel
-            } as SeedMessage);
+            let message: SeedMessage;
 
-            console.log("Message [%s] => ['%s'] sent by User [%s]", message.id, message.content, message.author.id);
+            if (i % 2) {
+                message = await this.messagesService.create({
+                    content: `I am ${fakeSender.username}`,
+                    author: fakeSender,
+                    channel: dstChannel
+                });
+            } else {
+                message = await this.messagesService.create({
+                    content: `I am ${fakeFriend.username}`,
+                    author: fakeFriend,
+                    channel: dstChannel
+                });
+            }
+            // console.log("Message [%s] => ['%s'] sent by User [%s]", message.id, message.content, message.author.id);
         }
     }
 
-    async seedFakeChannels() {
-        const fakeOwner = await this.createFakeUser("fakeOwner", 12);
+    async seedFakeGroups() {
+        const fakeOwner = await this.usersService.findOne('1');
+        const fakeFriend = await this.usersService.findOne('2');
+        const randomUser = await this.usersService.findOne('3');
 
-        for (let i = 0; i < 100; ++i) {
-            const channel = await this.channelsService.create({
-                name: (faker.unique as any)(faker.company.companyName),
+        for (let i = 0; i < 10; ++i) {
+            let channel = await this.channelsService.create({
+                name: 'fakeChannel_' + i,
                 owner: fakeOwner,
-                visibility: ['private', 'public', 'protected'][Math.floor(Math.random() * 3)],
-                password: faker.internet.password(),
-                users: [fakeOwner],
+                privacy: ['private', 'public', 'protected'][Math.floor(Math.random() * 3)],
+                users: [fakeOwner, fakeFriend, randomUser],
+                messages: [],
+            } as SeedChannel);
+            if (channel.privacy === 'protected') {
+                channel = await this.channelsService.update(channel.id.toString(), {
+                    password: 'test' + i
+                });
+            }
+
+            console.log('[+] Seeding fake messages in channel [%s]...', channel.id);
+            await this.seedFakeMessages(channel, fakeOwner, fakeFriend);
+        }
+    }
+
+    async seedFakeDMs() {
+        const fakeOwner = await this.usersService.findOne('1');
+
+        for (let i = 2; i < 11; ++i) {
+            const fakeFriend = await this.usersService.findOne(i.toString())
+            let channel = await this.channelsService.create({
+                name: 'fakeDM_' + i,
+                owner: fakeOwner,
+                privacy: 'private',
+                users: [fakeOwner, fakeFriend],
                 messages: []
             } as SeedChannel);
 
             console.log('[+] Seeding fake messages in channel [%s]...', channel.id);
-            await this.seedFakeMessages(channel, fakeOwner);
+            await this.seedFakeMessages(channel, fakeOwner, fakeFriend);
         }
     }
 }

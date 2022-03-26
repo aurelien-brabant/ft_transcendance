@@ -1,0 +1,7 @@
+{
+  "name": "transcendance-types",
+  "version": "1.0.0",
+  "description": "Type definitions to make communication between the backend and frontend type-safe",
+  "main": "index.js",
+  "license": "MIT"
+}

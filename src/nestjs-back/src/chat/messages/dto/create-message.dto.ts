@@ -1,6 +1,7 @@
 import {
   IsDate,
   IsNotEmpty,
+  IsOptional,
   IsString,
   MaxLength
 } from 'class-validator';
@@ -8,9 +9,9 @@ import { Channel } from "src/chat/channels/entities/channels.entity";
 import { User } from "src/users/entities/users.entity";
 
 export class CreateMessageDto {
-  @IsNotEmpty()
+  @IsOptional()
   @IsDate()
-  readonly createdAt: Date;
+  readonly createdAt?: Date;
 
   @IsNotEmpty()
   @IsString()

@@ -1,5 +1,5 @@
 import { Test, TestingModule } from '@nestjs/testing';
-import { MessagesController } from './chat/messages.controller';
+import { MessagesController } from './messages.controller';
 
 describe('MessagesController', () => {
   let controller: MessagesController;

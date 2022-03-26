@@ -1,15 +1,18 @@
-import faker from "@faker-js/faker";
-import {useContext, useEffect, useRef, useState} from "react";
-import chatContext, {ChatContextType, ChatMessage} from "../../context/chat/chatContext";
-import {UserStatusItem} from "../UserStatus";
-import { BsArrowLeftShort } from 'react-icons/bs';
-import { MdPeopleAlt } from 'react-icons/md';
+import { useContext, useEffect, useRef, useState } from "react";
 import { AiOutlineClose, AiOutlineUser } from "react-icons/ai";
-import Tooltip from "../Tooltip";
-import {FiSend} from "react-icons/fi";
+import { BsArrowLeftShort } from 'react-icons/bs';
+import { FiSend } from "react-icons/fi";
+import { MdPeopleAlt } from 'react-icons/md';
+import alertContext, { AlertContextType } from "../../context/alert/alertContext";
+import authContext, { AuthContextType } from "../../context/auth/authContext";
+import chatContext, { ChatContextType, ChatMessage } from "../../context/chat/chatContext";
+import { UserStatusItem } from "../UserStatus";
 
+/* Header */
 export const DirectMessageHeader: React.FC<{ viewParams: any }> = ({ viewParams }) => {
-	const { setChatView, openChatView, closeChat } = useContext(chatContext) as ChatContextType;
+	const { closeChat, openChatView, setChatView } = useContext(
+		chatContext
+	) as ChatContextType;
 
 	return (
 		<div className="flex items-center justify-between p-3 px-5">
@@ -20,43 +23,97 @@ export const DirectMessageHeader: React.FC<{ viewParams: any }> = ({ viewParams 
 			<div className="flex items-center gap-x-3">
 			<h6 className="font-bold">{viewParams.targetUsername}</h6> <UserStatusItem status="online" withText={false} />
 			</div>
-			<button onClick={() => { openChatView('groupadd', 'groupadd', { targetUsername: viewParams.targetUsername })}}>
+			<button onClick={() => {
+				openChatView('groupadd', 'groupadd', {
+						targetUsername: viewParams.targetUsername
+					})
+				}}
+			>
 			<MdPeopleAlt className="text-3xl" />
 			</button>
 		</div>
 	);
 }
 
+/* Conversation */
 const DirectMessage: React.FC<{ viewParams: { [key: string]: any } }> = ({
 	viewParams,
 }) => {
+	const { setAlert } = useContext(alertContext) as AlertContextType;
+	const { getUserData } = useContext(authContext) as AuthContextType;
+	const { fetchChannelData } = useContext(chatContext) as ChatContextType;
 	const [messages, setMessages] = useState<ChatMessage[]>([]);
-	const [currentMessage, setCurrentMessage] = useState('');
+	const [currentMessage, setCurrentMessage] = useState("");
 	const chatBottom = useRef<HTMLDivElement>(null);
+	const dmId = viewParams.targetId;
+	const userId = getUserData().id;
 
-	const handleSubmit = () => {
+	const updateMessages = (message: any) => {
+		setMessages([
+			...messages, {
+				id: message.id,
+				author: message.author.username,
+				content: message.content,
+				isMe: (message.author.id === userId)
+			}
+		]);
+	}
+
+	/* Send new message */
+	const handleDmSubmit = async () => {
 		if (currentMessage.length === 0) return;
-		setMessages([ ...messages, { isMe: true, content: currentMessage, id: faker.datatype.uuid(), author: 'me' } ]);
-		setCurrentMessage('');
-	};
 
-	useEffect(() => {
-		const messages: ChatMessage[] = [];
+		const channelData = await fetchChannelData(dmId).catch(console.error);
+		const res = await fetch("/api/messages", {
+			method: "POST",
+			headers: {
+				"Content-Type": "application/json",
+			},
+			body: JSON.stringify({
+				author: getUserData(),
+				content: currentMessage,
+				channel: channelData
+			}),
+		});
+		const data = await res.json();
 
-		for (let i = 0; i != 50; ++i) {
-			messages.push({
-				isMe: Math.random() <= 0.5,
-				content: faker.lorem.sentence(),
-				id: faker.datatype.uuid(),
-				author: faker.name.findName()
+		if (res.status === 201) {
+			updateMessages(data);
+			setCurrentMessage("");
+			return;
+		} else {
+			setAlert({
+				type: "error",
+				content: "Failed to send message"
 			});
 		}
-		setMessages(messages);
-	}, []);
+	};
 
+	/* Scroll to bottom if new message is sent */
 	useEffect(() => {
 		chatBottom.current?.scrollIntoView();
 	}, [messages]);
+
+	/* Load all messages on mount */
+	const loadDmsOnMount = async () => {
+		const data = await fetchChannelData(dmId).catch(console.error);
+		const dms = JSON.parse(JSON.stringify(data)).messages;
+		const messages: ChatMessage[] = [];
+
+		for (var i in dms) {
+			messages.push({
+				id: dms[i].id,
+				author: dms[i].author.username,
+				content: dms[i].content,
+				isMe: (dms[i].author.id === userId),
+			});
+		}
+		setMessages(messages);
+	}
+
+	useEffect(() => {
+		loadDmsOnMount();
+	}, []);
 
 	return (
 	<div className="h-full">
@@ -86,7 +143,7 @@ const DirectMessage: React.FC<{ viewParams: { [key: string]: any } }> = ({
 						setCurrentMessage(e.target.value);
 					}}
 				/>
-				<button onClick={handleSubmit} className="self-stretch px-3 py-2 text-lg text-white uppercase bg-pink-600 rounded">
+				<button onClick={handleDmSubmit} className="self-stretch px-3 py-2 text-lg text-white uppercase bg-pink-600 rounded">
 					<FiSend />
 				</button>
 			</div>

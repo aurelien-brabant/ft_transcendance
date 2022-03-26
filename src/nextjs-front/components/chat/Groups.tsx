@@ -6,11 +6,7 @@ import {
 	useRef,
 	useState,
 } from "react";
-import chatContext, {
-	ChatContextType,
-	ChatGroup,
-	ChatGroupPrivacy,
-} from "../../context/chat/chatContext";
+import chatContext, { ChatContextType, ChatGroup, ChatGroupPrivacy } from "../../context/chat/chatContext";
 import {
 	AiFillLock,
 	AiFillUnlock,
@@ -18,34 +14,40 @@ import {
 } from "react-icons/ai";
 import { FaUserFriends } from "react-icons/fa";
 
-const Groups: React.FC<{
-	viewParams: Object;
-}> = ({ viewParams }) => {
-	const { openChatView, chatGroups } = useContext(
-		chatContext
-	) as ChatContextType;
+/* All group conversations tab */
+const Groups: React.FC<{viewParams: Object;}> = ({ viewParams }) => {
+	const {
+		openChatView,
+		chatGroups,
+		fetchChannelData,
+		getLastMessage,
+		updateChatGroups
+	} = useContext(chatContext) as ChatContextType;
 
-	const baseChatGroups = useMemo(
-		() =>
-			chatGroups
-				.filter(
-					(group) =>
-						group.privacy !== "private" ||
-						(group.privacy === "private" && group.in)
-				)
-				.sort((a, b) => (a.privacy !== "private" ? 1 : -1)),
-		[]
-	);
+	const baseChatGroups = useMemo(() =>
+		chatGroups
+			.filter(
+				(group) =>
+					group.privacy !== "private" ||
+					(group.privacy === "private" && group.in)
+			)
+			.sort((a, b) => (a.privacy !== "private" ? 1 : -1)
+	), []);
 
 	const [filteredGroups, setFilteredGroups] = useState(baseChatGroups);
-	const [visiblityFilter, setVisiblityFilter] =
-		useState<ChatGroupPrivacy | null>(null);
+	const [visiblityFilter, setVisiblityFilter] = useState<ChatGroupPrivacy | null>(null);
 	const searchInputRef = useRef<HTMLInputElement>(null);
 
-	useEffect(() => {
-		handleSearch((searchInputRef.current as HTMLInputElement).value);
-	}, [visiblityFilter]);
+	/* Select all | private | public | protected */
+	const handleSelect = (e: React.ChangeEvent<HTMLSelectElement>) => {
+		setVisiblityFilter(
+			e.target.value !== "all"
+				? (e.target.value as ChatGroupPrivacy)
+				: null
+		);
+	};
 
+	/* Search a group */
 	const handleSearch = (term: string) => {
 		const searchTerm = term.toLowerCase();
 		setFilteredGroups(
@@ -57,13 +59,29 @@ const Groups: React.FC<{
 		);
 	};
 
-	const handleSelect = (e: React.ChangeEvent<HTMLSelectElement>) => {
-		setVisiblityFilter(
-			e.target.value !== "all"
-				? (e.target.value as ChatGroupPrivacy)
-				: null
-		);
-	};
+	useEffect(() => {
+		handleSearch((searchInputRef.current as HTMLInputElement).value);
+	}, [visiblityFilter]);
+
+	/* Update last message for all conversations */
+	const updateLastMessage = async (channel: ChatGroup) => {
+		const data = await fetchChannelData(channel.id).catch(console.error);
+		const dm = JSON.parse(JSON.stringify(data));
+
+		if (dm.privacy === "protected")
+			return ;
+		const message = getLastMessage(dm);
+		channel.lastMessage = message;
+		updateChatGroups(channel);
+	}
+
+	useEffect(() => {
+		const updatePreviews = async () => {
+			// TODO: sort by most recent message
+			return Promise.all(chatGroups.map((gm) => updateLastMessage(gm)));
+		};
+		updatePreviews();
+	}, []);
 
 	return (
 		<Fragment>
@@ -89,7 +107,7 @@ const Groups: React.FC<{
 				<button className="px-2 py-1 text-sm font-bold uppercase bg-pink-600 rounded" onClick={() => {
 					openChatView('group_new', 'Create a new group', {});
 				}}>
-					New
+					+Group
 				</button>
 			</div>
 			<div className="h-[85%] overflow-x-auto">
@@ -99,8 +117,10 @@ const Groups: React.FC<{
 						className="relative items-center px-10 py-5 border-b-2 border-gray-800 grid grid-cols-3 bg-gray-900/90 hover:bg-gray-800/90 transition"
 						onClick={() => {
 							openChatView(gm.privacy === 'protected' ? 'password_protection' : 'group', gm.label, {
-								groupName: gm.label,
-							});
+									groupName: gm.label,
+									groupId: gm.id
+								}
+							);
 						}}
 					>
 						<div className="absolute bottom-0 left-0 flex items-center px-3 py-1 text-sm text-white bg-gray-800 drop-shadow-md gap-x-1">
