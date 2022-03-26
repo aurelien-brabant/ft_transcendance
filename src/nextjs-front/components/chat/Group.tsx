@@ -7,6 +7,8 @@ import { RiSettings5Line } from "react-icons/ri";
 import chatContext, { ChatContextType, ChatMessage } from "../../context/chat/chatContext";
 import authContext, { AuthContextType } from "../../context/auth/authContext";
 import alertContext, { AlertContextType } from "../../context/alert/alertContext";
+import relationshipContext, { RelationshipContextType } from "../../context/relationship/relationshipContext";
+// import { BaseUserData } from 'transcendance-types';
 
 /* Header */
 export const GroupHeader: React.FC<{ viewParams: any }> = ({ viewParams }) => {
@@ -54,6 +56,7 @@ const Group: React.FC<{ viewParams: { [key: string]: any } }> = ({
 	const { setAlert } = useContext(alertContext) as AlertContextType;
 	const { getUserData } = useContext(authContext) as AuthContextType;
 	const { fetchChannelData } = useContext(chatContext) as ChatContextType;
+	const { getData, blocked } = useContext(relationshipContext) as RelationshipContextType;
 	const [messages, setMessages] = useState<ChatMessage[]>([]);
 	const [currentMessage, setCurrentMessage] = useState("");
 	const chatBottom = useRef<HTMLDivElement>(null);
@@ -61,12 +64,15 @@ const Group: React.FC<{ viewParams: { [key: string]: any } }> = ({
 	const userId = getUserData().id;
 
 	const updateMessages = (message: any) => {
+		const isBlocked = !!blocked.find(user => user.id == message.author.id);
+
 		setMessages([
 			...messages, {
 				id: message.id,
 				author: message.author.username,
-				content: message.content,
-				isMe: (message.author.id === userId)
+				content: isBlocked ? "Blocked message" : message.content,
+				isMe: (message.author.id === userId),
+				isBlocked: isBlocked
 			}
 		]);
 	}
@@ -109,15 +115,18 @@ const Group: React.FC<{ viewParams: { [key: string]: any } }> = ({
 	/* Load all messages on mount */
 	const loadGroupOnMount = async () => {
 		const data = await fetchChannelData(channelId).catch(console.error);
-		const groupMessages = JSON.parse(JSON.stringify(data)).messages;
+		const gms = JSON.parse(JSON.stringify(data)).messages;
 		const messages: ChatMessage[] = [];
 
-		for (var i in groupMessages) {
+		for (var i in gms) {
+			const isBlocked = !!blocked.find(user => user.id == gms[i].author.id);
+
 			messages.push({
-				id: groupMessages[i].id,
-				author: groupMessages[i].author.username,
-				content: groupMessages[i].content,
-				isMe: (groupMessages[i].author.id === userId)
+				id: gms[i].id,
+				author: gms[i].author.username,
+				content: isBlocked ? "Blocked message" : gms[i].content,
+				isMe: (gms[i].author.id === userId),
+				isBlocked: isBlocked
 			});
 		}
 		setMessages(messages);
@@ -125,6 +134,7 @@ const Group: React.FC<{ viewParams: { [key: string]: any } }> = ({
 
 	useEffect(() => {
 		loadGroupOnMount();
+		getData();
 	}, []);
 
 	return (
@@ -134,9 +144,11 @@ const Group: React.FC<{ viewParams: { [key: string]: any } }> = ({
 					<div
 						key={msg.id}
 						className={`${
-							msg.isMe
-								? "self-end bg-green-600"
-								: "self-start text-gray-900 bg-gray-300"
+							msg.isBlocked
+								? "self-start text-gray-900 bg-gray-600"
+								: msg.isMe
+									? "self-end bg-green-600"
+									: "self-start text-gray-900 bg-gray-300"
 						} max-w-[80%] p-2 my-2 rounded whitespace-wrap break-all`}
 					>
 						{!msg.isMe && (

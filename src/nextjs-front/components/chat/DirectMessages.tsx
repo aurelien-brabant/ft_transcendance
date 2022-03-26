@@ -52,11 +52,13 @@ const DirectMessages: React.FC<{ viewParams: Object; }> = ({ viewParams }) => {
 		const message = getLastMessage(JSON.parse(JSON.stringify(data)));
 
 		channel.lastMessage = message;
-		updateDirectMessages(channel);
+		// TODO
+		// updateDirectMessages(channel);
 	}
 
 	useEffect(() => {
 		const updatePreviews = async () => {
+			// TODO: sort by most recent message
 			return Promise.all(directMessages.map((dm) => updateLastMessage(dm)));
 		};
 		updatePreviews();

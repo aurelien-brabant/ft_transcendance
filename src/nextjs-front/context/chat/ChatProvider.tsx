@@ -2,6 +2,8 @@ import { useContext, useEffect, useState } from "react";
 import { BsFillChatDotsFill } from "react-icons/bs";
 import alertContext, { AlertContextType } from "../../context/alert/alertContext";
 import authContext, { AuthContextType } from "../auth/authContext";
+import relationshipContext, { RelationshipContextType } from "../../context/relationship/relationshipContext";
+
 import Chat from "../../components/Chat";
 import ChatGroupsView from "../../components/chat/Groups";
 import ChatGroupView, { GroupHeader } from "../../components/chat/Group";
@@ -14,6 +16,7 @@ import DirectMessageNew, { DirectMessageNewHeader } from "../../components/chat/
 import GroupUsers, { GroupUsersHeader } from "../../components/chat/GroupUsers";
 import GroupSettings, { GroupSettingsHeader } from "../../components/chat/GroupSettings";
 import PasswordProtection, { PasswordProtectionHeader } from "../../components/chat/PasswordProtection";
+
 import { BaseUserData } from 'transcendance-types';
 
 export type ChatViewItem = {
@@ -98,6 +101,7 @@ const views: { [key: string]: ChatViewItem } = {
 const ChatProvider: React.FC = ({ children }) => {
 	const { getUserData } = useContext(authContext) as AuthContextType;
 	const { setAlert } = useContext(alertContext) as AlertContextType;
+	const { getData, blocked } = useContext(relationshipContext) as RelationshipContextType;
 	const userId = getUserData().id;
 	const [isChatOpened, setIsChatOpened] = useState(false);
 	const [viewStack, setViewStack] = useState<ChatViewItem[]>([]);
@@ -113,6 +117,7 @@ const ChatProvider: React.FC = ({ children }) => {
 		setIsChatOpened(false);
 	};
 
+	/* Chat views manipulation */
 	const openChatView = (
 		view: ChatView,
 		label: string,
@@ -147,24 +152,19 @@ const ChatProvider: React.FC = ({ children }) => {
 		setViewStack(viewStack.slice(0, -n));
 	};
 
-	/* Utils */
-	const updateChatGroups = (group: ChatGroup) => {
-		setChatGroups([
-			...chatGroups, group
-		]);
-	}
 
-	const updateDirectMessages = (dm: DirectMessage) => {
-		setDirectMessages([
-			...directMessages, dm
-		]);
-	}
-
+	/* Message utils */
 	const getLastMessage = (channel: any) => {
 		if (channel.messages) {
 			const i = channel.messages.length - 1;
-			if (i > 0 && channel.privacy !== "protected") {
-				return channel.messages[i].content;
+
+			if (i >= 0 && channel.privacy !== "protected") {
+				const lastMessage = channel.messages[i];
+
+				if (blocked.find(user => user.id == lastMessage.author.id)) {
+					return "Blocked message";
+				}
+				return lastMessage.content;
 			}
 		}
 		return "";
@@ -172,6 +172,11 @@ const ChatProvider: React.FC = ({ children }) => {
 
 	const findUserById = (user: BaseUserData) => {
 		return user.id === userId;
+	}
+
+	/* Chat groups utils */
+	const updateChatGroups = (group: ChatGroup) => {
+		setChatGroups([...chatGroups, group]);
 	}
 
 	const setChatGroupData = (channel: any) => {
@@ -188,12 +193,19 @@ const ChatProvider: React.FC = ({ children }) => {
 		return group;
 	}
 
-	const setDirectMessageData = (channel: any, friend: any) => {
+	/* Direct messages utils */
+	const updateDirectMessages = (dm: DirectMessage) => {
+		setDirectMessages([
+			...directMessages, dm
+		]);
+	}
+
+	const setDirectMessageData = (channel: any, friend: BaseUserData) => {
 		const dm: DirectMessage = {
 			id: channel.id,
 			friendId: friend.id,
 			friendUsername: friend.username,
-			friendPic: !friend.pic ? "" : friend.pic.startsWith("https://") ? friend.pic : `/api/users/${friend.id}/photo`,
+			friendPic: `/api/users/${friend.id}/photo`,
 			lastMessage: getLastMessage(channel),
 			updatedAt: Date.now().toString()
 		}
@@ -230,19 +242,21 @@ const ChatProvider: React.FC = ({ children }) => {
 	}
 
 	/* Find existing DM or create a new one */
-	const openDirectMessage = async (userId: string, friend: any) => {
-		const res = await fetch(`/api/users/${userId}/directmessages?friendId=${friend.id}`);
-		const data = await res.json();
-
-		if (res.status !== 200) {
-			createDirectMessage(userId.toString(), friend.id.toString());
+		const openDirectMessage = async (userId: string, friend: any) => {
+			const res = await fetch(`/api/users/${userId}/directmessages?friendId=${friend.id}`);
+			const data = await res.json();
+	
+			if (res.status !== 200) {
+				createDirectMessage(userId.toString(), friend.id.toString());
+			}
+			openChatView('dm', 'direct message', {
+				dmId: JSON.parse(JSON.stringify(data)).id,
+				friendUsername: friend.username,
+				friendId: friend.id
+			});
 		}
-		openChatView('dm', 'direct message', {
-			dmId: JSON.parse(JSON.stringify(data)).id,
-			friendUsername: friend.username,
-			friendId: friend.id
-		});
-	}
+
+	/* Channels */
 
 	/* Fetch the data of a specific channel */
 	const fetchChannelData = async (id: string) => {
@@ -261,7 +275,10 @@ const ChatProvider: React.FC = ({ children }) => {
 
 			if (channel.privacy === "dm") {
 				const friend = (channel.users[0].id === userId) ? channel.users[1] : channel.users[0];
-				dms.push(setDirectMessageData(channel, friend));
+				/* Don't display DMs from blocked users */
+				if (!!blocked.find(user => user.id == friend.id) == false) {
+					dms.push(setDirectMessageData(channel, friend));
+				}
 			} else {
 				groups.push(setChatGroupData(channel));
 			}
@@ -278,6 +295,7 @@ const ChatProvider: React.FC = ({ children }) => {
 			loadChannelsOnMount(JSON.parse(JSON.stringify(data)));
 		}
 		fetchUserChannels().catch(console.error);
+		getData();
 	}, [])
 
 	return (
@@ -291,10 +309,10 @@ const ChatProvider: React.FC = ({ children }) => {
 				closeRightmostView,
 				chatGroups,
 				directMessages,
-				updateChatGroups,
-				updateDirectMessages,
 				getLastMessage,
+				updateChatGroups,
 				setChatGroupData,
+				updateDirectMessages,
 				setDirectMessageData,
 				createDirectMessage,
 				openDirectMessage,

@@ -36,6 +36,7 @@ export class ChannelsService {
 
   async create(createChannelDto: CreateChannelDto) {
     const ownedChannels = await this.usersService.getOwnedChannels(createChannelDto.owner.id.toString());
+
     if (ownedChannels.length !== 0) {
       const chanExists = !!ownedChannels.find(channel => {
         return channel.name === createChannelDto.name;
@@ -57,6 +58,7 @@ export class ChannelsService {
       id: +id,
       ...updateChannelDto
     });
+
     if (channel && updateChannelDto.password) {
       const hashedPwd = await hashPassword(updateChannelDto.password, 10);
       channel = await this.channelsRepository.preload({

@@ -1,7 +1,7 @@
 import { useEffect, useRef, useState, useContext } from "react";
 import { BsArrowLeftShort } from "react-icons/bs";
 import authContext, { AuthContextType } from "../../context/auth/authContext";
-import chatContext, { ChatContextType, DirectMessage } from "../../context/chat/chatContext";
+import chatContext, { ChatContextType } from "../../context/chat/chatContext";
 import relationshipContext, { RelationshipContextType } from "../../context/relationship/relationshipContext";
 import { User } from "../../context/relationship/relationshipContext";
 import { UserStatusItem } from "../UserStatus";

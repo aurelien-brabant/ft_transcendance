@@ -59,7 +59,8 @@ const DirectMessage: React.FC<{ viewParams: { [key: string]: any } }> = ({
 				id: message.id,
 				author: message.author.username,
 				content: message.content,
-				isMe: (message.author.id === userId)
+				isMe: (message.author.id === userId),
+				isBlocked: false
 			}
 		]);
 	}
@@ -111,6 +112,7 @@ const DirectMessage: React.FC<{ viewParams: { [key: string]: any } }> = ({
 				author: dms[i].author.username,
 				content: dms[i].content,
 				isMe: (dms[i].author.id === userId),
+				isBlocked: false
 			});
 		}
 		setMessages(messages);

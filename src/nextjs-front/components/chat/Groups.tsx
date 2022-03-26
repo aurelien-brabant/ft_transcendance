@@ -66,13 +66,14 @@ const Groups: React.FC<{viewParams: Object;}> = ({ viewParams }) => {
 	/* Update last message for all conversations */
 	const updateLastMessage = async (channel: ChatGroup) => {
 		const data = await fetchChannelData(channel.id).catch(console.error);
-		const dm = JSON.parse(JSON.stringify(data));
+		const gm = await JSON.parse(JSON.stringify(data));
 
-		if (dm.privacy === "protected")
+		if (gm.privacy === "protected")
 			return ;
-		const message = getLastMessage(dm);
+		const message = getLastMessage(gm);
 		channel.lastMessage = message;
-		updateChatGroups(channel);
+		// TODO
+		// updateChatGroups(channel);
 	}
 
 	useEffect(() => {

@@ -3,7 +3,7 @@ import {LoggedUser} from 'transcendance-types';
 
 export type AuthContextType = {
 	fetchAsLoggedUser: (input: RequestInfo, init?: RequestInit | undefined) => Promise<Response>;
-	getUserData: () => LoggedUser;
+	getUserData: () => any; //LoggedUser;
 	authenticateUser: () => Promise<boolean>;
 	logout: () => void;
 	isPreAuthenticated: boolean;
