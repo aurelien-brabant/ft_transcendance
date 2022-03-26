@@ -1,5 +1,13 @@
 import { createContext } from 'react';
 
+export type Achievement = {
+
+	id: string,
+	type: string,
+	description: string,
+	levelToReach: number,
+	users: User[]
+}
 export type User = {
 	id: string,
 	username: string,
@@ -15,6 +23,7 @@ export type User = {
 	accountDeactivated: boolean,
 	tfaSecret: string,
 	games: [],
+	achievements: Achievement[],
 	friends: User[],
 	blockedUsers: User[],
 	pendingFriendsSent: User[],

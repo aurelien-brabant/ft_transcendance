@@ -1,9 +1,12 @@
-import { IsString } from 'class-validator';
+import { IsInt, IsString } from 'class-validator';
 
 export class CreateAchievementDto {
     @IsString()
-    readonly achievement: string;
+    readonly type: string;
+
+    @IsInt()
+    readonly levelToReach: number;
 
     @IsString()
-    readonly icon: string;
+    readonly description: string;
 }

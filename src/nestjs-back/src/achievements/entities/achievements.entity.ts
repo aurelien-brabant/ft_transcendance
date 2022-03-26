@@ -13,10 +13,13 @@ export class Achievement {
     id: number;
 
     @Column()
-    achievement: string;
+    type: string;
 
     @Column()
-    icon: string;
+    description: string;
+
+    @Column()
+    levelToReach: number;
 
     @ManyToMany(
         () => User,

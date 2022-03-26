@@ -16,9 +16,13 @@ export class AchievementsService {
         return this.achievementsRepository.find({
             relations: ['users'],
             order: {
-                id: 'ASC'
+                levelToReach: 'ASC',
             }
         });
+    }
+
+    findAchievements() {
+        return this.achievementsRepository.find();
     }
 
     async findOne(id: string) { 
@@ -52,7 +56,7 @@ export class AchievementsService {
 
         achievement = await this.achievementsRepository.preload({
             id: +id,
-            users: updated,
+            users: updated
         });
        
         return this.achievementsRepository.save(achievement);

@@ -1,39 +1,57 @@
 const achievementsList = [
     {
-        achievement: "friends_1",
-        icon: ""
+        id: 1,
+        type: "friends",
+        description: "1st friendship",
+        levelToReach: 1
     },
     {
-        achievement: "friends_3",
-        icon: ""
+        id: 2,
+        type: "friends",
+        description: "Make 3 friends",
+        levelToReach: 3
     },
     {
-        achievement: "friends_10",
-        icon: ""
+        id: 3,
+        type: "friends",
+        description: "Make 10 friends",
+        levelToReach: 10
     },
     {
-        achievement: "wins_1",
-        icon: ""
+        id: 4,
+        type: "wins",
+        description: "1st victory",
+        levelToReach: 1
     },
     {
-        achievement: "wins_3",
-        icon: ""
+        id: 5,
+        type: "wins",
+        description: "Win 3 games",
+        levelToReach: 3
     },
     {
-        achievement: "wins_10",
-        icon: ""
+        id: 6,
+        type: "wins",
+        description: "Win 10 games",
+        levelToReach: 10
     },
     {
-        achievement: "games_1",
-        icon: ""
+        id: 7,
+        type: "games",
+        description: "1st game played",
+        levelToReach: 1
     },
     {
-        achievement: "games_3",
-        icon: ""
+        id: 8,
+        type: "games",
+        description: "Played 3 games",
+        levelToReach: 3
     },
     {
-        achievement: "games_10",
-        icon: ""
+        id: 9,
+        type: "games",
+        description: "Played 10 games",
+        levelToReach: 10
     }
 ];
 

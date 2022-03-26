@@ -1,34 +1,114 @@
 import { useContext, useEffect, useState } from "react";
-//import notificationsContext, { NotificationsContextType } from "../context/notifications/notificationsContext";
+import { FaUserFriends, FaGamepad } from "react-icons/fa";
+import { RiMedalLine } from "react-icons/ri";
+import authContext, { AuthContextType } from "../context/auth/authContext";
+
+
+//TO DO FIX THIS...
+/*export const checkList = (type: string, userId: string) => {
+
+    const { getUserData }= useContext(authContext) as AuthContextType;
+    const [achievements, setAchievements] = useState(getUserData().achievements);
+    const [achievementsList, setAchievementsList] = useState([]);
+
+    if (type === 'friends') {
+
+        const friendsLen = getUserData().friends.length;
+
+        const check = async (len: number, id: string) => {
+            if (friendsLen === len - 1) {
+                const updateAchievement = await fetch(`/api/achievements/${id}`, {
+                    method: "PATCH",
+                    headers: {
+                      "Content-Type": "application/json",
+                    },
+                    body: JSON.stringify([{"id": `${userId}`}])
+                });
+                const res = await updateAchievement.json();
+                console.log('updateAchievement', updateAchievement);
+                console.log('res', res);
+             //   return true;
+            }
+            //return false;
+        }
+
+        for (let i in achievements) {
+            if (achievements[i].type === 'friends') {
+                check(achievements[i].levelToReach, achievements[i].id);
+//                  setAlert({ type: 'info', content: `New achievement: ${achievements[i].description}` });
+            }
+        }
+    }
+
+}
+*/
+
+const getAchievements = (type: string) => {
+    return (
+        <div className="flex justify-center">
+            {type === 'friends' && <FaUserFriends className="text-7xl"/>}
+            {type === 'wins' && <RiMedalLine className="text-7xl"/>}
+            {type === 'games' && <FaGamepad className="text-7xl"/>}
+        </div>
+    );
+}
 
 const Achievements: React.FC<{}> = () => {
-    //const { notifications, notify, setNotifications } = useContext(notificationsContext) as NotificationsContextType;
-    const [achievements, setAchievements] = useState([])
-    
+    const { getUserData } = useContext(authContext) as AuthContextType;
+    const [achievements, setAchievements] = useState(getUserData().achievements);
+    const [achievementsList, setAchievementsList] = useState([]);
+  
     const getData = async () => {
-        const req = await fetch('/api/achievements')
-        const data = await req.json();
-        setAchievements(data);
+        const reqList = await fetch('/api/achievements')
+        const list = await reqList.json();
+        setAchievementsList(list);
+        setAchievements(getUserData().achievements)
     }
-    
-//    const list = [{id: 1, name:"test"},{id: 2, name:"test2"}]
 
     useEffect(() => {
         getData();
-        //        setNotifications([...notifications, {category: 'test3', content: 'test3'}])
-  //      setNotifications([...notifications, {category: 'test', content: 'test'}])
-//           setNotifications([...notifications, {id: 13, category: 'test', content: 'test from id 13', issuedAt: new Date(Date.now())}, {id: 3, category: 'test2', content: 'test2 from id3', issuedAt: new Date(Date.now())}])
-  //       setNotifications([...notifications, {id: 13, category: 'test3', content: 'test3 from id 13', issuedAt: new Date(Date.now())}, {id: 3, category: 'test4', content: 'test4 from id3', issuedAt: new Date(Date.now())}])
       }, [])
-    
+
+    const getColor = (levelToReach: number, type: string) => {
+
+        for (let i in achievements) {
+            if (achievements[i].levelToReach === levelToReach && achievements[i].type === type  && levelToReach === 10)
+                return "text-yellow-500"
+            else if (achievements[i].levelToReach === levelToReach && achievements[i].type === type && levelToReach === 3)
+                return "text-zinc-400"
+            else if (achievements[i].levelToReach === levelToReach && achievements[i].type === type && levelToReach === 1)
+                return "text-orange-800"
+        }
+        return "text-gray-500/50"
+    }
+
+    const getBorderColor = (levelToReach: number, type: string) => {
+
+        for (let i in achievements) {
+            if (achievements[i].levelToReach === levelToReach && achievements[i].type === type  && levelToReach === 10)
+                return "ring-4 ring-yellow-500/20 border border-yellow-500 border-8"
+            else if (achievements[i].levelToReach === levelToReach && achievements[i].type === type && levelToReach === 3)
+                return "ring-2 ring-zinc-400/20 border border-zinc-400  border-4"
+            else if (achievements[i].levelToReach === levelToReach && achievements[i].type === type && levelToReach === 1)
+                return "ring ring-orange-800/20 border border-orange-800 border-2"
+        }
+        return "border border-dashed border-gray-500"
+    }
     return (
-        <li>
-            {achievements.map(({id, achievement}) => (
-                <ul key={id}>
-                    <p>{achievement}</p>
-                </ul>
+        <ul className="text-gray-500 place-items-stretch grid grid-cols-3 text-center my-10">
+            {achievementsList.map(({id, type, description, levelToReach}) => (
+                <li
+                    className={`${getColor(levelToReach, type)} flex-col justify-center my-5 p-3`}
+                    key={id}>
+                        <div className={`${getBorderColor(levelToReach, type)} flex-col justify-center rounded-full p-5`}>
+                            {getAchievements(type)}
+                            <div>
+                                {description}
+                            </div>
+                        </div>
+                </li>
             ))}
-        </li>
+        </ul>
     )
 };
 

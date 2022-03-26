@@ -1,5 +1,5 @@
 import { Injectable } from '@nestjs/common';
-import { getConnection } from 'typeorm';
+import { getConnection, Repository } from 'typeorm';
 import { SeedChannel, SeedGame, SeedMessage, SeedUser } from './seeder';
 import { UsersService } from '../users/users.service';
 import { GamesService } from '../games/games.service';
@@ -16,15 +16,15 @@ export class SeederService {
         private readonly gamesService: GamesService,
         private readonly channelsService: ChannelsService,
         private readonly messagesService: MessagesService,
-        private readonly achievementsService: AchievementsService
-    ) {}
+        private readonly achievementsService: AchievementsService,
+     ) {}
 
     async createAchievements() {
 
         const list = achievementList;
         for (let i = 0; i < list.length; i++) {
             const achievement = this.achievementsService.create(list[i]);
-            (achievement) && console.log("Achievement [%s] created", list[i].achievement);
+            (achievement) && console.log("Achievement [%s] created =>s", list[i].type, list[i].description);
         }
     } 
 
