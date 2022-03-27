@@ -43,6 +43,8 @@ const GroupUsers: React.FC<{ viewParams: any }> = ({ viewParams }) => {
 	const channelId = viewParams.groupId;
 	const actionTooltipStyles = "font-bold bg-gray-900 text-neutral-200";
 
+	// TODO: check user's right (owner and admins have specific rights)
+
 	/* Make user administrator */
 	const addAdmin = async (id: string) => {
 		const channelData = await fetchChannelData(channelId).catch(console.error);
@@ -59,6 +61,7 @@ const GroupUsers: React.FC<{ viewParams: any }> = ({ viewParams }) => {
 		});
 
 		if (res.status === 200) {
+			updateUsers();
 			return;
 		} else {
 			setAlert({
@@ -87,6 +90,7 @@ const GroupUsers: React.FC<{ viewParams: any }> = ({ viewParams }) => {
 		});
 
 		if (res.status === 200) {
+			updateUsers();
 			return;
 		} else {
 			setAlert({
@@ -96,6 +100,38 @@ const GroupUsers: React.FC<{ viewParams: any }> = ({ viewParams }) => {
 		}
 	};
 
+	/* Ban user from channel */
+	const banUser = async (id: string) => {
+		const channelData = await fetchChannelData(channelId).catch(console.error);
+		const currentUsers = JSON.parse(JSON.stringify(channelData)).users;
+		const users = currentUsers.filter((user: BaseUserData) => { 
+			return user.id != id
+		})
+
+		// TODO: the banned user shouldn't be able to join channel again
+
+		const res = await fetch(`/api/channels/${channelId}`, {
+			method: "PATCH",
+			headers: {
+				"Content-Type": "application/json",
+			},
+			body: JSON.stringify({
+				users: [ ...users ]
+			}),
+		});
+
+		if (res.status === 200) {
+			updateUsers();
+			return;
+		} else {
+			setAlert({
+				type: "error",
+				content: "Failed to ban user"
+			});
+		}
+	};
+
+	/* Update user list on mount */
 	const updateUsers = async () => {
 		const data = await fetchChannelData(channelId).catch(console.error);
 		const chanOwner = await JSON.parse(JSON.stringify(data)).owner;
@@ -159,7 +195,8 @@ const GroupUsers: React.FC<{ viewParams: any }> = ({ viewParams }) => {
 						</Tooltip>}
 						{!user.isOwner && 
 							<Tooltip className={actionTooltipStyles} content="ban">
-							<button className="hover:scale-110">
+							<button onClick={() => banUser(String(user.id))}
+								className="hover:scale-110">
 								<GiThorHammer color="grey"/>
 							</button>
 						</Tooltip>}
