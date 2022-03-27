@@ -7,6 +7,7 @@ import { IoMdPersonAdd } from 'react-icons/io';
 import { GiFalling, GiPodiumWinner } from "react-icons/gi";
 import { RiPingPongLine, RiMessage2Line, RiUserSettingsLine } from 'react-icons/ri';
 import { NextPageWithLayout } from "../_app";
+import { User } from 'transcendance-types';
 import authContext, { AuthContextType } from "../../context/auth/authContext";
 import Selector from "../../components/Selector";
 import Tooltip from "../../components/Tooltip";
@@ -26,18 +27,6 @@ export type GameSummary = {
   winnerId: number;
   looserId: number;
   opponent: string;
-};
-
-type CurrentUser = {
-  username: string;
-  avatar: string;
-  losses: number;
-  wins: number;
-  draws: number;
-  ratio: number | string;
-  id: number;
-  accountDeactivated: boolean;
-  pendingFriendsReceived: CurrentUser[]
 };
 
 const renderScore = (score: [number, number]) => {
@@ -147,16 +136,16 @@ const UserProfilePage: NextPageWithLayout = ({}) => {
   const { setChatView, openChat } = useContext(chatContext) as ChatContextType;
   const [gamesHistory, setGamesHistory] = useState([]);
   const url: string = window.location.href;
-  const userId: number = parseInt(url.substring(url.lastIndexOf('/') + 1));
+  const userId = parseInt(url.substring(url.lastIndexOf('/') + 1)).toString();
   const [isLoading, setIsLoading] = useState(true);
   const [alreadyFriend, setAlreadyFriend] = useState(false);
   const [selected, setSelected] = useState(0);
   const [rank, setRank] = useState("-");
-  const [userData, setUserData] = useState<CurrentUser>(
+  const [userData, setUserData] = useState<User>(
     {
       id: getUserData().id,
       username: getUserData().username,
-      avatar: getUserData().pic,
+      pic: getUserData().pic,
       losses: getUserData().losses,
       wins: getUserData().wins,
       draws: getUserData().draws,
@@ -189,7 +178,7 @@ const UserProfilePage: NextPageWithLayout = ({}) => {
     setUserData({
       id: data.id,
       username: data.username,
-      avatar: !data.pic ? "" : data.pic.startsWith("https://") ? data.pic : `/api/users/${data.id}/photo`,
+      pic: !data.pic ? "" : data.pic.startsWith("https://") ? data.pic : `/api/users/${data.id}/photo`,
       losses: data.losses,
       wins: data.wins,
       draws: data.draws,
@@ -224,7 +213,7 @@ const UserProfilePage: NextPageWithLayout = ({}) => {
       setAlert({ type: 'error', content: `Error while sending friend request to ${username}` });
   }
 
-  const alreadyFriendOrAsked = (pending: CurrentUser[], friends: CurrentUser[]) => {
+  const alreadyFriendOrAsked = (pending: User[], friends: User[]) => {
 
     for (let i in pending) {
       if (pending[i].id === userId)
@@ -274,7 +263,7 @@ const UserProfilePage: NextPageWithLayout = ({}) => {
           <div className="relative w-48 h-48">
             <img
               className="object-cover object-center w-full h-full rounded drop-shadow-md"
-              src={userData.avatar} />
+              src={userData.pic} />
 
             {/* actions */}
             {(userData.accountDeactivated) ? <></> : 
