@@ -19,7 +19,7 @@ export type User = {
 	wins: number,
 	losses: number,
 	draws: number,
-	ration: number,
+	ratio: number,
 	accountDeactivated: boolean,
 	tfaSecret: string,
 	games: [],

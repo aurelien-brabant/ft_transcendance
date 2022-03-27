@@ -1,9 +1,9 @@
 import { createContext } from 'react';
-import {LoggedUser} from 'transcendance-types';
+// import { User } from 'transcendance-types';
 
 export type AuthContextType = {
 	fetchAsLoggedUser: (input: RequestInfo, init?: RequestInit | undefined) => Promise<Response>;
-	getUserData: () => LoggedUser;
+	getUserData: () => any; // User
 	authenticateUser: () => Promise<boolean>;
 	logout: () => void;
 	isPreAuthenticated: boolean;
@@ -15,7 +15,7 @@ export type AuthContextType = {
 	mergeUserData: (data: any) => any;
 	token: string;
 	setToken: (data: any) => any;
-	}
+}
 
 const authContext = createContext<AuthContextType | null>(null);
 

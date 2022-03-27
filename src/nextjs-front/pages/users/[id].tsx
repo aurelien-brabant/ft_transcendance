@@ -160,9 +160,9 @@ const UserProfilePage: NextPageWithLayout = ({}) => {
       losses: getUserData().losses,
       wins: getUserData().wins,
       draws: getUserData().draws,
+      ratio: (!getUserData().wins && !getUserData().losses) ? "-" : getUserData().ratio,
       accountDeactivated: getUserData().accountDeactivated,
       pendingFriendsReceived: getUserData().pendingFriendsReceived,
-      ratio: (!getUserData().wins && !getUserData().losses) ? "-" : getUserData().ratio,
     }
   );
 
@@ -193,9 +193,9 @@ const UserProfilePage: NextPageWithLayout = ({}) => {
       losses: data.losses,
       wins: data.wins,
       draws: data.draws,
+      ratio: (!data.wins && !data.losses && !data.draws) ? "-" : data.ratio,
       accountDeactivated: data.accountDeactivated,
       pendingFriendsReceived: data.pendingFriendsReceived,
-      ratio: (!data.wins && !data.losses && !data.draws) ? "-" : data.ratio,
     });
   }
 

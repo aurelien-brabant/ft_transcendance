@@ -14,10 +14,12 @@ export type Users = BaseUserData[];
  * GET /api/users/:id
  */
 export type User = BaseUserData & {
-	winCount: number;
-	loseCount: number;
-	rank: number;
-	//elo: number;
+	avatar: string;
+	losses: number;
+	wins: number;
+	draws: number;
+	ratio: number | string;
+	accountDeactivated: boolean;
 };
 
 /**
