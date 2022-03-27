@@ -37,6 +37,10 @@ export class Channel {
   @JoinTable()
   users: User[];
 
+  @ManyToMany(() => User)
+  @JoinTable()
+  admins: User[];
+
   @OneToMany(() => Message, message => message.channel, {
     cascade: true
   })

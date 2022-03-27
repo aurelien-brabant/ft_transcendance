@@ -1,15 +1,17 @@
 import { useContext, useEffect, useState } from "react";
 import { GiThorHammer } from "react-icons/gi";
-import { FaBullseye, FaCrown } from "react-icons/fa";
-import { BsArrowLeftShort, BsShieldFillPlus } from "react-icons/bs";
+import { FaCrown } from "react-icons/fa";
+import { BsArrowLeftShort, BsShieldFillCheck, BsShieldFillPlus, BsShieldFillX } from "react-icons/bs";
 import Link from "next/link";
+import { BaseUserData } from "transcendance-types";
 import chatContext, { ChatContextType } from "../../context/chat/chatContext";
+import Tooltip from "../../components/Tooltip";
 
 type UserSummary = {
 	avatar: string;
 	username: string;
-	isAdmin: boolean;
-	isMod: boolean;
+	isOwner: boolean;
+	isAdmin: boolean; /* Moderator */
 };
 
 export const GroupUsersHeader: React.FC<{ viewParams: any }> = ({ viewParams }) => {
@@ -36,19 +38,23 @@ const GroupUsers: React.FC<{ viewParams: any }> = ({ viewParams }) => {
 	const [users, setUsers] = useState<UserSummary[]>([]);
 	const { fetchChannelData } = useContext(chatContext) as ChatContextType;
 	const channelId = viewParams.groupId;
+	const actionTooltipStyles = "font-bold bg-gray-900 text-neutral-200";
 
 	const updateUsers = async () => {
 		const data = await fetchChannelData(channelId).catch(console.error);
-		const chanUsers = await JSON.parse(JSON.stringify(data)).users;
 		const chanOwner = await JSON.parse(JSON.stringify(data)).owner;
+		const chanAdmins = await JSON.parse(JSON.stringify(data)).admins;
+		const chanUsers = await JSON.parse(JSON.stringify(data)).users;
 		const users: UserSummary[] = [];
 
 		for (var i in chanUsers) {
 			users.push({
 				avatar: `/api/users/${chanUsers[i].id}/photo`,
 				username: chanUsers[i].username,
-				isAdmin: (chanUsers[i].id === chanOwner.id),
-				isMod: false // tmp
+				isOwner: (chanUsers[i].id === chanOwner.id),
+				isAdmin: !!chanAdmins.find((admin: BaseUserData) => {
+						return admin.id === chanUsers[i].id;
+					})
 			});
 		}
 		setUsers(users);
@@ -68,22 +74,34 @@ const GroupUsers: React.FC<{ viewParams: any }> = ({ viewParams }) => {
 							height="50px"
 							width="50px"
 							className={`border-4 ${
-								user.isAdmin
+								user.isOwner
 									? "border-pink-600"
-									: user.isMod
-										? "border-blue-500"
+									: user.isAdmin
+										? "border-green-600"
 										: "border-gray-800"
 							} rounded-full `}
 						/>
 						<Link href={`/users/${user.username}`}>
 							<a>{user.username}</a>
 						</Link>
-						{user.isAdmin && <FaCrown color="#ffa500" />}
-						{user.isMod && <BsShieldFillPlus color="#2196F3"/>}
+						{user.isOwner && <FaCrown color="#ffa500" />}
+						{user.isAdmin && <BsShieldFillCheck color="#43A047"/>}
 					</div>
-					<div className="flex text-3xl gap-x-4">
-						{!user.isAdmin && <GiThorHammer color="grey"/>}
-						{!user.isAdmin && !user.isMod && <BsShieldFillPlus color="#2196F3"/>}
+					<div className="flex text-2xl gap-x-4">
+						{!user.isOwner && user.isAdmin &&
+						<Tooltip className={actionTooltipStyles} content="-admin">
+							<button className="text-red-600 hover:scale-110"><BsShieldFillX /></button>
+						</Tooltip>}
+						{!user.isOwner && !user.isAdmin &&
+						<Tooltip className={actionTooltipStyles} content="+admin">
+							<button className="text-green-600 hover:scale-110"><BsShieldFillPlus /></button>
+						</Tooltip>}
+						{!user.isOwner && 
+							<Tooltip className={actionTooltipStyles} content="ban">
+							<button className="hover:scale-110">
+								<GiThorHammer color="grey"/>
+							</button>
+						</Tooltip>}
 					</div>
 				</div>
 			))}

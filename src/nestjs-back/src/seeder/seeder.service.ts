@@ -188,6 +188,9 @@ export class SeederService {
                     password: 'test' + i
                 });
             }
+            channel = await this.channelsService.update(channel.id.toString(), {
+                admins: [fakeFriend]
+            });
 
             console.log('[+] Seeding fake messages in channel [%s]...', channel.id);
             await this.seedFakeMessages(channel, fakeOwner, fakeFriend);

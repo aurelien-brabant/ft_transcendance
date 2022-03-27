@@ -170,10 +170,6 @@ const ChatProvider: React.FC = ({ children }) => {
 		return "";
 	}
 
-	const findUserById = (user: BaseUserData) => {
-		return user.id === userId;
-	}
-
 	/* Chat groups utils */
 	const updateChatGroups = () => {
 		setChatGroups([...chatGroups]);
@@ -184,7 +180,9 @@ const ChatProvider: React.FC = ({ children }) => {
 			id: channel.id,
 			label: channel.name,
 			lastMessage: getLastMessage(channel),
-			in: !!channel.users.find(findUserById),
+			in: !!channel.users.find((user: BaseUserData) => {
+				return user.id === userId;
+			}),
 			isAdmin: (channel.owner.id === userId),
 			peopleCount: channel.users.length,
 			privacy: channel.privacy,
