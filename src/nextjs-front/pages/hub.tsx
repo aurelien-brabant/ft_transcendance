@@ -1,3 +1,4 @@
+/* eslint-disable react-hooks/exhaustive-deps */
 import { Fragment, useEffect, useState, useContext } from "react";
 import { io, Socket } from 'socket.io-client';
 import Head from "next/head";
@@ -21,7 +22,7 @@ const Hub: NextPageWithLayout = () => {
 	const [displayGame, setDisplayGame] = useState(false);
 	const [inQueue, setInQueue] = useState(false);
 	const [room, setRoom] = useState<IRoom | null>(null);
-
+	const[currentGame, setCurrentGame] = useState([]);
 	let roomData: IRoom;
 	let roomId: string | undefined;
 	let userData: User = {id: user.id, username: user.username};
@@ -84,14 +85,14 @@ const Hub: NextPageWithLayout = () => {
 				setRoom(null);
 			});
 		});
-
-		return () => {
+		
+	return () => {
 			if (socket)
 				socket.disconnect();
-		}
+	}
   }, []);
 
-
+// console.log(currentGame);
   const lastGames = async () => {
 
     const req = await fetch(`/api/games`, {
@@ -107,38 +108,13 @@ const Hub: NextPageWithLayout = () => {
 	  return (JSON.parse(JSON.stringify(res)))
   }
 
-  const FeatureItem: React.FC<Feature> = ({ label, description, Icon }) => (
-	<div className="flex flex-col items-center justify-between h-full text-xl text-center text-neutral-200 gap-y-8">
-	  <div className="flex flex-col items-center gap-8">
-		<div className="flex items-center justify-center p-5 text-white bg-pink-600 rounded-full drop-shadow-md">
-		  <Icon className="text-6xl fill-white" />
-		</div>
-		<ResponsiveFade
-		  useMediaQueryArg={{ query: "(min-width: 1280px)" }}
-		  direction="down"
-		  duration={800}
-		>
-		  <h3 className="text-3xl font-bold text-white">{label}</h3>
-		</ResponsiveFade>
-	  </div>
-	  <ResponsiveFade useMediaQueryArg={{ query: "(min-width: 1280px)" }}>
-		<p>{description}</p>
-	  </ResponsiveFade>
-	</div>
-  );
-
-
-//     const competitors = async () => {
-
-//     const req = await fetch(`/api/users`, {
-//         method: 'POST',
-//         headers: {
-//           'Content-Type': 'application/json'
-//         },
-//       });
+//   const displayCurrentGames = async (getCurrentGames:any) => {
+// 	const gamesToMap = getCurrentGames()
+//     for (const i in gamesToMap) {
+//       const ongoingGamesId = (gamesToMap[i].endedAt !== null) ? gamesToMap[i].id : "";
+//       const req = await fetch (`/api/games/${ongoingGamesId}`)
 //       const res = await req.json();
-// 	  console.log('req', req);
-//       console.log('res', res)
+//     }
 //   }
   
 
