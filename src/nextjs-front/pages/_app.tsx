@@ -7,6 +7,7 @@ import AuthProvider from "../context/auth/AuthProvider";
 import AlertProvider from "../context/alert/AlertProvider";
 import { useRouter } from "next/router";
 import RelationshipProvider from "../context/relationship/RelationshipProvider";
+//import AchievementsProvider from "../context/achievements/AchievementsProvider";
 
 export type NextPageWithLayout<T = {}> = NextPage<T> & {
   getLayout?: (page: ReactElement) => ReactNode;
@@ -26,18 +27,18 @@ function MyApp({ Component, pageProps, ...rest }: AppPropsWithLayout) {
     <AlertProvider>
       <AuthProvider>
           <RelationshipProvider>
-          <Authenticator
-              key={router.asPath}
-              authConfig={
-                Component.isAuthRestricted
-                  ? Component.authConfig
-                  : { shouldBeAuthenticated: false }
-              }
-            >
-            {getLayout(<Component {...pageProps} />)}
-          </Authenticator>
-        </RelationshipProvider>
-      </AuthProvider>
+            <Authenticator
+                key={router.asPath}
+                authConfig={
+                  Component.isAuthRestricted
+                    ? Component.authConfig
+                    : { shouldBeAuthenticated: false }
+                }
+              >
+              {getLayout(<Component {...pageProps} />)}
+            </Authenticator>
+          </RelationshipProvider>
+        </AuthProvider>
     </AlertProvider>
   );
 }

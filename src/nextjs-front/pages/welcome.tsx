@@ -81,14 +81,14 @@ const Welcome: NextPageWithLayout = () => {
     });
   }
   
-  const { notify } = useContext(notificationsContext) as NotificationsContextType;
+  const { notifications, setNotifications } = useContext(notificationsContext) as NotificationsContextType;
     
   const checkPendingFriendsRequests = () => {
     
     const data = getUserData().pendingFriendsReceived;
     if (data.length) {
       for (let i in data)
-        notify({category: 'Friend request', content: `${data[i].username} wants to be you friend`});
+        setNotifications([...notifications, {category: 'Friend request', content: `${data[i].username} wants to be you friend`, isRead: false, id: data[i].id, issuedAt: `${new Date(Date.now())}`}]);
     }
   }
   

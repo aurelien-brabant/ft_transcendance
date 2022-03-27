@@ -53,10 +53,10 @@ export type ChatContextType = {
 	/* Message utils */
 	getLastMessage: (channel: any) => string;
 	/* Chat groups utils */
-	updateChatGroups: (group: ChatGroup) => void;
+	updateChatGroups: () => void;
 	setChatGroupData: (channel: any) => ChatGroup;
 	/* Direct messages utils */
-	updateDirectMessages: (dm: DirectMessage) => void;
+	updateDirectMessages: () => void;
 	setDirectMessageData: (channel: any, friend: BaseUserData) => DirectMessage;
 	createDirectMessage: (userId: string, friendId: string) => Promise<void>;
 	openDirectMessage: (userId: string, friend: any) => Promise<void>;

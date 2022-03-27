@@ -10,8 +10,8 @@ import { MessagesModule } from './chat/messages/messages.module';
 import { SeederModule } from './seeder/seeder.module';
 import { UsersModule } from './users/users.module';
 import { TypeOrmModule } from '@nestjs/typeorm';
+import { AchievementsModule } from './achievements/achievements.module';
 import { ChatModule } from './chat/chat.module';
-
 
 @Module({
   imports: [
@@ -22,6 +22,7 @@ import { ChatModule } from './chat/chat.module';
     GamesInvitesModule,
     ChannelsModule,
     MessagesModule,
+    AchievementsModule,
     SeederModule,
     UsersModule,
     TypeOrmModule.forRoot({

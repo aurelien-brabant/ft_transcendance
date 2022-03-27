@@ -23,27 +23,30 @@ const Authenticator: React.FC<{ authConfig?: Partial<AuthConfig> }> = ({
 		...(authConfig ? { ...authConfig } : {}),
 	};
 
-	const { authenticateUser, isAuthenticated, getUserData } = useContext(
+	const { authenticateUser, isAuthenticated } = useContext(
 		authContext
 	) as AuthContextType;
 	const [isLoading, setIsLoading] = useState(!isAuthenticated);
 	const router = useRouter();
 
 	useEffect(() => {
-		setIsLoading(true);
-		(async () => {
+		const checkAuth = async () => {
 			if (!isAuthenticated) {
 				console.log('Authenticating...');
 				const success = await authenticateUser();
-
+	
 				/* could not authenticate, try to sign in again */
 				if (config.shouldBeAuthenticated && !success) {
 					await router.push(config.fallback);
-					return;
+				return;
 				}
 			}
 			setIsLoading(false);
-		})();
+
+		}
+		setIsLoading(true);
+		checkAuth();
+		
 	}, [router.asPath]);
 
 	if (isLoading) {

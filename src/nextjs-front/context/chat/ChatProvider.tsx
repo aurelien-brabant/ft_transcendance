@@ -1,9 +1,10 @@
 import { useContext, useEffect, useState } from "react";
 import { BsFillChatDotsFill } from "react-icons/bs";
+import { BaseUserData } from 'transcendance-types';
 import alertContext, { AlertContextType } from "../../context/alert/alertContext";
 import authContext, { AuthContextType } from "../auth/authContext";
 import relationshipContext, { RelationshipContextType } from "../../context/relationship/relationshipContext";
-
+/* Chat */
 import Chat from "../../components/Chat";
 import ChatGroupsView from "../../components/chat/Groups";
 import ChatGroupView, { GroupHeader } from "../../components/chat/Group";
@@ -16,8 +17,6 @@ import DirectMessageNew, { DirectMessageNewHeader } from "../../components/chat/
 import GroupUsers, { GroupUsersHeader } from "../../components/chat/GroupUsers";
 import GroupSettings, { GroupSettingsHeader } from "../../components/chat/GroupSettings";
 import PasswordProtection, { PasswordProtectionHeader } from "../../components/chat/PasswordProtection";
-
-import { BaseUserData } from 'transcendance-types';
 
 export type ChatViewItem = {
 	label: string;
@@ -161,10 +160,11 @@ const ChatProvider: React.FC = ({ children }) => {
 			if (i >= 0 && channel.privacy !== "protected") {
 				const lastMessage = channel.messages[i];
 
-				if (blocked.find(user => user.id == lastMessage.author.id)) {
+				if (!!blocked.find(user => user.id == lastMessage.author.id)) {
 					return "Blocked message";
+				} else {
+					return lastMessage.content;
 				}
-				return lastMessage.content;
 			}
 		}
 		return "";
@@ -175,8 +175,8 @@ const ChatProvider: React.FC = ({ children }) => {
 	}
 
 	/* Chat groups utils */
-	const updateChatGroups = (group: ChatGroup) => {
-		setChatGroups([...chatGroups, group]);
+	const updateChatGroups = () => {
+		setChatGroups([...chatGroups]);
 	}
 
 	const setChatGroupData = (channel: any) => {
@@ -194,10 +194,8 @@ const ChatProvider: React.FC = ({ children }) => {
 	}
 
 	/* Direct messages utils */
-	const updateDirectMessages = (dm: DirectMessage) => {
-		setDirectMessages([
-			...directMessages, dm
-		]);
+	const updateDirectMessages = () => {
+		setDirectMessages([...directMessages]);
 	}
 
 	const setDirectMessageData = (channel: any, friend: BaseUserData) => {
@@ -231,12 +229,12 @@ const ChatProvider: React.FC = ({ children }) => {
 
 		if (res.status === 201) {
 			const data = await res.json();
-			const dm = setDirectMessageData(JSON.parse(JSON.stringify(data)), friendData);
-			updateDirectMessages(dm);
+			setDirectMessageData(JSON.parse(JSON.stringify(data)), friendData);
+			updateDirectMessages();
 		} else {
 			setAlert({
 				type: "error",
-				content: "Failed to create DM"
+				content: "Failed to send DM"
 			});
 		}
 	}

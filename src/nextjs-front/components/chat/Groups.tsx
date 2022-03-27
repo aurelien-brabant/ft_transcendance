@@ -72,8 +72,7 @@ const Groups: React.FC<{viewParams: Object;}> = ({ viewParams }) => {
 			return ;
 		const message = getLastMessage(gm);
 		channel.lastMessage = message;
-		// TODO
-		// updateChatGroups(channel);
+		updateChatGroups();
 	}
 
 	useEffect(() => {

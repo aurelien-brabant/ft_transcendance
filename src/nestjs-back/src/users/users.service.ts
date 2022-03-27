@@ -13,12 +13,16 @@ import { join } from 'path';
 import { faker } from '@faker-js/faker';
 import { authenticator } from 'otplib';
 import { toFileStream } from 'qrcode';
+import achievementsList from 'src/constants/achievementsList';
+import { Achievement } from 'src/achievements/entities/achievements.entity';
+import { AchievementsService } from 'src/achievements/achievements.service';
 
 @Injectable()
 export class UsersService {
     constructor(
         @InjectRepository(User)
-        private readonly usersRepository: Repository<User>
+        private readonly usersRepository: Repository<User>,
+        private readonly achievementsService: AchievementsService,
     ) {}
 
     findAll(paginationQuery: PaginationQueryDto) {
@@ -57,13 +61,7 @@ export class UsersService {
 
     async findOne(id: string) {
         const user = await this.usersRepository.findOne(id, {
-            relations: [
-                'games',
-                'friends',
-                'blockedUsers',
-                'pendingFriendsSent',
-                'pendingFriendsReceived'
-            ],
+            relations: ['games', 'friends', 'achievements', 'blockedUsers', 'pendingFriendsSent', 'pendingFriendsReceived'],
         });
         if (!user) throw new NotFoundException(`User [${id}] not found`);
         return user;
@@ -193,85 +191,75 @@ export class UsersService {
 
     async update(id: string, updateUserDto: UpdateUserDto) {
         let user: User | null = null;
-    
-        if (updateUserDto.wins || updateUserDto.losses || updateUserDto.losses) {
+        let tmpDto = {};
+         
+        const checkAchievements = async (level: number, type: string) => {
+            this.achievementsService.findAchievements()
+            .then(async (list) => {
+                for (let i in list)
+                    if (list[i].levelToReach <= level && list[i].type === type)
+                        await this.achievementsService.update(String(list[i].id), {
+                            users: [user]
+                        })
+            })
+        }
+
+        if (updateUserDto.wins || updateUserDto.losses || updateUserDto.draws) {
             user = await this.usersRepository.findOne(id);
             const wins = updateUserDto.wins ? updateUserDto.wins : user.wins;
             const losses = updateUserDto.losses ? updateUserDto.losses : user.losses;
             const draws = updateUserDto.draws ? updateUserDto.draws : user.draws;
             const ratio = (Math.round((wins + (draws * .5)) / (wins + draws + losses) * 100) / 100)
-    
-            user = await this.usersRepository.preload({
-                    id: +id,
-                    ratio: ratio,
-                    ...updateUserDto,
-                });
+            tmpDto = {...tmpDto, ratio: ratio};
+
+            if (updateUserDto.wins)
+                checkAchievements(wins, 'wins');
         }
-        else if (updateUserDto.friends) {
-            user = await this.findOne(id);
-            const oldFriends = (user.friends);
-            
-            let updated = [];
-            for (let i in oldFriends)
-                updated.push({id: oldFriends[i].id})
-            for (let i in updateUserDto.friends)
-                updated.push({id: updateUserDto.friends[i].id})
-            
-            user = await this.usersRepository.preload({
-                id: +id,
-                friends: updated,
+        if (updateUserDto.games) {
+            user = await this.usersRepository.findOne(id, {
+                relations: ['games']
             });
+            const updated = [...user.games, ...updateUserDto.games];      
+            tmpDto = {...tmpDto, games: updated};
+            
+            if (updated.length)
+                checkAchievements(updated.length, 'games');
         }
-        else if (updateUserDto.blockedUsers) {
-            user = await this.findOne(id);
-            const oldBlocked = (user.blockedUsers);
-            
-            let updated = [];
-            for (let i in oldBlocked)
-                updated.push({id: oldBlocked[i].id})
-            for (let i in updateUserDto.blockedUsers)
-                updated.push({id: updateUserDto.blockedUsers[i].id})
-            
-            user = await this.usersRepository.preload({
-                id: +id,
-                blockedUsers: updated,
+        if (updateUserDto.friends) {
+            user = await this.usersRepository.findOne(id, {
+                relations: ['friends']
             });
+            const updated = [...user.friends, ...updateUserDto.friends];
+            tmpDto = {...tmpDto, friends: updated};
+            
+            if (updated.length)
+                checkAchievements(updated.length, 'friends');
         }
-        else if (updateUserDto.pendingFriendsReceived) {
-            user = await this.findOne(id);
-            const old = (user.pendingFriendsReceived);
-            
-            let updated = [];
-            for (let i in old)
-                updated.push({id: old[i].id})
-            for (let i in updateUserDto.pendingFriendsReceived)
-                updated.push({id: updateUserDto.pendingFriendsReceived[i].id})
-            
-            user = await this.usersRepository.preload({
-                id: +id,
-                pendingFriendsReceived: updated,
+        if (updateUserDto.blockedUsers) {
+            user = await this.usersRepository.findOne(id, {
+                relations: ['blockedUsers']
             });
+            tmpDto = {...tmpDto, blockedUsers: [...user.blockedUsers, ...updateUserDto.blockedUsers]}
+
         }
-        else if (updateUserDto.pendingFriendsSent) {
-            user = await this.findOne(id);
-            const old = (user.pendingFriendsSent);
-            
-            let updated = [];
-            for (let i in old)
-                updated.push({id: old[i].id})
-            for (let i in updateUserDto.pendingFriendsSent)
-                updated.push({id: updateUserDto.pendingFriendsSent[i].id})
-            
-            user = await this.usersRepository.preload({
-                id: +id,
-                pendingFriendsSent: updated,
+        if (updateUserDto.pendingFriendsReceived) {
+            user = await this.usersRepository.findOne(id, {
+                relations: ['pendingFriendsReceived']
             });
+            tmpDto = {...tmpDto, pendingFriendsReceived: [...user.pendingFriendsReceived, ...updateUserDto.pendingFriendsReceived]}
         }
-        else
-            user = await this.usersRepository.preload({
-                id: +id,
-                ...updateUserDto,
+
+        if (updateUserDto.pendingFriendsSent) {
+            user = await this.usersRepository.findOne(id, {
+                relations: ['pendingFriendsSent']
             });
+            tmpDto = {...tmpDto, pendingFriendsSent: [...user.pendingFriendsSent, ...updateUserDto.pendingFriendsSent]}
+        }
+
+        user = await this.usersRepository.preload({
+            id: +id,
+            ...{...updateUserDto, ...tmpDto}
+        });
 
         if (!user)
             throw new NotFoundException(`Cannot update user[${id}]: Not found`);
@@ -411,13 +399,26 @@ export class UsersService {
         if (!user)
             throw new NotFoundException(`Cannot update user[${id}]: Not found`);
  
-       if (action === 'win') {
+        const checkAchievements = (level: number) => {
+            this.achievementsService.findAchievements()
+            .then(async (list) => {
+                for (let i in list) {
+                    if (list[i].levelToReach <= level && list[i].type === 'wins')
+                        this.achievementsService.update(String(list[i].id), {
+                        users: [user]
+                    })
+                }
+            })
+        }
+
+        if (action === 'win') {
             const wins = user.wins + 1;
             const ratio = (Math.round((wins + (user.draws * .5)) / (wins + user.draws + user.losses) * 100) / 100)
+            checkAchievements(wins);
             user = await this.usersRepository.preload({
                 id: +id,
                 wins: wins,
-                ratio: ratio
+                ratio: ratio,
             });
         }
         else if (action === 'loose') {

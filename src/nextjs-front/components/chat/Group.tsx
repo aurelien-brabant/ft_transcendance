@@ -151,7 +151,7 @@ const Group: React.FC<{ viewParams: { [key: string]: any } }> = ({
 									: "self-start text-gray-900 bg-gray-300"
 						} max-w-[80%] p-2 my-2 rounded whitespace-wrap break-all`}
 					>
-						{!msg.isMe && (
+						{!msg.isMe && !msg.isBlocked && (
 							<span className="text-xs text-gray-900 uppercase">
 								{msg.author}
 							</span>

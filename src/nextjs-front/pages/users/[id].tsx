@@ -15,6 +15,7 @@ import withDashboardLayout from "../../components/hoc/withDashboardLayout";
 import chatContext, { ChatContextType } from "../../context/chat/chatContext";
 import { useRouter } from "next/router";
 import alertContext, { AlertContextType } from "../../context/alert/alertContext";
+import Achievements from "../../components/Achievements";
 
 export type GameSummary = {
   winnerScore: number;
@@ -159,9 +160,9 @@ const UserProfilePage: NextPageWithLayout = ({}) => {
       losses: getUserData().losses,
       wins: getUserData().wins,
       draws: getUserData().draws,
+      ratio: (!getUserData().wins && !getUserData().losses) ? "-" : getUserData().ratio,
       accountDeactivated: getUserData().accountDeactivated,
       pendingFriendsReceived: getUserData().pendingFriendsReceived,
-      ratio: (!getUserData().wins && !getUserData().losses) ? "-" : getUserData().ratio,
     }
   );
 
@@ -192,9 +193,9 @@ const UserProfilePage: NextPageWithLayout = ({}) => {
       losses: data.losses,
       wins: data.wins,
       draws: data.draws,
+      ratio: (!data.wins && !data.losses && !data.draws) ? "-" : data.ratio,
       accountDeactivated: data.accountDeactivated,
       pendingFriendsReceived: data.pendingFriendsReceived,
-      ratio: (!data.wins && !data.losses && data.draws) ? "-" : data.ratio,
     });
   }
 
@@ -245,8 +246,7 @@ const UserProfilePage: NextPageWithLayout = ({}) => {
 
       updateUserData(data);
       updateGamesHistory(JSON.parse(JSON.stringify(data)).games);
-
-      if (!data.wins && !data.losses)
+      if (!data.wins && !data.losses && !data.draws)
         setRank("-");
       else {
         const reqRank = await fetch(`/api/users/${userId}/rank`);
@@ -343,13 +343,9 @@ const UserProfilePage: NextPageWithLayout = ({}) => {
                 component: <HistoryTable history={gamesHistory} userId={userData.id} />,
               },
               {
-                label: "Last achievements",
-                component: (
-                  <div className="flex flex-col items-center justify-center mt-8">
-                    <h3 className="text-2xl text-gray-600">Achievements are coming soon...</h3>
-                  </div>
-                ),
-              },
+                label: "Achievements",
+                component:  <Achievements />,
+              }
             ]} />
         </div>
       </div>

@@ -83,18 +83,19 @@ const SignIn: NextPageWithLayout = () => {
   
     setIsLoading(false);
   };
-    
+
   useEffect(() => {
-    const checkAuth = async () => {
+    const isAuth = () => {
       if (isAuthenticated)
-        await router.push("/welcome");
-      if (isPreAuthenticated)
-        await router.push("/validate-tfa");
+        router.push('/welcome');
+      else if (!isAuthenticated && isPreAuthenticated)
+        router.push('/validate-tfa');
     }
 
-    checkAuth();
-  }, []);
-      
+    isAuth();
+    
+  }, [])
+  
   return (
     <Fragment>
       <Head>

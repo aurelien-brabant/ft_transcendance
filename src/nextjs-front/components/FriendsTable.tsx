@@ -18,10 +18,10 @@ const FriendsTable: React.FC<{ type: string, list: User[], suggested: User[], se
 
   const { setAlert } = useContext(alertContext) as AlertContextType;
   const { getUserData } = useContext(authContext) as AuthContextType;
-   const { friends, setFriends, friends42, setFriends42, blocked, setBlocked,
+  const { friends, setFriends, friends42, setFriends42, blocked, setBlocked,
     pendingFriendsReceived, setPendingFriendsReceived, pendingFriendsSent, setPendingFriendsSent
    } = useContext(relationshipContext) as RelationshipContextType;
-
+  
   const updateFriendsRequests = (id: string) => {
     fetch (`/api/users/${getUserData().id}/${id}/removeFriendsReceived`, {
       method: "DELETE",
@@ -95,6 +95,7 @@ const FriendsTable: React.FC<{ type: string, list: User[], suggested: User[], se
       });
 
       if (reqSent.ok && reqReceived.ok) {
+        //TO DO CHECK ACHIEVEMENTS FOR UPDATING
         setSuggested(suggested.filter(
           item => item.id !== id
         ));

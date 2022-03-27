@@ -52,8 +52,7 @@ const DirectMessages: React.FC<{ viewParams: Object; }> = ({ viewParams }) => {
 		const message = getLastMessage(JSON.parse(JSON.stringify(data)));
 
 		channel.lastMessage = message;
-		// TODO
-		// updateDirectMessages(channel);
+		updateDirectMessages();
 	}
 
 	useEffect(() => {

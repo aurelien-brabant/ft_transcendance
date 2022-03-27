@@ -7,13 +7,16 @@ import { useEffect, useState } from "react";
 import { GiLaurelsTrophy, GiPodiumSecond, GiPodiumThird, GiPodiumWinner } from "react-icons/gi";
 import { BounceLoader } from "react-spinners";
 import { BsFillQuestionCircleFill } from "react-icons/bs";
-
+import { useMediaQuery } from "react-responsive";
+import Achievements from "../components/Achievements";
+  
 export type RankingList = {
   id: string;
   username: string;
   avatar: string;
   losses: number,
   wins: number,
+  draws: number,
   accountDeactivated: boolean,
   ratio: number,
 };
@@ -31,6 +34,7 @@ const HistoryTable: React.FC<{ ranking: RankingList[] }> = ({
         <th className="p-3 uppercase">Username</th>
         <th className="p-3 uppercase">Wins</th>
         <th className="p-3 uppercase">Losses</th>
+        <th className="p-3 uppercase">Draws</th>
         <th className="p-3 uppercase">Ratio</th>
       </tr>
     </thead>
@@ -57,8 +61,11 @@ const HistoryTable: React.FC<{ ranking: RankingList[] }> = ({
             <td className={`p-3 text-neutral-200 ${user.wins <= user.losses ? "font-bold" : "font-normal"}`}>
               {user.losses}
             </td>
-            <td className={`p-3 ${(String(user.ratio) === "1") ? "text-neutral-200" :
-                                (user.ratio > 1) ? "text-green-500" : "text-red-500"}`}>
+            <td className="p-3 text-neutral-200 font-normal">
+              {user.draws}
+            </td>
+            <td className={`p-3 ${(user.ratio >= 0.4 && user.ratio < 0.6) ? "text-neutral-200" :
+                                (user.ratio > 0.6) ? "text-green-500" : "text-red-500"}`}>
               {String(user.ratio) === "0" && !user.wins && !user.losses ? "-" : user.ratio}
             </td>
           </tr>
@@ -126,7 +133,8 @@ const LeaderboardPage: NextPageWithLayout = ({}) => {
   const [isLoading, setIsLoading] = useState(true);
   const [activeRank, setActiveRank] = useState<RankingList[]>([]);
   const [selected, setSelected] = useState(0);
-	 
+	const [mobileScreen] = useState(useMediaQuery({ query: "(min-width: 1280px)"}));
+
   const createRankingLists = (data: any) => {
 
     let rank: RankingList[] = [];
@@ -141,6 +149,7 @@ const LeaderboardPage: NextPageWithLayout = ({}) => {
             avatar: `/api/users/${data[i].id}/photo`,
             losses: data[i].losses,
             wins: data[i].wins,
+            draws: data[i].draws,
             accountDeactivated: data[i].accountDeactivated,
             ratio: data[i].ratio,
           }];
@@ -151,6 +160,7 @@ const LeaderboardPage: NextPageWithLayout = ({}) => {
           avatar: `/api/users/${data[i].id}/photo`,
           losses: data[i].losses,
           wins: data[i].wins,
+          draws: data[i].draws,
           accountDeactivated: data[i].accountDeactivated,
           ratio: data[i].ratio,
       }];
@@ -190,18 +200,34 @@ const LeaderboardPage: NextPageWithLayout = ({}) => {
             <GiLaurelsTrophy className="text-9xl text-yellow-500"/>
           </div>
           <div className="w-full p-5 bg-gray-800 border-2 border-gray-800 rounded drop-shadow-md grid lg:grid-cols-3">
+            {mobileScreen ?
             <HighlightItem
               label="second"
               hint="#2"
               nColor="text-zinc-400"
               ranking={activeRank}
-            />
+            /> : 
             <HighlightItem
               label="first"
               hint="#1"
               nColor="text-yellow-500"
               ranking={activeRank}
             />
+            }
+            {mobileScreen ?
+            <HighlightItem
+              label="first"
+              hint="#1"
+              nColor="text-yellow-500"
+              ranking={activeRank}
+            />
+            :<HighlightItem
+              label="second"
+              hint="#2"
+              nColor="text-zinc-400"
+              ranking={activeRank}
+            />
+            }
             <HighlightItem
               label="third"
               hint="#3"
@@ -219,6 +245,10 @@ const LeaderboardPage: NextPageWithLayout = ({}) => {
                 label: "42 ranking",
                 component:  <HistoryTable ranking={ranking42} />,
               },
+              {
+                label: "Achievements",
+                component:  <Achievements />,
+              }
             ]} />
         </div>
       </div>
