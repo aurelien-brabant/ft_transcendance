@@ -1,7 +1,5 @@
-import { useContext, useEffect, useState } from "react";
-import { BsArrowLeftShort, BsShieldFillPlus } from "react-icons/bs";
-// import { GiThorHammer } from "react-icons/gi";
-// import Link from "next/link";
+import { useContext } from "react";
+import { BsArrowLeftShort } from "react-icons/bs";
 import chatContext, { ChatContextType } from "../../context/chat/chatContext";
 
 export const GroupSettingsHeader: React.FC<{ viewParams: any }> = ({ viewParams }) => {

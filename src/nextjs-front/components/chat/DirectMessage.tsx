@@ -1,6 +1,6 @@
 import Link from 'next/link';
 import { useContext, useEffect, useRef, useState } from "react";
-import { AiOutlineClose, AiOutlineUser } from "react-icons/ai";
+import { AiOutlineClose } from "react-icons/ai";
 import { BsArrowLeftShort } from 'react-icons/bs';
 import { FiSend } from "react-icons/fi";
 import { RiPingPongLine } from 'react-icons/ri';

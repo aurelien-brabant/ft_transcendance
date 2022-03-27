@@ -1,5 +1,6 @@
 import { useContext, useEffect, useState } from "react";
 import { GiThorHammer } from "react-icons/gi";
+import { FaBullseye, FaCrown } from "react-icons/fa";
 import { BsArrowLeftShort, BsShieldFillPlus } from "react-icons/bs";
 import Link from "next/link";
 import chatContext, { ChatContextType } from "../../context/chat/chatContext";
@@ -8,6 +9,7 @@ type UserSummary = {
 	avatar: string;
 	username: string;
 	isAdmin: boolean;
+	isMod: boolean;
 };
 
 export const GroupUsersHeader: React.FC<{ viewParams: any }> = ({ viewParams }) => {
@@ -43,9 +45,10 @@ const GroupUsers: React.FC<{ viewParams: any }> = ({ viewParams }) => {
 
 		for (var i in chanUsers) {
 			users.push({
-				avatar: !chanUsers[i].pic ? "" : chanUsers[i].pic.startsWith("https://") ? chanUsers[i].pic : `/api/users/${chanUsers[i].id}/photo`,
+				avatar: `/api/users/${chanUsers[i].id}/photo`,
 				username: chanUsers[i].username,
-				isAdmin: (chanUsers[i].id === chanOwner.id)
+				isAdmin: (chanUsers[i].id === chanOwner.id),
+				isMod: false // tmp
 			});
 		}
 		setUsers(users);
@@ -66,17 +69,21 @@ const GroupUsers: React.FC<{ viewParams: any }> = ({ viewParams }) => {
 							width="50px"
 							className={`border-4 ${
 								user.isAdmin
-									? "border-red-400"
-									: "border-gray-800"
+									? "border-pink-600"
+									: user.isMod
+										? "border-blue-500"
+										: "border-gray-800"
 							} rounded-full `}
 						/>
 						<Link href={`/users/${user.username}`}>
 							<a>{user.username}</a>
 						</Link>
+						{user.isAdmin && <FaCrown color="#ffa500" />}
+						{user.isMod && <BsShieldFillPlus color="#2196F3"/>}
 					</div>
 					<div className="flex text-3xl gap-x-4">
-						{!user.isAdmin && <GiThorHammer />}
-						{!user.isAdmin && <BsShieldFillPlus />}
+						{!user.isAdmin && <GiThorHammer color="grey"/>}
+						{!user.isAdmin && !user.isMod && <BsShieldFillPlus color="#2196F3"/>}
 					</div>
 				</div>
 			))}
