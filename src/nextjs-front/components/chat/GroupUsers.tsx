@@ -4,10 +4,12 @@ import { FaCrown } from "react-icons/fa";
 import { BsArrowLeftShort, BsShieldFillCheck, BsShieldFillPlus, BsShieldFillX } from "react-icons/bs";
 import Link from "next/link";
 import { BaseUserData } from "transcendance-types";
+import alertContext, { AlertContextType } from "../../context/alert/alertContext";
 import chatContext, { ChatContextType } from "../../context/chat/chatContext";
 import Tooltip from "../../components/Tooltip";
 
 type UserSummary = {
+	id: string;
 	avatar: string;
 	username: string;
 	isOwner: boolean;
@@ -35,10 +37,64 @@ export const GroupUsersHeader: React.FC<{ viewParams: any }> = ({ viewParams }) 
 };
 
 const GroupUsers: React.FC<{ viewParams: any }> = ({ viewParams }) => {
+	const { setAlert } = useContext(alertContext) as AlertContextType;
 	const [users, setUsers] = useState<UserSummary[]>([]);
 	const { fetchChannelData } = useContext(chatContext) as ChatContextType;
 	const channelId = viewParams.groupId;
 	const actionTooltipStyles = "font-bold bg-gray-900 text-neutral-200";
+
+	/* Make user administrator */
+	const addAdmin = async (id: string) => {
+		const channelData = await fetchChannelData(channelId).catch(console.error);
+		const admins = JSON.parse(JSON.stringify(channelData)).admins;
+
+		const res = await fetch(`/api/channels/${channelId}`, {
+			method: "PATCH",
+			headers: {
+				"Content-Type": "application/json",
+			},
+			body: JSON.stringify({
+				admins: [ ...admins, {"id": id} ]
+			}),
+		});
+
+		if (res.status === 200) {
+			return;
+		} else {
+			setAlert({
+				type: "error",
+				content: "Failed to give administrator role"
+			});
+		}
+	};
+
+	/* Remove administrator rights */
+	const removeAdmin = async (id: string) => {
+		const channelData = await fetchChannelData(channelId).catch(console.error);
+		const currentAdmins = JSON.parse(JSON.stringify(channelData)).admins;
+		const admins = currentAdmins.filter((admin: BaseUserData) => { 
+			return admin.id != id
+		})
+
+		const res = await fetch(`/api/channels/${channelId}`, {
+			method: "PATCH",
+			headers: {
+				"Content-Type": "application/json",
+			},
+			body: JSON.stringify({
+				admins: [ ...admins ]
+			}),
+		});
+
+		if (res.status === 200) {
+			return;
+		} else {
+			setAlert({
+				type: "error",
+				content: "Failed to remove administrator role"
+			});
+		}
+	};
 
 	const updateUsers = async () => {
 		const data = await fetchChannelData(channelId).catch(console.error);
@@ -49,6 +105,7 @@ const GroupUsers: React.FC<{ viewParams: any }> = ({ viewParams }) => {
 
 		for (var i in chanUsers) {
 			users.push({
+				id: chanUsers[i].id,
 				avatar: `/api/users/${chanUsers[i].id}/photo`,
 				username: chanUsers[i].username,
 				isOwner: (chanUsers[i].id === chanOwner.id),
@@ -90,11 +147,15 @@ const GroupUsers: React.FC<{ viewParams: any }> = ({ viewParams }) => {
 					<div className="flex text-2xl gap-x-4">
 						{!user.isOwner && user.isAdmin &&
 						<Tooltip className={actionTooltipStyles} content="-admin">
-							<button className="text-red-600 hover:scale-110"><BsShieldFillX /></button>
+							<button onClick={() => removeAdmin(String(user.id))}
+								className="text-red-600 hover:scale-110"><BsShieldFillX /></button>
 						</Tooltip>}
 						{!user.isOwner && !user.isAdmin &&
 						<Tooltip className={actionTooltipStyles} content="+admin">
-							<button className="text-green-600 hover:scale-110"><BsShieldFillPlus /></button>
+							<button onClick={() => addAdmin(String(user.id))}
+								className="text-green-600 hover:scale-110">
+								<BsShieldFillPlus />
+							</button>
 						</Tooltip>}
 						{!user.isOwner && 
 							<Tooltip className={actionTooltipStyles} content="ban">
