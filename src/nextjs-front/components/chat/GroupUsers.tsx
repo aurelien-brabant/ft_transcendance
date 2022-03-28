@@ -10,8 +10,8 @@ import Tooltip from "../../components/Tooltip";
 
 type UserSummary = {
 	id: string;
-	avatar: string;
 	username: string;
+	pic: string;
 	isOwner: boolean;
 	isAdmin: boolean; /* Moderator */
 };
@@ -38,8 +38,8 @@ export const GroupUsersHeader: React.FC<{ viewParams: any }> = ({ viewParams }) 
 
 const GroupUsers: React.FC<{ viewParams: any }> = ({ viewParams }) => {
 	const { setAlert } = useContext(alertContext) as AlertContextType;
-	const [users, setUsers] = useState<UserSummary[]>([]);
 	const { fetchChannelData } = useContext(chatContext) as ChatContextType;
+	const [users, setUsers] = useState<UserSummary[]>([]);
 	const channelId = viewParams.groupId;
 	const actionTooltipStyles = "font-bold bg-gray-900 text-neutral-200";
 
@@ -142,8 +142,8 @@ const GroupUsers: React.FC<{ viewParams: any }> = ({ viewParams }) => {
 		for (var i in chanUsers) {
 			users.push({
 				id: chanUsers[i].id,
-				avatar: `/api/users/${chanUsers[i].id}/photo`,
 				username: chanUsers[i].username,
+				pic: `/api/users/${chanUsers[i].id}/photo`,
 				isOwner: (chanUsers[i].id === chanOwner.id),
 				isAdmin: !!chanAdmins.find((admin: BaseUserData) => {
 						return admin.id === chanUsers[i].id;
@@ -163,7 +163,7 @@ const GroupUsers: React.FC<{ viewParams: any }> = ({ viewParams }) => {
 				<div key={user.username} className="flex items-center justify-between px-4 py-2 border-b-2 border-gray-800 gap-x-2">
 					<div className="flex items-center gap-x-4">
 						<img
-							src={user.avatar}
+							src={user.pic}
 							height="50px"
 							width="50px"
 							className={`border-4 ${

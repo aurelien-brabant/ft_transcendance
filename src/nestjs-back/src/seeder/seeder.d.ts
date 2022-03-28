@@ -11,8 +11,10 @@ export type SeedUser = {
     email: string;
     phone: string;
     tfa: boolean;
+    tfaSecret: string;
     pic: string;
     duoquadra_login: string;
+    accountDeactivated: boolean;
     games: SeedGame[];
     wins: number;
     losses: number;
@@ -25,8 +27,6 @@ export type SeedUser = {
     pendingFriendsReceived: User[];
     ownedChannels: SeedChannel[];
     joinedChannels: SeedChannel[];
-    accountDeactivated: boolean;
-    tfaSecret: string;
 };
 
 /* GAMES */

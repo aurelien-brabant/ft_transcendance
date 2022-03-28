@@ -24,15 +24,15 @@ export class UpdateUserDto extends PartialType(CreateUserDto) {
 
     @IsOptional()
     @IsString()
+    readonly tfaSecret: string;
+
+    @IsOptional()
+    @IsString()
     readonly duoquadra_login: string;
 
     @IsOptional()
     @IsDecimal()
     readonly ratio: number;
-    
-    @IsOptional()
-    @IsString()
-    readonly tfaSecret: string;
 
     @IsOptional()
     readonly achievements: Achievement[];

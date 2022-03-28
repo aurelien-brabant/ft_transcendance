@@ -1,7 +1,6 @@
 import { useState } from "react";
+import { User } from "transcendance-types";
 import authContext from "./authContext";
-import { User } from "../relationship/relationshipContext";
-// import { User } from 'transcendance-types';
 
 const AuthProvider: React.FC = ({ children }) => {
 	const [userData, setUserData] = useState<User | null>();
@@ -19,7 +18,7 @@ const AuthProvider: React.FC = ({ children }) => {
 
 	const clearUser = () => { setUserData(null); }
 
-	const getUserData = (): any => userData; // User => userData
+	const getUserData = (): User => userData;
 
 	/**
 	 * Merge the object passed as an argument with the current userData object.

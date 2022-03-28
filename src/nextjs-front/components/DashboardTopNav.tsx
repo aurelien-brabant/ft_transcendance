@@ -1,14 +1,14 @@
-import { useContext, Fragment, useState, useEffect } from "react";
-import Image from "next/image";
+import { useContext, Fragment, useState } from "react";
+import { BiBell } from "react-icons/bi";
 import { FiSearch } from "react-icons/fi";
 import { GiHamburgerMenu } from "react-icons/gi";
-import { useRouter } from "next/router";
-import { BiBell } from "react-icons/bi";
+import Image from "next/image";
 import Link from "next/link";
+import { useRouter } from "next/router";
 import { dashboardNavItems } from "../constants/nav";
-import notificationsContext from "../context/notifications/notificationsContext";
-import authContext, {AuthContextType} from "../context/auth/authContext";
 import alertContext, {AlertContextType} from "../context/alert/alertContext";
+import authContext, {AuthContextType} from "../context/auth/authContext";
+import notificationsContext from "../context/notifications/notificationsContext";
 
 type SearchBarProps = {
 	className?: string;

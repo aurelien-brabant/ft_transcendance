@@ -1,15 +1,15 @@
 import { Fragment } from "react";
-import withWildLayout from "../components/hoc/withWildLayout";
-import Link from "next/link";
-import Image from "next/image";
+import { SiLinkedin } from "react-icons/si";
 import { TiArrowDown } from "react-icons/ti";
+import { VscGithub } from "react-icons/vsc";
+import Head from "next/head";
+import Image from "next/image";
+import Link from "next/link";
+import { NextPageWithLayout } from "./_app";
 import { Feature, features } from "../constants/feature";
 import { team, TeamMember } from "../constants/team";
-import { VscGithub } from "react-icons/vsc";
-import { SiLinkedin } from "react-icons/si";
 import ResponsiveFade from "../components/ResponsiveFade";
-import Head from "next/head";
-import {NextPageWithLayout} from "./_app";
+import withWildLayout from "../components/hoc/withWildLayout";
 
 const FeatureItem: React.FC<Feature> = ({ label, description, Icon }) => (
   <div className="flex flex-col items-center justify-between h-full text-xl text-center text-neutral-200 gap-y-8">
@@ -36,15 +36,15 @@ interface TeamMemberProps extends TeamMember {
 }
 
 const TeamMemberItem: React.FC<TeamMemberProps> = ({
-  login42,
-  role,
-  firstname,
-  lastname,
-  imageSrc,
-  githubLink,
-  linkedinLink,
-  fadeDirection,
-}) => (
+    login42,
+    role,
+    firstname,
+    lastname,
+    imageSrc,
+    githubLink,
+    linkedinLink,
+    fadeDirection,
+  }) => (
   <ResponsiveFade
     useMediaQueryArg={{ query: "(min-width: 1280px)" }}
     direction={fadeDirection}
