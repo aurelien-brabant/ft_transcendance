@@ -1,10 +1,8 @@
-import { Alert, AlertType } from "./alertContext";
-import alertContext from "./alertContext";
-import { useEffect, useRef, useState } from "react";
+import { Fragment, useEffect, useRef, useState } from "react";
+import { Bounce } from "react-awesome-reveal";
 import { IoIosClose } from "react-icons/io";
 import { v4 as uuidv4 } from "uuid";
-import { Bounce } from "react-awesome-reveal";
-import { Fragment } from "react";
+import alertContext, { Alert, AlertType } from "./alertContext";
 
 type AlertMeta = {
 	bg: string;

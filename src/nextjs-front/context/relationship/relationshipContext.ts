@@ -1,34 +1,5 @@
 import { createContext } from 'react';
-
-export type Achievement = {
-
-	id: string,
-	type: string,
-	description: string,
-	levelToReach: number,
-	users: User[]
-}
-export type User = {
-	id: string,
-	username: string,
-	email: string,
-	phone: string,
-	tfa: boolean,
-	pic: string
-	duoquadra_login: string,
-	wins: number,
-	losses: number,
-	draws: number,
-	ration: number,
-	accountDeactivated: boolean,
-	tfaSecret: string,
-	games: [],
-	achievements: Achievement[],
-	friends: User[],
-	blockedUsers: User[],
-	pendingFriendsSent: User[],
-	pendingFriendsReceived: User[],
-};
+import { User } from 'transcendance-types';
 
 export type RelationshipContextType = {
 	getData: () => any;
@@ -48,7 +19,7 @@ export type RelationshipContextType = {
 	createSuggested: (users: User[], friends: User[], blocked: User[]) => any;
 	suggested: User[]
 	setSuggested: (data: any) => any;
-	}
+}
 
 const relationshipContext = createContext<RelationshipContextType | null>(null);
 

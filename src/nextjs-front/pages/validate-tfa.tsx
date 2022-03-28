@@ -1,12 +1,12 @@
 import { Fragment, useContext, useEffect, useRef, useState } from "react";
 import { BounceLoader } from "react-spinners";
-import { NextPageWithLayout } from "./_app";
+import { FiRefreshCcw } from "react-icons/fi";
 import Image from 'next/image';
 import Head from "next/head";
 import { useRouter } from "next/router";
+import { NextPageWithLayout } from "./_app";
 import alertContext, { AlertContextType } from "../context/alert/alertContext";
 import authContext, { AuthContextType } from "../context/auth/authContext";
-import { FiRefreshCcw } from "react-icons/fi";
 
 const ValidateCode = () => {
 
@@ -17,7 +17,6 @@ const ValidateCode = () => {
     const [currentStep, setCurrentStep] = useState(0);
     const inputToFocus = useRef<HTMLInputElement>(null);
 
-    
     const authenticateWithTfa = async () => {
         const req = await fetch(`/api/users/${getUserData().id}/authenticateTfa`, {
             method: "POST",
@@ -26,9 +25,9 @@ const ValidateCode = () => {
             },
             body: JSON.stringify({tfaCode: String(tfaCode)}),
         });
-    
+
         const res = await req.json();
-    
+
         if (res.tfaValidated) {
             setAlert({ type: 'success', content: '2FA validated. Redirecting...' });
             window.localStorage.setItem("bearer", token);
@@ -42,8 +41,9 @@ const ValidateCode = () => {
             setCurrentStep(0);
         }
     }
+
     useEffect(() => {
-      
+
         if (!tfaCode.length) {
             setAlert({
                 type: "info",
@@ -54,11 +54,10 @@ const ValidateCode = () => {
             authenticateWithTfa();
     }, [tfaCode])
 
- 
     const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
         e.preventDefault();
         const key = e.target.value;
-        
+
         if (/^[0-9]+$/.test(key)) {
             e.target.value = tfaCode[currentStep];
             setCurrentStep(currentStep + 1);
@@ -68,7 +67,7 @@ const ValidateCode = () => {
             e.target.value = ""
         }
     }
-    
+
     const checkStep = (key: string) => {
         if (/^[0-9]+$/.test(key))
             setTfaCode(tfaCode + key);
@@ -83,10 +82,10 @@ const ValidateCode = () => {
         }
     }
 
-	useEffect(() => {
-		inputToFocus.current?.focus();
-	}, [currentStep]);
-    
+    useEffect(() => {
+        inputToFocus.current?.focus();
+    }, [currentStep]);
+
     const getTfaForm = () => {
         let content = [];
         for (let i = 0; i < 6; i++) {
@@ -105,9 +104,7 @@ const ValidateCode = () => {
         return content;
     };
 
-
     return (
-        
         <form onSubmit={authenticateWithTfa} className="flex flex-col gap-y-6 m-10">
             <label>
                 <h1 className="text-center text-xl text-pink-700 uppercase animate-pulse">
@@ -122,7 +119,6 @@ const ValidateCode = () => {
                 <FiRefreshCcw className="font-bold text-2xl text-pink-600 hover:animate-spin hover:cursor-pointer" onClick={() => {setCurrentStep(0); setTfaCode('')}}/>
             </div>        
         </form>
-        
     );
 }
 
@@ -132,7 +128,7 @@ const ValidateTfaPage: NextPageWithLayout = () => {
     const [isLoading, setIsLoading] = useState(true);
     const { setAlert } = useContext(alertContext) as AlertContextType;
     const router = useRouter();
- 
+
     useEffect(() => {
         const tfaEnabled = () => {
             const tfa = getUserData().tfa;
@@ -145,14 +141,12 @@ const ValidateTfaPage: NextPageWithLayout = () => {
         if (isAuthenticated || (isPreAuthenticated && !tfaEnabled()))
             router.push('/welcome')
         else {
-            setAlert({ type: 'info', content: '2FA verification code needed' });   
+            setAlert({ type: 'info', content: '2FA verification code needed' });
             setIsLoading(false);
         }
     }, [])
-//console.log('isAuth tfa', isAuthenticated)
-//console.log('isPreAuth tfa', isPreAuthenticated)
-    return (
 
+    return (
     <Fragment>
         <Head>
           <title>{!isLoading ? '2FA Authentication' : 'Validating 2FA authorization'}</title>
@@ -171,10 +165,10 @@ const ValidateTfaPage: NextPageWithLayout = () => {
         <Fragment>
             <div className="relative flex flex-col items-center justify-center min-h-screen gap-y-4">
                 <div className="absolute inset-0 z-50 flex items-center justify-center">
-			        <Image src="/logo.svg" height="200" width="200" />
-		        </div>
-    		    <BounceLoader size={400} color="#db2777" />
-	        </div>
+                    <Image src="/logo.svg" height="200" width="200" />
+                </div>
+                <BounceLoader size={400} color="#db2777" />
+            </div>
         </Fragment>
         :
         <Fragment>

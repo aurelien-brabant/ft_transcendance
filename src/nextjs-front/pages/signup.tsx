@@ -1,17 +1,14 @@
 import { Fragment, useContext, useState } from "react";
-import isEmail from "validator/lib/isEmail";
-import withWildLayout from "../components/hoc/withWildLayout";
-import ProgressiveFrom, {
-  ProgressiveFormConfig,
-} from "../components/ProgressiveForm";
-
+import Head from "next/head";
 import Image from "next/image";
 import Link from "next/link";
-import Head from "next/head";
-import { authorizationLink } from "../constants/authorize42";
 import { useRouter } from "next/router";
+import isEmail from "validator/lib/isEmail";
 import { NextPageWithLayout } from "./_app";
+import { authorizationLink } from "../constants/authorize42";
 import alertContext, { AlertContextType } from "../context/alert/alertContext";
+import ProgressiveFrom, { ProgressiveFormConfig } from "../components/ProgressiveForm";
+import withWildLayout from "../components/hoc/withWildLayout";
 
 const formConfig: ProgressiveFormConfig = {
   steps: [

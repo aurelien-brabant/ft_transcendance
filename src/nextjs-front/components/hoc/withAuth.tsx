@@ -1,5 +1,5 @@
-import { useRouter } from "next/router";
 import { Fragment, useContext, useEffect, useState } from "react";
+import { useRouter } from "next/router";
 import authContext, { AuthContextType } from "../../context/auth/authContext";
 import LoadingScreen from "../LoadingScreen";
 

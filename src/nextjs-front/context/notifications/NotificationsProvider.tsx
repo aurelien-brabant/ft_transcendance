@@ -1,6 +1,6 @@
-import faker from "@faker-js/faker";
 import { useState } from "react";
 import relationContext, { NotificationItem } from "./notificationsContext";
+import faker from "@faker-js/faker"; // tmp
 
 const RelationProvider: React.FC = ({ children }) => {
 	const [notifications, setNotifications] = useState<NotificationItem[]>([]);

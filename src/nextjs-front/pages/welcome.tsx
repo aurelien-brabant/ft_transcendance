@@ -1,18 +1,18 @@
-import Link from 'next/link';
-import Image from "next/image";
-import { useRouter } from 'next/router';
 import { Fragment, useContext, useEffect, useMemo, useRef, useState } from "react";
 import { FiEdit2, FiUploadCloud } from "react-icons/fi";
 import { MdCameraswitch, MdCancel, MdOutlineArrowBackIos } from 'react-icons/md';
+import Link from 'next/link';
+import Image from "next/image";
+import { useRouter } from 'next/router';
 import isEmail from "validator/lib/isEmail";
 import isMobilePhone from "validator/lib/isMobilePhone";
 import { NextPageWithLayout } from './_app';
-import Tooltip from '../components/Tooltip';
-import ResponsiveSlide from '../components/ResponsiveSlide';
-import withDashboardLayout from "../components/hoc/withDashboardLayout";
 import authContext, { AuthContextType } from '../context/auth/authContext';
 import alertContext, { AlertContextType } from "../context/alert/alertContext";
 import notificationsContext, { NotificationsContextType } from "../context/notifications/notificationsContext";
+import Tooltip from '../components/Tooltip';
+import ResponsiveSlide from '../components/ResponsiveSlide';
+import withDashboardLayout from "../components/hoc/withDashboardLayout";
 
 const labelClassName = "grow uppercase text-neutral-400";
 const inputClassName =
@@ -53,24 +53,26 @@ const Welcome: NextPageWithLayout = () => {
   const { getUserData, mergeUserData, logout, clearUser } = useContext(authContext) as AuthContextType;
   const [invalidInputs, setInvalidInputs] = useState<InvalidInputs>({});
   const { setAlert } = useContext(alertContext) as AlertContextType;
- 	const router = useRouter();
+  const router = useRouter();
   const [pendingPic, setPendingPic] = useState(false);
   const [pendingQR, setPendingQR] = useState(false);
   const [tfaCode, setTfaCode] = useState('');
   const [tfaStatus, setTfaStatus] = useState(getUserData().tfa ? 'enabled' : 'disabled');
   const [currentStep, setCurrentStep] = useState(0);
   const inputToFocus = useRef<HTMLInputElement>(null);
- 
+  const phoneNb = getUserData().phone;
+
   const [formData, setFormData] = useState<FormData>({
+
     username: getUserData().username,
     email: getUserData().email,
-    phone: getUserData().phone ? getUserData().phone : null,
+    phone: phoneNb === undefined ? null : phoneNb,
     tfa: getUserData().tfa,
     pic: getUserData().pic
   });
-  
+
   let baseObject: FormData;
- 
+
   const reactivateAccount = () => {
     fetch(`/api/users/${getUserData().id}`, {
       method: 'PATCH',
@@ -82,9 +84,9 @@ const Welcome: NextPageWithLayout = () => {
   }
   
   const { notifications, setNotifications } = useContext(notificationsContext) as NotificationsContextType;
-    
+
   const checkPendingFriendsRequests = () => {
-    
+
     const data = getUserData().pendingFriendsReceived;
     if (data.length) {
       for (let i in data)
@@ -96,7 +98,15 @@ const Welcome: NextPageWithLayout = () => {
     if (getUserData().accountDeactivated)
       reactivateAccount();
 
-    baseObject = getUserData();
+    const basePhoneNb = getUserData().phone;
+
+    baseObject = {
+      username: getUserData().username,
+      email: getUserData().email,
+      phone: basePhoneNb === undefined ? null : basePhoneNb,
+      tfa: getUserData().tfa,
+      pic: getUserData().pic
+    }
     checkPendingFriendsRequests();
   }, [])
 
@@ -136,7 +146,7 @@ const Welcome: NextPageWithLayout = () => {
       handleLogout();
     }
   }
-  
+
   const editUser = async (formData: FormData) => {
   	const req = await fetch(`/api/users/${getUserData().id}`, {
       method: 'PATCH',
@@ -183,7 +193,7 @@ const Welcome: NextPageWithLayout = () => {
         editUser({...formData, phone: null});
       else
         editUser(formData);
-    } 
+    }
   };
 
   const activateTfa = async () => {
@@ -250,12 +260,11 @@ const Welcome: NextPageWithLayout = () => {
 
   const tfaText = hasValidPhone ? "SMS-2FA unavailable now..." : "Valid phone number required";
 
-    
   const handleChangeTfa = (e: React.ChangeEvent<HTMLInputElement>) => {
       e.preventDefault();
-     
+
       const key = e.target.value;
-      
+
       if (/^[0-9]+$/.test(key)) {
           e.target.value = tfaCode[currentStep];
           setCurrentStep(currentStep + 1);
@@ -265,11 +274,11 @@ const Welcome: NextPageWithLayout = () => {
           e.target.value = ""
       }
   }
-  
+
   const checkStep = (key: string) => {
       if (/^[0-9]+$/.test(key))
           setTfaCode(tfaCode + key);
-  
+
       if ((currentStep > 0 && (key === "Backspace")) || key === "ArrowLeft") {
           setTfaCode(tfaCode.substring(0, tfaCode.length - 1));
           setCurrentStep(currentStep - 1);
@@ -309,7 +318,7 @@ const Welcome: NextPageWithLayout = () => {
           </div>
           <div className="flex justify-center p-5">
             <MdOutlineArrowBackIos className="font-bold text-2xl text-pink-600 hover:animate-bounceBack hover:cursor-pointer" onClick={() => {setPendingQR(false)}}/>
-          </div>  
+          </div>
         </div>
       );
   };
@@ -325,12 +334,12 @@ const Welcome: NextPageWithLayout = () => {
         setImage(img);
       }
   };
-  
-    const uploadToServer = async () => {        
-      
+
+    const uploadToServer = async () => {
+
       const body = new FormData();
-      body.append("image", image);    
-     
+      body.append("image", image);
+
       const req = await fetch(`/api/users/${getUserData().id}/uploadAvatar`, {
         method: "POST",
         body
@@ -352,21 +361,20 @@ const Welcome: NextPageWithLayout = () => {
     };
 
     return (
-    
-    <ResponsiveSlide
-      useMediaQueryArg={{ query: "(min-width: 1280px)" }}
-      direction="left" duration={200} triggerOnce
-    >
-      <div className="flex justify-center text-pink-600 space-x-5 text-center items-center">
-        <input
-          type="file"
-          name="uploadAvatar"
-          className="border border-pink-600 p-1"
-          onChange={uploadToClient}
-        />
-        <FiUploadCloud onClick={uploadToServer} className="text-3xl hover:animate-pulse"/>
-      </div>
-    </ResponsiveSlide>
+      <ResponsiveSlide
+        useMediaQueryArg={{ query: "(min-width: 1280px)" }}
+        direction="left" duration={200} triggerOnce
+      >
+        <div className="flex justify-center text-pink-600 space-x-5 text-center items-center">
+          <input
+            type="file"
+            name="uploadAvatar"
+            className="border border-pink-600 p-1"
+            onChange={uploadToClient}
+          />
+          <FiUploadCloud onClick={uploadToServer} className="text-3xl hover:animate-pulse"/>
+        </div>
+      </ResponsiveSlide>
     )
   }
 
@@ -375,7 +383,7 @@ const Welcome: NextPageWithLayout = () => {
     setAlert({type: 'info', content: 'New random avatar'})
 
     const req = await fetch(`/api/users/${getUserData().id}/randomAvatar`);
-   
+
     if (req.ok)
       router.reload();
     else
