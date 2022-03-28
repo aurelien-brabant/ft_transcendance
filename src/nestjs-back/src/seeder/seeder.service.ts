@@ -31,20 +31,20 @@ export class SeederService {
     async createFakeUser(username: string, i: number) {
 
         let user = await this.usersService.create({
-        email: "test" + String(i) + "@gmail.com",
-        password: "test",
-        pic: null,
-        games: [],
-        wins: 0,
-        losses: 0,
-        draws: 0,
-        friends: [],
-        blockedUsers: [],
-        pendingFriendsSent: [],
-        pendingFriendsReceived: [],
-        ownedChannels: [],
-        joinedChannels: [],
-        accountDeactivated: false,
+            email: "test" + String(i) + "@gmail.com",
+            password: "test",
+            pic: null,
+            accountDeactivated: false,
+            games: [],
+            wins: 0,
+            losses: 0,
+            draws: 0,
+            friends: [],
+            blockedUsers: [],
+            pendingFriendsSent: [],
+            pendingFriendsReceived: [],
+            ownedChannels: [],
+            joinedChannels: [],
         });
         user = await this.usersService.update(user.id.toString(), {
             username: username,
@@ -104,7 +104,6 @@ export class SeederService {
             const user = await this.updateFakeUser(i);
 
             console.log("User [%s] => [%s] [%s] updated", user.id, user.duoquadra_login, user.email);
-        
         }
     }
 
@@ -169,7 +168,6 @@ export class SeederService {
                     password: 'test' + i
                 });
             }
-
             console.log('[+] Seeding fake messages in channel [%s]...', channel.id);
             await this.seedFakeMessages(channel, fakeOwner, fakeFriend);
         }

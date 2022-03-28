@@ -1,4 +1,4 @@
-import {ReactElement} from 'react';
+import { ReactElement } from 'react';
 import WildLayout from '../WildLayout';
 
 const withWildLayout = (element: ReactElement) => (

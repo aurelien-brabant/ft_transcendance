@@ -1,17 +1,17 @@
-import withDashboardLayout from "../components/hoc/withDashboardLayout";
-import { NextPageWithLayout } from "./_app";
-import Selector from "../components/Selector";
-import Image from 'next/image';
 import { useContext, useEffect, useState } from "react";
 import { BounceLoader } from "react-spinners";
 import { FaUserClock, FaUserFriends, FaUsersSlash } from "react-icons/fa";
-import authContext, { AuthContextType } from "../context/auth/authContext";
-import { UserStatusItem } from "../components/UserStatus";
-import Tooltip from "../components/Tooltip";
-import { useRouter } from "next/router";
 import { RiUserSettingsLine } from "react-icons/ri";
-import FriendsTable from "../components/FriendsTable";
+import Image from 'next/image';
+import { useRouter } from "next/router";
+import { NextPageWithLayout } from "./_app";
+import authContext, { AuthContextType } from "../context/auth/authContext";
 import relationshipContext, { RelationshipContextType } from "../context/relationship/relationshipContext";
+import FriendsTable from "../components/FriendsTable";
+import Selector from "../components/Selector";
+import Tooltip from "../components/Tooltip";
+import { UserStatusItem } from "../components/UserStatus";
+import withDashboardLayout from "../components/hoc/withDashboardLayout";
 
 export type Highlight = {
   n: number;
@@ -20,40 +20,39 @@ export type Highlight = {
   nColor: string;
 };
 
-const HighlightItem: React.FC<Highlight> = ({ n, label, hint, nColor }) => { 
-  
-  return (
+const HighlightItem: React.FC<Highlight> = ({ n, label, hint, nColor }) => {
 
-  <article
-    style={label === 'friends42' ? { color: "#00babc" } : {}}
-    className={`flex flex-col items-center gap-y-2 ${nColor}`}
-  >
-    
-    <div
-      style={label === 'friends42' ? { backgroundColor: "#00babc" } : {}}
-      className="text-8xl rounded-full"
+  return (
+    <article
+      style={label === 'friends42' ? { color: "#00babc" } : {}}
+      className={`flex flex-col items-center gap-y-2 ${nColor}`}
     >
-        {label === 'friends' && <FaUserFriends/>}
-        {label === 'friends42' &&
-          <div className="text-black hover:border-pink-600 pb-0 pt-2 pr-2 pl-2">
-              <Image
-                src="/plain_logo.svg"
-                width={90}
-                height={90}
-                alt="Friends @42"
-              />
-          </div>
-        }
-        {label === 'blocked' && <FaUsersSlash/>}
-        {label === 'pending' && <FaUserClock/>}
-    </div>
-    <h1 className="text-5xl">
-      {n}
-    </h1>
-    <small className="font-bold">
-      {hint}
-    </small>
-  </article>  
+
+      <div
+        style={label === 'friends42' ? { backgroundColor: "#00babc" } : {}}
+        className="text-8xl rounded-full"
+      >
+          {label === 'friends' && <FaUserFriends/>}
+          {label === 'friends42' &&
+            <div className="text-black hover:border-pink-600 pb-0 pt-2 pr-2 pl-2">
+                <Image
+                  src="/plain_logo.svg"
+                  width={90}
+                  height={90}
+                  alt="Friends @42"
+                />
+            </div>
+          }
+          {label === 'blocked' && <FaUsersSlash/>}
+          {label === 'pending' && <FaUserClock/>}
+      </div>
+      <h1 className="text-5xl">
+        {n}
+      </h1>
+      <small className="font-bold">
+        {hint}
+      </small>
+    </article>
   );
 }
 
@@ -64,15 +63,14 @@ const FriendsPage: NextPageWithLayout = ({}) => {
   const { getUserData } = useContext(authContext) as AuthContextType;
   const { getData, getRelationships, createSuggested, setSuggested, suggested,
     users, friends, friends42, blocked, pendingFriendsReceived
-   } = useContext(relationshipContext) as RelationshipContextType;
-  
-   const router = useRouter();
+  } = useContext(relationshipContext) as RelationshipContextType;
+  const router = useRouter();
 
    useEffect(() => {
       getData();
       setIsLoading(false);
     }, [])
-  
+
   useEffect(() => {
     setIsLoading(true);
     getRelationships(users, getUserData().id);
@@ -127,7 +125,7 @@ const FriendsPage: NextPageWithLayout = ({}) => {
               hint="Blocked Users"
               nColor="text-red-600" />
           </div>
-         
+
           <Selector selected={selected} setSelected={setSelected}
             items={[
               {
@@ -157,10 +155,10 @@ const FriendsPage: NextPageWithLayout = ({}) => {
       :
       <div className="relative flex flex-col items-center justify-center min-h-screen bg-gray-900 gap-y-4">
         <div className="absolute inset-0 z-50 flex items-center justify-center">
-			    <Image src="/logo.svg" height="200" width="200" />
-		    </div>
-    		<BounceLoader size={400} color="#db2777" />
-	    </div>
+          <Image src="/logo.svg" height="200" width="200" />
+        </div>
+        <BounceLoader size={400} color="#db2777" />
+      </div>
       }
     </div>
   );

@@ -31,11 +31,17 @@ export class User {
     tfa: boolean;
 
     @Column({ nullable: true })
+    tfaSecret: string;
+
+    @Column({ nullable: true })
     pic: string;
 
     // should be null if user is not a duoquadra, otherwise must be set to the duoquadra's unique login
     @Column({ nullable: true, unique: true })
     duoquadra_login: string;
+
+    @Column({ default: false })
+    accountDeactivated: boolean;
 
     @ManyToMany(() => Game, game => game.players)
     games: Game[];
@@ -78,11 +84,5 @@ export class User {
 
     @ManyToMany(() => Channel, joinedChannels => joinedChannels.users)
     joinedChannels: Channel[];
-
-    @Column({default: false})
-    accountDeactivated: boolean;
-
-    @Column({ nullable: true })
-    tfaSecret: string;  
 }
 

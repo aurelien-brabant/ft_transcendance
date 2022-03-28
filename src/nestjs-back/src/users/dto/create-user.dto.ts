@@ -22,6 +22,10 @@ export class CreateUserDto {
     readonly pic: string;
 
     @IsOptional()
+    @IsBoolean()
+    readonly accountDeactivated: boolean;
+
+    @IsOptional()
     readonly games: Game[];
 
     @IsOptional()
@@ -53,8 +57,4 @@ export class CreateUserDto {
 
     @IsOptional()
     readonly joinedChannels: Channel[];
-
-    @IsOptional()
-    @IsBoolean()
-    readonly accountDeactivated: boolean;
 }

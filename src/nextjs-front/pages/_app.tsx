@@ -1,11 +1,11 @@
 import "../styles/globals.css";
-import type { AppProps } from "next/app";
 import { NextPage } from "next";
-import { ReactElement, ReactNode, useEffect } from "react";
+import type { AppProps } from "next/app";
+import { useRouter } from "next/router";
+import { ReactElement, ReactNode } from "react";
 import Authenticator, { AuthConfig } from "../components/hoc/withAuth";
 import AuthProvider from "../context/auth/AuthProvider";
 import AlertProvider from "../context/alert/AlertProvider";
-import { useRouter } from "next/router";
 import RelationshipProvider from "../context/relationship/RelationshipProvider";
 //import AchievementsProvider from "../context/achievements/AchievementsProvider";
 

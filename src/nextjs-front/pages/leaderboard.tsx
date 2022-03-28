@@ -1,15 +1,15 @@
-import withDashboardLayout from "../components/hoc/withDashboardLayout";
-import { NextPageWithLayout } from "./_app";
-import Selector from "../components/Selector";
+import { useEffect, useState } from "react";
+import { BounceLoader } from "react-spinners";
+import { useMediaQuery } from "react-responsive";
+import { BsFillQuestionCircleFill } from "react-icons/bs";
+import { GiLaurelsTrophy, GiPodiumSecond, GiPodiumThird, GiPodiumWinner } from "react-icons/gi";
 import Link from "next/link";
 import Image from 'next/image';
-import { useEffect, useState } from "react";
-import { GiLaurelsTrophy, GiPodiumSecond, GiPodiumThird, GiPodiumWinner } from "react-icons/gi";
-import { BounceLoader } from "react-spinners";
-import { BsFillQuestionCircleFill } from "react-icons/bs";
-import { useMediaQuery } from "react-responsive";
+import { NextPageWithLayout } from "./_app";
 import Achievements from "../components/Achievements";
-  
+import Selector from "../components/Selector";
+import withDashboardLayout from "../components/hoc/withDashboardLayout";
+
 export type RankingList = {
   id: string;
   username: string;
@@ -81,8 +81,8 @@ export type Highlight = {
   ranking: RankingList[];
 };
 
-const HighlightItem: React.FC<Highlight> = ({ label, hint, nColor, ranking }) => { 
-  
+const HighlightItem: React.FC<Highlight> = ({ label, hint, nColor, ranking }) => {
+
   let pic: string = "";
   let userUrl: string = "";
 
@@ -100,29 +100,28 @@ const HighlightItem: React.FC<Highlight> = ({ label, hint, nColor, ranking }) =>
   }
 
   return (
-
-  <article className={`flex flex-col items-center gap-y-2 ${nColor}`}>
-    <h3 className="text-5xl font-bold">
-      { (userUrl !== "") ?
-        <a href={userUrl}>
-          <img
-            className="object-cover object-center rounded-full drop-shadow-md"
-            src={pic}
-            width={150}
-            height={150}
-          />
-        </a>
-        :
-        <BsFillQuestionCircleFill className="text-9xl"/>
-      }
-    </h3>
-    <div className="text-8xl">
-      {label === 'first' && <GiPodiumWinner />}
-      {label === 'second' && <GiPodiumSecond />}
-      {label === 'third' && <GiPodiumThird />}
-    </div>
-    <small>{hint}</small>
-  </article>  
+    <article className={`flex flex-col items-center gap-y-2 ${nColor}`}>
+      <h3 className="text-5xl font-bold">
+        { (userUrl !== "") ?
+          <a href={userUrl}>
+            <img
+              className="object-cover object-center rounded-full drop-shadow-md"
+              src={pic}
+              width={150}
+              height={150}
+            />
+          </a>
+          :
+          <BsFillQuestionCircleFill className="text-9xl"/>
+        }
+      </h3>
+      <div className="text-8xl">
+        {label === 'first' && <GiPodiumWinner />}
+        {label === 'second' && <GiPodiumSecond />}
+        {label === 'third' && <GiPodiumThird />}
+      </div>
+      <small>{hint}</small>
+    </article>
   );
 }
 
@@ -133,7 +132,7 @@ const LeaderboardPage: NextPageWithLayout = ({}) => {
   const [isLoading, setIsLoading] = useState(true);
   const [activeRank, setActiveRank] = useState<RankingList[]>([]);
   const [selected, setSelected] = useState(0);
-	const [mobileScreen] = useState(useMediaQuery({ query: "(min-width: 1280px)"}));
+  const [mobileScreen] = useState(useMediaQuery({ query: "(min-width: 1280px)"}));
 
   const createRankingLists = (data: any) => {
 
@@ -170,7 +169,6 @@ const LeaderboardPage: NextPageWithLayout = ({}) => {
     setActiveRank(rank);
   }
 
-
   useEffect(() => {
     const fetchData = async () => {
 
@@ -180,7 +178,7 @@ const LeaderboardPage: NextPageWithLayout = ({}) => {
       createRankingLists(data);
       setIsLoading(false);
     }
-  
+
     fetchData()
     .catch(console.error);
   }, [])
