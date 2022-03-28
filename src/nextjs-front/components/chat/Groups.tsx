@@ -31,7 +31,8 @@ const Groups: React.FC<{viewParams: Object;}> = ({ viewParams }) => {
 					group.privacy !== "private" ||
 					(group.privacy === "private" && group.in)
 			)
-			.sort((a, b) => (a.privacy !== "private" ? 1 : -1)
+			.sort((a: ChatGroup, b: ChatGroup) => (b.updatedAt.valueOf() - a.updatedAt.valueOf())
+			// .sort((a, b) => (a.privacy !== "private" ? 1 : -1)
 	), []);
 
 	const [filteredGroups, setFilteredGroups] = useState(baseChatGroups);
@@ -68,17 +69,15 @@ const Groups: React.FC<{viewParams: Object;}> = ({ viewParams }) => {
 		const data = await fetchChannelData(channel.id).catch(console.error);
 		const gm = await JSON.parse(JSON.stringify(data));
 
-		if (gm.privacy === "protected")
-			return ;
 		const message = getLastMessage(gm);
-		channel.lastMessage = message;
+		channel.lastMessage = message.content;
+		channel.updatedAt = message.createdAt;
 		updateChatGroups();
 	}
 
 	useEffect(() => {
 		const updatePreviews = async () => {
-			// TODO: sort by most recent message
-			return Promise.all(chatGroups.map((gm) => updateLastMessage(gm)));
+			await Promise.all(chatGroups.map((gm) => updateLastMessage(gm)));
 		};
 		updatePreviews();
 	}, []);
@@ -100,8 +99,8 @@ const Groups: React.FC<{viewParams: Object;}> = ({ viewParams }) => {
 					onChange={handleSelect}
 				>
 					<option value="all">all</option>
-					<option value="private">private</option>
 					<option value="public">public</option>
+					<option value="private">private</option>
 					<option value="protected">protected</option>
 				</select>
 				<button className="px-2 py-1 text-sm font-bold uppercase bg-pink-600 rounded" onClick={() => {
@@ -136,7 +135,12 @@ const Groups: React.FC<{viewParams: Object;}> = ({ viewParams }) => {
 						</div>
 						<div>
 							<div
-								style={{ backgroundColor: "green" }}
+								style={
+									{
+										backgroundColor: gm.privacy === 'public' ? "#48bb78"
+										: gm.privacy === 'private' ? "#3182ce" : "#805ad5"
+									}
+								}
 								className="flex items-center justify-center w-16 h-16 text-4xl rounded-full"
 							>
 								{gm.label[0].toUpperCase()}
@@ -154,7 +158,10 @@ const Groups: React.FC<{viewParams: Object;}> = ({ viewParams }) => {
 										<AiFillLock />
 									))}
 							</div>
-							<p>{gm.lastMessage}</p>
+							<p>{gm.lastMessage === "Blocked message"
+									? <div className="opacity-30">{gm.lastMessage}</div>
+									: gm.lastMessage
+									}</p>
 						</div>
 					</div>
 				))}

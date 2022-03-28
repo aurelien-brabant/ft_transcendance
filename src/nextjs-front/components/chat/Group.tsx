@@ -8,7 +8,6 @@ import chatContext, { ChatContextType, ChatMessage } from "../../context/chat/ch
 import authContext, { AuthContextType } from "../../context/auth/authContext";
 import alertContext, { AlertContextType } from "../../context/alert/alertContext";
 import relationshipContext, { RelationshipContextType } from "../../context/relationship/relationshipContext";
-// import { BaseUserData } from 'transcendance-types';
 
 /* Header */
 export const GroupHeader: React.FC<{ viewParams: any }> = ({ viewParams }) => {
@@ -63,7 +62,7 @@ const Group: React.FC<{ viewParams: { [key: string]: any } }> = ({
 	const channelId = viewParams.groupId;
 	const userId = getUserData().id;
 
-	const updateMessages = (message: any) => {
+	const addMessage = (message: any) => {
 		const isBlocked = !!blocked.find(user => user.id == message.author.id);
 
 		setMessages([
@@ -82,6 +81,7 @@ const Group: React.FC<{ viewParams: { [key: string]: any } }> = ({
 		if (currentMessage.length === 0) return;
 
 		const channelData = await fetchChannelData(channelId).catch(console.error);
+
 		const res = await fetch("/api/messages", {
 			method: "POST",
 			headers: {
@@ -96,7 +96,7 @@ const Group: React.FC<{ viewParams: { [key: string]: any } }> = ({
 		const data = await res.json();
 
 		if (res.status === 201) {
-			updateMessages(data);
+			addMessage(data);
 			setCurrentMessage('');
 			return;
 		} else {

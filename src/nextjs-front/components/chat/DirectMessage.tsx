@@ -53,7 +53,7 @@ const DirectMessage: React.FC<{ viewParams: { [key: string]: any } }> = ({
 	const dmId = viewParams.dmId;
 	const userId = getUserData().id;
 
-	const updateMessages = (message: any) => {
+	const addMessage = (message: any) => {
 		setMessages([
 			...messages, {
 				id: message.id,
@@ -84,7 +84,7 @@ const DirectMessage: React.FC<{ viewParams: { [key: string]: any } }> = ({
 		const data = await res.json();
 
 		if (res.status === 201) {
-			updateMessages(data);
+			addMessage(data);
 			setCurrentMessage("");
 			return;
 		} else {

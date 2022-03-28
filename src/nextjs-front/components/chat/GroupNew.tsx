@@ -116,12 +116,12 @@ const GroupNew: React.FC = () => {
 		if (res.status === 201) {
 			const data = await res.json();
 			const gm = setChatGroupData(JSON.parse(JSON.stringify(data)));
-			console.log(gm);
-			updateChatGroups(gm);
-				openChatView(gm.privacy === 'protected' ? 'password_protection' : 'group', gm.label, {
-					groupName: gm.label,
-					groupId: gm.id
-				}
+
+			updateChatGroups();
+			openChatView(gm.privacy === 'protected' ? 'password_protection' : 'group', gm.label, {
+				groupName: gm.label,
+				groupId: gm.id
+			}
 			);
 		} else if (res.status === 401) {
 			setAlert({

@@ -177,8 +177,8 @@ const GroupUsers: React.FC<{ viewParams: any }> = ({ viewParams }) => {
 						<Link href={`/users/${user.username}`}>
 							<a>{user.username}</a>
 						</Link>
-						{user.isOwner && <FaCrown color="#ffa500" />}
-						{user.isAdmin && <BsShieldFillCheck color="#43A047"/>}
+						{user.isOwner && <FaCrown className="text-yellow-500" />}
+						{user.isAdmin && <BsShieldFillCheck className="text-green-600"/>}
 					</div>
 					<div className="flex text-2xl gap-x-4">
 						{!user.isOwner && user.isAdmin &&

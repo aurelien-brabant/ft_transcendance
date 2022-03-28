@@ -135,14 +135,14 @@ export class SeederService {
         for (let i = 0; i < 5; ++i) {
             if (i % 2) {
                 await this.messagesService.create({
-                    content: `I am ${fakeFriend.username}`,
-                    author: fakeFriend,
+                    content: `I am ${fakeSender.username}`,
+                    author: fakeSender,
                     channel: dstChannel
                 });
             } else {
                 await this.messagesService.create({
-                    content: `I am ${fakeSender.username}`,
-                    author: fakeSender,
+                    content: `I am ${fakeFriend.username}`,
+                    author: fakeFriend,
                     channel: dstChannel
                 });
             }

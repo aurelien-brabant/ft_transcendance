@@ -10,13 +10,13 @@ import ChatGroupsView from "../../components/chat/Groups";
 import ChatGroupView, { GroupHeader } from "../../components/chat/Group";
 import ChatDirectMessagesView from "../../components/chat/DirectMessages";
 import ChatDirectMessageView, { DirectMessageHeader } from "../../components/chat/DirectMessage";
-import chatContext, { ChatGroup, ChatView, DirectMessage } from "./chatContext";
 import Groupadd, { GroupaddHeader } from "../../components/chat/Groupadd";
 import GroupNew, { GroupNewHeader } from "../../components/chat/GroupNew";
 import DirectMessageNew, { DirectMessageNewHeader } from "../../components/chat/DirectMessageNew";
 import GroupUsers, { GroupUsersHeader } from "../../components/chat/GroupUsers";
 import GroupSettings, { GroupSettingsHeader } from "../../components/chat/GroupSettings";
 import PasswordProtection, { PasswordProtectionHeader } from "../../components/chat/PasswordProtection";
+import chatContext, { ChatGroup, ChatMessagePreview, ChatView, DirectMessage } from "./chatContext";
 
 export type ChatViewItem = {
 	label: string;
@@ -151,59 +151,76 @@ const ChatProvider: React.FC = ({ children }) => {
 		setViewStack(viewStack.slice(0, -n));
 	};
 
-
 	/* Message utils */
 	const getLastMessage = (channel: any) => {
-		if (channel.messages) {
-			const i = channel.messages.length - 1;
+		let message: ChatMessagePreview = {
+			content: "",
+			createdAt: new Date(Date.now())
+		};
 
-			if (i >= 0 && channel.privacy !== "protected") {
-				const lastMessage = channel.messages[i];
+		const i = channel.messages.length - 1;
 
+		if (i >= 0) {
+			const lastMessage = channel.messages[i];
+			message.createdAt = new Date(lastMessage.createdAt);
+
+			if (channel.privacy !== "protected") {
 				if (!!blocked.find(user => user.id == lastMessage.author.id)) {
-					return "Blocked message";
+					message.content = "Blocked message";
 				} else {
-					return lastMessage.content;
+					message.content = lastMessage.content;
 				}
 			}
 		}
-		return "";
+		return message;
 	}
 
 	/* Chat groups utils */
 	const updateChatGroups = () => {
+		chatGroups.sort(
+			(a: ChatGroup, b: ChatGroup) =>
+			(b.updatedAt.valueOf() - a.updatedAt.valueOf())
+		);
 		setChatGroups([...chatGroups]);
 	}
 
 	const setChatGroupData = (channel: any) => {
+		const lastMessage: ChatMessagePreview = getLastMessage(channel);
+
 		const group: ChatGroup = {
 			id: channel.id,
 			label: channel.name,
-			lastMessage: getLastMessage(channel),
+			lastMessage: lastMessage.content,
 			in: !!channel.users.find((user: BaseUserData) => {
 				return user.id === userId;
 			}),
 			isAdmin: (channel.owner.id === userId),
 			peopleCount: channel.users.length,
 			privacy: channel.privacy,
-			updatedAt: Date.now().toString()
+			updatedAt: lastMessage.createdAt
 		}
 		return group;
 	}
 
 	/* Direct messages utils */
 	const updateDirectMessages = () => {
+		directMessages.sort(
+			(a: DirectMessage, b: DirectMessage) =>
+			(b.updatedAt.valueOf() - a.updatedAt.valueOf())
+		);
 		setDirectMessages([...directMessages]);
 	}
 
 	const setDirectMessageData = (channel: any, friend: BaseUserData) => {
+		const lastMessage: ChatMessagePreview = getLastMessage(channel);
+
 		const dm: DirectMessage = {
 			id: channel.id,
 			friendId: friend.id,
 			friendUsername: friend.username,
 			friendPic: `/api/users/${friend.id}/photo`,
-			lastMessage: getLastMessage(channel),
-			updatedAt: Date.now().toString()
+			lastMessage: lastMessage.content,
+			updatedAt: lastMessage.createdAt
 		}
 		return dm;
 	}
@@ -262,7 +279,7 @@ const ChatProvider: React.FC = ({ children }) => {
 	}
 
 	/* Load all channels on mount */
-	const loadChannelsOnMount = async (channels: any) => {
+	const loadChannelsOnMount = (channels: any) => {
 		const groups: ChatGroup[] = [];
 		const dms: DirectMessage[] = [];
 
@@ -279,6 +296,14 @@ const ChatProvider: React.FC = ({ children }) => {
 				groups.push(setChatGroupData(channel));
 			}
 		}
+		groups.sort(
+			(a: ChatGroup, b: ChatGroup) =>
+			(b.updatedAt.valueOf() - a.updatedAt.valueOf())
+		);
+		dms.sort(
+			(a: DirectMessage, b: DirectMessage) =>
+			(b.updatedAt.valueOf() - a.updatedAt.valueOf())
+		);
 		setChatGroups(groups);
 		setDirectMessages(dms);
 	}
@@ -290,8 +315,8 @@ const ChatProvider: React.FC = ({ children }) => {
 
 			loadChannelsOnMount(JSON.parse(JSON.stringify(data)));
 		}
-		fetchUserChannels().catch(console.error);
 		getData();
+		fetchUserChannels().catch(console.error);
 	}, [])
 
 	return (

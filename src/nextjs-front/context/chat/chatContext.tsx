@@ -11,6 +11,11 @@ export type ChatMessage = {
 	isBlocked: boolean;
 };
 
+export type ChatMessagePreview = {
+	content: string;
+	createdAt: Date;
+};
+
 export type ChatGroupPrivacy = 'public' | 'protected' | 'private';
 
 export type ChatGroup = {
@@ -21,7 +26,8 @@ export type ChatGroup = {
 	isAdmin: boolean;
 	peopleCount: number;
 	privacy: ChatGroupPrivacy;
-	updatedAt: string;
+	hidePreview: boolean;
+	updatedAt: Date;
 };
 
 export type DirectMessage = {
@@ -30,7 +36,7 @@ export type DirectMessage = {
 	friendUsername: string;
 	friendPic: string;
 	lastMessage: string;
-	updatedAt: string;
+	updatedAt: Date;
 };
 
 export type ChatContextType = {
@@ -51,7 +57,7 @@ export type ChatContextType = {
 	directMessages: DirectMessage[];
 
 	/* Message utils */
-	getLastMessage: (channel: any) => string;
+	getLastMessage: (channel: any) => ChatMessagePreview;
 	/* Chat groups utils */
 	updateChatGroups: () => void;
 	setChatGroupData: (channel: any) => ChatGroup;
