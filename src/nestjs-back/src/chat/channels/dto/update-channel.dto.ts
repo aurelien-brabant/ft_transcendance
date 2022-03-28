@@ -6,4 +6,10 @@ import { User } from "src/users/entities/users.entity";
 export class UpdateChannelDto extends PartialType(CreateChannelDto) {
   @IsOptional()
   readonly admins?: User[];
+
+  @IsOptional()
+  readonly mutedUsers?: User[];
+
+  @IsOptional()
+  readonly bannedUsers?: User[];
 }

@@ -1,7 +1,9 @@
 import { useContext, useEffect, useState } from "react";
-import { GiThorHammer } from "react-icons/gi";
-import { FaCrown } from "react-icons/fa";
 import { BsArrowLeftShort, BsShieldFillCheck, BsShieldFillPlus, BsShieldFillX } from "react-icons/bs";
+import { FaCrown } from "react-icons/fa";
+import { GiThorHammer } from "react-icons/gi";
+import { MdVoiceOverOff } from "react-icons/md";
+import { RiPingPongLine } from 'react-icons/ri';
 import Link from "next/link";
 import { BaseUserData } from "transcendance-types";
 import alertContext, { AlertContextType } from "../../context/alert/alertContext";
@@ -13,9 +15,12 @@ type UserSummary = {
 	username: string;
 	pic: string;
 	isOwner: boolean;
-	isAdmin: boolean; /* Moderator */
+	isAdmin: boolean;
+	isMuted: boolean;
+	isBanned: boolean;
 };
 
+/* Header */
 export const GroupUsersHeader: React.FC<{ viewParams: any }> = ({ viewParams }) => {
 	const { closeRightmostView } = useContext(chatContext) as ChatContextType;
 
@@ -41,6 +46,7 @@ const GroupUsers: React.FC<{ viewParams: any }> = ({ viewParams }) => {
 	const { fetchChannelData } = useContext(chatContext) as ChatContextType;
 	const [users, setUsers] = useState<UserSummary[]>([]);
 	const channelId = viewParams.groupId;
+	const ownerView = viewParams.ownerView;
 	const actionTooltipStyles = "font-bold bg-gray-900 text-neutral-200";
 
 	// TODO: check user's right (owner and admins have specific rights)
@@ -56,7 +62,7 @@ const GroupUsers: React.FC<{ viewParams: any }> = ({ viewParams }) => {
 				"Content-Type": "application/json",
 			},
 			body: JSON.stringify({
-				admins: [ ...admins, {"id": id} ]
+				admins: [ ...admins, { "id": id } ]
 			}),
 		});
 
@@ -103,12 +109,9 @@ const GroupUsers: React.FC<{ viewParams: any }> = ({ viewParams }) => {
 	/* Ban user from channel */
 	const banUser = async (id: string) => {
 		const channelData = await fetchChannelData(channelId).catch(console.error);
-		const currentUsers = JSON.parse(JSON.stringify(channelData)).users;
-		const users = currentUsers.filter((user: BaseUserData) => { 
-			return user.id != id
-		})
+		const users = JSON.parse(JSON.stringify(channelData)).bannedUsers;
 
-		// TODO: the banned user shouldn't be able to join channel again
+		// TODO: the ban is for a limited time
 
 		const res = await fetch(`/api/channels/${channelId}`, {
 			method: "PATCH",
@@ -116,17 +119,53 @@ const GroupUsers: React.FC<{ viewParams: any }> = ({ viewParams }) => {
 				"Content-Type": "application/json",
 			},
 			body: JSON.stringify({
-				users: [ ...users ]
+				bannedUsers: [ ...users, { "id": id } ]
 			}),
 		});
 
 		if (res.status === 200) {
 			updateUsers();
+			setAlert({
+				type: "info",
+				content: "User is banned for 10 minutes" // TODO
+			});
 			return;
 		} else {
 			setAlert({
 				type: "error",
 				content: "Failed to ban user"
+			});
+		}
+	};
+
+	/* Mute user in channel */
+	const muteUser = async (id: string) => {
+		const channelData = await fetchChannelData(channelId).catch(console.error);
+		const users = JSON.parse(JSON.stringify(channelData)).mutedUsers;
+
+		// TODO: the mute is for a limited time
+
+		const res = await fetch(`/api/channels/${channelId}`, {
+			method: "PATCH",
+			headers: {
+				"Content-Type": "application/json",
+			},
+			body: JSON.stringify({
+				mutedUsers: [ ...users, { "id": id } ]
+			}),
+		});
+
+		if (res.status === 200) {
+			updateUsers();
+			setAlert({
+				type: "info",
+				content: "User is muted for 10 minutes" // TODO
+			});
+			return;
+		} else {
+			setAlert({
+				type: "error",
+				content: "Failed to mute user"
 			});
 		}
 	};
@@ -137,6 +176,8 @@ const GroupUsers: React.FC<{ viewParams: any }> = ({ viewParams }) => {
 		const chanOwner = await JSON.parse(JSON.stringify(data)).owner;
 		const chanAdmins = await JSON.parse(JSON.stringify(data)).admins;
 		const chanUsers = await JSON.parse(JSON.stringify(data)).users;
+		const mutedUsers = await JSON.parse(JSON.stringify(data)).mutedUsers;
+		const bannedUsers = await JSON.parse(JSON.stringify(data)).bannedUsers;
 		const users: UserSummary[] = [];
 
 		for (var i in chanUsers) {
@@ -145,9 +186,15 @@ const GroupUsers: React.FC<{ viewParams: any }> = ({ viewParams }) => {
 				username: chanUsers[i].username,
 				pic: `/api/users/${chanUsers[i].id}/photo`,
 				isOwner: (chanUsers[i].id === chanOwner.id),
-				isAdmin: !!chanAdmins.find((admin: BaseUserData) => {
-						return admin.id === chanUsers[i].id;
-					})
+				isAdmin: (chanUsers[i].id === chanOwner.id) || !!chanAdmins.find((admin: BaseUserData) => {
+					return admin.id === chanUsers[i].id;
+				}),
+				isMuted: !!mutedUsers.find((user: BaseUserData) => {
+					return user.id === chanUsers[i].id;
+				}),
+				isBanned: !!bannedUsers.find((user: BaseUserData) => {
+					return user.id === chanUsers[i].id;
+				})
 			});
 		}
 		setUsers(users);
@@ -157,10 +204,12 @@ const GroupUsers: React.FC<{ viewParams: any }> = ({ viewParams }) => {
 		updateUsers();
 	}, []);
 
+	// TODO: don't display Pong icon if user is blocked
+
 	return (
 		<div className="flex flex-col h-full py-4 overflow-auto ">
 			{users.map((user) => (
-				<div key={user.username} className="flex items-center justify-between px-4 py-2 border-b-2 border-gray-800 gap-x-2">
+				<div key={user.username} className="flex items-center justify-between px-4 py-3 border-b-2 border-gray-800 gap-x-2">
 					<div className="flex items-center gap-x-4">
 						<img
 							src={user.pic}
@@ -178,28 +227,33 @@ const GroupUsers: React.FC<{ viewParams: any }> = ({ viewParams }) => {
 							<a>{user.username}</a>
 						</Link>
 						{user.isOwner && <FaCrown className="text-yellow-500" />}
-						{user.isAdmin && <BsShieldFillCheck className="text-green-600"/>}
+						{!user.isOwner && user.isAdmin && <BsShieldFillCheck className="text-green-600"/>}
 					</div>
-					<div className="flex text-2xl gap-x-4">
-						{!user.isOwner && user.isAdmin &&
-						<Tooltip className={actionTooltipStyles} content="-admin">
-							<button onClick={() => removeAdmin(String(user.id))}
-								className="text-red-600 hover:scale-110"><BsShieldFillX /></button>
-						</Tooltip>}
-						{!user.isOwner && !user.isAdmin &&
-						<Tooltip className={actionTooltipStyles} content="+admin">
-							<button onClick={() => addAdmin(String(user.id))}
-								className="text-green-600 hover:scale-110">
-								<BsShieldFillPlus />
+					<div className="flex text-xl gap-x-3">
+					{!user.isAdmin && <Tooltip className={actionTooltipStyles} content="mute">
+							<button onClick={() => muteUser(String(user.id))} className="transition hover:scale-110">
+								<MdVoiceOverOff color="grey"/>
 							</button>
 						</Tooltip>}
-						{!user.isOwner && 
-							<Tooltip className={actionTooltipStyles} content="ban">
-							<button onClick={() => banUser(String(user.id))}
-								className="hover:scale-110">
+						{!user.isAdmin && <Tooltip className={actionTooltipStyles} content="ban">
+							<button onClick={() => banUser(String(user.id))} className="transition hover:scale-110">
 								<GiThorHammer color="grey"/>
 							</button>
 						</Tooltip>}
+						{ownerView && !user.isAdmin && <Tooltip className={actionTooltipStyles} content="+admin">
+							<button onClick={() => addAdmin(String(user.id))} className="text-green-600 transition hover:scale-110">
+								<BsShieldFillPlus />
+							</button>
+						</Tooltip>}
+						{ownerView && !user.isOwner && user.isAdmin &&
+						<button onClick={() => removeAdmin(String(user.id))} className="text-red-600 transition hover:scale-110">
+								<BsShieldFillX />
+						</button>}
+						<Tooltip className={actionTooltipStyles} content="play">
+							<button className="p-1 text-gray-900 bg-white rounded-full transition hover:scale-110"> 
+								<RiPingPongLine />
+							</button>
+						</Tooltip>
 					</div>
 				</div>
 			))}

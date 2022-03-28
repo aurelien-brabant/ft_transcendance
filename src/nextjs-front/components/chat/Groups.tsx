@@ -79,7 +79,8 @@ const Groups: React.FC<{viewParams: Object;}> = ({ viewParams }) => {
 		const updatePreviews = async () => {
 			await Promise.all(chatGroups.map((gm) => updateLastMessage(gm)));
 		};
-		updatePreviews();
+		updatePreviews(); // tmp
+		// TODO: update if quit channel
 	}, []);
 
 	return (
@@ -118,6 +119,7 @@ const Groups: React.FC<{viewParams: Object;}> = ({ viewParams }) => {
 							openChatView(gm.privacy === 'protected' ? 'password_protection' : 'group', gm.label, {
 									groupName: gm.label,
 									groupId: gm.id,
+									groupOwnerId: gm.ownerId,
 									groupMembers: gm.peopleCount,
 									groupPrivacy: gm.privacy
 								}

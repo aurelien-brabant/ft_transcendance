@@ -23,10 +23,9 @@ export type ChatGroup = {
 	label: string;
 	lastMessage: string;
 	in: boolean;
-	isAdmin: boolean;
+	ownerId: string;
 	peopleCount: number;
 	privacy: ChatGroupPrivacy;
-	hidePreview: boolean;
 	updatedAt: Date;
 };
 

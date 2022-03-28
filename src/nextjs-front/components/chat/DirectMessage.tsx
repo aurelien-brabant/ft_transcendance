@@ -27,12 +27,12 @@ export const DirectMessageHeader: React.FC<{ viewParams: any }> = ({ viewParams 
 				><BsArrowLeftShort /></button>
 			</div>
 			<div className="flex items-center gap-x-3">
-			<Link href={`/users/${viewParams.friendId}`}><h6 className="font-bold hover:text-pink-600">
-				{viewParams.friendUsername}
-			</h6></Link> <UserStatusItem status="online" withText={false} />
-			</div>
+				<Link href={`/users/${viewParams.friendId}`}><h6 className="font-bold hover:text-pink-600">
+					{viewParams.friendUsername}
+				</h6></Link> <UserStatusItem status="online" withText={false} />
+				</div>
 			<Tooltip className={actionTooltipStyles} content="play">
-				<button className="p-2 text-2xl text-gray-900 bg-white rounded-full transition hover:scale-105"> 
+				<button className="p-1 text-2xl text-gray-900 bg-white rounded-full transition hover:scale-105"> 
 					<RiPingPongLine />
 				</button>
 			</Tooltip>

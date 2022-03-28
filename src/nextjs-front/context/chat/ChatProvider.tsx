@@ -194,7 +194,7 @@ const ChatProvider: React.FC = ({ children }) => {
 			in: !!channel.users.find((user: BaseUserData) => {
 				return user.id === userId;
 			}),
-			isAdmin: (channel.owner.id === userId),
+			ownerId: channel.owner.id,
 			peopleCount: channel.users.length,
 			privacy: channel.privacy,
 			updatedAt: lastMessage.createdAt

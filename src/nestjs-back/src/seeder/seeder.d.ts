@@ -52,6 +52,8 @@ export type SeedChannel = {
   password: string;
   users: SeedUser[];
   admins: SeedUser[];
+  mutedUsers: SeedUser[];
+  bannedUsers: SeedUser[];
   messages: SeedMessage[];
 };
 

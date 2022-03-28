@@ -14,6 +14,9 @@ export const GroupHeader: React.FC<{ viewParams: any }> = ({ viewParams }) => {
 	const { closeChat, openChatView, setChatView } = useContext(
 		chatContext
 	) as ChatContextType;
+	const { getUserData } = useContext(authContext) as AuthContextType;
+
+	const ownerView = (viewParams.groupOwnerId === getUserData().id);
 
 	return (
 		<div className="flex items-center justify-between p-3 px-5">
@@ -26,8 +29,9 @@ export const GroupHeader: React.FC<{ viewParams: any }> = ({ viewParams }) => {
 			</div>
 			<button onClick={() => {
 				openChatView('group_users', 'group users', {
+						groupId: viewParams.groupId,
 						groupName: viewParams.groupName,
-						groupId: viewParams.groupId
+						ownerView: ownerView
 					}
 				)}}
 			>
@@ -35,10 +39,11 @@ export const GroupHeader: React.FC<{ viewParams: any }> = ({ viewParams }) => {
 			</button>
 			<button onClick={() => {
 				openChatView('group_settings', 'group settings', {
-						groupName: viewParams.groupName,
 						groupId: viewParams.groupId,
+						groupName: viewParams.groupName,
 						groupMembers: viewParams.groupMembers,
-						groupPrivacy: viewParams.groupPrivacy
+						groupPrivacy: viewParams.groupPrivacy,
+						ownerView: ownerView
 					}
 				)}}
 			>
