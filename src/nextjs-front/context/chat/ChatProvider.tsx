@@ -1,5 +1,6 @@
 import { useContext, useEffect, useState } from "react";
 import { BsFillChatDotsFill } from "react-icons/bs";
+import { BaseUserData } from 'transcendance-types';
 import authContext, { AuthContextType } from "../auth/authContext";
 import Chat from "../../components/Chat";
 import ChatGroupsView from "../../components/chat/Groups";
@@ -12,12 +13,6 @@ import GroupNew, { GroupNewHeader } from "../../components/chat/GroupNew";
 import GroupUsers, { GroupUsersHeader } from "../../components/chat/GroupUsers";
 import GroupSettings, { GroupSettingsHeader } from "../../components/chat/GroupSettings";
 import PasswordProtection, { PasswordProtectionHeader } from "../../components/chat/PasswordProtection";
-
-/* Tmp: will come from the package */
-type BaseUserData = {
-	id: string;
-	username: string;
-};
 
 export type ChatViewItem = {
 	label: string;

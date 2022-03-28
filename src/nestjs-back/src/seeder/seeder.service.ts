@@ -1,11 +1,13 @@
 import { Injectable } from '@nestjs/common';
-import { getConnection } from 'typeorm';
+import { getConnection, Repository } from 'typeorm';
 import { SeedChannel, SeedGame, SeedMessage, SeedUser } from './seeder';
 import { UsersService } from '../users/users.service';
 import { GamesService } from '../games/games.service';
 import { ChannelsService } from '../chat/channels/channels.service';
 import { MessagesService } from '../chat/messages/messages.service';
 import { faker } from '@faker-js/faker';
+import { AchievementsService } from 'src/achievements/achievements.service';
+import achievementList from 'src/constants/achievementsList';
 
 @Injectable()
 export class SeederService {
@@ -13,26 +15,36 @@ export class SeederService {
         private readonly usersService: UsersService,
         private readonly gamesService: GamesService,
         private readonly channelsService: ChannelsService,
-        private readonly messagesService: MessagesService
-    ) {}
+        private readonly messagesService: MessagesService,
+        private readonly achievementsService: AchievementsService,
+     ) {}
+
+    async createAchievements() {
+
+        const list = achievementList;
+        for (let i = 0; i < list.length; i++) {
+            const achievement = this.achievementsService.create(list[i]);
+            (achievement) && console.log("Achievement [%s] created =>s", list[i].type, list[i].description);
+        }
+    } 
 
     async createFakeUser(username: string, i: number) {
 
         let user = await this.usersService.create({
-        email: "test" + String(i) + "@gmail.com",
-        password: "test",
-        pic: null,
-        games: [],
-        wins: 0,
-        losses: 0,
-        draws: 0,
-        friends: [],
-        blockedUsers: [],
-        pendingFriendsSent: [],
-        pendingFriendsReceived: [],
-        ownedChannels: [],
-        joinedChannels: [],
-        accountDeactivated: false,
+            email: "test" + String(i) + "@gmail.com",
+            password: "test",
+            pic: null,
+            accountDeactivated: false,
+            games: [],
+            wins: 0,
+            losses: 0,
+            draws: 0,
+            friends: [],
+            blockedUsers: [],
+            pendingFriendsSent: [],
+            pendingFriendsReceived: [],
+            ownedChannels: [],
+            joinedChannels: [],
         });
         user = await this.usersService.update(user.id.toString(), {
             username: username,
@@ -69,6 +81,8 @@ export class SeederService {
 
     async seed() {
         await getConnection().synchronize(true);
+        console.log('[+] Creating achievements database...');
+        await this.createAchievements();
         console.log('[+] Seeding fake users...');
         await this.seedFakeUsers();
         console.log('[+] Seeding fake games...');
@@ -90,7 +104,6 @@ export class SeederService {
             const user = await this.updateFakeUser(i);
 
             console.log("User [%s] => [%s] [%s] updated", user.id, user.duoquadra_login, user.email);
-        
         }
     }
 
@@ -155,7 +168,6 @@ export class SeederService {
                     password: 'test' + i
                 });
             }
-
             console.log('[+] Seeding fake messages in channel [%s]...', channel.id);
             await this.seedFakeMessages(channel, fakeOwner, fakeFriend);
         }

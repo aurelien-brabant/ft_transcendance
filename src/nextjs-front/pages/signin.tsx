@@ -1,19 +1,15 @@
-import isEmail from "validator/lib/isEmail";
-import withWildLayout from "../components/hoc/withWildLayout";
-import ProgressiveFrom, {
-  ProgressiveFormConfig,
-} from "../components/ProgressiveForm";
-
+import { Fragment, useContext, useEffect, useState } from "react";
+import Head from "next/head";
 import Image from "next/image";
 import Link from "next/link";
-import Head from "next/head";
-import { Fragment, useContext, useEffect, useState } from "react";
-
-import { authorizationLink } from "../constants/authorize42";
-import { NextPageWithLayout } from "./_app";
-import authContext, { AuthContextType } from "../context/auth/authContext";
 import { useRouter } from "next/router";
+import isEmail from "validator/lib/isEmail";
+import { NextPageWithLayout } from "./_app";
+import { authorizationLink } from "../constants/authorize42";
+import authContext, { AuthContextType } from "../context/auth/authContext";
 import alertContext, { AlertContextType } from "../context/alert/alertContext";
+import ProgressiveFrom, { ProgressiveFormConfig } from "../components/ProgressiveForm";
+import withWildLayout from "../components/hoc/withWildLayout";
 
 const SignIn: NextPageWithLayout = () => {
   const [isLoading, setIsLoading] = useState(false);
@@ -80,21 +76,21 @@ const SignIn: NextPageWithLayout = () => {
         type: "error",
       });
     }
-  
+
     setIsLoading(false);
   };
-    
+
   useEffect(() => {
-    const checkAuth = async () => {
+    const isAuth = () => {
       if (isAuthenticated)
-        await router.push("/welcome");
-      if (isPreAuthenticated)
-        await router.push("/validate-tfa");
+        router.push('/welcome');
+      else if (!isAuthenticated && isPreAuthenticated)
+        router.push('/validate-tfa');
     }
 
-    checkAuth();
-  }, []);
-      
+    isAuth();
+  }, [])
+
   return (
     <Fragment>
       <Head>

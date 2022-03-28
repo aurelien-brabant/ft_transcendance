@@ -1,21 +1,18 @@
-import { useRouter } from "next/router";
 import { Fragment, useContext, useEffect, useState } from "react";
 import HashLoader from "react-spinners/HashLoader";
 import Image from "next/image";
-
 import Head from "next/head";
-
+import { useRouter } from "next/router";
 import { authorizationLink } from "../constants/authorize42";
-import {NextPageWithLayout} from "./_app";
-import alertContext, {AlertContextType} from "../context/alert/alertContext";
+import { NextPageWithLayout } from "./_app";
+import alertContext, { AlertContextType } from "../context/alert/alertContext";
 import authContext, { AuthContextType } from "../context/auth/authContext";
 
 const ValidateFortyTwo: NextPageWithLayout = () => {
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState<null | string>(null);
-  const { setAlert } = useContext(alertContext) as AlertContextType;  
+  const { setAlert } = useContext(alertContext) as AlertContextType;
   const { setToken, setIsPreAuthenticated, setIsAuthenticated, setUserData } = useContext(authContext) as AuthContextType;
-  
   const router = useRouter();
 
   const fetchData = async () => {
@@ -33,13 +30,13 @@ const ValidateFortyTwo: NextPageWithLayout = () => {
     const res = await req.json();
     const id = res.id;
     const access_token = res.access_token;
-    
+
     if (req.status === 201) {
-      setIsPreAuthenticated(true);   
+      setIsPreAuthenticated(true);
       const reqTfa = await fetch(`/api/users/${id}`);
       const resTfa = await reqTfa.json();
       setUserData(resTfa);
-      setAlert({ type: 'success', content: 'The 42 API authorized the connexion. Redirecting...' });   
+      setAlert({ type: 'success', content: 'The 42 API authorized the connexion. Redirecting...' });
       if (!resTfa.tfa) {
         window.localStorage.setItem("bearer", access_token);
         setIsAuthenticated(true);
@@ -56,7 +53,7 @@ const ValidateFortyTwo: NextPageWithLayout = () => {
       setIsLoading(false);
     }
   }
-  
+
   useEffect(() => {
     fetchData();
   }, []);
@@ -67,7 +64,7 @@ const ValidateFortyTwo: NextPageWithLayout = () => {
         <title>{!isLoading ? 'Authorization error' : 'Validating 42 authorization'}</title>
         <meta name="description" content="Validate authorization using the temporary code provided by the 42 API" />
         {/* we don't want to index that page nor indexing links on it */}
-		<meta name="robots" content="noindex, nofollow" />
+    <meta name="robots" content="noindex, nofollow" />
       </Head>
       <div
         className="relative flex flex-col items-center justify-center min-h-screen bg-fixed bg-gray-900 bg-center bg-no-repeat bg-cover gap-y-4"

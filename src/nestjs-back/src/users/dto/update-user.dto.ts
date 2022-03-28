@@ -6,7 +6,7 @@ import {
   IsPhoneNumber,
   IsString
 } from 'class-validator';
-import { User } from '../entities/users.entity';
+import { Achievement } from 'src/achievements/entities/achievements.entity';
 import { CreateUserDto } from './create-user.dto';
 
 export class UpdateUserDto extends PartialType(CreateUserDto) {
@@ -24,13 +24,16 @@ export class UpdateUserDto extends PartialType(CreateUserDto) {
 
     @IsOptional()
     @IsString()
+    readonly tfaSecret: string;
+
+    @IsOptional()
+    @IsString()
     readonly duoquadra_login: string;
 
     @IsOptional()
     @IsDecimal()
     readonly ratio: number;
-    
+
     @IsOptional()
-    @IsString()
-    readonly tfaSecret: string;
+    readonly achievements: Achievement[];
 }

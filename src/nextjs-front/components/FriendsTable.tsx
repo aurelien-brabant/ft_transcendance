@@ -3,14 +3,16 @@ import Image from 'next/image';
 import { useContext } from "react";
 import { AiOutlineFall, AiOutlineUserAdd, AiOutlineUserDelete } from "react-icons/ai";
 import { FaMedal, FaUserSlash } from "react-icons/fa";
+import { IoIosArrowForward } from "react-icons/io";
 import { MdCancel } from "react-icons/md";
 import { RiUserHeartLine } from "react-icons/ri";
+import { User } from 'transcendance-types';
 import alertContext, { AlertContextType } from "../context/alert/alertContext";
 import authContext, { AuthContextType } from "../context/auth/authContext";
 import ResponsiveFade from "./ResponsiveFade";
 import Tooltip from "./Tooltip";
-import { IoIosArrowForward } from "react-icons/io";
-import relationshipContext, { RelationshipContextType, User } from "../context/relationship/relationshipContext";
+
+import relationshipContext, { RelationshipContextType } from "../context/relationship/relationshipContext";
 
 const FriendsTable: React.FC<{ type: string, list: User[], suggested: User[], setSuggested: any, setSelected: any }> = ({
   type, list, suggested, setSuggested, setSelected
@@ -18,10 +20,10 @@ const FriendsTable: React.FC<{ type: string, list: User[], suggested: User[], se
 
   const { setAlert } = useContext(alertContext) as AlertContextType;
   const { getUserData } = useContext(authContext) as AuthContextType;
-   const { friends, setFriends, friends42, setFriends42, blocked, setBlocked,
+  const { friends, setFriends, friends42, setFriends42, blocked, setBlocked,
     pendingFriendsReceived, setPendingFriendsReceived, pendingFriendsSent, setPendingFriendsSent
    } = useContext(relationshipContext) as RelationshipContextType;
-
+  
   const updateFriendsRequests = (id: string) => {
     fetch (`/api/users/${getUserData().id}/${id}/removeFriendsReceived`, {
       method: "DELETE",
@@ -42,11 +44,11 @@ const FriendsTable: React.FC<{ type: string, list: User[], suggested: User[], se
     const req = await fetch (`/api/users/${getUserData().id}`);
     const data = await req.json();
     const received = data.pendingFriendsReceived;
-    
+
     let isAsking: boolean = false;
     for (let i in received) {
       if (received[i].id === id)
-        isAsking = true;    
+        isAsking = true;
     }
     if (isAsking) {
       updateFriendsRequests(id);
@@ -95,6 +97,7 @@ const FriendsTable: React.FC<{ type: string, list: User[], suggested: User[], se
       });
 
       if (reqSent.ok && reqReceived.ok) {
+        //TO DO CHECK ACHIEVEMENTS FOR UPDATING
         setSuggested(suggested.filter(
           item => item.id !== id
         ));

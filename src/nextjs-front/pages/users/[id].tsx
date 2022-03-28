@@ -1,42 +1,32 @@
 import Link from "next/link";
 import Image from 'next/image';
+import { useRouter } from "next/router";
 import { Fragment, useContext, useEffect, useState } from "react";
 import { BounceLoader } from "react-spinners";
 import { FaEquals } from "react-icons/fa";
 import { IoMdPersonAdd } from 'react-icons/io';
 import { GiFalling, GiPodiumWinner } from "react-icons/gi";
 import { RiPingPongLine, RiMessage2Line, RiUserSettingsLine } from 'react-icons/ri';
+import { ActiveUser } from 'transcendance-types';
 import { NextPageWithLayout } from "../_app";
+import alertContext, { AlertContextType } from "../../context/alert/alertContext";
 import authContext, { AuthContextType } from "../../context/auth/authContext";
+import chatContext, { ChatContextType } from "../../context/chat/chatContext";
+import Achievements from "../../components/Achievements";
 import Selector from "../../components/Selector";
 import Tooltip from "../../components/Tooltip";
 import { UserStatusItem } from "../../components/UserStatus";
 import withDashboardLayout from "../../components/hoc/withDashboardLayout";
-import chatContext, {ChatContextType} from "../../context/chat/chatContext";
-import { useRouter } from "next/router";
-import alertContext, { AlertContextType } from "../../context/alert/alertContext";
 
 export type GameSummary = {
+  id: string;
   winnerScore: number;
   looserScore: number;
   createdAt: string;
   endedAt: string;
-  id: string;
-  winnerId: number;
-  looserId: number;
+  winnerId: string;
+  looserId: string;
   opponent: string;
-};
-
-type CurrentUser = {
-  username: string;
-  avatar: string;
-  losses: number;
-  wins: number;
-  draws: number;
-  ratio: number | string;
-  id: number;
-  accountDeactivated: boolean;
-  pendingFriendsReceived: CurrentUser[]
 };
 
 const renderScore = (score: [number, number]) => {
@@ -67,7 +57,7 @@ const getDuration = (begin: number, end: number) => {
   return (`${minutes}` + ' min ' + (seconds < 10 ? '0' : '') + `${seconds} sec`);
 }
 
-const HistoryTable: React.FC<{ history: GameSummary[], userId: number }> = ({
+const HistoryTable: React.FC<{ history: GameSummary[], userId: string }> = ({
   history,
   userId
 }) => (
@@ -146,22 +136,27 @@ const UserProfilePage: NextPageWithLayout = ({}) => {
   const { setChatView, openChat } = useContext(chatContext) as ChatContextType;
   const [gamesHistory, setGamesHistory] = useState([]);
   const url: string = window.location.href;
-  const userId: number = parseInt(url.substring(url.lastIndexOf('/') + 1));
+  const userId: string = parseInt(url.substring(url.lastIndexOf('/') + 1)).toString();
   const [isLoading, setIsLoading] = useState(true);
   const [alreadyFriend, setAlreadyFriend] = useState(false);
   const [selected, setSelected] = useState(0);
   const [rank, setRank] = useState("-");
-  const [userData, setUserData] = useState<CurrentUser>(
+  const [userData, setUserData] = useState<ActiveUser>(
     {
       id: getUserData().id,
       username: getUserData().username,
-      avatar: getUserData().pic,
-      losses: getUserData().losses,
-      wins: getUserData().wins,
-      draws: getUserData().draws,
+      pic: getUserData().pic,
       accountDeactivated: getUserData().accountDeactivated,
-      pendingFriendsReceived: getUserData().pendingFriendsReceived,
+      games: getUserData().games,
+      wins: getUserData().wins,
+      losses: getUserData().losses,
+      draws: getUserData().draws,
       ratio: (!getUserData().wins && !getUserData().losses) ? "-" : getUserData().ratio,
+      achievements: getUserData().achievements,
+      friends: getUserData().friends,
+      blockedUsers: getUserData().blockedUsers,
+      pendingFriendsSent: getUserData().pendingFriendsSent,
+      pendingFriendsReceived: getUserData().pendingFriendsReceived,
     }
   );
 
@@ -188,13 +183,18 @@ const UserProfilePage: NextPageWithLayout = ({}) => {
     setUserData({
       id: data.id,
       username: data.username,
-      avatar: !data.pic ? "" : data.pic.startsWith("https://") ? data.pic : `/api/users/${data.id}/photo`,
-      losses: data.losses,
-      wins: data.wins,
-      draws: data.draws,
+      pic: !data.pic ? "" : data.pic.startsWith("https://") ? data.pic : `/api/users/${data.id}/photo`,
       accountDeactivated: data.accountDeactivated,
+      games: data.games,
+      wins: data.wins,
+      losses: data.losses,
+      draws: data.draws,
+      ratio: (!data.wins && !data.losses && !data.draws) ? "-" : data.ratio,
+      achievements: data.achievements,
+      friends: data.friends,
+      blockedUsers: data.blockedUsers,
+      pendingFriendsSent: data.pendingFriendsSent,
       pendingFriendsReceived: data.pendingFriendsReceived,
-      ratio: (!data.wins && !data.losses && data.draws) ? "-" : data.ratio,
     });
   }
 
@@ -223,7 +223,7 @@ const UserProfilePage: NextPageWithLayout = ({}) => {
       setAlert({ type: 'error', content: `Error while sending friend request to ${username}` });
   }
 
-  const alreadyFriendOrAsked = (pending: CurrentUser[], friends: CurrentUser[]) => {
+  const alreadyFriendOrAsked = (pending: ActiveUser[], friends: ActiveUser[]) => {
 
     for (let i in pending) {
       if (pending[i].id === userId)
@@ -245,8 +245,7 @@ const UserProfilePage: NextPageWithLayout = ({}) => {
 
       updateUserData(data);
       updateGamesHistory(JSON.parse(JSON.stringify(data)).games);
-
-      if (!data.wins && !data.losses)
+      if (!data.wins && !data.losses && !data.draws)
         setRank("-");
       else {
         const reqRank = await fetch(`/api/users/${userId}/rank`);
@@ -254,7 +253,7 @@ const UserProfilePage: NextPageWithLayout = ({}) => {
         setRank(res);
       }
 
-      const already = alreadyFriendOrAsked(getUserData().pendingFriendsSent, getUserData().friends)
+      const already = alreadyFriendOrAsked(getUserData().pendingFriendsSent, getUserData().friends);
       setAlreadyFriend(already);
 
       setIsLoading(false);
@@ -274,7 +273,7 @@ const UserProfilePage: NextPageWithLayout = ({}) => {
           <div className="relative w-48 h-48">
             <img
               className="object-cover object-center w-full h-full rounded drop-shadow-md"
-              src={userData.avatar} />
+              src={userData.pic} />
 
             {/* actions */}
             {(userData.accountDeactivated) ? <></> : 
@@ -313,7 +312,7 @@ const UserProfilePage: NextPageWithLayout = ({}) => {
               </Tooltip>
             </div>
             }
-            
+
           </div>
           <div className="flex flex-col items-center">
             <h1 className="text-2xl text-pink-600">{userData.username}</h1>
@@ -343,13 +342,9 @@ const UserProfilePage: NextPageWithLayout = ({}) => {
                 component: <HistoryTable history={gamesHistory} userId={userData.id} />,
               },
               {
-                label: "Last achievements",
-                component: (
-                  <div className="flex flex-col items-center justify-center mt-8">
-                    <h3 className="text-2xl text-gray-600">Achievements are coming soon...</h3>
-                  </div>
-                ),
-              },
+                label: "Achievements",
+                component:  <Achievements />,
+              }
             ]} />
         </div>
       </div>

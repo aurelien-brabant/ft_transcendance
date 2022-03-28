@@ -11,21 +11,22 @@ export type SeedUser = {
     email: string;
     phone: string;
     tfa: boolean;
+    tfaSecret: string;
     pic: string;
     duoquadra_login: string;
+    accountDeactivated: boolean;
     games: SeedGame[];
     wins: number;
     losses: number;
     draws: number;
     ratio: number;
+    achievements: Achievement[];
     friends: User[];
     blockedUsers: User[];
     pendingFriendsSent: User[];
     pendingFriendsReceived: User[];
     ownedChannels: SeedChannel[];
     joinedChannels: SeedChannel[];
-    accountDeactivated: boolean;
-    tfaSecret: string;
 };
 
 /* GAMES */

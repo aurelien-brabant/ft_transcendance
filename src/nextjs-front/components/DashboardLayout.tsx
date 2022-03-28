@@ -1,5 +1,4 @@
-import { ReactElement, useState } from "react";
-import React from "react";
+import React, { ReactElement, useState } from "react";
 import NotificationsProvider from "../context/notifications/NotificationsProvider";
 import DashboardSideNav from "./DashboardSideNav";
 import DashboardTopNav from "./DashboardTopNav";
