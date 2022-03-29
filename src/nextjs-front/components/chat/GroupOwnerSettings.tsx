@@ -52,8 +52,7 @@ const GroupOwnerSettings: React.FC<{ viewParams: any }> = ({ viewParams }) => {
 	const groupId = viewParams.groupId;
 	const groupPrivacy = viewParams.groupPrivacy as ChatGroupPrivacy;
 	const inputGroupClassName = "flex flex-col gap-y-2";
-	const inputClassName =
-		"px-2 py-1 border border-pink-600 bg-transparent outline-none";
+	const inputClassName = "px-2 py-1 border border-pink-600 bg-transparent outline-none";
 	const labelClassName = "text-xs text-neutral-200 uppercase";
 
 	/* Form */
@@ -105,7 +104,7 @@ const GroupOwnerSettings: React.FC<{ viewParams: any }> = ({ viewParams }) => {
 		setFieldErrors(errors);
 	};
 
-	/* Request to update the group data */
+	/* Update the group name, visibility and password */
 	const updateGroup = async (formData: updateGroupData) => {
 		const res = await fetch(`/api/channels/${groupId}`, {
 			method: "PATCH",
@@ -118,12 +117,6 @@ const GroupOwnerSettings: React.FC<{ viewParams: any }> = ({ viewParams }) => {
 				password: (formData.password && formData.password.length !== 0) ? formData.password : undefined
 			}),
 		});
-		alert(res.status);
-		alert(JSON.stringify({
-			name: formData.groupName,
-			privacy: formData.privacy,
-			password: (formData.password && formData.password.length !== 0) ? formData.password : undefined
-		}));
 
 		if (res.status === 200) {
 			closeRightmostView();
@@ -140,6 +133,7 @@ const GroupOwnerSettings: React.FC<{ viewParams: any }> = ({ viewParams }) => {
 		}
 	}
 
+	/* If the owner leaves the group, it is deleted */
 	const disbandGroup = async () => {
 		const res = await fetch(`/api/channels/${groupId}`, {
 			method: "DELETE",
