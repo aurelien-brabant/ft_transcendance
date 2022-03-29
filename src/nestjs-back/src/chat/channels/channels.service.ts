@@ -64,16 +64,12 @@ export class ChannelsService {
       id: +id,
       ...updateChannelDto
     });
-
-    if (channel && updateChannelDto.password) {
-      const hashedPwd = await hashPassword(updateChannelDto.password, 10);
-      channel = await this.channelsRepository.preload({
-        id: +id,
-        password: hashedPwd
-      });
-    }
     if (!channel) {
       throw new NotFoundException(`Cannot update Channel [${id}]: Not found`);
+    }
+    if (updateChannelDto.password) {
+      const hashedPwd = await hashPassword(updateChannelDto.password, 10);
+      channel.password = hashedPwd;
     }
     return this.channelsRepository.save(channel);
   }

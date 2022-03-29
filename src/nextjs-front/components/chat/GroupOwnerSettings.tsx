@@ -1,14 +1,13 @@
 import { Fragment, useContext, useState } from "react";
 import { BsArrowLeftShort } from "react-icons/bs";
 import alertContext, { AlertContextType } from "../../context/alert/alertContext";
-import authContext, { AuthContextType } from "../../context/auth/authContext";
 import chatContext, { ChatContextType, ChatGroupPrivacy } from "../../context/chat/chatContext";
 
 type updateGroupData = {
 	groupName: string;
 	privacy: ChatGroupPrivacy;
-	password: string;
-	password2: string;
+	password: string | undefined;
+	password2: string | undefined;
 };
 
 const privacyTips = {
@@ -49,15 +48,9 @@ export const GroupOwnerSettingsHeader: React.FC<{ viewParams: any }> = ({ viewPa
 
 const GroupOwnerSettings: React.FC<{ viewParams: any }> = ({ viewParams }) => {
 	const { setAlert } = useContext(alertContext) as AlertContextType;
-	const {
-		openChatView,
-		updateChatGroups,
-		setChatGroupData,
-		closeRightmostView,
-		removeChatGroup,
-	} = useContext(chatContext) as ChatContextType;
-	const channelId = viewParams.groupId;
-	// const isProtected = (viewParams.groupPrivacy === "protected");
+	const { closeRightmostView, removeChatGroup } = useContext(chatContext) as ChatContextType;
+	const groupId = viewParams.groupId;
+	const groupPrivacy = viewParams.groupPrivacy as ChatGroupPrivacy;
 	const inputGroupClassName = "flex flex-col gap-y-2";
 	const inputClassName =
 		"px-2 py-1 border border-pink-600 bg-transparent outline-none";
@@ -65,10 +58,10 @@ const GroupOwnerSettings: React.FC<{ viewParams: any }> = ({ viewParams }) => {
 
 	/* Form */
 	const [formData, setFormData] = useState<updateGroupData>({
-		groupName: "",
-		privacy: "private",
-		password: "",
-		password2: "",
+		groupName: `${viewParams.groupName}`,
+		privacy: groupPrivacy,
+		password: undefined,
+		password2: undefined,
 	});
 	const [fieldErrors, setFieldErrors] = useState<Partial<updateGroupData>>({});
 
@@ -94,8 +87,13 @@ const GroupOwnerSettings: React.FC<{ viewParams: any }> = ({ viewParams }) => {
 		}
 
 		if (formData.privacy === 'protected') {
-			if (formData.password.length == 0) {
-				errors['password'] = 'Password can\'t be empty';
+			if (formData.password) {
+				if (formData.password.length == 0) {
+					errors['password'] = 'Password can\'t be empty';
+				}
+				if (formData.password.length < 8) {
+					errors['password'] = 'Password must contain at least 8 characters';
+				}
 			} else if (formData.password !== formData.password2) {
 				errors['password2'] = 'Passwords do not match';
 			}
@@ -109,7 +107,7 @@ const GroupOwnerSettings: React.FC<{ viewParams: any }> = ({ viewParams }) => {
 
 	/* Request to update the group data */
 	const updateGroup = async (formData: updateGroupData) => {
-		const res = await fetch(`/api/channels/${channelId}`, {
+		const res = await fetch(`/api/channels/${groupId}`, {
 			method: "PATCH",
 			headers: {
 				"Content-Type": "application/json",
@@ -117,19 +115,18 @@ const GroupOwnerSettings: React.FC<{ viewParams: any }> = ({ viewParams }) => {
 			body: JSON.stringify({
 				name: formData.groupName,
 				privacy: formData.privacy,
-				password: (formData.password.length !== 0) ? formData.password : undefined
+				password: (formData.password && formData.password.length !== 0) ? formData.password : undefined
 			}),
 		});
+		alert(res.status);
+		alert(JSON.stringify({
+			name: formData.groupName,
+			privacy: formData.privacy,
+			password: (formData.password && formData.password.length !== 0) ? formData.password : undefined
+		}));
 
-		if (res.status === 201) {
-			const data = await res.json();
-			const gm = setChatGroupData(JSON.parse(JSON.stringify(data)));
-
-			updateChatGroups();
-			openChatView('group', gm.label, {
-				groupName: gm.label,
-				groupId: gm.id
-			});
+		if (res.status === 200) {
+			closeRightmostView();
 		} else if (res.status === 401) {
 			setAlert({
 				type: "warning",
@@ -138,13 +135,13 @@ const GroupOwnerSettings: React.FC<{ viewParams: any }> = ({ viewParams }) => {
 		} else {
 			setAlert({
 				type: "error",
-				content: "Failed to create group"
+				content: "Failed to update group"
 			});
 		}
 	}
 
 	const disbandGroup = async () => {
-		const res = await fetch(`/api/channels/${channelId}`, {
+		const res = await fetch(`/api/channels/${groupId}`, {
 			method: "DELETE",
 			headers: {
 				"Content-Type": "application/json",
@@ -152,8 +149,8 @@ const GroupOwnerSettings: React.FC<{ viewParams: any }> = ({ viewParams }) => {
 		});
 
 		if (res.status === 200) {
-			removeChatGroup(channelId);
-			closeRightmostView();
+			removeChatGroup(groupId);
+			closeRightmostView(2);
 			return;
 		} else {
 			setAlert({
@@ -207,7 +204,7 @@ const GroupOwnerSettings: React.FC<{ viewParams: any }> = ({ viewParams }) => {
 								htmlFor="password"
 								className={labelClassName}
 							>
-								password
+								{groupPrivacy === "protected" ? "new password": "password"}
 							</label>
 							</ErrorProvider>
 							<input

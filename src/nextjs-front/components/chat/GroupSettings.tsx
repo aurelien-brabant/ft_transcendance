@@ -56,7 +56,7 @@ const GroupSettings: React.FC<{ viewParams: any }> = ({ viewParams }) => {
 	
 			if (res.status === 200) {
 				removeChatGroup(channelId);
-				closeRightmostView();
+				closeRightmostView(2);
 				return;
 			} else {
 				setAlert({

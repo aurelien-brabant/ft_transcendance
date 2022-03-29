@@ -185,7 +185,7 @@ export class SeederService {
             } as SeedChannel);
             if (channel.privacy === 'protected') {
                 channel = await this.channelsService.update(channel.id.toString(), {
-                    password: 'test' + i
+                    password: 'password'
                 });
             }
             console.log('[+] Seeding fake messages in channel [%s]...', channel.id);
