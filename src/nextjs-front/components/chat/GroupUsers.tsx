@@ -1,6 +1,6 @@
 import { useContext, useEffect, useState } from "react";
 import { BsArrowLeftShort, BsShieldFillCheck, BsShieldFillPlus, BsShieldFillX } from "react-icons/bs";
-import { FaCrown } from "react-icons/fa";
+import { FaCrown, FaUserFriends } from "react-icons/fa";
 import { GiThorHammer } from "react-icons/gi";
 import { MdVoiceOverOff } from "react-icons/md";
 import { RiPingPongLine } from 'react-icons/ri';
@@ -36,7 +36,11 @@ export const GroupUsersHeader: React.FC<{ viewParams: any }> = ({ viewParams }) 
 					<BsArrowLeftShort />
 				</button>
 			</div>
-			<h6>Group members</h6>
+			<h6 className="font-bold">Group members</h6>
+			<div className="flex items-center gap-x-1">
+				<FaUserFriends />
+				{viewParams.peopleCount}
+			</div>
 		</div>
 	);
 };

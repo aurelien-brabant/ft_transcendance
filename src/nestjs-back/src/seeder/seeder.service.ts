@@ -178,8 +178,8 @@ export class SeederService {
         for (let i = 0; i < 5; ++i) {
             let channel = await this.channelsService.create({
                 name: 'fakeChannel_' + i,
-                owner: fakeOwner,
                 privacy: ['private', 'public', 'protected'][Math.floor(Math.random() * 3)],
+                owner: fakeOwner,
                 users: [ { "id": 1 }, { "id": 2 }, { "id": 3 } ],
                 messages: [],
             } as SeedChannel);
@@ -188,10 +188,6 @@ export class SeederService {
                     password: 'test' + i
                 });
             }
-            channel = await this.channelsService.update(channel.id.toString(), {
-                admins: [fakeFriend]
-            });
-
             console.log('[+] Seeding fake messages in channel [%s]...', channel.id);
             await this.seedFakeMessages(channel, fakeOwner, fakeFriend);
         }
@@ -205,8 +201,8 @@ export class SeederService {
             const fakeFriend = await this.usersService.findOne(i.toString())
             let channel = await this.channelsService.create({
                 name: 'fakeDM_' + i,
-                owner: fakeOwner,
                 privacy: 'dm',
+                owner: fakeOwner,
                 users: [fakeOwner, fakeFriend],
                 messages: []
             } as SeedChannel);

@@ -11,11 +11,8 @@ import relationshipContext, { RelationshipContextType } from "../../context/rela
 
 /* Header */
 export const GroupHeader: React.FC<{ viewParams: any }> = ({ viewParams }) => {
-	const { closeChat, openChatView, setChatView } = useContext(
-		chatContext
-	) as ChatContextType;
 	const { getUserData } = useContext(authContext) as AuthContextType;
-
+	const { closeChat, openChatView, setChatView } = useContext(chatContext) as ChatContextType;
 	const ownerView = (viewParams.groupOwnerId === getUserData().id);
 
 	return (
@@ -31,6 +28,7 @@ export const GroupHeader: React.FC<{ viewParams: any }> = ({ viewParams }) => {
 				openChatView('group_users', 'group users', {
 						groupId: viewParams.groupId,
 						groupName: viewParams.groupName,
+						peopleCount: viewParams.peopleCount,
 						ownerView: ownerView
 					}
 				)}}
@@ -38,16 +36,17 @@ export const GroupHeader: React.FC<{ viewParams: any }> = ({ viewParams }) => {
 			<MdPeopleAlt className="text-3xl" />
 			</button>
 			<button onClick={() => {
-				openChatView('group_settings', 'group settings', {
+				openChatView(
+					ownerView ? 'group_owner_settings' : 'group_settings',
+					ownerView ? 'group_owner_settings' : 'group_settings', {
 						groupId: viewParams.groupId,
 						groupName: viewParams.groupName,
-						groupMembers: viewParams.groupMembers,
 						groupPrivacy: viewParams.groupPrivacy,
-						ownerView: ownerView
+						peopleCount: viewParams.peopleCount
 					}
 				)}}
-			>
-			<RiSettings5Line className="text-3xl" />
+				>
+				<RiSettings5Line className="text-3xl" />
 			</button>
 		</div>
 	);

@@ -20,11 +20,6 @@ export class Channel {
   @Column({ length: 50 })
   name: string;
 
-  @ManyToOne(() => User, owner => owner.ownedChannels, {
-    onDelete: "CASCADE"
-  })
-  owner: User;
-
   /* public, private, protected, dm */
   @Column({ default: "private" })
   privacy: string
@@ -32,6 +27,11 @@ export class Channel {
   @IsOptional()
   @Column({ select: false, nullable: true })
   password: string;
+
+  @ManyToOne(() => User, owner => owner.ownedChannels, {
+    onDelete: "CASCADE"
+  })
+  owner: User;
 
   @ManyToMany(() => User, user => user.joinedChannels)
   @JoinTable()

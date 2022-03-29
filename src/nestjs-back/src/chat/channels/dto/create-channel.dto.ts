@@ -16,9 +16,6 @@ export class CreateChannelDto {
   @MinLength(2)
   readonly name: string;
 
-  @IsNotEmpty()
-  readonly owner: User;
-
   @IsString()
   @IsIn(["public", "private", "protected", "dm"])
   readonly privacy: string;
@@ -27,6 +24,9 @@ export class CreateChannelDto {
   @IsString()
   @MinLength(8)
   readonly password?: string;
+
+  @IsNotEmpty()
+  readonly owner: User;
 
   @IsNotEmpty()
   readonly users: User[];

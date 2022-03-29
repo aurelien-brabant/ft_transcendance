@@ -4,7 +4,7 @@ import alertContext, { AlertContextType } from "../../context/alert/alertContext
 import authContext, { AuthContextType } from "../../context/auth/authContext";
 import chatContext, { ChatContextType, ChatGroupPrivacy } from "../../context/chat/chatContext";
 
-type NewGroupData = {
+type updateGroupData = {
 	groupName: string;
 	privacy: ChatGroupPrivacy;
 	password: string;
@@ -26,7 +26,8 @@ const ErrorProvider: React.FC<{ error?: string }> = ({ children, error }) => (
 	</div>
 );
 
-export const GroupNewHeader: React.FC = () => {
+/* Header */
+export const GroupOwnerSettingsHeader: React.FC<{ viewParams: any }> = ({ viewParams }) => {
 	const { closeRightmostView } = useContext(chatContext) as ChatContextType;
 
 	return (
@@ -41,27 +42,35 @@ export const GroupNewHeader: React.FC = () => {
 					<BsArrowLeftShort />
 				</button>
 			</div>
-			<h6>New group settings</h6>
+			<h6 className="font-bold">Group settings</h6>
 		</div>
 	);
-}
+};
 
-const GroupNew: React.FC = () => {
+const GroupOwnerSettings: React.FC<{ viewParams: any }> = ({ viewParams }) => {
 	const { setAlert } = useContext(alertContext) as AlertContextType;
-	const { getUserData } = useContext(authContext) as AuthContextType;
 	const {
 		openChatView,
 		updateChatGroups,
-		setChatGroupData
+		setChatGroupData,
+		closeRightmostView,
+		removeChatGroup,
 	} = useContext(chatContext) as ChatContextType;
+	const channelId = viewParams.groupId;
+	// const isProtected = (viewParams.groupPrivacy === "protected");
+	const inputGroupClassName = "flex flex-col gap-y-2";
+	const inputClassName =
+		"px-2 py-1 border border-pink-600 bg-transparent outline-none";
+	const labelClassName = "text-xs text-neutral-200 uppercase";
 
-	const [formData, setFormData] = useState<NewGroupData>({
+	/* Form */
+	const [formData, setFormData] = useState<updateGroupData>({
 		groupName: "",
 		privacy: "private",
 		password: "",
 		password2: "",
 	});
-	const [fieldErrors, setFieldErrors] = useState<Partial<NewGroupData>>({});
+	const [fieldErrors, setFieldErrors] = useState<Partial<updateGroupData>>({});
 
 	const handleChange = (
 		e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement>
@@ -78,7 +87,7 @@ const GroupNew: React.FC = () => {
 
 	const handleSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
 		e.preventDefault();
-		const errors: Partial<NewGroupData> = {};
+		const errors: Partial<updateGroupData> = {};
 
 		if (formData.groupName.length < 3 || formData.groupName.length > 20) {
 			errors['groupName'] = 'Group name should be between 3 and 20 characters long';
@@ -93,23 +102,22 @@ const GroupNew: React.FC = () => {
 		}
 
 		if (Object.keys(errors).length === 0) {
-			await createGroup(formData);
+			await updateGroup(formData);
 		}
 		setFieldErrors(errors);
 	};
 
-	const createGroup = async (formData: NewGroupData) => {
-		const res = await fetch("/api/channels", {
-			method: "POST",
+	/* Request to update the group data */
+	const updateGroup = async (formData: updateGroupData) => {
+		const res = await fetch(`/api/channels/${channelId}`, {
+			method: "PATCH",
 			headers: {
 				"Content-Type": "application/json",
 			},
 			body: JSON.stringify({
 				name: formData.groupName,
-				owner: getUserData(),
 				privacy: formData.privacy,
-				password: (formData.password.length !== 0) ? formData.password : undefined,
-				users: [ getUserData() ]
+				password: (formData.password.length !== 0) ? formData.password : undefined
 			}),
 		});
 
@@ -118,11 +126,10 @@ const GroupNew: React.FC = () => {
 			const gm = setChatGroupData(JSON.parse(JSON.stringify(data)));
 
 			updateChatGroups();
-			openChatView(gm.privacy === 'protected' ? 'password_protection' : 'group', gm.label, {
+			openChatView('group', gm.label, {
 				groupName: gm.label,
 				groupId: gm.id
-			}
-			);
+			});
 		} else if (res.status === 401) {
 			setAlert({
 				type: "warning",
@@ -136,14 +143,29 @@ const GroupNew: React.FC = () => {
 		}
 	}
 
-	const inputGroupClassName = "flex flex-col gap-y-2";
-	const inputClassName =
-		"px-2 py-1 border border-pink-600 bg-transparent outline-none";
-	const labelClassName = "text-xs text-neutral-200 uppercase";
+	const disbandGroup = async () => {
+		const res = await fetch(`/api/channels/${channelId}`, {
+			method: "DELETE",
+			headers: {
+				"Content-Type": "application/json",
+			},
+		});
+
+		if (res.status === 200) {
+			removeChatGroup(channelId);
+			closeRightmostView();
+			return;
+		} else {
+			setAlert({
+				type: "error",
+				content: "Failed to disband group"
+			});
+		}
+	};
 
 	return (
 		<div className="flex flex-col h-full px-5 py-5 overflow-y-auto gap-y-4">
-			<h6 className="text-xl">Create a new group</h6>
+			<h6 className="text-xl">Update group</h6>
 			<form className="flex flex-col gap-y-4" onSubmit={handleSubmit}>
 				<div className={inputGroupClassName}>
 					<ErrorProvider error={fieldErrors['groupName']}>
@@ -156,7 +178,7 @@ const GroupNew: React.FC = () => {
 						type="text"
 						name="groupName"
 						autoComplete="off"
-						placeholder="The Dream Team"
+						placeholder={viewParams.groupName}
 						value={formData.groupName}
 						onChange={handleChange}
 					/>
@@ -217,10 +239,16 @@ const GroupNew: React.FC = () => {
 						</div>
 					</Fragment>
 				)}
-				<button className="px-2 py-1 bg-pink-600">Create group</button>
+				<button className="px-2 py-1 bg-pink-600">Update group</button>
 			</form>
+			<div className="flex flex-col gap-y-4">
+				<small>Since you are the owner of this group, it will be disband.</small>
+				<button onClick={() => { disbandGroup() }} className="px-3 py-2 uppercase bg-red-600">
+					Leave group
+				</button>
+			</div>
 		</div>
 	);
 };
 
-export default GroupNew;
+export default GroupOwnerSettings;

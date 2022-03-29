@@ -5,7 +5,11 @@ import {
 	useRef,
 	useState,
 } from "react";
-import chatContext, { ChatContextType, ChatGroupPrivacy, DirectMessage } from "../../context/chat/chatContext";
+import chatContext, {
+	ChatContextType,
+	ChatGroupPrivacy,
+	DirectMessage
+} from "../../context/chat/chatContext";
 import { UserStatusItem } from "../UserStatus";
 
 /* All DM conversations tab */
@@ -21,15 +25,6 @@ const DirectMessages: React.FC<{ viewParams: Object; }> = ({ viewParams }) => {
 	const [filteredDms, setFilteredDms] = useState(directMessages);
 	const [visiblityFilter, setVisiblityFilter] = useState<ChatGroupPrivacy | null>(null);
 	const searchInputRef = useRef<HTMLInputElement>(null);
-
-	/* Select all | friends | blocked */
-	const handleSelect = (e: React.ChangeEvent<HTMLSelectElement>) => {
-		setVisiblityFilter(
-			e.target.value !== "all"
-				? (e.target.value as ChatGroupPrivacy)
-				: null
-		);
-	};
 
 	/* Search a user */
 	const handleSearch = (term: string) => {
@@ -75,14 +70,6 @@ const DirectMessages: React.FC<{ viewParams: Object; }> = ({ viewParams }) => {
 						handleSearch(e.target.value);
 					}}
 				/>
-				<select
-					className="px-2 py-1 text-sm bg-gray-900 outline-none"
-					onChange={handleSelect}
-				>
-					<option value="all">all</option>
-					<option value="private">friends</option>
-					<option value="public">blocked</option>
-				</select>
 				<button
 					className="px-2 py-1 text-sm font-bold uppercase bg-pink-600 rounded"
 					onClick={() => {

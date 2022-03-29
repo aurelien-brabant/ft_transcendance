@@ -1,7 +1,7 @@
 import { createContext } from 'react';
 import { BaseUserData } from 'transcendance-types';
 
-export type ChatView = 'groups' | 'group' | 'dms' | 'dm' | 'dm_new' | 'groupadd' | 'password_protection' | 'group_users' | 'group_settings' | 'group_new'; // plural form denotes the list, singular the chat itself
+export type ChatView = 'groups' | 'group' | 'dms' | 'dm' | 'dm_new' | 'groupadd' | 'password_protection' | 'group_users' | 'group_settings' | 'group_owner_settings' | 'group_new'; // plural form denotes the list, singular the chat itself
 
 export type ChatMessage = {
 	id: string;
@@ -59,6 +59,7 @@ export type ChatContextType = {
 	getLastMessage: (channel: any) => ChatMessagePreview;
 	/* Chat groups utils */
 	updateChatGroups: () => void;
+	removeChatGroup: (groupId: string) => void;
 	setChatGroupData: (channel: any) => ChatGroup;
 	/* Direct messages utils */
 	updateDirectMessages: () => void;

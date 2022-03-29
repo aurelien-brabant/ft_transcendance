@@ -15,6 +15,7 @@ import GroupNew, { GroupNewHeader } from "../../components/chat/GroupNew";
 import DirectMessageNew, { DirectMessageNewHeader } from "../../components/chat/DirectMessageNew";
 import GroupUsers, { GroupUsersHeader } from "../../components/chat/GroupUsers";
 import GroupSettings, { GroupSettingsHeader } from "../../components/chat/GroupSettings";
+import GroupOwnerSettings, { GroupOwnerSettingsHeader } from "../../components/chat/GroupOwnerSettings";
 import PasswordProtection, { PasswordProtectionHeader } from "../../components/chat/PasswordProtection";
 import chatContext, { ChatGroup, ChatMessagePreview, ChatView, DirectMessage } from "./chatContext";
 
@@ -87,6 +88,13 @@ const views: { [key: string]: ChatViewItem } = {
 		isAction: false,
 		Component: GroupSettings,
 		CustomHeaderComponent: GroupSettingsHeader
+	},
+	group_owner_settings: {
+		label: 'Group owner settings',
+		params: {},
+		isAction: false,
+		Component: GroupOwnerSettings,
+		CustomHeaderComponent: GroupOwnerSettingsHeader
 	},
 	group_new: {
 		label: 'Create a new group',
@@ -182,6 +190,12 @@ const ChatProvider: React.FC = ({ children }) => {
 			(b.updatedAt.valueOf() - a.updatedAt.valueOf())
 		);
 		setChatGroups([...chatGroups]);
+	}
+
+	const removeChatGroup = (groupId: string) => {
+		setChatGroups(chatGroups.filter((group: ChatGroup) => {
+			return group.id != groupId
+		}));
 	}
 
 	const setChatGroupData = (channel: any) => {
@@ -332,6 +346,7 @@ const ChatProvider: React.FC = ({ children }) => {
 				directMessages,
 				getLastMessage,
 				updateChatGroups,
+				removeChatGroup,
 				setChatGroupData,
 				updateDirectMessages,
 				setDirectMessageData,

@@ -120,7 +120,7 @@ const Groups: React.FC<{viewParams: Object;}> = ({ viewParams }) => {
 									groupName: gm.label,
 									groupId: gm.id,
 									groupOwnerId: gm.ownerId,
-									groupMembers: gm.peopleCount,
+									peopleCount: gm.peopleCount,
 									groupPrivacy: gm.privacy
 								}
 							);
