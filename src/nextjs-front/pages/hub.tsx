@@ -12,6 +12,8 @@ import { NextPageWithLayout } from "./_app";
 import { Feature, features } from "../constants/feature";
 import ResponsiveFade from "../components/ResponsiveFade";
 import Link from "next/link";
+import Selector from "../components/Selector";
+import OngoingGames from "../components/OngoingGames";
 
 let socket: Socket;
 
@@ -20,6 +22,7 @@ const Hub: NextPageWithLayout = () => {
 	const { setAlert } = useContext(alertContext) as AlertContextType;
 	// const { socket } = useContext(socketContext) as SocketContextType;
 	const [displayGame, setDisplayGame] = useState(false);
+	const [selected, setSelected] = useState(0);
 	const [inQueue, setInQueue] = useState(false);
 	const [room, setRoom] = useState<IRoom | null>(null);
 	const[currentGame, setCurrentGame] = useState([]);
@@ -88,36 +91,15 @@ const Hub: NextPageWithLayout = () => {
 		
 	return () => {
 			if (socket)
-				socket.disconnect();
-	}
-  }, []);
+			socket.disconnect();
+		}
+	}, []);
+	
+	// useEffect((): any => {
+	// 	getCurrentGames();
 
-// console.log(currentGame);
-  const lastGames = async () => {
-
-    const req = await fetch(`/api/games`, {
-        method: 'GET',
-        headers: {
-          'Content-Type': 'application/json'
-        },
-//        body: JSON.stringify({accountDeactivated: false})
-      });
-      const res = await req.json();
-    //   console.log('req', req);
-    //   console.log('res', res)
-	  return (JSON.parse(JSON.stringify(res)))
-  }
-
-//   const displayCurrentGames = async (getCurrentGames:any) => {
-// 	const gamesToMap = getCurrentGames()
-//     for (const i in gamesToMap) {
-//       const ongoingGamesId = (gamesToMap[i].endedAt !== null) ? gamesToMap[i].id : "";
-//       const req = await fetch (`/api/games/${ongoingGamesId}`)
-//       const res = await req.json();
-//     }
-//   }
+	// }, [selected])
   
-
 	return (
 		<Fragment>
 			<Head>
@@ -137,21 +119,7 @@ const Hub: NextPageWithLayout = () => {
 				(
 					<>
 						<h1>Hello World!</h1>
-						<section id="features" className="bg-gray-900">
-							<div className="flex flex-col items-center py-16 md:mx-auto md:container gap-y-8">
-								<div className="relative grid md:grid-cols-3 gap-16">
-								<div className="absolute hidden h-1 bg-white rounded left-48 right-48 top-12 lg:block" />
-								{/* {features.map((feature) => (
-									<FeatureItem key={feature.label} {...feature} />
-								))} */}
-								</div>
-								<Link href="/">
-								<a className="px-10 py-2 mx-auto mt-4 text-xl font-bold uppercase bg-pink-600 drop-shadow-md text-bold text-neutral-200">
-									Enter the fight
-								</a>
-								</Link>
-							</div>
-						</section>
+						<OngoingGames/>
 						{
 						inQueue ?
 							<button onClick={leaveQueue} className="px-6 py-2 text-xl uppercase bg-grey-600 drop-shadow-md text-bold text-neutral-200">Cancel</button>
