@@ -1,7 +1,7 @@
 // import Draggable from "react-draggable";
 import { Fragment, useContext } from "react";
 import { AiOutlineClose, AiOutlineUser } from "react-icons/ai";
-import { FaUserFriends } from "react-icons/fa";
+import { MdPeopleAlt } from "react-icons/md";
 import { ChatViewItem } from "../context/chat/ChatProvider";
 import chatContext, { ChatContextType } from "../context/chat/chatContext";
 import Tooltip from "./Tooltip";
@@ -37,79 +37,67 @@ const Chat: React.FC<ChatProps> = ({ viewStack, onClose }) => {
 
 				{!currentView.CustomHeaderComponent ? (
 					<Fragment>
-					<nav className="flex justify-between px-5 text-3xl">
-						<Tooltip
-							content="Dismiss chat"
-							className={buttonTooltipClassName}
-						>
-							<button
-								onClick={() => {
-									onClose();
-								}}
-								className={buttonClassName}
+						<div className="flex items-center justify-between pt-3 px-5 text-2xl">
+							<Tooltip content="Dismiss chat" className={buttonTooltipClassName}>
+								<button
+									onClick={() => { onClose(); }}
+									className={buttonClassName}
+								>
+									<AiOutlineClose />
+								</button>
+							</Tooltip>
+							<Tooltip content="Groups" className={buttonTooltipClassName}>
+								<button
+									onClick={() => { setChatView("groups", "group chats", {}); }}
+									className={buttonClassName}
+								>
+									<MdPeopleAlt />
+								</button>
+							</Tooltip>
+							<Tooltip
+								content="DMs"
+								className={buttonTooltipClassName}
 							>
-								<AiOutlineClose />
-							</button>
-						</Tooltip>
-						<Tooltip
-							content="Groups"
-							className={buttonTooltipClassName}
-						>
-							<button
-								onClick={() => {
-									setChatView("groups", "group chats", {});
-								}}
-								className={buttonClassName}
-							>
-								<FaUserFriends />
-							</button>
-						</Tooltip>
-						<Tooltip
-							content="DMs"
-							className={buttonTooltipClassName}
-						>
-							<button
-								onClick={() => {
-									setChatView("dms", "direct messages", {});
-								}}
-								className={buttonClassName}
-							>
-								<AiOutlineUser />
-							</button>
-						</Tooltip>
-					</nav>
-<div className="flex flex-col items-center justify-center">
-					<h6 className="text-lg font-bold text-pink-600 uppercase">
-						{viewStack.length > 0 &&
-							viewStack[viewStack.length - 1].label}
-					</h6>
-					<div className="flex">
-						{viewStack.length > 1 &&
-							viewStack.map((item, index, arr) => (
-								<Fragment key={item.label}>
-									{index != arr.length - 1 ? (
-										<button
-											onClick={() => {
-												closeRightmostView(
-													viewStack.length - index - 1
-												);
-											}}
-											className="hover:opacity-75 transition"
-										>
-											{item.label}
-										</button>
-									) : (
-										<span>{item.label}</span>
-									)}
-									{index != arr.length - 1 && (
-										<span className="mx-2 font-bold">
-											/
-										</span>
-									)}
-								</Fragment>
-							))}
-					</div>
-				</div>
+								<button
+									onClick={() => { setChatView("dms", "direct messages", {}); }}
+									className={buttonClassName}
+								>
+									<AiOutlineUser />
+								</button>
+							</Tooltip>
+						</div>
+						<div className="flex flex-col items-center justify-center">
+							<h6 className="text-lg font-bold text-pink-600 uppercase">
+								{viewStack.length > 0 &&
+									viewStack[viewStack.length - 1].label}
+							</h6>
+							<div className="flex">
+								{viewStack.length > 1 &&
+									viewStack.map((item, index, arr) => (
+										<Fragment key={item.label}>
+											{index != arr.length - 1 ? (
+												<button
+													onClick={() => {
+														closeRightmostView(
+															viewStack.length - index - 1
+														);
+													}}
+													className="hover:opacity-75 transition"
+												>
+													{item.label}
+												</button>
+											) : (
+												<span>{item.label}</span>
+											)}
+											{index != arr.length - 1 && (
+												<span className="mx-2 font-bold">
+													/
+												</span>
+											)}
+										</Fragment>
+									))}
+							</div>
+						</div>
 					</Fragment>
 				) : (
 					<currentView.CustomHeaderComponent viewParams={currentView.params} />

@@ -1,4 +1,5 @@
 import { useEffect, useRef, useState, useContext } from "react";
+import { AiOutlineClose } from "react-icons/ai";
 import { BsArrowLeftShort } from "react-icons/bs";
 import { User } from "transcendance-types";
 import authContext, { AuthContextType } from "../../context/auth/authContext";
@@ -8,21 +9,19 @@ import { UserStatusItem } from "../UserStatus";
 
 /* Header */
 export const DirectMessageNewHeader: React.FC = () => {
-	const { closeRightmostView } = useContext(chatContext) as ChatContextType;
+	const { closeChat, closeRightmostView } = useContext(chatContext) as ChatContextType;
 
 	return (
 		<div className="flex items-center justify-between p-3 px-5">
-			<div className="flex gap-x-2">
-				<button
-					className="text-4xl"
-					onClick={() => {
-						closeRightmostView();
-					}}
-				>
+			<div className="flex gap-x-2 text-2xl">
+				<button onClick={() => { closeChat(); }}>
+					<AiOutlineClose />
+				</button>
+				<button className="text-4xl" onClick={() => { closeRightmostView(); }}>
 					<BsArrowLeftShort />
 				</button>
 			</div>
-			<h6>Chat with a friend</h6>
+			<h6 className="text-lg font-bold text-pink-600">Chat with a friend</h6>
 		</div>
 	);
 }

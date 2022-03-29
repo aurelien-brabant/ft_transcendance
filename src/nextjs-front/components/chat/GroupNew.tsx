@@ -1,4 +1,5 @@
 import { Fragment, useContext, useState } from "react";
+import { AiOutlineClose } from "react-icons/ai";
 import { BsArrowLeftShort } from "react-icons/bs";
 import alertContext, { AlertContextType } from "../../context/alert/alertContext";
 import authContext, { AuthContextType } from "../../context/auth/authContext";
@@ -27,24 +28,22 @@ const ErrorProvider: React.FC<{ error?: string }> = ({ children, error }) => (
 );
 
 export const GroupNewHeader: React.FC = () => {
-	const { closeRightmostView } = useContext(chatContext) as ChatContextType;
+	const { closeChat, closeRightmostView } = useContext(chatContext) as ChatContextType;
 
 	return (
 		<div className="flex items-center justify-between p-3 px-5">
-			<div className="flex gap-x-2">
-				<button
-					className="text-4xl"
-					onClick={() => {
-						closeRightmostView();
-					}}
-				>
+			<div className="flex gap-x-2 text-2xl">
+				<button onClick={() => { closeChat(); }}>
+					<AiOutlineClose />
+				</button>
+				<button className="text-4xl" onClick={() => { closeRightmostView(); }}>
 					<BsArrowLeftShort />
 				</button>
 			</div>
-			<h6>New group settings</h6>
+			<h6 className="text-lg font-bold text-pink-600">New group settings</h6>
 		</div>
 	);
-}
+};
 
 const GroupNew: React.FC = () => {
 	const { setAlert } = useContext(alertContext) as AlertContextType;

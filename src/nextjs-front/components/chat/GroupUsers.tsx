@@ -1,8 +1,9 @@
 import { useContext, useEffect, useState } from "react";
+import { AiOutlineClose } from "react-icons/ai";
 import { BsArrowLeftShort, BsShieldFillCheck, BsShieldFillPlus, BsShieldFillX } from "react-icons/bs";
-import { FaCrown, FaUserFriends } from "react-icons/fa";
+import { FaCrown } from "react-icons/fa";
 import { GiThorHammer } from "react-icons/gi";
-import { MdVoiceOverOff } from "react-icons/md";
+import { MdPeopleAlt, MdVoiceOverOff } from "react-icons/md";
 import { RiPingPongLine } from 'react-icons/ri';
 import Link from "next/link";
 import { BaseUserData } from "transcendance-types";
@@ -22,23 +23,21 @@ type UserSummary = {
 
 /* Header */
 export const GroupUsersHeader: React.FC<{ viewParams: any }> = ({ viewParams }) => {
-	const { closeRightmostView } = useContext(chatContext) as ChatContextType;
+	const { closeChat, closeRightmostView } = useContext(chatContext) as ChatContextType;
 
 	return (
 		<div className="flex items-center justify-between p-3 px-5">
-			<div className="flex gap-x-2">
-				<button
-					className="text-4xl"
-					onClick={() => {
-						closeRightmostView();
-					}}
-				>
+			<div className="flex gap-x-2 text-2xl">
+				<button onClick={() => { closeChat(); }}>
+					<AiOutlineClose />
+				</button>
+				<button className="text-4xl" onClick={() => { closeRightmostView(); }}>
 					<BsArrowLeftShort />
 				</button>
 			</div>
-			<h6 className="font-bold">Group members</h6>
-			<div className="flex items-center gap-x-1">
-				<FaUserFriends />
+			<h6 className="text-lg font-bold text-pink-600">Group members</h6>
+			<div className="flex items-center gap-x-2">
+				<MdPeopleAlt />
 				{viewParams.peopleCount}
 			</div>
 		</div>

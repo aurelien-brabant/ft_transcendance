@@ -16,38 +16,42 @@ export const GroupHeader: React.FC<{ viewParams: any }> = ({ viewParams }) => {
 	const ownerView = (viewParams.groupOwnerId === getUserData().id);
 
 	return (
-		<div className="flex items-center justify-between p-3 px-5">
+		<div className="flex items-center justify-between p-3 px-5 text-2xl">
 			<div className="flex gap-x-2">
-				<button className="text-2xl" onClick={() => { closeChat() }}><AiOutlineClose /></button>
-				<button className="text-4xl" onClick={() => { setChatView('groups', 'Group chats', {})}}><BsArrowLeftShort /></button>
+				<button onClick={() => {closeChat() }}>
+					<AiOutlineClose />
+				</button>
+				<button className="text-4xl" onClick={() => { setChatView('groups', 'Group chats', {})}}>
+					<BsArrowLeftShort />
+				</button>
 			</div>
-			<div className="flex items-center gap-x-3">
-				<h6 className="font-bold">{viewParams.groupName}</h6>
-			</div>
-			<button onClick={() => {
-				openChatView('group_users', 'group users', {
-						groupId: viewParams.groupId,
-						groupName: viewParams.groupName,
-						peopleCount: viewParams.peopleCount,
-						ownerView: ownerView
-					}
-				)}}
-			>
-			<MdPeopleAlt className="text-3xl" />
-			</button>
-			<button onClick={() => {
-				openChatView(
-					ownerView ? 'group_owner_settings' : 'group_settings',
-					ownerView ? 'group_owner_settings' : 'group_settings', {
-						groupId: viewParams.groupId,
-						groupName: viewParams.groupName,
-						groupPrivacy: viewParams.groupPrivacy,
-						peopleCount: viewParams.peopleCount
-					}
-				)}}
+			<h6 className="text-lg font-bold text-pink-600">{viewParams.groupName}</h6>
+			<div className="flex items-right gap-x-3">
+				<button onClick={() => {
+					openChatView('group_users', 'group users', {
+							groupId: viewParams.groupId,
+							groupName: viewParams.groupName,
+							peopleCount: viewParams.peopleCount,
+							ownerView: ownerView
+						}
+					)}}
 				>
-				<RiSettings5Line className="text-3xl" />
-			</button>
+				<MdPeopleAlt />
+				</button>
+				<button onClick={() => {
+					openChatView(
+						ownerView ? 'group_owner_settings' : 'group_settings',
+						ownerView ? 'group_owner_settings' : 'group_settings', {
+							groupId: viewParams.groupId,
+							groupName: viewParams.groupName,
+							groupPrivacy: viewParams.groupPrivacy,
+							peopleCount: viewParams.peopleCount
+						}
+					)}}
+					>
+					<RiSettings5Line/>
+				</button>
+			</div>
 		</div>
 	);
 }

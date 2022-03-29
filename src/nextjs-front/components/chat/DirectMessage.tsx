@@ -20,11 +20,12 @@ export const DirectMessageHeader: React.FC<{ viewParams: any }> = ({ viewParams 
 	return (
 		<div className="flex items-center justify-between p-3 px-5">
 			<div className="flex gap-x-2">
-				<button className="text-2xl" onClick={() => { closeChat() }}><AiOutlineClose /></button>
-				<button className="text-4xl" onClick={() => {
-					setChatView('dms', 'Direct messages', {})
-				}}
-				><BsArrowLeftShort /></button>
+				<button className="text-2xl" onClick={() => {closeChat() }}>
+					<AiOutlineClose />
+				</button>
+				<button className="text-4xl" onClick={() => {setChatView('dms', 'Direct messages', {})}}>
+					<BsArrowLeftShort />
+				</button>
 			</div>
 			<div className="flex items-center gap-x-3">
 				<Link href={`/users/${viewParams.friendId}`}><h6 className="font-bold hover:text-pink-600">

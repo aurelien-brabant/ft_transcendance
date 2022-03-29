@@ -1,4 +1,5 @@
 import { Fragment, useContext, useState } from "react";
+import { AiOutlineClose } from "react-icons/ai";
 import { BsArrowLeftShort } from "react-icons/bs";
 import alertContext, { AlertContextType } from "../../context/alert/alertContext";
 import chatContext, { ChatContextType, ChatGroupPrivacy } from "../../context/chat/chatContext";
@@ -27,21 +28,19 @@ const ErrorProvider: React.FC<{ error?: string }> = ({ children, error }) => (
 
 /* Header */
 export const GroupOwnerSettingsHeader: React.FC<{ viewParams: any }> = ({ viewParams }) => {
-	const { closeRightmostView } = useContext(chatContext) as ChatContextType;
+	const { closeChat, closeRightmostView } = useContext(chatContext) as ChatContextType;
 
 	return (
 		<div className="flex items-center justify-between p-3 px-5">
-			<div className="flex gap-x-2">
-				<button
-					className="text-4xl"
-					onClick={() => {
-						closeRightmostView();
-					}}
-				>
+			<div className="flex gap-x-2 text-2xl">
+				<button onClick={() => { closeChat(); }}>
+					<AiOutlineClose />
+				</button>
+				<button className="text-4xl" onClick={() => { closeRightmostView(); }}>
 					<BsArrowLeftShort />
 				</button>
 			</div>
-			<h6 className="font-bold">Group settings</h6>
+			<h6 className="text-lg font-bold text-pink-600">Group settings</h6>
 		</div>
 	);
 };
@@ -169,7 +168,7 @@ const GroupOwnerSettings: React.FC<{ viewParams: any }> = ({ viewParams }) => {
 						type="text"
 						name="groupName"
 						autoComplete="off"
-						placeholder={viewParams.groupName}
+						placeholder={"new name"}
 						value={formData.groupName}
 						onChange={handleChange}
 					/>
@@ -232,10 +231,11 @@ const GroupOwnerSettings: React.FC<{ viewParams: any }> = ({ viewParams }) => {
 				)}
 				<button className="px-2 py-1 bg-pink-600">Update group</button>
 			</form>
+			<h6 className="text-xl">Leave group</h6>
 			<div className="flex flex-col gap-y-4">
 				<small>Since you are the owner of this group, it will be disband.</small>
 				<button onClick={() => { disbandGroup() }} className="px-3 py-2 uppercase bg-red-600">
-					Leave group
+					Disband group
 				</button>
 			</div>
 		</div>
