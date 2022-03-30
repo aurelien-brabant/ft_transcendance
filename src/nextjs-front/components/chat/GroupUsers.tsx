@@ -227,7 +227,7 @@ const GroupUsers: React.FC<{ viewParams: any }> = ({ viewParams }) => {
 								user.isOwner
 									? "border-pink-600"
 									: user.isAdmin
-										? "border-green-600"
+										? "border-blue-500"
 										: "border-gray-800"
 							} rounded-full `}
 						/>
@@ -235,7 +235,7 @@ const GroupUsers: React.FC<{ viewParams: any }> = ({ viewParams }) => {
 							<a>{user.username}</a>
 						</Link>
 						{user.isOwner && <FaCrown className="text-yellow-500" />}
-						{!user.isOwner && user.isAdmin && <BsShieldFillCheck className="text-green-600"/>}
+						{!user.isOwner && user.isAdmin && <BsShieldFillCheck className="text-blue-500"/>}
 					</div>
 					<div className="flex text-xl gap-x-3">
 
@@ -246,7 +246,7 @@ const GroupUsers: React.FC<{ viewParams: any }> = ({ viewParams }) => {
 							<GiThorHammer color="grey"/></button>
 						</Tooltip>
 						<button onClick={() => removeAdmin(String(user.id))} className="text-red-600 transition hover:scale-110"><BsShieldFillX /></button>
-						<Tooltip className={actionTooltipStyles} content="+admin"><button onClick={() => addAdmin(String(user.id))} className="text-green-600 transition hover:scale-110">
+						<Tooltip className={actionTooltipStyles} content="+admin"><button onClick={() => addAdmin(String(user.id))} className="text-blue-500 transition hover:scale-110">
 							<BsShieldFillPlus /></button>
 						</Tooltip>
 
