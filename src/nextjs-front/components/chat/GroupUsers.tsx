@@ -56,7 +56,6 @@ const GroupUsers: React.FC<{ viewParams: any }> = ({ viewParams }) => {
 	const { fetchChannelData } = useContext(chatContext) as ChatContextType;
 	const [users, setUsers] = useState<UserSummary[]>([]);
 	const channelId = viewParams.groupId;
-	// const ownerView = viewParams.ownerView;
 	const actionTooltipStyles = "font-bold bg-gray-900 text-neutral-200";
 
 	/* Make user administrator */
@@ -194,7 +193,7 @@ const GroupUsers: React.FC<{ viewParams: any }> = ({ viewParams }) => {
 				username: chanUsers[i].username,
 				pic: `/api/users/${chanUsers[i].id}/photo`,
 				isOwner: (chanUsers[i].id === chanOwner.id),
-				isAdmin: (chanUsers[i].id === chanOwner.id) || !!chanAdmins.find((admin: BaseUserData) => {
+				isAdmin: (chanUsers[i].id === chanOwner.id) || !!chanAdmins.find((admin: BaseUserData) => {
 					return admin.id === chanUsers[i].id;
 				}),
 				isMuted: !!mutedUsers.find((user: BaseUserData) => {
@@ -214,60 +213,101 @@ const GroupUsers: React.FC<{ viewParams: any }> = ({ viewParams }) => {
 
 	// TODO: don't display Pong icon if user is blocked
 
-	return (
-		<div className="flex flex-col h-full py-4 overflow-auto ">
-			{users.map((user) => (
-				<div key={user.username} className="flex items-center justify-between px-4 py-3 gap-x-2 hover:bg-gray-800/90 transition">
-					<div className="flex items-center gap-x-2 w-12 h-12 rounded-full">
-						<img
-							src={user.pic}
-							className={`border-4 ${
-								user.isOwner
-									? "border-pink-600"
-									: user.isAdmin
-										? "border-blue-500"
-										: "border-gray-800"
-							} object-fill w-full h-full rounded-full`}
-						/>
-						<Link href={`/users/${user.username}`}>
-							<a>{user.username}</a>
-						</Link>
-						{user.isOwner && <FaCrown className="text-yellow-500" />}
-						{!user.isOwner && user.isAdmin && <BsShieldFillCheck className="text-blue-500"/>}
+	if (viewParams.ownerView) { // also admin
+		return (
+			<div className="flex flex-col h-full py-4 overflow-auto ">
+				{users.map((user) => (
+					<div key={user.username} className="flex items-center justify-between px-4 py-3 gap-x-2 hover:bg-gray-800/90 transition">
+						<div className="flex items-center gap-x-2 w-12 h-12">
+							<img
+								src={user.pic}
+								className={`border-4 ${
+									user.isOwner
+										? "border-pink-600"
+										: user.isAdmin
+											? "border-blue-500"
+											: "border-gray-800"
+								} object-fill w-full h-full rounded-full`}
+							/>
+							<Link href={`/users/${user.username}`}>
+								<a className="flex items-center gap-x-2">
+									{user.username}
+									{user.isOwner && <FaCrown className="text-yellow-500" />}
+									{!user.isOwner && user.isAdmin && <BsShieldFillCheck className="text-blue-500"/>}
+								</a>
+							</Link>
+						</div>
+						<div className="flex text-xl gap-x-2">
+							{!user.isAdmin &&
+							<Tooltip className={actionTooltipStyles} content="mute">
+								<button onClick={() => muteUser(String(user.id))} className="transition hover:scale-110">
+									<MdVoiceOverOff color="grey"/>
+								</button>
+							</Tooltip>}
+							{!user.isAdmin &&
+							<Tooltip className={actionTooltipStyles} content="ban">
+								<button onClick={() => banUser(String(user.id))} className="transition hover:scale-110">
+									<GiThorHammer color="grey"/>
+								</button>
+							</Tooltip>}
+							{!user.isOwner && user.isAdmin &&
+							<button onClick={() => removeAdmin(String(user.id))} className="text-red-600 transition hover:scale-110"><BsShieldFillX /></button>}
+							{!user.isOwner && !user.isAdmin &&
+							<Tooltip className={actionTooltipStyles} content="+admin">
+								<button onClick={() => addAdmin(String(user.id))} className="text-blue-500 transition hover:scale-110">
+									<BsShieldFillPlus />
+								</button>
+							</Tooltip>}
+							<Tooltip className={actionTooltipStyles} content="play">
+								<button
+									className="p-1 text-gray-900 bg-white rounded-full transition hover:scale-110  hover:text-pink-600"
+								>
+									<RiPingPongLine />
+								</button>
+							</Tooltip>
+						</div>
 					</div>
-					<div className="flex text-xl gap-x-2">
-
-						<Tooltip className={actionTooltipStyles} content="mute">
-							<button onClick={() => muteUser(String(user.id))} className="transition hover:scale-110">
-								<MdVoiceOverOff color="grey"/>
-							</button>
-						</Tooltip>
-
-						<Tooltip className={actionTooltipStyles} content="ban">
-							<button onClick={() => banUser(String(user.id))} className="transition hover:scale-110">
-								<GiThorHammer color="grey"/>
-							</button>
-						</Tooltip>
-
-						<button onClick={() => removeAdmin(String(user.id))} className="text-red-600 transition hover:scale-110"><BsShieldFillX /></button>
-						<Tooltip className={actionTooltipStyles} content="+admin">
-							<button onClick={() => addAdmin(String(user.id))} className="text-blue-500 transition hover:scale-110">
-								<BsShieldFillPlus />
-							</button>
-						</Tooltip>
-
-						<Tooltip className={actionTooltipStyles} content="play">
-							<button
-								className="p-1 text-gray-900 bg-white rounded-full transition hover:scale-110  hover:text-pink-600"
-							>
-								<RiPingPongLine />
-							</button>
-						</Tooltip>
+				))}
+			</div>
+		);
+	} else {
+		return (
+			<div className="flex flex-col h-full py-4 overflow-auto ">
+				{users.map((user) => (
+					<div key={user.username} className="flex items-center justify-between px-4 py-3 gap-x-2 hover:bg-gray-800/90 transition">
+						<div className="flex items-center gap-x-2 w-12 h-12">
+							<img
+								src={user.pic}
+								className={`border-4 ${
+									user.isOwner
+										? "border-pink-600"
+										: user.isAdmin
+											? "border-blue-500"
+											: "border-gray-800"
+								} object-fill w-full h-full rounded-full`}
+							/>
+							<Link href={`/users/${user.username}`}>
+								<a className="flex items-center gap-x-2 ">
+									{user.username}
+									{user.isOwner && <FaCrown className="text-yellow-500" />}
+									{!user.isOwner && user.isAdmin && <BsShieldFillCheck className="text-blue-500"/>}
+								</a>
+							</Link>
+						</div>
+						<div className="flex text-xl gap-x-2">
+							<Tooltip className={actionTooltipStyles} content="play">
+								<button
+									className="p-1 text-gray-900 bg-white rounded-full transition hover:scale-110  hover:text-pink-600"
+								>
+									<RiPingPongLine />
+								</button>
+							</Tooltip>
+						</div>
 					</div>
-				</div>
-			))}
-		</div>
-	);
+				))}
+			</div>
+		);
+	}
 };
 
 export default GroupUsers;
