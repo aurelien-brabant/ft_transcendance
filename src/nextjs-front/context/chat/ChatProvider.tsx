@@ -10,9 +10,9 @@ import ChatGroupsView from "../../components/chat/Groups";
 import ChatGroupView, { GroupHeader } from "../../components/chat/Group";
 import ChatDirectMessagesView from "../../components/chat/DirectMessages";
 import ChatDirectMessageView, { DirectMessageHeader } from "../../components/chat/DirectMessage";
-import Groupadd, { GroupaddHeader } from "../../components/chat/Groupadd";
-import GroupNew, { GroupNewHeader } from "../../components/chat/GroupNew";
 import DirectMessageNew, { DirectMessageNewHeader } from "../../components/chat/DirectMessageNew";
+import GroupAdd, { GroupAddHeader } from "../../components/chat/GroupAdd";
+import GroupNew, { GroupNewHeader } from "../../components/chat/GroupNew";
 import GroupSettings, { GroupSettingsHeader } from "../../components/chat/GroupSettings";
 import GroupUsers, { GroupUsersHeader } from "../../components/chat/GroupUsers";
 import PasswordProtection, { PasswordProtectionHeader } from "../../components/chat/PasswordProtection";
@@ -60,12 +60,12 @@ const views: { [key: string]: ChatViewItem } = {
 		Component: DirectMessageNew,
 		CustomHeaderComponent: DirectMessageNewHeader
 	},
-	groupadd: {
-		label: 'Add to group',
+	group_add: {
+		label: 'Add user to group',
 		params: {},
 		isAction: false,
-		Component: Groupadd,
-		CustomHeaderComponent: GroupaddHeader
+		Component: GroupAdd,
+		CustomHeaderComponent: GroupAddHeader
 	},
 	'password_protection': {
 		label: 'Password protected',
@@ -158,17 +158,19 @@ const ChatProvider: React.FC = ({ children }) => {
 			createdAt: new Date(Date.now())
 		};
 
-		const i = channel.messages.length - 1;
+		if (channel.messages) {
+			const i = channel.messages.length - 1;
 
-		if (i >= 0) {
-			const lastMessage = channel.messages[i];
-			message.createdAt = new Date(lastMessage.createdAt);
+			if (i >= 0) {
+				const lastMessage = channel.messages[i];
+				message.createdAt = new Date(lastMessage.createdAt);
 
-			if (channel.privacy !== "protected") {
-				if (!!blocked.find(user => user.id == lastMessage.author.id)) {
-					message.content = "Blocked message";
-				} else {
-					message.content = lastMessage.content;
+				if (channel.privacy !== "protected") {
+					if (!!blocked.find(user => user.id == lastMessage.author.id)) {
+						message.content = "Blocked message";
+					} else {
+						message.content = lastMessage.content;
+					}
 				}
 			}
 		}
@@ -295,7 +297,8 @@ const ChatProvider: React.FC = ({ children }) => {
 			if (channel.privacy === "dm") {
 				const friend = (channel.users[0].id === userId) ? channel.users[1] : channel.users[0];
 				/* Don't display DMs from blocked users */
-				if (!!blocked.find(user => user.id == friend.id) == false) {
+				const isBlocked = !!blocked.find(user => user.id == friend.id);
+				if (!isBlocked) {
 					dms.push(setDirectMessageData(channel, friend));
 				}
 			} else {

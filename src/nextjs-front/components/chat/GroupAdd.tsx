@@ -1,13 +1,13 @@
 import { Fragment, useContext, useEffect, useRef, useState } from "react";
 import { AiOutlineClose, AiOutlineArrowLeft } from "react-icons/ai";
-import { User } from "transcendance-types";
-import authContext, { AuthContextType } from "../../context/auth/authContext";
+import { BaseUserData, User } from "transcendance-types";
+import alertContext, { AlertContextType } from "../../context/alert/alertContext";
 import chatContext, { ChatContextType } from "../../context/chat/chatContext";
 import relationshipContext, { RelationshipContextType } from "../../context/relationship/relationshipContext";
 import { UserStatusItem } from "../UserStatus";
 
 /* Header */
-export const DirectMessageNewHeader: React.FC = () => {
+export const GroupAddHeader: React.FC<{ viewParams: any }> = ({ viewParams }) => {
 	const { closeChat, closeRightmostView } = useContext(chatContext) as ChatContextType;
 
 	return (
@@ -24,27 +24,51 @@ export const DirectMessageNewHeader: React.FC = () => {
 			</div>
 			<div className="flex flex-col items-center justify-center">
 				<h6 className="text-lg font-bold text-pink-600">
-				Chat with a friend
+					Add a user to group
 				</h6>
 			</div>
 		</Fragment>
 	);
-}
+};
 
-/* Search bar and friend list */
-const DirectMessageNew: React.FC = () => {
-	const { getUserData } = useContext(authContext) as AuthContextType;
-	const { openDirectMessage } = useContext(chatContext) as ChatContextType;
+const GroupAdd: React.FC<{ viewParams: any }> = ({ viewParams }) => {
+	const { setAlert } = useContext(alertContext) as AlertContextType;
+	const { closeRightmostView, fetchChannelData } = useContext(chatContext) as ChatContextType;
 	const { getData, friends } = useContext(relationshipContext) as RelationshipContextType;
-	const userId = getUserData().id;
+	const groupId = viewParams.groupId;
 	const [filteredFriends, setFilteredFriends] = useState<User[]>([]);
 	const searchInputRef = useRef<HTMLInputElement>(null);
+
+	const addUserToGroup = async (id: string) => {
+		const channelData = await fetchChannelData(groupId).catch(console.error);
+		const users = JSON.parse(JSON.stringify(channelData)).users;
+
+		const res = await fetch(`/api/channels/${groupId}`, {
+			method: "PATCH",
+			headers: {
+				"Content-Type": "application/json",
+			},
+			body: JSON.stringify({
+				users: [ ...users, { "id": id } ]
+			}),
+		});
+
+		if (res.status === 200) {
+			closeRightmostView();
+			return;
+		} else {
+			setAlert({
+				type: "error",
+				content: "Failed to add user to group"
+			});
+		}
+	};
 
 	/* Search a friend */
 	const handleSearch = (term: string) => {
 		const searchTerm = term.toLowerCase();
 		setFilteredFriends(
-			friends.filter(
+			filteredFriends.filter(
 				(friend) =>
 					friend.username.toLowerCase().includes(searchTerm)
 			)
@@ -53,12 +77,28 @@ const DirectMessageNew: React.FC = () => {
 
 	/* Find existing DM or create a new one */
 	const handleSelect = async (friend: User) => {
-		await openDirectMessage(userId, friend);
+		await addUserToGroup(friend.id);
 	}
 
 	useEffect(() => {
 		getData();
-		setFilteredFriends(friends);
+		/* Select friends that didn't already join the group */
+		const selectFriends = async () => {
+			const channelData = await fetchChannelData(groupId).catch(console.error);
+			const users = await JSON.parse(JSON.stringify(channelData)).users;
+			const selectedFriends: User[] = [];
+
+			for (var i in friends) {
+				const isInChan = !!users.find((user: BaseUserData) => {
+					return user.id === friends[i].id;
+				})
+				if (!isInChan) {
+					selectedFriends.push(friends[i]);
+				}
+			}
+			setFilteredFriends(selectedFriends);
+		};
+		selectFriends();
 	}, []);
 
 	return (
@@ -68,7 +108,7 @@ const DirectMessageNew: React.FC = () => {
 						ref={searchInputRef}
 						type="text"
 						className="py-1 bg-transparent border-b-2 border-pink-600 text-md outline-0 max-w-[50%]"
-						placeholder="Search in friend list"
+						placeholder="Select a friend"
 						onChange={(e) => {
 							handleSearch(e.target.value);
 						}}
@@ -100,4 +140,4 @@ const DirectMessageNew: React.FC = () => {
 	);
 };
 
-export default DirectMessageNew;
+export default GroupAdd;

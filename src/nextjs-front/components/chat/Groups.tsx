@@ -114,7 +114,7 @@ const Groups: React.FC<{viewParams: Object;}> = ({ viewParams }) => {
 				{filteredGroups.map((gm) => (
 					<div
 						key={gm.label}
-						className="relative items-center px-10 py-5 border-b-2 border-gray-800 grid grid-cols-3 bg-gray-900/90 hover:bg-gray-800/90 transition"
+						className="relative items-center px-10 py-5 grid grid-cols-3 bg-gray-900/90 hover:bg-gray-800/90 transition"
 						onClick={() => {
 							openChatView(gm.privacy === 'protected' ? 'password_protection' : 'group', gm.label, {
 									groupName: gm.label,

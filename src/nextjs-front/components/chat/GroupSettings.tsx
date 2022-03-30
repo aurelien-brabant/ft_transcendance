@@ -302,6 +302,7 @@ const GroupSettings: React.FC<{ viewParams: any }> = ({ viewParams }) => {
 					</div>
 				</div>
 				<div className="flex flex-col gap-y-4">
+				<h6 className="text-xl">Leave group</h6>
 				<button
 					onClick={() => { handleLeaveGroup() }}
 					className="px-3 py-2 uppercase bg-red-600">

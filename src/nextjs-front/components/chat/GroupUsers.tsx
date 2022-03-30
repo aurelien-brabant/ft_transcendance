@@ -1,4 +1,4 @@
-import { Fragment, useContext, useEffect, useState } from "react";
+import { Fragment, useContext, useEffect, useRef, useState } from "react";
 import { AiOutlineClose, AiOutlineArrowLeft } from "react-icons/ai";
 import { FaUserFriends } from "react-icons/fa";
 import { BsShieldFillCheck, BsShieldFillPlus, BsShieldFillX } from "react-icons/bs";
@@ -217,19 +217,17 @@ const GroupUsers: React.FC<{ viewParams: any }> = ({ viewParams }) => {
 	return (
 		<div className="flex flex-col h-full py-4 overflow-auto ">
 			{users.map((user) => (
-				<div key={user.username} className="flex items-center justify-between px-4 py-3 border-b-2 border-gray-800 gap-x-2">
-					<div className="flex items-center gap-x-4">
+				<div key={user.username} className="flex items-center justify-between px-4 py-3 gap-x-2 hover:bg-gray-800/90 transition">
+					<div className="flex items-center gap-x-2 w-12 h-12 rounded-full">
 						<img
 							src={user.pic}
-							height="50px"
-							width="50px"
 							className={`border-4 ${
 								user.isOwner
 									? "border-pink-600"
 									: user.isAdmin
 										? "border-blue-500"
 										: "border-gray-800"
-							} rounded-full `}
+							} object-fill w-full h-full rounded-full`}
 						/>
 						<Link href={`/users/${user.username}`}>
 							<a>{user.username}</a>
@@ -237,7 +235,7 @@ const GroupUsers: React.FC<{ viewParams: any }> = ({ viewParams }) => {
 						{user.isOwner && <FaCrown className="text-yellow-500" />}
 						{!user.isOwner && user.isAdmin && <BsShieldFillCheck className="text-blue-500"/>}
 					</div>
-					<div className="flex text-xl gap-x-3">
+					<div className="flex text-xl gap-x-2">
 
 						<Tooltip className={actionTooltipStyles} content="mute">
 							<button onClick={() => muteUser(String(user.id))} className="transition hover:scale-110">

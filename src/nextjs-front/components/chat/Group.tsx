@@ -1,18 +1,20 @@
 import { Fragment, useContext, useEffect, useRef, useState } from "react";
 import { AiOutlineClose, AiOutlineArrowLeft } from "react-icons/ai";
-import { FaUserFriends } from "react-icons/fa";
+import { FaUserFriends, FaUserPlus } from "react-icons/fa";
 import { FiSend } from 'react-icons/fi';
 import { RiSettings5Line } from "react-icons/ri";
 import chatContext, { ChatContextType, ChatMessage } from "../../context/chat/chatContext";
 import authContext, { AuthContextType } from "../../context/auth/authContext";
 import alertContext, { AlertContextType } from "../../context/alert/alertContext";
 import relationshipContext, { RelationshipContextType } from "../../context/relationship/relationshipContext";
+import Tooltip from "../../components/Tooltip";
 
 /* Header */
 export const GroupHeader: React.FC<{ viewParams: any }> = ({ viewParams }) => {
 	const { getUserData } = useContext(authContext) as AuthContextType;
 	const { closeChat, openChatView, setChatView } = useContext(chatContext) as ChatContextType;
 	const ownerView = (viewParams.groupOwnerId === getUserData().id);
+	const actionTooltipStyles = "font-bold bg-gray-900 text-neutral-200";
 
 	return (
 		<Fragment>
@@ -26,19 +28,31 @@ export const GroupHeader: React.FC<{ viewParams: any }> = ({ viewParams }) => {
 					</button>
 				</div>
 				<div className="flex items-right gap-x-3">
+					<Tooltip className={actionTooltipStyles} content="users">
+						<button onClick={() => {
+							openChatView('group_users', 'group users', {
+									groupId: viewParams.groupId,
+									groupName: viewParams.groupName,
+									peopleCount: viewParams.peopleCount,
+									ownerView: ownerView
+								}
+							)}}
+						>
+							<FaUserFriends />
+						</button>
+					</Tooltip>
+					<Tooltip className={actionTooltipStyles} content="add user">
+						<button onClick={() => {
+							openChatView('group_add', 'Add a user to group', {
+									groupId: viewParams.groupId
+								}
+							)}}
+						>
+							<FaUserPlus className="text-lg" />
+						</button>
+					</Tooltip>
 					<button onClick={() => {
-						openChatView('group_users', 'group users', {
-								groupId: viewParams.groupId,
-								groupName: viewParams.groupName,
-								peopleCount: viewParams.peopleCount,
-								ownerView: ownerView
-							}
-						)}}
-					>
-						<FaUserFriends />
-					</button>
-					<button onClick={() => {
-						openChatView('group_settings', 'group_settings', {
+						openChatView('group_settings', 'group settings', {
 								groupId: viewParams.groupId,
 								groupName: viewParams.groupName,
 								groupPrivacy: viewParams.groupPrivacy,
@@ -56,7 +70,7 @@ export const GroupHeader: React.FC<{ viewParams: any }> = ({ viewParams }) => {
 					{viewParams.groupName}
 				</h6>
 			</div>
-	</Fragment>
+		</Fragment>
 	);
 }
 

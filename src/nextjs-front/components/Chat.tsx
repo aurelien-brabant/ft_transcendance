@@ -62,7 +62,7 @@ const Chat: React.FC<ChatProps> = ({ viewStack, onClose }) => {
 									onClick={() => { setChatView("dms", "direct messages", {}); }}
 									className={buttonClassName}
 								>
-									<FaUser className="text-lg"/>
+									<FaUser className="text-lg" />
 								</button>
 							</Tooltip>
 						</div>
