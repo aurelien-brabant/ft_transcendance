@@ -13,9 +13,8 @@ import ChatDirectMessageView, { DirectMessageHeader } from "../../components/cha
 import Groupadd, { GroupaddHeader } from "../../components/chat/Groupadd";
 import GroupNew, { GroupNewHeader } from "../../components/chat/GroupNew";
 import DirectMessageNew, { DirectMessageNewHeader } from "../../components/chat/DirectMessageNew";
-import GroupUsers, { GroupUsersHeader } from "../../components/chat/GroupUsers";
 import GroupSettings, { GroupSettingsHeader } from "../../components/chat/GroupSettings";
-import GroupOwnerSettings, { GroupOwnerSettingsHeader } from "../../components/chat/GroupOwnerSettings";
+import GroupUsers, { GroupUsersHeader } from "../../components/chat/GroupUsers";
 import PasswordProtection, { PasswordProtectionHeader } from "../../components/chat/PasswordProtection";
 import chatContext, { ChatGroup, ChatMessagePreview, ChatView, DirectMessage } from "./chatContext";
 
@@ -88,13 +87,6 @@ const views: { [key: string]: ChatViewItem } = {
 		isAction: false,
 		Component: GroupSettings,
 		CustomHeaderComponent: GroupSettingsHeader
-	},
-	group_owner_settings: {
-		label: 'Group owner settings',
-		params: {},
-		isAction: false,
-		Component: GroupOwnerSettings,
-		CustomHeaderComponent: GroupOwnerSettingsHeader
 	},
 	group_new: {
 		label: 'Create a new group',

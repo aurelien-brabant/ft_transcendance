@@ -38,13 +38,12 @@ export const GroupHeader: React.FC<{ viewParams: any }> = ({ viewParams }) => {
 						<FaUserFriends />
 					</button>
 					<button onClick={() => {
-						openChatView(
-							ownerView ? 'group_owner_settings' : 'group_settings',
-							ownerView ? 'group_owner_settings' : 'group_settings', {
+						openChatView('group_settings', 'group_settings', {
 								groupId: viewParams.groupId,
 								groupName: viewParams.groupName,
 								groupPrivacy: viewParams.groupPrivacy,
-								peopleCount: viewParams.peopleCount
+								peopleCount: viewParams.peopleCount,
+								ownerView: ownerView
 							}
 						)}}
 						>
