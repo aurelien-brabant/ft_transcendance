@@ -239,19 +239,31 @@ const GroupUsers: React.FC<{ viewParams: any }> = ({ viewParams }) => {
 					</div>
 					<div className="flex text-xl gap-x-3">
 
-						<Tooltip className={actionTooltipStyles} content="mute"><button onClick={() => muteUser(String(user.id))} className="transition hover:scale-110">
-							<MdVoiceOverOff color="grey"/></button>
+						<Tooltip className={actionTooltipStyles} content="mute">
+							<button onClick={() => muteUser(String(user.id))} className="transition hover:scale-110">
+								<MdVoiceOverOff color="grey"/>
+							</button>
 						</Tooltip>
-						<Tooltip className={actionTooltipStyles} content="ban"><button onClick={() => banUser(String(user.id))} className="transition hover:scale-110">
-							<GiThorHammer color="grey"/></button>
+
+						<Tooltip className={actionTooltipStyles} content="ban">
+							<button onClick={() => banUser(String(user.id))} className="transition hover:scale-110">
+								<GiThorHammer color="grey"/>
+							</button>
 						</Tooltip>
+
 						<button onClick={() => removeAdmin(String(user.id))} className="text-red-600 transition hover:scale-110"><BsShieldFillX /></button>
-						<Tooltip className={actionTooltipStyles} content="+admin"><button onClick={() => addAdmin(String(user.id))} className="text-blue-500 transition hover:scale-110">
-							<BsShieldFillPlus /></button>
+						<Tooltip className={actionTooltipStyles} content="+admin">
+							<button onClick={() => addAdmin(String(user.id))} className="text-blue-500 transition hover:scale-110">
+								<BsShieldFillPlus />
+							</button>
 						</Tooltip>
 
 						<Tooltip className={actionTooltipStyles} content="play">
-							<button className="p-1 text-gray-900 bg-white rounded-full transition hover:scale-110"> <RiPingPongLine /></button>
+							<button
+								className="p-1 text-gray-900 bg-white rounded-full transition hover:scale-110  hover:text-pink-600"
+							>
+								<RiPingPongLine />
+							</button>
 						</Tooltip>
 					</div>
 				</div>

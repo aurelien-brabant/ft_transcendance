@@ -28,7 +28,9 @@ export const DirectMessageHeader: React.FC<{ viewParams: any }> = ({ viewParams 
 					</button>
 				</div>
 				<Tooltip className={actionTooltipStyles} content="play">
-					<button className="p-1 text-xl text-gray-900 bg-white rounded-full transition hover:scale-105"> 
+					<button
+						className="p-1 text-xl text-gray-900 bg-white rounded-full transition hover:scale-105 hover:text-pink-600"
+					>
 						<RiPingPongLine />
 					</button>
 				</Tooltip>
