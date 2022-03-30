@@ -1,26 +1,31 @@
-import { useContext } from "react";
-import { AiOutlineClose } from "react-icons/ai";
-import { BsArrowLeftShort } from "react-icons/bs";
+import { Fragment, useContext } from "react";
+import { AiOutlineClose, AiOutlineArrowLeft } from "react-icons/ai";
 import { BaseUserData } from "transcendance-types";
 import authContext, { AuthContextType } from "../../context/auth/authContext";
 import alertContext, { AlertContextType } from "../../context/alert/alertContext";
 import chatContext, { ChatContextType } from "../../context/chat/chatContext";
 
-export const GroupOwnerSettingsHeader: React.FC<{ viewParams: any }> = ({ viewParams }) => {
+export const GroupSettingsHeader: React.FC<{ viewParams: any }> = ({ viewParams }) => {
 	const { closeChat, closeRightmostView } = useContext(chatContext) as ChatContextType;
 
 	return (
-		<div className="flex items-center justify-between p-3 px-5">
-			<div className="flex gap-x-2 text-2xl">
-				<button onClick={() => { closeChat(); }}>
-					<AiOutlineClose />
-				</button>
-				<button className="text-4xl" onClick={() => { closeRightmostView(); }}>
-					<BsArrowLeftShort />
-				</button>
+		<Fragment>
+			<div className="flex items-start justify-between pt-3 px-5">
+				<div className="flex gap-x-2 text-2xl">
+					<button onClick={() => { closeChat(); }}>
+						<AiOutlineClose />
+					</button>
+					<button onClick={() => { closeRightmostView(); }}>
+						<AiOutlineArrowLeft />
+					</button>
+				</div>
 			</div>
-			<h6 className="text-lg font-bold text-pink-600">Group settings</h6>
-		</div>
+			<div className="flex flex-col items-center justify-center">
+			<h6 className="text-lg font-bold text-pink-600">
+				Group settings
+				</h6>
+			</div>
+		</Fragment>
 	);
 };
 

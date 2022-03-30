@@ -1,9 +1,10 @@
-import { useContext, useEffect, useState } from "react";
-import { AiOutlineClose } from "react-icons/ai";
-import { BsArrowLeftShort, BsShieldFillCheck, BsShieldFillPlus, BsShieldFillX } from "react-icons/bs";
+import { Fragment, useContext, useEffect, useState } from "react";
+import { AiOutlineClose, AiOutlineArrowLeft } from "react-icons/ai";
+import { FaUserFriends } from "react-icons/fa";
+import { BsShieldFillCheck, BsShieldFillPlus, BsShieldFillX } from "react-icons/bs";
 import { FaCrown } from "react-icons/fa";
 import { GiThorHammer } from "react-icons/gi";
-import { MdPeopleAlt, MdVoiceOverOff } from "react-icons/md";
+import { MdVoiceOverOff } from "react-icons/md";
 import { RiPingPongLine } from 'react-icons/ri';
 import Link from "next/link";
 import { BaseUserData } from "transcendance-types";
@@ -26,21 +27,27 @@ export const GroupUsersHeader: React.FC<{ viewParams: any }> = ({ viewParams }) 
 	const { closeChat, closeRightmostView } = useContext(chatContext) as ChatContextType;
 
 	return (
-		<div className="flex items-center justify-between p-3 px-5">
-			<div className="flex gap-x-2 text-2xl">
-				<button onClick={() => { closeChat(); }}>
-					<AiOutlineClose />
-				</button>
-				<button className="text-4xl" onClick={() => { closeRightmostView(); }}>
-					<BsArrowLeftShort />
-				</button>
+		<Fragment>
+			<div className="flex items-start justify-between pt-3 px-5">
+				<div className="flex gap-x-2 text-2xl">
+					<button onClick={() => { closeChat(); }}>
+						<AiOutlineClose />
+					</button>
+					<button onClick={() => { closeRightmostView(); }}>
+						<AiOutlineArrowLeft />
+					</button>
+				</div>
+				<div className="flex items-center gap-x-1 px-2">
+					<FaUserFriends />
+					{viewParams.peopleCount}
+				</div>
 			</div>
-			<h6 className="text-lg font-bold text-pink-600">Group members</h6>
-			<div className="flex items-center gap-x-2">
-				<MdPeopleAlt />
-				{viewParams.peopleCount}
+			<div className="flex flex-col items-center justify-center">
+				<h6 className="text-lg font-bold text-pink-600">
+					Group members
+				</h6>
 			</div>
-		</div>
+		</Fragment>
 	);
 };
 

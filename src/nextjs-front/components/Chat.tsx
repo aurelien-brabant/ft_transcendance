@@ -1,7 +1,7 @@
 // import Draggable from "react-draggable";
 import { Fragment, useContext } from "react";
-import { AiOutlineClose, AiOutlineUser } from "react-icons/ai";
-import { MdPeopleAlt } from "react-icons/md";
+import { AiOutlineClose } from "react-icons/ai";
+import { FaUserFriends, FaUser } from "react-icons/fa";
 import { ChatViewItem } from "../context/chat/ChatProvider";
 import chatContext, { ChatContextType } from "../context/chat/chatContext";
 import Tooltip from "./Tooltip";
@@ -18,7 +18,7 @@ const Chat: React.FC<ChatProps> = ({ viewStack, onClose }) => {
 
 	const currentView = viewStack[viewStack.length - 1];
 	const buttonTooltipClassName = "p-3 font-bold bg-gray-900";
-	const buttonClassName = "hover:scale-105 transition";
+	const buttonClassName = "hover:scale-105 transition text-2xl";
 
 	if (!currentView) {
 		throw Error(
@@ -37,7 +37,7 @@ const Chat: React.FC<ChatProps> = ({ viewStack, onClose }) => {
 
 				{!currentView.CustomHeaderComponent ? (
 					<Fragment>
-						<div className="flex items-center justify-between pt-3 px-5 text-2xl">
+						<div className="flex items-center justify-between pt-3 px-5">
 							<Tooltip content="Dismiss chat" className={buttonTooltipClassName}>
 								<button
 									onClick={() => { onClose(); }}
@@ -51,7 +51,7 @@ const Chat: React.FC<ChatProps> = ({ viewStack, onClose }) => {
 									onClick={() => { setChatView("groups", "group chats", {}); }}
 									className={buttonClassName}
 								>
-									<MdPeopleAlt />
+									<FaUserFriends />
 								</button>
 							</Tooltip>
 							<Tooltip
@@ -62,7 +62,7 @@ const Chat: React.FC<ChatProps> = ({ viewStack, onClose }) => {
 									onClick={() => { setChatView("dms", "direct messages", {}); }}
 									className={buttonClassName}
 								>
-									<AiOutlineUser />
+									<FaUser className="text-lg"/>
 								</button>
 							</Tooltip>
 						</div>

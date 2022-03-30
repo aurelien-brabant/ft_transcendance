@@ -1,7 +1,6 @@
 import Link from 'next/link';
-import { useContext, useEffect, useRef, useState } from "react";
-import { AiOutlineClose } from "react-icons/ai";
-import { BsArrowLeftShort } from 'react-icons/bs';
+import { Fragment, useContext, useEffect, useRef, useState } from "react";
+import { AiOutlineClose, AiOutlineArrowLeft } from "react-icons/ai";
 import { FiSend } from "react-icons/fi";
 import { RiPingPongLine } from 'react-icons/ri';
 import Tooltip from "../../components/Tooltip";
@@ -18,26 +17,28 @@ export const DirectMessageHeader: React.FC<{ viewParams: any }> = ({ viewParams 
 	const actionTooltipStyles = 'font-bold bg-gray-900 text-neutral-200';
 
 	return (
-		<div className="flex items-center justify-between p-3 px-5">
-			<div className="flex gap-x-2">
-				<button className="text-2xl" onClick={() => {closeChat() }}>
-					<AiOutlineClose />
-				</button>
-				<button className="text-4xl" onClick={() => {setChatView('dms', 'Direct messages', {})}}>
-					<BsArrowLeftShort />
-				</button>
-			</div>
-			<div className="flex items-center gap-x-3">
-				<Link href={`/users/${viewParams.friendId}`}><h6 className="font-bold hover:text-pink-600">
-					{viewParams.friendUsername}
-				</h6></Link> <UserStatusItem status="online" withText={false} />
+		<Fragment>
+			<div className="flex items-start justify-between pt-3 px-5">
+				<div className="flex gap-x-2">
+					<button className="text-2xl" onClick={() => {closeChat() }}>
+						<AiOutlineClose />
+					</button>
+					<button className="text-2xl" onClick={() => {setChatView('dms', 'Direct messages', {})}}>
+						<AiOutlineArrowLeft />
+					</button>
 				</div>
-			<Tooltip className={actionTooltipStyles} content="play">
-				<button className="p-1 text-2xl text-gray-900 bg-white rounded-full transition hover:scale-105"> 
-					<RiPingPongLine />
-				</button>
-			</Tooltip>
-		</div>
+				<Tooltip className={actionTooltipStyles} content="play">
+					<button className="p-1 text-xl text-gray-900 bg-white rounded-full transition hover:scale-105"> 
+						<RiPingPongLine />
+					</button>
+				</Tooltip>
+			</div>
+			<div className="flex items-center justify-center gap-x-3">
+				<Link href={`/users/${viewParams.friendId}`}><h6 className="font-bold hover:text-pink-600">
+						{viewParams.friendUsername}
+					</h6></Link> <UserStatusItem status="online" withText={false} />
+			</div>
+		</Fragment>
 	);
 }
 

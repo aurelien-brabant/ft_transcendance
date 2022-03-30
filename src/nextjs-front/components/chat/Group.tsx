@@ -1,8 +1,7 @@
-import { useContext, useEffect, useRef, useState } from "react";
-import { AiOutlineClose } from "react-icons/ai";
-import { BsArrowLeftShort } from "react-icons/bs";
+import { Fragment, useContext, useEffect, useRef, useState } from "react";
+import { AiOutlineClose, AiOutlineArrowLeft } from "react-icons/ai";
+import { FaUserFriends } from "react-icons/fa";
 import { FiSend } from 'react-icons/fi';
-import { MdPeopleAlt } from "react-icons/md";
 import { RiSettings5Line } from "react-icons/ri";
 import chatContext, { ChatContextType, ChatMessage } from "../../context/chat/chatContext";
 import authContext, { AuthContextType } from "../../context/auth/authContext";
@@ -16,43 +15,49 @@ export const GroupHeader: React.FC<{ viewParams: any }> = ({ viewParams }) => {
 	const ownerView = (viewParams.groupOwnerId === getUserData().id);
 
 	return (
-		<div className="flex items-center justify-between p-3 px-5 text-2xl">
-			<div className="flex gap-x-2">
-				<button onClick={() => {closeChat() }}>
-					<AiOutlineClose />
-				</button>
-				<button className="text-4xl" onClick={() => { setChatView('groups', 'Group chats', {})}}>
-					<BsArrowLeftShort />
-				</button>
-			</div>
-			<h6 className="text-lg font-bold text-pink-600">{viewParams.groupName}</h6>
-			<div className="flex items-right gap-x-3">
-				<button onClick={() => {
-					openChatView('group_users', 'group users', {
-							groupId: viewParams.groupId,
-							groupName: viewParams.groupName,
-							peopleCount: viewParams.peopleCount,
-							ownerView: ownerView
-						}
-					)}}
-				>
-				<MdPeopleAlt />
-				</button>
-				<button onClick={() => {
-					openChatView(
-						ownerView ? 'group_owner_settings' : 'group_settings',
-						ownerView ? 'group_owner_settings' : 'group_settings', {
-							groupId: viewParams.groupId,
-							groupName: viewParams.groupName,
-							groupPrivacy: viewParams.groupPrivacy,
-							peopleCount: viewParams.peopleCount
-						}
-					)}}
+		<Fragment>
+			<div className="flex items-start justify-between pt-3 px-5 text-2xl">
+				<div className="flex gap-x-2">
+					<button onClick={() => {closeChat() }}>
+						<AiOutlineClose />
+					</button>
+					<button onClick={() => { setChatView('groups', 'Group chats', {})}}>
+						<AiOutlineArrowLeft />
+					</button>
+				</div>
+				<div className="flex items-right gap-x-3">
+					<button onClick={() => {
+						openChatView('group_users', 'group users', {
+								groupId: viewParams.groupId,
+								groupName: viewParams.groupName,
+								peopleCount: viewParams.peopleCount,
+								ownerView: ownerView
+							}
+						)}}
 					>
-					<RiSettings5Line/>
-				</button>
+						<FaUserFriends />
+					</button>
+					<button onClick={() => {
+						openChatView(
+							ownerView ? 'group_owner_settings' : 'group_settings',
+							ownerView ? 'group_owner_settings' : 'group_settings', {
+								groupId: viewParams.groupId,
+								groupName: viewParams.groupName,
+								groupPrivacy: viewParams.groupPrivacy,
+								peopleCount: viewParams.peopleCount
+							}
+						)}}
+						>
+						<RiSettings5Line />
+					</button>
+				</div>
 			</div>
-		</div>
+			<div className="flex flex-col items-center justify-center">
+				<h6 className="text-lg font-bold text-pink-600">
+					{viewParams.groupName}
+				</h6>
+			</div>
+	</Fragment>
 	);
 }
 
