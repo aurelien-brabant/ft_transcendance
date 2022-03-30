@@ -1,19 +1,20 @@
 import { Fragment, useContext } from "react";
-import { AiFillLock, AiOutlineArrowLeft } from "react-icons/ai";
+import { AiFillLock, AiOutlineArrowLeft, AiOutlineClose } from "react-icons/ai";
 import alertContext, { AlertContextType } from "../../context/alert/alertContext";
 import authContext, { AuthContextType } from "../../context/auth/authContext";
 import chatContext, { ChatContextType } from "../../context/chat/chatContext";
 
 export const PasswordProtectionHeader: React.FC<{ viewParams: any }> = ({ viewParams}) => {
-	const { setChatView } = useContext(chatContext) as ChatContextType;
+	const { closeChat, setChatView } = useContext(chatContext) as ChatContextType;
 
 	return (
 		<Fragment>
 			<div className="flex items-start justify-between pt-3 px-5">
-				<div className="flex gap-x-2">
-					<button
-						className="text-2xl"
-						onClick={() => { setChatView('groups', 'Group chats', {})}}>
+				<div className="flex gap-x-2 text-2xl">
+					<button onClick={() => { closeChat(); }}>
+						<AiOutlineClose />
+					</button>
+					<button onClick={() => { setChatView('groups', 'Group chats', {})}}>
 						<AiOutlineArrowLeft />
 					</button>
 				</div>
