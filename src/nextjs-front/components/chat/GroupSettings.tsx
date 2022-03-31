@@ -10,6 +10,7 @@ type updateGroupData = {
 	privacy: ChatGroupPrivacy;
 	password: string | undefined;
 	password2: string | undefined;
+	restrictionDuration: string | undefined;
 };
 
 const privacyTips = {
@@ -71,6 +72,7 @@ const GroupSettings: React.FC<{ viewParams: any }> = ({ viewParams }) => {
 		privacy: groupPrivacy,
 		password: undefined,
 		password2: undefined,
+		restrictionDuration: undefined
 	});
 	const [fieldErrors, setFieldErrors] = useState<Partial<updateGroupData>>({});
 

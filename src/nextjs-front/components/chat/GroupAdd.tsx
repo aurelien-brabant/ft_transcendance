@@ -108,13 +108,16 @@ const GroupAdd: React.FC<{ viewParams: any }> = ({ viewParams }) => {
 						ref={searchInputRef}
 						type="text"
 						className="py-1 bg-transparent border-b-2 border-pink-600 text-md outline-0 max-w-[50%]"
-						placeholder="Select a friend"
+						placeholder="Search in friend list"
 						onChange={(e) => {
 							handleSearch(e.target.value);
 						}}
 				/>
 			</div>
 			<div className="overflow-x-auto">
+				<div className="flex px-5 py-3 text-xs text-neutral-200 uppercase">
+					Select the friend to add
+				</div>
 				{filteredFriends.map((friend) => (
 					<div
 						key={friend.username}
@@ -124,7 +127,7 @@ const GroupAdd: React.FC<{ viewParams: any }> = ({ viewParams }) => {
 						}}
 					>
 					<div
-						className="relative z-20 items-center justify-center w-12 h-12 rounded-full"
+						className="relative z-20 items-center w-12 h-12 rounded-full"
 					>
 						<img
 							src={`/api/users/${friend.id}/photo`}
@@ -132,7 +135,7 @@ const GroupAdd: React.FC<{ viewParams: any }> = ({ viewParams }) => {
 						/>
 						<UserStatusItem withText={false} status={Math.random() > 0.3 ? 'offline' : 'online'} className="absolute bottom-0 right-0 z-50" />
 					</div>
-				{friend.username}
+					{friend.username}
 				</div>
 				))}
 			</div>

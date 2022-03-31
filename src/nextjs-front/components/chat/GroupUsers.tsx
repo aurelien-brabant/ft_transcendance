@@ -57,6 +57,7 @@ const GroupUsers: React.FC<{ viewParams: any }> = ({ viewParams }) => {
 	const [users, setUsers] = useState<UserSummary[]>([]);
 	const channelId = viewParams.groupId;
 	const actionTooltipStyles = "font-bold bg-gray-900 text-neutral-200";
+	let hoveredTip: adminTipType;
 
 	/* Make user administrator */
 	const addAdmin = async (id: string) => {
@@ -193,7 +194,7 @@ const GroupUsers: React.FC<{ viewParams: any }> = ({ viewParams }) => {
 				username: chanUsers[i].username,
 				pic: `/api/users/${chanUsers[i].id}/photo`,
 				isOwner: (chanUsers[i].id === chanOwner.id),
-				isAdmin: (chanUsers[i].id === chanOwner.id) || !!chanAdmins.find((admin: BaseUserData) => {
+				isAdmin: (chanUsers[i].id === chanOwner.id) || !!chanAdmins.find((admin: BaseUserData) => {
 					return admin.id === chanUsers[i].id;
 				}),
 				isMuted: !!mutedUsers.find((user: BaseUserData) => {
@@ -215,9 +216,9 @@ const GroupUsers: React.FC<{ viewParams: any }> = ({ viewParams }) => {
 
 	if (viewParams.ownerView) { // also admin
 		return (
-			<div className="flex flex-col h-full py-4 overflow-auto ">
+			<div className="flex flex-col h-full px-4 py-4 overflow-auto ">
 				{users.map((user) => (
-					<div key={user.username} className="flex items-center justify-between px-4 py-3 gap-x-2 hover:bg-gray-800/90 transition">
+					<div key={user.username} className="flex items-center justify-between py-3 gap-x-2 hover:bg-gray-800/90 transition">
 						<div className="flex items-center gap-x-2 w-12 h-12">
 							<img
 								src={user.pic}
@@ -240,7 +241,9 @@ const GroupUsers: React.FC<{ viewParams: any }> = ({ viewParams }) => {
 						<div className="flex text-xl gap-x-2">
 							{!user.isAdmin &&
 							<Tooltip className={actionTooltipStyles} content="mute">
-								<button onClick={() => muteUser(String(user.id))} className="transition hover:scale-110">
+								<button
+								onClick={() => muteUser(String(user.id))}
+								className="transition hover:scale-110">
 									<MdVoiceOverOff color="grey"/>
 								</button>
 							</Tooltip>}

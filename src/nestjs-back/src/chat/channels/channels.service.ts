@@ -1,4 +1,5 @@
 import { Injectable, NotFoundException, UnauthorizedException } from '@nestjs/common';
+// import { CronJob } from '@nestjs/schedule';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Repository } from 'typeorm';
 import {
@@ -60,6 +61,7 @@ export class ChannelsService {
   }
 
   async update(id: string, updateChannelDto: UpdateChannelDto) {
+    console.log("called channel.update");
     let channel = await this.channelsRepository.preload({
       id: +id,
       ...updateChannelDto
@@ -71,6 +73,12 @@ export class ChannelsService {
       const hashedPwd = await hashPassword(updateChannelDto.password, 10);
       channel.password = hashedPwd;
     }
+    // if (updateChannelDto.bannedUsers) {
+    //   const minutes = 5;
+    //   const timeout = new Date().getTime() + minutes*60000;
+    //   const job = new CronJob(timeout, () => {
+    //   });
+    // }
     return this.channelsRepository.save(channel);
   }
 
