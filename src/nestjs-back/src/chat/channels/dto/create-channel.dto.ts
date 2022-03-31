@@ -1,6 +1,7 @@
 import {
   IsIn,
   IsNotEmpty,
+  IsNumber,
   IsOptional,
   IsString,
   MaxLength,
@@ -24,6 +25,10 @@ export class CreateChannelDto {
   @IsString()
   @MinLength(8)
   readonly password?: string;
+
+  @IsNumber()
+  @IsIn([1, 5, 15])
+  readonly restrictionDuration?: number;
 
   @IsNotEmpty()
   readonly owner: User;

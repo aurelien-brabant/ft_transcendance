@@ -57,7 +57,6 @@ const GroupUsers: React.FC<{ viewParams: any }> = ({ viewParams }) => {
 	const [users, setUsers] = useState<UserSummary[]>([]);
 	const channelId = viewParams.groupId;
 	const actionTooltipStyles = "font-bold bg-gray-900 text-neutral-200";
-	let hoveredTip: adminTipType;
 
 	/* Make user administrator */
 	const addAdmin = async (id: string) => {
@@ -115,11 +114,9 @@ const GroupUsers: React.FC<{ viewParams: any }> = ({ viewParams }) => {
 	};
 
 	/* Ban user from channel */
-	const banUser = async (id: string) => {
+	const banUser = async (id: string, username: string) => {
 		const channelData = await fetchChannelData(channelId).catch(console.error);
 		const users = JSON.parse(JSON.stringify(channelData)).bannedUsers;
-
-		// TODO: the ban is for a limited time
 
 		const res = await fetch(`/api/channels/${channelId}`, {
 			method: "PATCH",
@@ -133,10 +130,6 @@ const GroupUsers: React.FC<{ viewParams: any }> = ({ viewParams }) => {
 
 		if (res.status === 200) {
 			updateUsers();
-			setAlert({
-				type: "info",
-				content: "User is banned for 10 minutes" // TODO
-			});
 			return;
 		} else {
 			setAlert({
@@ -147,11 +140,9 @@ const GroupUsers: React.FC<{ viewParams: any }> = ({ viewParams }) => {
 	};
 
 	/* Mute user in channel */
-	const muteUser = async (id: string) => {
+	const muteUser = async (id: string, username: string) => {
 		const channelData = await fetchChannelData(channelId).catch(console.error);
 		const users = JSON.parse(JSON.stringify(channelData)).mutedUsers;
-
-		// TODO: the mute is for a limited time
 
 		const res = await fetch(`/api/channels/${channelId}`, {
 			method: "PATCH",
@@ -165,10 +156,6 @@ const GroupUsers: React.FC<{ viewParams: any }> = ({ viewParams }) => {
 
 		if (res.status === 200) {
 			updateUsers();
-			setAlert({
-				type: "info",
-				content: "User is muted for 10 minutes" // TODO
-			});
 			return;
 		} else {
 			setAlert({
@@ -242,14 +229,14 @@ const GroupUsers: React.FC<{ viewParams: any }> = ({ viewParams }) => {
 							{!user.isAdmin &&
 							<Tooltip className={actionTooltipStyles} content="mute">
 								<button
-								onClick={() => muteUser(String(user.id))}
+								onClick={() => muteUser(String(user.id), user.username)}
 								className="transition hover:scale-110">
 									<MdVoiceOverOff color="grey"/>
 								</button>
 							</Tooltip>}
 							{!user.isAdmin &&
 							<Tooltip className={actionTooltipStyles} content="ban">
-								<button onClick={() => banUser(String(user.id))} className="transition hover:scale-110">
+								<button onClick={() => banUser(String(user.id), user.username)} className="transition hover:scale-110">
 									<GiThorHammer color="grey"/>
 								</button>
 							</Tooltip>}

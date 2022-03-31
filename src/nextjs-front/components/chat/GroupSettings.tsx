@@ -126,7 +126,8 @@ const GroupSettings: React.FC<{ viewParams: any }> = ({ viewParams }) => {
 			body: JSON.stringify({
 				name: formData.groupName,
 				privacy: formData.privacy,
-				password: (formData.password && formData.password.length !== 0) ? formData.password : undefined
+				password: (formData.password && formData.password.length !== 0) ? formData.password : undefined,
+				restrictionDuration: formData.restrictionDuration
 			}),
 		});
 
@@ -275,6 +276,20 @@ const GroupSettings: React.FC<{ viewParams: any }> = ({ viewParams }) => {
 							</div>
 						</Fragment>
 					)}
+					<h6 className="text-xl">Moderation</h6>
+					<small>Set the duration of mutation and banishment:</small>
+					<div className={inputGroupClassName}>
+						<select
+							className="px-2 py-2 bg-gray-900 border-b border-pink-600 outline-none"
+							name="restrictionDuration"
+							value={formData.restrictionDuration}
+							onChange={handleChange}
+						>
+							<option value="1">1 minute</option>
+							<option value="5">5 minutes</option>
+							<option value="15">15 minutes</option>
+						</select>
+					</div>
 					<button className="px-2 py-1 bg-pink-600">Update group</button>
 				</form>
 				<h6 className="text-xl">Leave group</h6>

@@ -49,6 +49,7 @@ export type SeedChannel = {
   name: string;
   privacy: string
   password: string;
+  restrictionDuration: number;
   owner: SeedUser;
   users: SeedUser[];
   admins: SeedUser[];

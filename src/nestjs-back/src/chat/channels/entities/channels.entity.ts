@@ -28,6 +28,10 @@ export class Channel {
   @Column({ select: false, nullable: true })
   password: string;
 
+  /* Mute/ban duration in minutes */
+  @Column({ default: 1 }) /* very short for test purposes */
+  restrictionDuration: number;
+
   @ManyToOne(() => User, owner => owner.ownedChannels, {
     onDelete: "CASCADE"
   })
