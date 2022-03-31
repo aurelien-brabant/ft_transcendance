@@ -1,6 +1,6 @@
-import { Fragment, useContext, useEffect, useRef, useState } from "react";
+import { Fragment, useContext, useEffect, useState } from "react";
 import { AiOutlineClose, AiOutlineArrowLeft } from "react-icons/ai";
-import { FaUserFriends } from "react-icons/fa";
+import { FaUserFriends, FaUserAltSlash } from "react-icons/fa";
 import { BsShieldFillCheck, BsShieldFillPlus, BsShieldFillX } from "react-icons/bs";
 import { FaCrown } from "react-icons/fa";
 import { GiThorHammer } from "react-icons/gi";
@@ -55,15 +55,15 @@ const GroupUsers: React.FC<{ viewParams: any }> = ({ viewParams }) => {
 	const { setAlert } = useContext(alertContext) as AlertContextType;
 	const { fetchChannelData } = useContext(chatContext) as ChatContextType;
 	const [users, setUsers] = useState<UserSummary[]>([]);
-	const channelId = viewParams.groupId;
+	const groupId = viewParams.groupId;
 	const actionTooltipStyles = "font-bold bg-gray-900 text-neutral-200";
 
 	/* Make user administrator */
 	const addAdmin = async (id: string) => {
-		const channelData = await fetchChannelData(channelId).catch(console.error);
-		const admins = JSON.parse(JSON.stringify(channelData)).admins;
+		const groupData = await fetchChannelData(groupId).catch(console.error);
+		const admins = JSON.parse(JSON.stringify(groupData)).admins;
 
-		const res = await fetch(`/api/channels/${channelId}`, {
+		const res = await fetch(`/api/channels/${groupId}`, {
 			method: "PATCH",
 			headers: {
 				"Content-Type": "application/json",
@@ -86,13 +86,13 @@ const GroupUsers: React.FC<{ viewParams: any }> = ({ viewParams }) => {
 
 	/* Remove administrator rights */
 	const removeAdmin = async (id: string) => {
-		const channelData = await fetchChannelData(channelId).catch(console.error);
-		const currentAdmins = JSON.parse(JSON.stringify(channelData)).admins;
+		const groupData = await fetchChannelData(groupId).catch(console.error);
+		const currentAdmins = JSON.parse(JSON.stringify(groupData)).admins;
 		const admins = currentAdmins.filter((admin: BaseUserData) => { 
 			return admin.id != id
 		})
 
-		const res = await fetch(`/api/channels/${channelId}`, {
+		const res = await fetch(`/api/channels/${groupId}`, {
 			method: "PATCH",
 			headers: {
 				"Content-Type": "application/json",
@@ -113,12 +113,12 @@ const GroupUsers: React.FC<{ viewParams: any }> = ({ viewParams }) => {
 		}
 	};
 
-	/* Ban user from channel */
+	/* Ban user from group */
 	const banUser = async (id: string, username: string) => {
-		const channelData = await fetchChannelData(channelId).catch(console.error);
-		const users = JSON.parse(JSON.stringify(channelData)).bannedUsers;
+		const groupData = await fetchChannelData(groupId).catch(console.error);
+		const users = JSON.parse(JSON.stringify(groupData)).bannedUsers;
 
-		const res = await fetch(`/api/channels/${channelId}`, {
+		const res = await fetch(`/api/channels/${groupId}`, {
 			method: "PATCH",
 			headers: {
 				"Content-Type": "application/json",
@@ -130,6 +130,10 @@ const GroupUsers: React.FC<{ viewParams: any }> = ({ viewParams }) => {
 
 		if (res.status === 200) {
 			updateUsers();
+			setAlert({
+				type: "info",
+				content: `${username} is banned`
+			});
 			return;
 		} else {
 			setAlert({
@@ -139,12 +143,12 @@ const GroupUsers: React.FC<{ viewParams: any }> = ({ viewParams }) => {
 		}
 	};
 
-	/* Mute user in channel */
+	/* Mute user in group */
 	const muteUser = async (id: string, username: string) => {
-		const channelData = await fetchChannelData(channelId).catch(console.error);
-		const users = JSON.parse(JSON.stringify(channelData)).mutedUsers;
+		const groupData = await fetchChannelData(groupId).catch(console.error);
+		const users = JSON.parse(JSON.stringify(groupData)).mutedUsers;
 
-		const res = await fetch(`/api/channels/${channelId}`, {
+		const res = await fetch(`/api/channels/${groupId}`, {
 			method: "PATCH",
 			headers: {
 				"Content-Type": "application/json",
@@ -156,6 +160,43 @@ const GroupUsers: React.FC<{ viewParams: any }> = ({ viewParams }) => {
 
 		if (res.status === 200) {
 			updateUsers();
+			setAlert({
+				type: "info",
+				content: `${username} is muted`
+			});
+			return;
+		} else {
+			setAlert({
+				type: "error",
+				content: "Failed to mute user"
+			});
+		}
+	};
+
+	/* Kick user from group */
+	const kickUser = async (id: string, username: string) => {
+		const groupData = await fetchChannelData(groupId).catch(console.error);
+		const currentUsers = JSON.parse(JSON.stringify(groupData)).users;
+		const users = currentUsers.filter((user: BaseUserData) => {
+			return user.id !=  id
+		})
+
+		const res = await fetch(`/api/channels/${groupId}`, {
+			method: "PATCH",
+			headers: {
+				"Content-Type": "application/json",
+			},
+			body: JSON.stringify({
+				users: [ ...users ]
+			}),
+		});
+
+		if (res.status === 200) {
+			updateUsers();
+			setAlert({
+				type: "info",
+				content: `${username} was kicked`
+			});
 			return;
 		} else {
 			setAlert({
@@ -167,7 +208,7 @@ const GroupUsers: React.FC<{ viewParams: any }> = ({ viewParams }) => {
 
 	/* Update user list on mount */
 	const updateUsers = async () => {
-		const data = await fetchChannelData(channelId).catch(console.error);
+		const data = await fetchChannelData(groupId).catch(console.error);
 		const chanOwner = await JSON.parse(JSON.stringify(data)).owner;
 		const chanAdmins = await JSON.parse(JSON.stringify(data)).admins;
 		const chanUsers = await JSON.parse(JSON.stringify(data)).users;
@@ -238,6 +279,12 @@ const GroupUsers: React.FC<{ viewParams: any }> = ({ viewParams }) => {
 							<Tooltip className={actionTooltipStyles} content="ban">
 								<button onClick={() => banUser(String(user.id), user.username)} className="transition hover:scale-110">
 									<GiThorHammer color="grey"/>
+								</button>
+							</Tooltip>}
+							{!user.isAdmin &&
+							<Tooltip className={actionTooltipStyles} content="kick">
+								<button onClick={() => kickUser(String(user.id), user.username)} className="transition hover:scale-110">
+									<FaUserAltSlash className="text-lg" color="grey"/>
 								</button>
 							</Tooltip>}
 							{!user.isOwner && user.isAdmin &&
