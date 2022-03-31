@@ -76,7 +76,7 @@ const DirectMessages: React.FC<{ viewParams: Object; }> = ({ viewParams }) => {
 						openChatView("dm_new", "Chat with a friend", {});
 					}}
 				>
-					+new
+					+DM
 				</button>
 			</div>
 			<div className="h-[85%] overflow-x-auto">

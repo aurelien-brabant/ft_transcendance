@@ -60,7 +60,7 @@ const PasswordProtection: React.FC<{ viewParams: any }> = ({ viewParams }) => {
 		<h6 className="text-xl text-neutral-200">This group is password protected</h6>
 		<form onSubmit={handleSubmit} className="flex flex-col items-center gap-y-4">
 		<input type="password" className="w-full px-2 py-1 text-4xl bg-transparent border border-pink-600 outline-0" />
-		<button type="submit" className="px-3 py-2 uppercase bg-pink-600">Enter</button>
+		<button type="submit" className="px-3 py-2 uppercase bg-pink-600 rounded">Enter</button>
 		</form>
 	</div>
 }

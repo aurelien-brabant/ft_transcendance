@@ -244,9 +244,9 @@ const GroupUsers: React.FC<{ viewParams: any }> = ({ viewParams }) => {
 
 	if (viewParams.ownerView) { // also admin
 		return (
-			<div className="flex flex-col h-full px-4 py-4 overflow-auto ">
+			<div className="flex flex-col h-full py-4 overflow-auto ">
 				{users.map((user) => (
-					<div key={user.username} className="flex items-center justify-between py-3 gap-x-2 hover:bg-gray-800/90 transition">
+					<div key={user.username} className="flex items-center justify-between px-4 py-3 hover:bg-gray-800/90 transition">
 						<div className="flex items-center gap-x-2 w-12 h-12">
 							<img
 								src={user.pic}
@@ -263,11 +263,13 @@ const GroupUsers: React.FC<{ viewParams: any }> = ({ viewParams }) => {
 									{user.username}
 									{user.isOwner && <FaCrown className="text-yellow-500" />}
 									{!user.isOwner && user.isAdmin && <BsShieldFillCheck className="text-blue-500"/>}
+									{!user.isOwner && user.isMuted && <MdVoiceOverOff color="grey"/>}
+									{!user.isOwner && user.isBanned && <GiThorHammer color="grey"/>}
 								</a>
 							</Link>
 						</div>
 						<div className="flex text-xl gap-x-2">
-							{!user.isAdmin &&
+							{!user.isAdmin && !user.isMuted &&
 							<Tooltip className={actionTooltipStyles} content="mute">
 								<button
 								onClick={() => muteUser(String(user.id), user.username)}
@@ -275,7 +277,7 @@ const GroupUsers: React.FC<{ viewParams: any }> = ({ viewParams }) => {
 									<MdVoiceOverOff color="grey"/>
 								</button>
 							</Tooltip>}
-							{!user.isAdmin &&
+							{!user.isAdmin && !user.isBanned &&
 							<Tooltip className={actionTooltipStyles} content="ban">
 								<button onClick={() => banUser(String(user.id), user.username)} className="transition hover:scale-110">
 									<GiThorHammer color="grey"/>
@@ -289,7 +291,7 @@ const GroupUsers: React.FC<{ viewParams: any }> = ({ viewParams }) => {
 							</Tooltip>}
 							{!user.isOwner && user.isAdmin &&
 							<button onClick={() => removeAdmin(String(user.id))} className="text-red-600 transition hover:scale-110"><BsShieldFillX /></button>}
-							{!user.isOwner && !user.isAdmin &&
+							{!user.isOwner && !user.isAdmin && !user.isMuted && !user.isBanned &&
 							<Tooltip className={actionTooltipStyles} content="+admin">
 								<button onClick={() => addAdmin(String(user.id))} className="text-blue-500 transition hover:scale-110">
 									<BsShieldFillPlus />

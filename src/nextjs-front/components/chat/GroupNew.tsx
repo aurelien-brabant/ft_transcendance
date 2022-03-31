@@ -43,7 +43,7 @@ export const GroupNewHeader: React.FC = () => {
 			</div>
 			<div className="flex flex-col items-center justify-center">
 				<h6 className="text-lg font-bold text-pink-600">
-					New group settings
+					Create a new group
 				</h6>
 			</div>
 		</Fragment>
@@ -152,7 +152,7 @@ const GroupNew: React.FC = () => {
 
 	return (
 		<div className="flex flex-col h-full px-5 py-5 overflow-y-auto gap-y-4">
-			<h6 className="text-xl">Create a new group</h6>
+			<h6 className="text-xl">New group settings</h6>
 			<form className="flex flex-col gap-y-4" onSubmit={handleSubmit}>
 				<div className={inputGroupClassName}>
 					<ErrorProvider error={fieldErrors['groupName']}>

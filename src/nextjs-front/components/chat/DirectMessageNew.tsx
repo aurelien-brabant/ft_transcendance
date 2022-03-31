@@ -74,6 +74,9 @@ const DirectMessageNew: React.FC = () => {
 						}}
 				/>
 			</div>
+			<div className="flex px-5 py-3 text-xs text-neutral-200 uppercase">
+				Select the friend to chat with
+			</div>
 			<div className="overflow-x-auto">
 				{filteredFriends.map((friend) => (
 					<div

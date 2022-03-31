@@ -48,10 +48,13 @@ const Chat: React.FC<ChatProps> = ({ viewStack, onClose }) => {
 							</Tooltip>
 							<Tooltip content="Groups" className={buttonTooltipClassName}>
 								<button
-									onClick={() => { setChatView("groups", "group chats", {}); }}
+									onClick={() => { setChatView("groups", "Group chats", {}); }}
 									className={buttonClassName}
 								>
-									<FaUserFriends />
+									{currentView.label === "Group chats"
+										? <FaUserFriends />
+										: <FaUserFriends className="opacity-50" />
+									}
 								</button>
 							</Tooltip>
 							<Tooltip
@@ -59,10 +62,13 @@ const Chat: React.FC<ChatProps> = ({ viewStack, onClose }) => {
 								className={buttonTooltipClassName}
 							>
 								<button
-									onClick={() => { setChatView("dms", "direct messages", {}); }}
+									onClick={() => { setChatView("dms", "Direct messages", {}); }}
 									className={buttonClassName}
 								>
-									<FaUser className="text-lg" />
+									{currentView.label === "Direct messages"
+										? <FaUser className="text-lg" />
+										: <FaUser className="text-lg opacity-50" />
+									}
 								</button>
 							</Tooltip>
 						</div>
