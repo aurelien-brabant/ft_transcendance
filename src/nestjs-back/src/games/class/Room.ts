@@ -278,10 +278,9 @@ export class Ball implements IBall {
 }
 
 export interface IRoom {
-	id: number;
 	roomId: string;
 	gameState: GameState;
-	users: User[];
+	players: User[];
 	playerOne: Player;
 	playerTwo: Player;
 	ball: Ball;
@@ -303,10 +302,9 @@ export interface IRoom {
 }
 
 export default class Room implements IRoom {
-	id: number;
 	roomId: string;
     gameState: GameState;
-	users: User[];
+	players: User[];
 	playerOne: Player;
 	playerTwo: Player;
 	ball: Ball;
@@ -327,11 +325,10 @@ export default class Room implements IRoom {
 	// settings customisation
 	maxGoal: number;
 
-    constructor(id: number, roomId: string, users: User[], customisation: {maxGoal?: number} = {maxGoal: 3}) {
-        this.id = id;
+    constructor(roomId: string, users: User[], customisation: {maxGoal?: number} = {maxGoal: 3}) {
 		this.roomId = roomId;
 		this.gameState = GameState.STARTING;
-		this.users = [];
+		this.players = [];
         this.playerOne = new Player(users[0], 10);
         this.playerTwo = new Player(users[1], canvasWidth-40);
 		this.ball = new Ball();
@@ -350,13 +347,13 @@ export default class Room implements IRoom {
 
 	addUser(user: User) {
 		// console.log(user, " added to ", this.users);
-		this.users.push(user);
+		this.players.push(user);
 	}
 
 	removeUser(userRm: User) {
-		const userIndex: number = this.users.findIndex(user => user.username === userRm.username);
+		const userIndex: number = this.players.findIndex(user => user.username === userRm.username);
 		if (userIndex !== -1)
-			this.users.splice(userIndex, 1);
+			this.players.splice(userIndex, 1);
 	}
 
 	getDuration(): number {

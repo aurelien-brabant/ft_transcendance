@@ -28,8 +28,8 @@ export class GamesService {
         return game;
     }
 
-    create(createGameDto: CreateGameDto) {
-        const game = this.gamesRepository.create(createGameDto);
+    async create(createGameDto: CreateGameDto) {
+        const game = this.gamesRepository.create({...createGameDto});
         return this.gamesRepository.save(game);
     }
 

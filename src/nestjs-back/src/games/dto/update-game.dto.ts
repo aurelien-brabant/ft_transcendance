@@ -7,25 +7,25 @@ export class UpdateGameDto extends PartialType(CreateGameDto) {
     // @IsOptional()
     // readonly players: User[];
 
-    @IsOptional()
-    readonly winnerId: number;
+    // @IsOptional()
+    // readonly winnerId: number;
 
-    @IsOptional()
-    readonly looserId: number;
+    // @IsOptional()
+    // readonly loserId: number;
 
-    @IsOptional()
-    @IsString()
-    readonly endedAt: number;
+    // @IsOptional()
+    // @IsString()
+    // readonly endedAt: number;
 
-    @IsOptional()
-    @IsInt()
-    readonly gameDuration: number;
+    // @IsOptional()
+    // @IsInt()
+    // readonly gameDuration: number;
 
-    @IsOptional()
-    @IsInt()
-    readonly winnerScore: number;
+    // @IsOptional()
+    // @IsInt()
+    // readonly winnerScore: number;
 
-    @IsOptional()
-    @IsInt()
-    readonly looserScore: number;
+    // @IsOptional()
+    // @IsInt()
+    // readonly loserScore: number;
 }

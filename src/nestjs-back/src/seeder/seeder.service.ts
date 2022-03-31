@@ -102,16 +102,15 @@ export class SeederService {
 
             let game = await this.gamesService.create({
                 players: [winner, looser],
-                createdAt: Date.now() + i
-            });
-            game = await this.gamesService.update(game.id.toString(), {
+                createdAt: Date.now() + i,
                 winnerId: (i < 9) ? i + 1 : 1,
-                looserId: (i < 8) ? i + 2 : 2,
+                loserId: (i < 8) ? i + 2 : 2,
                 endedAt: Date.now() + i + 180,
                 winnerScore: faker.datatype.number(),
-                looserScore: faker.datatype.number(),
+                loserScore: faker.datatype.number(),
                 gameDuration: 0
-            } as SeedGame);
+
+            });
 
             console.log('Game [%s] created', game.id);
         }

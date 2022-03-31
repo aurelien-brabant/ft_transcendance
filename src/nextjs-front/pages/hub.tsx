@@ -30,7 +30,7 @@ const Hub: NextPageWithLayout = () => {
 
 	useEffect((): any => {
 		// connect to socket server
-		socket = io("localhost");
+		socket = io("localhost:8080");
 
 		socket.on("connect", () => {
 			// Allow reconnection
