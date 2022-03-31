@@ -115,9 +115,12 @@ const GroupAdd: React.FC<{ viewParams: any }> = ({ viewParams }) => {
 				/>
 			</div>
 			<div className="overflow-x-auto">
-				<div className="flex px-5 py-3 text-xs text-neutral-200 uppercase">
+				<div className="flex px-5 pt-3 text-xs text-neutral-200 uppercase">
 					Select the friend to add
 				</div>
+				<small className="flex px-5 py-3">
+					{filteredFriends.length === 0 && "No more friends to add to group"}
+				</small>
 				{filteredFriends.map((friend) => (
 					<div
 						key={friend.username}
