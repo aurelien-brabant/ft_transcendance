@@ -33,7 +33,7 @@ import { ChatModule } from './chat/chat.module';
       password: `${process.env.POSTGRES_PASSWORD}`,
       database: `${process.env.POSTGRES_HOST}`,
       autoLoadEntities: true,
-      synchronize: true,         // true in Dev // false in production
+      synchronize: (process.env.NODE_ENV === 'development') ? true : false,         // true in Dev // false in production
       keepConnectionAlive: true,
     }),
   ],
