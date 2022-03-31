@@ -81,7 +81,7 @@ const Group: React.FC<{ viewParams: { [key: string]: any } }> = ({
 	const { setAlert } = useContext(alertContext) as AlertContextType;
 	const { getUserData } = useContext(authContext) as AuthContextType;
 	const { fetchChannelData } = useContext(chatContext) as ChatContextType;
-	const { getData, blocked } = useContext(relationshipContext) as RelationshipContextType;
+	const { blocked, getData } = useContext(relationshipContext) as RelationshipContextType;
 	const [messages, setMessages] = useState<ChatMessage[]>([]);
 	const [currentMessage, setCurrentMessage] = useState("");
 	const chatBottom = useRef<HTMLDivElement>(null);
@@ -89,7 +89,7 @@ const Group: React.FC<{ viewParams: { [key: string]: any } }> = ({
 	const userId = getUserData().id;
 
 	const addMessage = (message: any) => {
-		const isBlocked = !!blocked.find(user => user.id == message.author.id);
+		const isBlocked = !!blocked.find(user => user.id === message.author.id);
 
 		setMessages([
 			...messages, {

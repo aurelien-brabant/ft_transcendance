@@ -1,6 +1,6 @@
 import { Fragment, useContext, useEffect, useState } from "react";
 import { AiOutlineClose, AiOutlineArrowLeft } from "react-icons/ai";
-import { FaUserFriends, FaUserAltSlash } from "react-icons/fa";
+import { FaUserFriends, FaUserLock, FaUserMinus } from "react-icons/fa";
 import { BsShieldFillCheck, BsShieldFillPlus, BsShieldFillX } from "react-icons/bs";
 import { FaCrown } from "react-icons/fa";
 import { GiThorHammer } from "react-icons/gi";
@@ -9,17 +9,21 @@ import { RiPingPongLine } from 'react-icons/ri';
 import Link from "next/link";
 import { BaseUserData } from "transcendance-types";
 import alertContext, { AlertContextType } from "../../context/alert/alertContext";
+import authContext, { AuthContextType } from "../../context/auth/authContext";
 import chatContext, { ChatContextType } from "../../context/chat/chatContext";
+import relationshipContext, { RelationshipContextType } from "../../context/relationship/relationshipContext";
 import Tooltip from "../../components/Tooltip";
 
 type UserSummary = {
 	id: string;
 	username: string;
 	pic: string;
+	isMe: boolean;
 	isOwner: boolean;
 	isAdmin: boolean;
 	isMuted: boolean;
 	isBanned: boolean;
+	isBlocked: boolean;
 };
 
 /* Header */
@@ -53,8 +57,11 @@ export const GroupUsersHeader: React.FC<{ viewParams: any }> = ({ viewParams }) 
 
 const GroupUsers: React.FC<{ viewParams: any }> = ({ viewParams }) => {
 	const { setAlert } = useContext(alertContext) as AlertContextType;
+	const { getUserData } = useContext(authContext) as AuthContextType;
 	const { fetchChannelData } = useContext(chatContext) as ChatContextType;
+	const { blocked, getData } = useContext(relationshipContext) as RelationshipContextType;
 	const [users, setUsers] = useState<UserSummary[]>([]);
+	const userId = getUserData().id;
 	const groupId = viewParams.groupId;
 	const actionTooltipStyles = "font-bold bg-gray-900 text-neutral-200";
 
@@ -221,6 +228,7 @@ const GroupUsers: React.FC<{ viewParams: any }> = ({ viewParams }) => {
 				id: chanUsers[i].id,
 				username: chanUsers[i].username,
 				pic: `/api/users/${chanUsers[i].id}/photo`,
+				isMe: (chanUsers[i].id === userId),
 				isOwner: (chanUsers[i].id === chanOwner.id),
 				isAdmin: (chanUsers[i].id === chanOwner.id) || !!chanAdmins.find((admin: BaseUserData) => {
 					return admin.id === chanUsers[i].id;
@@ -230,13 +238,16 @@ const GroupUsers: React.FC<{ viewParams: any }> = ({ viewParams }) => {
 				}),
 				isBanned: !!bannedUsers.find((user: BaseUserData) => {
 					return user.id === chanUsers[i].id;
-				})
+				}),
+				isBlocked: !!blocked.find(user => user.id === chanUsers[i].id)
 			});
 		}
+		users.sort((a, b) => (a.isBlocked ? 1 : -1)).sort((a, b) => (a.isAdmin ? -1 : 1)).sort((a, b) => (a.isOwner ? -1 : 1));
 		setUsers(users);
 	}
 
 	useEffect(() => {
+		getData();
 		updateUsers();
 	}, []);
 
@@ -265,6 +276,7 @@ const GroupUsers: React.FC<{ viewParams: any }> = ({ viewParams }) => {
 									{!user.isOwner && user.isAdmin && <BsShieldFillCheck className="text-blue-500"/>}
 									{!user.isOwner && user.isMuted && <MdVoiceOverOff color="grey"/>}
 									{!user.isOwner && user.isBanned && <GiThorHammer color="grey"/>}
+									{user.isBlocked && <FaUserLock className="text-red-600" />}
 								</a>
 							</Link>
 						</div>
@@ -286,7 +298,7 @@ const GroupUsers: React.FC<{ viewParams: any }> = ({ viewParams }) => {
 							{!user.isAdmin &&
 							<Tooltip className={actionTooltipStyles} content="kick">
 								<button onClick={() => kickUser(String(user.id), user.username)} className="transition hover:scale-110">
-									<FaUserAltSlash className="text-lg" color="grey"/>
+									<FaUserMinus className="text-lg" color="grey"/>
 								</button>
 							</Tooltip>}
 							{!user.isOwner && user.isAdmin &&
@@ -297,13 +309,14 @@ const GroupUsers: React.FC<{ viewParams: any }> = ({ viewParams }) => {
 									<BsShieldFillPlus />
 								</button>
 							</Tooltip>}
+							{!user.isMe && !user.isBlocked &&
 							<Tooltip className={actionTooltipStyles} content="play">
 								<button
 									className="p-1 text-gray-900 bg-white rounded-full transition hover:scale-110  hover:text-pink-600"
 								>
 									<RiPingPongLine />
 								</button>
-							</Tooltip>
+							</Tooltip>}
 						</div>
 					</div>
 				))}
@@ -330,17 +343,19 @@ const GroupUsers: React.FC<{ viewParams: any }> = ({ viewParams }) => {
 									{user.username}
 									{user.isOwner && <FaCrown className="text-yellow-500" />}
 									{!user.isOwner && user.isAdmin && <BsShieldFillCheck className="text-blue-500"/>}
+									{user.isBlocked && <FaUserLock className="text-red-600" />}
 								</a>
 							</Link>
 						</div>
 						<div className="flex text-xl gap-x-2">
+							{!user.isMe && !user.isBlocked &&
 							<Tooltip className={actionTooltipStyles} content="play">
 								<button
 									className="p-1 text-gray-900 bg-white rounded-full transition hover:scale-110  hover:text-pink-600"
 								>
 									<RiPingPongLine />
 								</button>
-							</Tooltip>
+							</Tooltip>}
 						</div>
 					</div>
 				))}
