@@ -2723,7 +2723,7 @@ to-regex-range@^5.0.1:
   dependencies:
     is-number "^7.0.0"
 
-transcendance-types@../transcendance-types/:
+transcendance-types@./transcendance-types/:
   version "1.0.0"
 
 tsconfig-paths@^3.12.0, tsconfig-paths@^3.9.0:

@@ -8,6 +8,7 @@ const AuthProvider: React.FC = ({ children }) => {
 	const [isAuthenticated, setIsAuthenticated] = useState(false);
 	const [token, setToken] = useState<string>('');
 	
+
 	const loadBearer = () => window.localStorage.getItem("bearer");
 
 	const logout = () => {
@@ -17,8 +18,7 @@ const AuthProvider: React.FC = ({ children }) => {
 	}
 
 	const clearUser = () => { setUserData(null); }
-
-	const getUserData = (): User => userData;
+	const getUserData = (): any => userData;
 
 	/**
 	 * Merge the object passed as an argument with the current userData object.
