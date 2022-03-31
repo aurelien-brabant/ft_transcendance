@@ -229,6 +229,7 @@ export class PongGateway implements OnGatewayInit, OnGatewayConnection, OnGatewa
 				room.lastUpdate = Date.now();
 				room.changeGameState(GameState.PLAYING);
 			}
+
 			this.server.to(room.roomId).emit("updateRoom", room);
 		}
 	}

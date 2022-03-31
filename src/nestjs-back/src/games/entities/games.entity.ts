@@ -24,10 +24,6 @@ export class Game {
 
     @Column({ nullable: true })
     loserId: number;
-
-    @Column({
-        type: "date",
-    })
     @Column({ nullable: true })
     winnerScore: number;
 
