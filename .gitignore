@@ -1,3 +1,5 @@
 *.env
 .babelrc
 src/docker-compose.dev.yml
+.idea
+node_modules
