@@ -40,6 +40,7 @@ services:
       - NODE_ENV=production
       - NEXT_PUBLIC_FT_CLIENT_ID=${FT_CLIENT_ID}
       - NEXT_PUBLIC_FT_REDIRECT_URI=${FT_REDIRECT_URI}
+      - NEXT_PUBLIC_API_URL=${NEXT_PUBLIC_API_URL}
 
   # backend
 
