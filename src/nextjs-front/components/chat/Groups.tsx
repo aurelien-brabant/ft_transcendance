@@ -31,8 +31,10 @@ const Groups: React.FC<{viewParams: Object;}> = ({ viewParams }) => {
 					group.privacy !== "private" ||
 					(group.privacy === "private" && group.in)
 			)
-			.sort((a: ChatGroup, b: ChatGroup) => (b.updatedAt.valueOf() - a.updatedAt.valueOf())
-			// .sort((a, b) => (a.privacy !== "private" ? 1 : -1)
+			.sort(
+				(a: ChatGroup, b: ChatGroup) =>
+				(b.updatedAt.valueOf() - a.updatedAt.valueOf()
+			)
 	), []);
 
 	const [filteredGroups, setFilteredGroups] = useState(baseChatGroups);
@@ -79,8 +81,7 @@ const Groups: React.FC<{viewParams: Object;}> = ({ viewParams }) => {
 		const updatePreviews = async () => {
 			await Promise.all(chatGroups.map((gm) => updateLastMessage(gm)));
 		};
-		updatePreviews(); // tmp
-		// TODO: update if quit channel
+		updatePreviews();
 	}, []);
 
 	return (
@@ -160,10 +161,12 @@ const Groups: React.FC<{viewParams: Object;}> = ({ viewParams }) => {
 										<AiFillLock />
 									))}
 							</div>
-							<p>{gm.lastMessage === "Blocked message"
-									? <div className="opacity-30">{gm.lastMessage}</div>
+							<p>
+								{gm.lastMessage === "Blocked message"
+									? <span className="opacity-30">{gm.lastMessage}</span>
 									: gm.lastMessage
-									}</p>
+								}
+							</p>
 						</div>
 					</div>
 				))}
