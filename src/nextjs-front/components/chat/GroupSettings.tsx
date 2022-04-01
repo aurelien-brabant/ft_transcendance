@@ -156,8 +156,8 @@ const GroupSettings: React.FC<{ viewParams: any }> = ({ viewParams }) => {
 		});
 
 		if (res.status === 200) {
-			removeChatGroup(groupId);
 			closeRightmostView(2);
+			removeChatGroup(groupId);
 			return;
 		} else {
 			setAlert({
@@ -188,8 +188,8 @@ const GroupSettings: React.FC<{ viewParams: any }> = ({ viewParams }) => {
 		});
 
 		if (res.status === 200) {
-			removeChatGroup(groupId);
 			closeRightmostView(2);
+			removeChatGroup(groupId);
 			return;
 		} else {
 			setAlert({
