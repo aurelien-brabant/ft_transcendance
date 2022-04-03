@@ -1,10 +1,11 @@
-// import Draggable from "react-draggable";
 import { Fragment, useContext } from "react";
 import { AiOutlineClose, AiOutlineUser } from "react-icons/ai";
 import { FaUserFriends } from "react-icons/fa";
 import { ChatViewItem } from "../context/chat/ChatProvider";
 import chatContext, { ChatContextType } from "../context/chat/chatContext";
 import Tooltip from "./Tooltip";
+import Draggable from 'react-draggable';
+import dragContext, { DragContextType } from "../context/drag/dragContext";
 
 type ChatProps = {
 	onClose: () => void;
@@ -19,6 +20,7 @@ const Chat: React.FC<ChatProps> = ({ viewStack, onClose }) => {
 	const currentView = viewStack[viewStack.length - 1];
 	const buttonTooltipClassName = "p-3 font-bold bg-gray-900";
 	const buttonClassName = "hover:scale-105 transition";
+	const { lastX, lastY, setLastX, setLastY } = useContext(dragContext) as DragContextType;
 
 	if (!currentView) {
 		throw Error(
@@ -27,6 +29,25 @@ const Chat: React.FC<ChatProps> = ({ viewStack, onClose }) => {
 	}
 
 	return (
+
+	<Draggable
+		onDrag={(e, data) => {console.log(data); console.log(window.innerWidth)}}
+	  onStop={(e, data) => {
+		if (data.y > 0)
+		  setLastY(0)
+		else if (-data.y > window.innerHeight - 670)
+		  setLastY(-window.innerHeight + 670)
+		else
+		  setLastY(data.y);
+
+		if (data.x > 0)
+		  setLastX(0)
+		else if (-data.x > window.innerWidth - 550)
+		  setLastX(-window.innerWidth + 550)
+		else
+		  setLastX(data.x);
+	}}
+      position={{x: lastX, y: lastY}}>
 		<div
 			className="fixed z-50 top-0 bottom-0 left-0 right-0 md:top-auto md:left-auto md:bottom-10 md:right-10
 				drop-shadow-lg flex flex-col overflow-hidden md:w-[25rem] md:h-[35em] text-white rounded border-gray-800 border-2"
@@ -127,6 +148,7 @@ const Chat: React.FC<ChatProps> = ({ viewStack, onClose }) => {
 			</div>
 
 		</div>
+	</Draggable>
 	);
 };
 
