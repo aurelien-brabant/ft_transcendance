@@ -1,30 +1,32 @@
 import { Module } from '@nestjs/common';
+import { ScheduleModule } from '@nestjs/schedule';
+import { TypeOrmModule } from '@nestjs/typeorm';
 import { AppController } from './app.controller';
 import { AppService } from './app.service';
+import { AchievementsModule } from './achievements/achievements.module';
 import { AuthModule } from './auth/auth.module';
+import { ChannelsModule } from './chat/channels/channels.module';
+import { ChatModule } from './chat/chat.module';
 import { FriendsInvitesModule } from './friendsInvites/friendsInvites.module';
 import { GamesModule } from './games/games.module';
 import { GamesInvitesModule } from './gamesInvites/gamesInvites.module';
-import { ChannelsModule } from './chat/channels/channels.module';
 import { MessagesModule } from './chat/messages/messages.module';
 import { SeederModule } from './seeder/seeder.module';
 import { UsersModule } from './users/users.module';
-import { TypeOrmModule } from '@nestjs/typeorm';
-import { AchievementsModule } from './achievements/achievements.module';
-import { ChatModule } from './chat/chat.module';
 
 @Module({
   imports: [
+    AchievementsModule,
     AuthModule,
+    ChannelsModule,
     ChatModule,
     FriendsInvitesModule,
     GamesModule,
     GamesInvitesModule,
-    ChannelsModule,
     MessagesModule,
-    AchievementsModule,
     SeederModule,
     UsersModule,
+    ScheduleModule.forRoot(),
     TypeOrmModule.forRoot({
       type: 'postgres',
       host: `${process.env.POSTGRES_HOST}`,

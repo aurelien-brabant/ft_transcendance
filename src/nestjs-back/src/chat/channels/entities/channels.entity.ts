@@ -20,12 +20,7 @@ export class Channel {
   @Column({ length: 50 })
   name: string;
 
-  @ManyToOne(() => User, owner => owner.ownedChannels, {
-    onDelete: "CASCADE"
-  })
-  owner: User;
-
-  /* public, private, protected */
+  /* public, private, protected, dm */
   @Column({ default: "private" })
   privacy: string
 
@@ -33,9 +28,30 @@ export class Channel {
   @Column({ select: false, nullable: true })
   password: string;
 
+  /* Mute/ban duration in minutes */
+  @Column({ default: 1 }) /* very short for test purposes */
+  restrictionDuration: number;
+
+  @ManyToOne(() => User, owner => owner.ownedChannels, {
+    onDelete: "CASCADE"
+  })
+  owner: User;
+
   @ManyToMany(() => User, user => user.joinedChannels)
   @JoinTable()
   users: User[];
+
+  @ManyToMany(() => User)
+  @JoinTable()
+  admins: User[];
+
+  @ManyToMany(() => User)
+  @JoinTable()
+  mutedUsers: User[];
+
+  @ManyToMany(() => User)
+  @JoinTable()
+  bannedUsers: User[];
 
   @OneToMany(() => Message, message => message.channel, {
     cascade: true

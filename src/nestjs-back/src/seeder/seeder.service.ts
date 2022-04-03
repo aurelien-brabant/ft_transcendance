@@ -57,7 +57,6 @@ export class SeederService {
     }
 
     async updateFakeUser(i: number) {
-
         let user = await this.usersService.update(String(i + 1), {
             friends: [
                 {
@@ -66,7 +65,9 @@ export class SeederService {
                 {
                     "id": i === 5 ? 4 : 5,
                 }
-            ],
+            ]
+        } as SeedUser);
+        user = await this.usersService.update(String(i + 1), {
             blockedUsers: [
                 {
                     "id": i === 6 ? 7 : 6,
@@ -129,48 +130,68 @@ export class SeederService {
         }
     }
 
+    /* Chat messages */
     async seedFakeMessages(dstChannel: SeedChannel, fakeSender: SeedUser, fakeFriend: SeedUser) {
-        for (let i = 0; i < 10; ++i) {
-            let message: SeedMessage;
-
+        for (let i = 0; i < 5; ++i) {
             if (i % 2) {
-                message = await this.messagesService.create({
+                await this.messagesService.create({
                     content: `I am ${fakeSender.username}`,
                     author: fakeSender,
                     channel: dstChannel
                 });
             } else {
-                message = await this.messagesService.create({
+                await this.messagesService.create({
                     content: `I am ${fakeFriend.username}`,
                     author: fakeFriend,
                     channel: dstChannel
                 });
             }
-            // console.log("Message [%s] => ['%s'] sent by User [%s]", message.id, message.content, message.author.id);
         }
+    }
+
+    /* Test for a chat group with one blocked user */
+    async seedBlockedUserGroup() {
+        const fakeOwner = await this.usersService.findOne('1');
+        const fakeFriend = await this.usersService.findOne('2');
+        const fakeBlocked = await this.usersService.findOne('6');
+
+        const channel = await this.channelsService.create({
+                name: 'block test',
+                owner: fakeOwner,
+                privacy: 'private',
+                users: [ { "id": 1 }, { "id": 2 }, { "id": 6 } ],
+                messages: [],
+            } as SeedChannel);
+
+        await this.seedFakeMessages(channel, fakeOwner, fakeFriend);
+        await this.messagesService.create({
+            content: `I am ${fakeBlocked.username} and should be blocked`,
+            author: fakeBlocked,
+            channel: channel
+        });
     }
 
     async seedFakeGroups() {
         const fakeOwner = await this.usersService.findOne('1');
         const fakeFriend = await this.usersService.findOne('2');
-        const randomUser = await this.usersService.findOne('3');
 
-        for (let i = 0; i < 10; ++i) {
+        for (let i = 0; i < 5; ++i) {
             let channel = await this.channelsService.create({
                 name: 'fakeChannel_' + i,
-                owner: fakeOwner,
                 privacy: ['private', 'public', 'protected'][Math.floor(Math.random() * 3)],
-                users: [fakeOwner, fakeFriend, randomUser],
+                owner: fakeOwner,
+                users: [ { "id": 1 }, { "id": 2 }, { "id": 3 } ],
                 messages: [],
             } as SeedChannel);
             if (channel.privacy === 'protected') {
                 channel = await this.channelsService.update(channel.id.toString(), {
-                    password: 'test' + i
+                    password: 'password'
                 });
             }
             console.log('[+] Seeding fake messages in channel [%s]...', channel.id);
             await this.seedFakeMessages(channel, fakeOwner, fakeFriend);
         }
+        await this.seedBlockedUserGroup();
     }
 
     async seedFakeDMs() {
@@ -180,8 +201,8 @@ export class SeederService {
             const fakeFriend = await this.usersService.findOne(i.toString())
             let channel = await this.channelsService.create({
                 name: 'fakeDM_' + i,
+                privacy: 'dm',
                 owner: fakeOwner,
-                privacy: 'private',
                 users: [fakeOwner, fakeFriend],
                 messages: []
             } as SeedChannel);

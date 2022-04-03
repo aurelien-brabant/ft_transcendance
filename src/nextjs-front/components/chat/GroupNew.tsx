@@ -1,5 +1,5 @@
-import { useState, Fragment, useContext } from "react";
-import { BsArrowLeftShort } from "react-icons/bs";
+import { Fragment, useContext, useState } from "react";
+import { AiOutlineArrowLeft, AiOutlineClose } from "react-icons/ai";
 import alertContext, { AlertContextType } from "../../context/alert/alertContext";
 import authContext, { AuthContextType } from "../../context/auth/authContext";
 import chatContext, { ChatContextType, ChatGroupPrivacy } from "../../context/chat/chatContext";
@@ -27,28 +27,32 @@ const ErrorProvider: React.FC<{ error?: string }> = ({ children, error }) => (
 );
 
 export const GroupNewHeader: React.FC = () => {
-	const { closeRightmostView } = useContext(chatContext) as ChatContextType;
+	const { closeChat, closeRightmostView } = useContext(chatContext) as ChatContextType;
 
 	return (
-		<div className="flex items-center justify-between p-3 px-5">
-			<div className="flex gap-x-2">
-				<button
-					className="text-4xl"
-					onClick={() => {
-						closeRightmostView();
-					}}
-				>
-					<BsArrowLeftShort />
-				</button>
+		<Fragment>
+			<div className="flex items-start justify-between pt-3 px-5">
+				<div className="flex gap-x-2 text-2xl">
+					<button onClick={() => { closeChat(); }}>
+						<AiOutlineClose />
+					</button>
+					<button onClick={() => { closeRightmostView(); }}>
+						<AiOutlineArrowLeft />
+					</button>
+				</div>
 			</div>
-			<h6>Create a new group</h6>
-		</div>
+			<div className="flex flex-col items-center justify-center">
+				<h6 className="text-lg font-bold text-pink-600">
+					Create a new group
+				</h6>
+			</div>
+		</Fragment>
 	);
-}
+};
 
 const GroupNew: React.FC = () => {
-	const { getUserData } = useContext(authContext) as AuthContextType;
 	const { setAlert } = useContext(alertContext) as AlertContextType;
+	const { getUserData } = useContext(authContext) as AuthContextType;
 	const {
 		openChatView,
 		updateChatGroups,
@@ -85,8 +89,13 @@ const GroupNew: React.FC = () => {
 		}
 
 		if (formData.privacy === 'protected') {
-			if (formData.password.length == 0) {
-				errors['password'] = 'Password can\'t be empty';
+			if (formData.password) {
+				if (formData.password.length == 0) {
+					errors['password'] = 'Password can\'t be empty';
+				}
+				if (formData.password.length < 8) {
+					errors['password'] = 'Password must contain at least 8 characters';
+				}
 			} else if (formData.password !== formData.password2) {
 				errors['password2'] = 'Passwords do not match';
 			}
@@ -98,7 +107,7 @@ const GroupNew: React.FC = () => {
 		setFieldErrors(errors);
 	};
 
-	const createGroup = async (formData: any) => {
+	const createGroup = async (formData: NewGroupData) => {
 		const res = await fetch("/api/channels", {
 			method: "POST",
 			headers: {
@@ -116,17 +125,17 @@ const GroupNew: React.FC = () => {
 		if (res.status === 201) {
 			const data = await res.json();
 			const gm = setChatGroupData(JSON.parse(JSON.stringify(data)));
-			console.log(gm);
-			updateChatGroups(gm);
-				openChatView(gm.privacy === 'protected' ? 'password_protection' : 'group', gm.label, {
-					groupName: gm.label,
-					groupId: gm.id
-				}
+
+			updateChatGroups();
+			openChatView(gm.privacy === 'protected' ? 'password_protection' : 'group', gm.label, {
+				groupName: gm.label,
+				groupId: gm.id
+			}
 			);
 		} else if (res.status === 401) {
 			setAlert({
 				type: "warning",
-				content: `Group '${formData.groupName}' already exists`
+				content: `Group '${formData.groupName}' already exists. Choose another name.`
 			});
 		} else {
 			setAlert({
@@ -137,13 +146,12 @@ const GroupNew: React.FC = () => {
 	}
 
 	const inputGroupClassName = "flex flex-col gap-y-2";
-	const inputClassName =
-		"px-2 py-1 border border-pink-600 bg-transparent outline-none";
+	const inputClassName = "px-2 py-1 border border-pink-600 bg-transparent outline-none";
 	const labelClassName = "text-xs text-neutral-200 uppercase";
 
 	return (
 		<div className="flex flex-col h-full px-5 py-5 overflow-y-auto gap-y-4">
-			<h6 className="text-xl">Create a new group</h6>
+			<h6 className="text-xl">New group settings</h6>
 			<form className="flex flex-col gap-y-4" onSubmit={handleSubmit}>
 				<div className={inputGroupClassName}>
 					<ErrorProvider error={fieldErrors['groupName']}>

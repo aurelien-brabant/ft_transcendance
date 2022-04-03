@@ -12,7 +12,7 @@ import {
 } from '@nestjs/websockets';
 import { ChatService } from './chat.service';
 
-@WebSocketGateway({ namespace: 'chat', cors: true })
+@WebSocketGateway({ cors: true })
 export class ChatGateway implements OnGatewayInit, OnGatewayConnection, OnGatewayDisconnect {
   @WebSocketServer() server: Server;
   private logger: Logger = new Logger('ChatGateway');
@@ -20,11 +20,10 @@ export class ChatGateway implements OnGatewayInit, OnGatewayConnection, OnGatewa
   constructor(private readonly chatService: ChatService) {}
 
   afterInit(server: Server) {
-    this.logger.log('Init ChatGateway');
+    this.logger.log('Init Chat Gateway');
   }
 
-  async handleConnection(socket: Socket) {
-    await this.chatService.getUserFromSocket(socket);
+  async handleConnection(@ConnectedSocket() socket: Socket) {
     this.logger.log(`Client connected: ${socket.id}`);
   }
 
@@ -37,9 +36,9 @@ export class ChatGateway implements OnGatewayInit, OnGatewayConnection, OnGatewa
     @ConnectedSocket() socket: Socket,
     @MessageBody() data: string
   ) {
-    const author = await this.chatService.getUserFromSocket(socket);
+    // const author = await this.chatService.getUserFromSocket(socket);
 
-    this.logger.log(`Handle message from Client [${author.id}]`);
+    this.logger.log(`Handle message from Client [${socket.id}]\n${data}`);
     this.server.emit('messageToClient', data);
     // this.server.to(data.channel).emit('messageToClient', data);
   }

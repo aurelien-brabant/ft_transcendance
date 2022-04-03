@@ -133,7 +133,7 @@ const UserProfilePage: NextPageWithLayout = ({}) => {
   const actionTooltipStyles = 'font-bold bg-gray-900 text-neutral-200';
   const { getUserData } = useContext(authContext) as AuthContextType;
   const { setAlert } = useContext(alertContext) as AlertContextType;
-  const { setChatView, openChat } = useContext(chatContext) as ChatContextType;
+  const { openChat, openDirectMessage } = useContext(chatContext) as ChatContextType;
   const [gamesHistory, setGamesHistory] = useState([]);
   const url: string = window.location.href;
   const userId: string = parseInt(url.substring(url.lastIndexOf('/') + 1)).toString();
@@ -163,8 +163,8 @@ const UserProfilePage: NextPageWithLayout = ({}) => {
   const router = useRouter();
 
   /* Send DM to user */
-  const handleMessage = () => {
-    setChatView('dm', 'direct message', { targetUsername: userData.username });
+  const handleMessage = async () => {
+    await openDirectMessage(userId.toString(), userData);
     openChat();
   }
 

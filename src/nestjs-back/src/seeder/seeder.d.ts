@@ -47,10 +47,14 @@ export type SeedGame = {
 export type SeedChannel = {
   id: number;
   name: string;
-  owner: SeedUser;
   privacy: string
   password: string;
+  restrictionDuration: number;
+  owner: SeedUser;
   users: SeedUser[];
+  admins: SeedUser[];
+  mutedUsers: SeedUser[];
+  bannedUsers: SeedUser[];
   messages: SeedMessage[];
 };
 
