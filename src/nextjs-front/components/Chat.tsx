@@ -7,6 +7,7 @@ import Tooltip from "./Tooltip";
 import Draggable from 'react-draggable';
 import { useMediaQuery } from "react-responsive";
 import authContext, { AuthContextType } from "../context/auth/authContext";
+import React from "react";
 
 type ChatProps = {
 	onClose: () => void;
@@ -20,13 +21,12 @@ const Chat: React.FC<ChatProps> = ({ viewStack, onClose }) => {
 	const { getUserData } = useContext(authContext) as AuthContextType;
 	const { loadChannelsOnMount } = useContext(chatContext) as ChatContextType;
 	const userId = getUserData().id;
-	
-
 	const currentView = viewStack[viewStack.length - 1];
 	const buttonTooltipClassName = "p-3 font-bold bg-gray-900";
 	const buttonClassName = "hover:scale-105 transition";
 	const { lastX, lastY, setLastX, setLastY } = useContext(chatContext) as ChatContextType;
-
+	const nodeRef = React.useRef(null);
+	
 	if (!currentView) {
 		throw Error(
 			"No chat view to show. You need to call setChatView or openChatView before calling the openChat function."
@@ -46,6 +46,7 @@ const Chat: React.FC<ChatProps> = ({ viewStack, onClose }) => {
 	return (
 
 	<Draggable
+		nodeRef={nodeRef}
 		position={{x: lastX, y: lastY}}
 		onStop={(e, data) => {
 			if (data.y > 0)
@@ -65,6 +66,7 @@ const Chat: React.FC<ChatProps> = ({ viewStack, onClose }) => {
 		disabled={useMediaQuery({ query: "(max-width: 800px)"})}
 	>
       	<div
+			ref={nodeRef}
 			className="fixed z-50 top-0 bottom-0 left-0 right-0 md:top-auto md:left-auto md:bottom-10 md:right-10
 				drop-shadow-lg flex flex-col overflow-hidden md:w-[25rem] md:h-[35em] text-white rounded border-gray-800 border-2"
 		>
