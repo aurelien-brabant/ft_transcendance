@@ -6,6 +6,7 @@ import chatContext, { ChatContextType } from "../context/chat/chatContext";
 import Tooltip from "./Tooltip";
 import Draggable from 'react-draggable';
 import dragContext, { DragContextType } from "../context/drag/dragContext";
+import { useMediaQuery } from "react-responsive";
 
 type ChatProps = {
 	onClose: () => void;
