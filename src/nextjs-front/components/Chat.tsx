@@ -19,7 +19,6 @@ const Chat: React.FC<ChatProps> = ({ viewStack, onClose }) => {
 		chatContext, 
 	) as ChatContextType;
 	const { getUserData } = useContext(authContext) as AuthContextType;
-	const {  } = useContext(chatContext) as ChatContextType;
 	const userId = getUserData().id;
 	const currentView = viewStack[viewStack.length - 1];
 	const buttonTooltipClassName = "p-3 font-bold bg-gray-900";
