@@ -31,24 +31,24 @@ const Chat: React.FC<ChatProps> = ({ viewStack, onClose }) => {
 	return (
 
 	<Draggable
-		onDrag={(e, data) => {console.log(data); console.log(window.innerWidth)}}
-	  onStop={(e, data) => {
-		if (data.y > 0)
-		  setLastY(0)
-		else if (-data.y > window.innerHeight - 670)
-		  setLastY(-window.innerHeight + 670)
-		else
-		  setLastY(data.y);
+		position={{x: lastX, y: lastY}}
+		onStop={(e, data) => {
+			if (data.y > 0)
+		  		setLastY(0)
+			else if (-data.y > window.innerHeight - 670)
+		  		setLastY(-window.innerHeight + 670)
+			else
+		  		setLastY(data.y);
 
-		if (data.x > 0)
-		  setLastX(0)
-		else if (-data.x > window.innerWidth - 550)
-		  setLastX(-window.innerWidth + 550)
-		else
-		  setLastX(data.x);
-	}}
-      position={{x: lastX, y: lastY}}>
-		<div
+			if (data.x > 0)
+			  	setLastX(0)
+			else if (-data.x > window.innerWidth - 550)
+		  		setLastX(-window.innerWidth + 550)
+			else
+		  		setLastX(data.x);
+			}}
+	>
+      	<div
 			className="fixed z-50 top-0 bottom-0 left-0 right-0 md:top-auto md:left-auto md:bottom-10 md:right-10
 				drop-shadow-lg flex flex-col overflow-hidden md:w-[25rem] md:h-[35em] text-white rounded border-gray-800 border-2"
 		>
