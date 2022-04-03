@@ -17,6 +17,8 @@ import GroupNew, { GroupNewHeader } from "../../components/chat/GroupNew";
 import GroupSettings, { GroupSettingsHeader } from "../../components/chat/GroupSettings";
 import GroupUsers, { GroupUsersHeader } from "../../components/chat/GroupUsers";
 import PasswordProtection, { PasswordProtectionHeader } from "../../components/chat/PasswordProtection";
+/* WS */
+import { io, Socket } from 'socket.io-client';
 
 export type ChatViewItem = {
 	label: string;
@@ -106,6 +108,7 @@ const ChatProvider: React.FC = ({ children }) => {
 	const [viewStack, setViewStack] = useState<ChatViewItem[]>([]);
 	const [chatGroups, setChatGroups] = useState<ChatGroup[]>([]);
 	const [directMessages, setDirectMessages] = useState<DirectMessage[]>([]);
+	let chatSocket;
 
 	/* Chat manipulation */
 	const openChat = () => {
@@ -317,6 +320,15 @@ const ChatProvider: React.FC = ({ children }) => {
 		setDirectMessages(dms);
 	}
 
+	/* WS */
+	const handleClientConnection = () => {
+		chatSocket = io('localhost');
+
+		chatSocket.on('connect', () => {
+			console.log('[Chat WS] Client connected');
+		})
+	}
+
 	useEffect(() => {
 		const fetchUserChannels = async () => {
 			const res = await fetch(`/api/users/${userId}/channels`);
@@ -325,6 +337,7 @@ const ChatProvider: React.FC = ({ children }) => {
 			loadChannelsOnMount(JSON.parse(JSON.stringify(data)));
 		}
 
+		handleClientConnection();
 		getData();
 		fetchUserChannels().catch(console.error);
 	}, [])
