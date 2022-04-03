@@ -47,6 +47,7 @@ const Chat: React.FC<ChatProps> = ({ viewStack, onClose }) => {
 			else
 		  		setLastX(data.x);
 			}}
+		disabled={useMediaQuery({ query: "(max-width: 800px)"})}
 	>
       	<div
 			className="fixed z-50 top-0 bottom-0 left-0 right-0 md:top-auto md:left-auto md:bottom-10 md:right-10
@@ -99,7 +100,7 @@ const Chat: React.FC<ChatProps> = ({ viewStack, onClose }) => {
 							</button>
 						</Tooltip>
 					</nav>
-<div className="flex flex-col items-center justify-center">
+			<div className="flex flex-col items-center justify-center">
 					<h6 className="text-lg font-bold text-pink-600 uppercase">
 						{viewStack.length > 0 &&
 							viewStack[viewStack.length - 1].label}
@@ -128,7 +129,7 @@ const Chat: React.FC<ChatProps> = ({ viewStack, onClose }) => {
 										</span>
 									)}
 								</Fragment>
-							))}
+						))}
 					</div>
 				</div>
 					</Fragment>
