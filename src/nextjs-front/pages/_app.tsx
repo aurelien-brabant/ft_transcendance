@@ -7,7 +7,7 @@ import Authenticator, { AuthConfig } from "../components/hoc/withAuth";
 import AuthProvider from "../context/auth/AuthProvider";
 import AlertProvider from "../context/alert/AlertProvider";
 import RelationshipProvider from "../context/relationship/RelationshipProvider";
-//import AchievementsProvider from "../context/achievements/AchievementsProvider";
+import DragProvider from "../context/drag/DragProvider";
 
 export type NextPageWithLayout<T = {}> = NextPage<T> & {
   getLayout?: (page: ReactElement) => ReactNode;
@@ -26,6 +26,7 @@ function MyApp({ Component, pageProps, ...rest }: AppPropsWithLayout) {
   return (
     <AlertProvider>
       <AuthProvider>
+        <DragProvider>
           <RelationshipProvider>
             <Authenticator
                 key={router.asPath}
@@ -38,7 +39,8 @@ function MyApp({ Component, pageProps, ...rest }: AppPropsWithLayout) {
               {getLayout(<Component {...pageProps} />)}
             </Authenticator>
           </RelationshipProvider>
-        </AuthProvider>
+        </DragProvider>
+      </AuthProvider>
     </AlertProvider>
   );
 }

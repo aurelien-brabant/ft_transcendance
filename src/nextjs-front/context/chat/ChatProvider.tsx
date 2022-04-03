@@ -7,7 +7,7 @@ import ChatGroupsView from "../../components/chat/Groups";
 import ChatGroupView, { GroupHeader } from "../../components/chat/Group";
 import ChatDirectMessagesView from "../../components/chat/DirectMessages";
 import ChatDirectMessageView, { DirectMessageHeader } from "../../components/chat/DirectMessage";
-import chatContext, { ChatGroup, ChatGroupPrivacy, ChatView, DirectMessage } from "./chatContext";
+import chatContext, { ChatGroup, ChatView, DirectMessage } from "./chatContext";
 import Groupadd, { GroupaddHeader } from "../../components/chat/Groupadd";
 import GroupNew, { GroupNewHeader } from "../../components/chat/GroupNew";
 import GroupUsers, { GroupUsersHeader } from "../../components/chat/GroupUsers";
@@ -95,12 +95,12 @@ const views: { [key: string]: ChatViewItem } = {
 
 const ChatProvider: React.FC = ({ children }) => {
 	const { getUserData } = useContext(authContext) as AuthContextType;
-	const userId = getUserData().id;
 	const [isChatOpened, setIsChatOpened] = useState(false);
 	const [viewStack, setViewStack] = useState<ChatViewItem[]>([]);
 	const [chatGroups, setChatGroups] = useState<ChatGroup[]>([]);
 	const [directMessages, setDirectMessages] = useState<DirectMessage[]>([]);
-
+	const userId = getUserData().id;
+	
 	/* Chat manipulation */
 	const openChat = () => {
 		setIsChatOpened(true);
@@ -249,7 +249,7 @@ const ChatProvider: React.FC = ({ children }) => {
 				getLastMessage,
 				setChatGroupData,
 				setDirectMessageData,
-				fetchChannelData
+				fetchChannelData,
 			}}
 		>
 			{!isChatOpened ? (
