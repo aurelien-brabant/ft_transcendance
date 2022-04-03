@@ -2,13 +2,11 @@ import React, { ReactElement, useState } from "react";
 import NotificationsProvider from "../context/notifications/NotificationsProvider";
 import DashboardSideNav from "./DashboardSideNav";
 import DashboardTopNav from "./DashboardTopNav";
-import ChatProvider from "../context/chat/ChatProvider";
 
 const DashboardLayout: React.FC = ({ children }) => {
 	const [isSidebarOpened, setIsSidebarOpened] = useState(false);
 
 	return (
-		<ChatProvider>
 			<NotificationsProvider>
 				<DashboardTopNav
 					onHamburgerClick={() => {
@@ -24,8 +22,7 @@ const DashboardLayout: React.FC = ({ children }) => {
 					)}
 				</div>
 			</NotificationsProvider>
-		</ChatProvider>
-	);
+		);
 };
 
 export default DashboardLayout;

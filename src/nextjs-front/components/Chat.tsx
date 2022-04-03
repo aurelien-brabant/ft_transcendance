@@ -1,12 +1,12 @@
-import { Fragment, useContext } from "react";
+import { Fragment, useContext, useEffect } from "react";
 import { AiOutlineClose, AiOutlineUser } from "react-icons/ai";
 import { FaUserFriends } from "react-icons/fa";
 import { ChatViewItem } from "../context/chat/ChatProvider";
 import chatContext, { ChatContextType } from "../context/chat/chatContext";
 import Tooltip from "./Tooltip";
 import Draggable from 'react-draggable';
-import dragContext, { DragContextType } from "../context/drag/dragContext";
 import { useMediaQuery } from "react-responsive";
+import authContext, { AuthContextType } from "../context/auth/authContext";
 
 type ChatProps = {
 	onClose: () => void;
@@ -17,17 +17,31 @@ const Chat: React.FC<ChatProps> = ({ viewStack, onClose }) => {
 	const { closeRightmostView, setChatView } = useContext(
 		chatContext
 	) as ChatContextType;
+	const { getUserData } = useContext(authContext) as AuthContextType;
+	const { loadChannelsOnMount } = useContext(chatContext) as ChatContextType;
+	const userId = getUserData().id;
+	
 
 	const currentView = viewStack[viewStack.length - 1];
 	const buttonTooltipClassName = "p-3 font-bold bg-gray-900";
 	const buttonClassName = "hover:scale-105 transition";
-	const { lastX, lastY, setLastX, setLastY } = useContext(dragContext) as DragContextType;
+	const { lastX, lastY, setLastX, setLastY } = useContext(chatContext) as ChatContextType;
 
 	if (!currentView) {
 		throw Error(
 			"No chat view to show. You need to call setChatView or openChatView before calling the openChat function."
 		);
 	}
+
+	useEffect(() => {
+			const fetchUserChannels = async () => {
+				const res = await fetch(`/api/users/${userId}/channels`);
+				const data = await res.json();
+	
+			loadChannelsOnMount(JSON.parse(JSON.stringify(data)), userId);
+		}
+		fetchUserChannels().catch(console.error);
+	}, [])
 
 	return (
 

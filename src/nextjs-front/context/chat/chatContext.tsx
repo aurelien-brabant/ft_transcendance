@@ -50,13 +50,20 @@ export type ChatContextType = {
 	updateChatGroups: (group: ChatGroup) => void;
 	updateDirectMessages: (dm: DirectMessage) => void;
 	getLastMessage: (channel: any) => string;
-	setChatGroupData: (channel: any) => ChatGroup;
+	setChatGroupData: (channel: any, userId: string) => ChatGroup;
 	setDirectMessageData: (channel: any, friend: any) => DirectMessage;
 
 	/* data fetching */
 	fetchChannelData: (id: string) => Promise<any>;
 	//loadChatGroups: () => void;
 	//loadChatGroup: () => void;
+
+	loadChannelsOnMount: (channels: any, userId: string) => any;
+
+	lastX: number;
+	setLastX: (data: any) => any;
+	lastY: number;
+	setLastY: (data: any) => any;
 };
 
 const chatContext = createContext<ChatContextType | null>(null);
