@@ -20,7 +20,7 @@ const Chat: React.FC<ChatProps> = ({ viewStack, onClose }) => {
 
 	const currentView = viewStack[viewStack.length - 1];
 	const buttonTooltipClassName = "p-3 font-bold bg-gray-900";
-	const buttonClassName = "hover:scale-105 transition";
+	const buttonClassName = "hover:scale-105 transition text-2xl";
 	const { lastX, lastY, setLastX, setLastY } = useContext(dragContext) as DragContextType;
 
 	if (!currentView) {
@@ -75,8 +75,8 @@ const Chat: React.FC<ChatProps> = ({ viewStack, onClose }) => {
 									className={buttonClassName}
 								>
 									{currentView.label === "Group chats"
-										? <FaUserFriends className="text-2xl" />
-										: <FaUserFriends className="text-2xl opacity-50" />
+										? <FaUserFriends />
+										: <FaUserFriends className="opacity-50" />
 									}
 								</button>
 							</Tooltip>
