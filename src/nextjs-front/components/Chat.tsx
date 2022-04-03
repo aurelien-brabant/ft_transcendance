@@ -15,16 +15,15 @@ type ChatProps = {
 };
 
 const Chat: React.FC<ChatProps> = ({ viewStack, onClose }) => {
-	const { closeRightmostView, setChatView } = useContext(
-		chatContext
+	const { closeRightmostView, setChatView, loadChannelsOnMount, lastX, lastY, setLastX, setLastY } = useContext(
+		chatContext, 
 	) as ChatContextType;
 	const { getUserData } = useContext(authContext) as AuthContextType;
-	const { loadChannelsOnMount } = useContext(chatContext) as ChatContextType;
+	const {  } = useContext(chatContext) as ChatContextType;
 	const userId = getUserData().id;
 	const currentView = viewStack[viewStack.length - 1];
 	const buttonTooltipClassName = "p-3 font-bold bg-gray-900";
 	const buttonClassName = "hover:scale-105 transition";
-	const { lastX, lastY, setLastX, setLastY } = useContext(chatContext) as ChatContextType;
 	const nodeRef = React.useRef(null);
 	
 	if (!currentView) {
