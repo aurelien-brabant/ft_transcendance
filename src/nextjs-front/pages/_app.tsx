@@ -7,7 +7,7 @@ import Authenticator, { AuthConfig } from "../components/hoc/withAuth";
 import AuthProvider from "../context/auth/AuthProvider";
 import AlertProvider from "../context/alert/AlertProvider";
 import RelationshipProvider from "../context/relationship/RelationshipProvider";
-import ChatProvider from "../context/chat/ChatProvider";
+import DragProvider from "../context/drag/DragProvider";
 
 export type NextPageWithLayout<T = {}> = NextPage<T> & {
   getLayout?: (page: ReactElement) => ReactNode;
@@ -26,20 +26,20 @@ function MyApp({ Component, pageProps, ...rest }: AppPropsWithLayout) {
   return (
     <AlertProvider>
       <AuthProvider>
-        <RelationshipProvider>
-          <ChatProvider>
+        <DragProvider>
+          <RelationshipProvider>
             <Authenticator
-              key={router.asPath}
-              authConfig={
-                Component.isAuthRestricted
-                ? Component.authConfig
-                : { shouldBeAuthenticated: false }
-              }
-            >
+                key={router.asPath}
+                authConfig={
+                  Component.isAuthRestricted
+                    ? Component.authConfig
+                    : { shouldBeAuthenticated: false }
+                }
+              >
               {getLayout(<Component {...pageProps} />)}
             </Authenticator>
-            </ChatProvider>
-        </RelationshipProvider>
+          </RelationshipProvider>
+        </DragProvider>
       </AuthProvider>
     </AlertProvider>
   );

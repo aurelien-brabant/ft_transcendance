@@ -1,6 +1,10 @@
-import { useContext, useState } from "react";
+import { useContext, useEffect, useState } from "react";
 import { BsFillChatDotsFill } from "react-icons/bs";
 import { BaseUserData } from 'transcendance-types';
+import alertContext, { AlertContextType } from "../../context/alert/alertContext";
+import authContext, { AuthContextType } from "../auth/authContext";
+import relationshipContext, { RelationshipContextType } from "../../context/relationship/relationshipContext";
+/* Chat */
 import Chat from "../../components/Chat";
 import ChatGroupsView from "../../components/chat/Groups";
 import ChatGroupView, { GroupHeader } from "../../components/chat/Group";
@@ -13,10 +17,6 @@ import GroupNew, { GroupNewHeader } from "../../components/chat/GroupNew";
 import GroupSettings, { GroupSettingsHeader } from "../../components/chat/GroupSettings";
 import GroupUsers, { GroupUsersHeader } from "../../components/chat/GroupUsers";
 import PasswordProtection, { PasswordProtectionHeader } from "../../components/chat/PasswordProtection";
-import authContext, { AuthContextType } from "../auth/authContext";
-import { Bounce } from "react-awesome-reveal";
-import alertContext, { AlertContextType } from "../alert/alertContext";
-import relationshipContext, { RelationshipContextType } from "../relationship/relationshipContext";
 
 export type ChatViewItem = {
 	label: string;
@@ -103,8 +103,12 @@ const ChatProvider: React.FC = ({ children }) => {
 	const [directMessages, setDirectMessages] = useState<DirectMessage[]>([]);
 	const [lastX, setLastX] = useState<number>(0);
 	const [lastY, setLastY] = useState<number>(0);
-	const { isPreAuthenticated, isChatOpened, setIsChatOpened } = useContext(authContext) as AuthContextType;
-	const { blocked } = useContext(relationshipContext) as RelationshipContextType;
+	const { isPreAuthenticated } = useContext(authContext) as AuthContextType;
+	const { getUserData } = useContext(authContext) as AuthContextType;
+	const { setAlert } = useContext(alertContext) as AlertContextType;
+	const [isChatOpened, setIsChatOpened] = useState(false);
+	const { getData, blocked } = useContext(relationshipContext) as RelationshipContextType;
+	const userId = getUserData().id;
 
 	/* Chat manipulation */
 	const openChat = () => {
@@ -287,7 +291,7 @@ const ChatProvider: React.FC = ({ children }) => {
 	}
 
 	/* Load all channels on mount */
-	const loadChannelsOnMount = async (channels: any, userId: string) => {
+	const loadChannelsOnMount = (channels: any) => {
 		const groups: ChatGroup[] = [];
 		const dms: DirectMessage[] = [];
 
@@ -317,13 +321,24 @@ const ChatProvider: React.FC = ({ children }) => {
 		setDirectMessages(dms);
 	}
 
+	useEffect(() => {
+		const fetchUserChannels = async () => {
+			const res = await fetch(`/api/users/${userId}/channels`);
+			const data = await res.json();
+
+			loadChannelsOnMount(JSON.parse(JSON.stringify(data)));
+		}
+
+		getData();
+		fetchUserChannels().catch(console.error);
+	}, [])
+
 	return (
 		<chatContext.Provider
 			value={{
 				openChat,
 				closeChat,
 				isChatOpened,
-				setIsChatOpened,
 				openChatView,
 				setChatView,
 				closeRightmostView,
@@ -346,29 +361,32 @@ const ChatProvider: React.FC = ({ children }) => {
 			}}
 		>
 			{isPreAuthenticated ?
-				isChatOpened ?
+				(isChatOpened ?
+					<Chat
+						viewStack={viewStack}
+						onClose={() => {
+							setIsChatOpened(false);
+						}}
+					/>
+					:
+					<button
+						className="fixed z-50 flex items-center justify-center p-4 text-5xl bg-orange-500 rounded-full transition hover:scale-105 text-neutral-200"
+						style={{ right: "10px", bottom: "10px" }}
+						onClick={() => {
+							setChatView("groups", "Group chats", {});
+							setIsChatOpened(true);
+						}}
+					>
+						<BsFillChatDotsFill />
+					</button>
+				) : (
 				<Chat
 					viewStack={viewStack}
 					onClose={() => {
 						setIsChatOpened(false);
 					}}
 				/>
-				:
-				<button
-					className="fixed z-50 flex items-center justify-center p-4 text-5xl bg-orange-500 rounded-full transition hover:scale-105 text-neutral-200"
-					style={{ right: "10px", bottom: "10px" }}
-					onClick={() => {
-						setChatView("groups", "Group chats", {});
-						setIsChatOpened(true);
-					}}
-				>
-					<Bounce duration={2000} triggerOnce>
-						<BsFillChatDotsFill />
-					</Bounce>
-				</button>
-				:
-				<></>
-			}
+			)}
 			{children}
 		</chatContext.Provider>
 	);

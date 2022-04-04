@@ -14,8 +14,6 @@ export type AuthContextType = {
 	mergeUserData: (data: any) => any;
 	token: string;
 	setToken: (data: any) => any;
-	isChatOpened: boolean;
-	setIsChatOpened: (data: any) => any;
 }
 
 const authContext = createContext<AuthContextType | null>(null);
