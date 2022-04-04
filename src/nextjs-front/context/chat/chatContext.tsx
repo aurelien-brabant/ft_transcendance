@@ -1,13 +1,20 @@
 import { createContext } from 'react';
 import { ChatViewItem } from './ChatProvider';
+import { BaseUserData } from 'transcendance-types';
 
-export type ChatView = 'groups' | 'group' | 'dms' | 'dm' | 'dm_new' | 'groupadd' | 'password_protection' | 'group_users' | 'group_settings' | 'group_new'; // plural form denotes the list, singular the chat itself
+export type ChatView = 'dms' | 'dm' | 'dm_new' | 'groups' | 'group' | 'group_new' | 'group_add' | 'group_users' | 'group_settings' |'password_protection'; // plural form denotes the list, singular the chat itself
 
 export type ChatMessage = {
 	id: string;
 	author: string;
 	content: string;
 	isMe: boolean;
+	isBlocked: boolean;
+};
+
+export type ChatMessagePreview = {
+	content: string;
+	createdAt: Date;
 };
 
 export type ChatGroupPrivacy = 'public' | 'protected' | 'private';
@@ -17,31 +24,33 @@ export type ChatGroup = {
 	label: string;
 	lastMessage: string;
 	in: boolean;
-	isAdmin: boolean;
+	ownerId: string;
 	peopleCount: number;
 	privacy: ChatGroupPrivacy;
-	updatedAt: string;
+	updatedAt: Date;
 };
 
 export type DirectMessage = {
 	id: string;
-	username: string;
-	avatar: string;
+	friendId: string;
+	friendUsername: string;
+	friendPic: string;
 	lastMessage: string;
-	updatedAt: string;
+	updatedAt: Date;
 };
 
 export type ChatContextType = {
-	/* chat manipulation */
+	/* Chat manipulation */
 	openChat: () => void;
 	closeChat: () => void;
+	/* Chat views manipulation */
 	openChatView: (view: ChatView, label: string, params: Object) => void;
 	setChatView: (view: ChatView, label: string, params: Object) => void;
 	//setChatView: (view: ChatView) => void;
 	//closeCurrentChatView: () => void;
 	closeRightmostView: (n?: number) => void;
 
-	/* chat state */
+	/* Chat state */
 	isChatOpened: boolean;
 	setIsChatOpened: (data: any) => any;
 
@@ -49,13 +58,23 @@ export type ChatContextType = {
 	directMessages: DirectMessage[];
 
 	/* Utils */
-	updateChatGroups: (group: ChatGroup) => void;
 	updateDirectMessages: (dm: DirectMessage) => void;
-	getLastMessage: (channel: any) => string;
 	setChatGroupData: (channel: any, userId: string) => ChatGroup;
-	setDirectMessageData: (channel: any, friend: any) => DirectMessage;
 
-	/* data fetching */
+  /* Message utils */
+	getLastMessage: (channel: any) => ChatMessagePreview;
+	
+  /* Chat groups utils */
+	updateChatGroups: () => void;
+	removeChatGroup: (groupId: string) => void;
+	
+  /* Direct messages utils */
+	updateDirectMessages: () => void;
+	setDirectMessageData: (channel: any, friend: BaseUserData) => DirectMessage;
+	createDirectMessage: (userId: string, friendId: string) => Promise<void>;
+	openDirectMessage: (userId: string, friend: any) => Promise<void>;
+
+	/* Data fetching */
 	fetchChannelData: (id: string) => Promise<any>;
 	//loadChatGroups: () => void;
 	//loadChatGroup: () => void;
