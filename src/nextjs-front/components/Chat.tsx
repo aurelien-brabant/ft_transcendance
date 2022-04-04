@@ -1,4 +1,4 @@
-import { Fragment, useContext } from "react";
+import { Fragment, useContext, useEffect } from "react";
 import Draggable from 'react-draggable';
 import { useMediaQuery } from "react-responsive";
 import { AiOutlineClose } from "react-icons/ai";
@@ -6,7 +6,9 @@ import { FaUserFriends, FaUser } from "react-icons/fa";
 import Tooltip from "./Tooltip";
 import { ChatViewItem } from "../context/chat/ChatProvider";
 import chatContext, { ChatContextType } from "../context/chat/chatContext";
-import dragContext, { DragContextType } from "../context/drag/dragContext";
+import authContext, { AuthContextType } from "../context/auth/authContext";
+import React from "react";
+import ResponsiveSlide from "./ResponsiveSlide";
 
 type ChatProps = {
 	onClose: () => void;
@@ -14,14 +16,15 @@ type ChatProps = {
 };
 
 const Chat: React.FC<ChatProps> = ({ viewStack, onClose }) => {
-	const { closeRightmostView, setChatView } = useContext(
+	const { closeRightmostView, setChatView, loadChannelsOnMount, lastX, lastY, setLastX, setLastY } = useContext(
 		chatContext
 	) as ChatContextType;
-
+	const { getUserData } = useContext(authContext) as AuthContextType;
+	const userId = getUserData().id;
 	const currentView = viewStack[viewStack.length - 1];
 	const buttonTooltipClassName = "p-3 font-bold bg-gray-900";
 	const buttonClassName = "hover:scale-105 transition text-2xl";
-	const { lastX, lastY, setLastX, setLastY } = useContext(dragContext) as DragContextType;
+	const nodeRef = React.useRef(null);
 
 	if (!currentView) {
 		throw Error(
@@ -29,9 +32,20 @@ const Chat: React.FC<ChatProps> = ({ viewStack, onClose }) => {
 		);
 	}
 
+	useEffect(() => {
+		const fetchUserChannels = async () => {
+			const res = await fetch(`/api/users/${userId}/channels`);
+			const data = await res.json();
+
+			loadChannelsOnMount(JSON.parse(JSON.stringify(data)), userId);
+		}
+		fetchUserChannels().catch(console.error);
+	}, [])
+
 	return (
 
 	<Draggable
+		nodeRef={nodeRef}
 		position={{x: lastX, y: lastY}}
 		onStop={(e, data) => {
 			if (data.y > 0)
@@ -51,10 +65,17 @@ const Chat: React.FC<ChatProps> = ({ viewStack, onClose }) => {
 		disabled={useMediaQuery({ query: "(max-width: 800px)" })}
 	>
 		<div
-			className="fixed z-50 top-0 bottom-0 left-0 right-0 md:top-auto md:left-auto md:bottom-10 md:right-10
-				drop-shadow-lg flex flex-col overflow-hidden md:w-[25rem] md:h-[35em] text-white rounded border-gray-800 border-2"
-		>
-			<header className="flex flex-col justify-end py-2 border-b-2 border-gray-800 cursor-move bg-gray-900/90 gap-y-4 drop-shadow-md text-neutral-200">
+ 			ref={nodeRef}
+ 			className="fixed z-50 top-0 bottom-0 left-0 right-0 md:top-auto md:left-auto md:bottom-10 md:right-10
+ 			drop-shadow-lg flex flex-col overflow-hidden md:w-[25rem] md:h-[35em] text-white rounded border-gray-800 border-2"
+ 		>
+ 			<ResponsiveSlide
+ 				triggerOnce
+ 				duration={1500}
+ 				direction='down'
+ 				useMediaQueryArg={{ query: "(min-width: 1280px)" }}
+			>
+				<header className="flex flex-col justify-end py-2 border-b-2 border-gray-800 cursor-move bg-gray-900/90 gap-y-4 drop-shadow-md text-neutral-200">
 
 				{/* Provide a default header, or use the custom one instead if any */}
 
@@ -132,16 +153,17 @@ const Chat: React.FC<ChatProps> = ({ viewStack, onClose }) => {
 					<currentView.CustomHeaderComponent viewParams={currentView.params} />
 				)}
 
-			</header>
+				</header>
 
-			{/* active chat view */}
-			<div className="h-full overflow-hidden bg-gray-900/90">
-				{viewStack.length > 0 && (
-					<currentView.Component
-						viewParams={currentView.params}
-					/>
-				)}
-			</div>
+				{/* active chat view */}
+				<div className="h-full overflow-hidden bg-gray-900/90">
+					{viewStack.length > 0 && (
+						<currentView.Component
+							viewParams={currentView.params}
+						/>
+					)}
+				</div>
+			</ResponsiveSlide>
 
 		</div>
 	</Draggable>
