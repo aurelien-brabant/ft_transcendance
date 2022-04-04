@@ -1,5 +1,4 @@
-import { useRouter } from "next/router";
-import { useEffect, useState } from "react";
+import { useState } from "react";
 import { User } from "transcendance-types";
 import authContext from "./authContext";
 
@@ -8,11 +7,12 @@ const AuthProvider: React.FC = ({ children }) => {
 	const [isPreAuthenticated, setIsPreAuthenticated] = useState(false);
 	const [isAuthenticated, setIsAuthenticated] = useState(false);
 	const [token, setToken] = useState<string>('');
-	
+	const [isChatOpened, setIsChatOpened] = useState(false);
 
 	const loadBearer = () => window.localStorage.getItem("bearer");
 
 	const logout = () => {
+		setIsChatOpened(false);
 		window.localStorage.removeItem('bearer');
 		setIsPreAuthenticated(false);
 		setIsAuthenticated(false);
@@ -102,6 +102,9 @@ const AuthProvider: React.FC = ({ children }) => {
 				mergeUserData,
 				token,
 				setToken,
+				isChatOpened,
+ 				setIsChatOpened
+				 
 			}}
 		>
 			{children}
