@@ -1,4 +1,5 @@
 import { createContext } from 'react';
+import { ChatViewItem } from './ChatProvider';
 import { BaseUserData } from 'transcendance-types';
 
 export type ChatView = 'dms' | 'dm' | 'dm_new' | 'groups' | 'group' | 'group_new' | 'group_add' | 'group_users' | 'group_settings' |'password_protection'; // plural form denotes the list, singular the chat itself
@@ -51,17 +52,23 @@ export type ChatContextType = {
 
 	/* Chat state */
 	isChatOpened: boolean;
+	setIsChatOpened: (data: any) => any;
 
 	chatGroups: ChatGroup[];
 	directMessages: DirectMessage[];
 
-	/* Message utils */
+	/* Utils */
+	updateDirectMessages: (dm: DirectMessage) => void;
+	setChatGroupData: (channel: any, userId: string) => ChatGroup;
+
+  /* Message utils */
 	getLastMessage: (channel: any) => ChatMessagePreview;
-	/* Chat groups utils */
+	
+  /* Chat groups utils */
 	updateChatGroups: () => void;
 	removeChatGroup: (groupId: string) => void;
-	setChatGroupData: (channel: any) => ChatGroup;
-	/* Direct messages utils */
+	
+  /* Direct messages utils */
 	updateDirectMessages: () => void;
 	setDirectMessageData: (channel: any, friend: BaseUserData) => DirectMessage;
 	createDirectMessage: (userId: string, friendId: string) => Promise<void>;
@@ -71,6 +78,13 @@ export type ChatContextType = {
 	fetchChannelData: (id: string) => Promise<any>;
 	//loadChatGroups: () => void;
 	//loadChatGroup: () => void;
+
+	loadChannelsOnMount: (channels: any, userId: string) => any;
+
+	lastX: number;
+	setLastX: (data: any) => any;
+	lastY: number;
+	setLastY: (data: any) => any;
 };
 
 const chatContext = createContext<ChatContextType | null>(null);
