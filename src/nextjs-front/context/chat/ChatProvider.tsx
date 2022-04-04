@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useContext, useState } from "react";
 import { BsFillChatDotsFill } from "react-icons/bs";
 import { BaseUserData } from 'transcendance-types';
 import Chat from "../../components/Chat";
@@ -12,6 +12,7 @@ import GroupNew, { GroupNewHeader } from "../../components/chat/GroupNew";
 import GroupUsers, { GroupUsersHeader } from "../../components/chat/GroupUsers";
 import GroupSettings, { GroupSettingsHeader } from "../../components/chat/GroupSettings";
 import PasswordProtection, { PasswordProtectionHeader } from "../../components/chat/PasswordProtection";
+import authContext, { AuthContextType } from "../auth/authContext";
 
 export type ChatViewItem = {
 	label: string;
@@ -94,13 +95,14 @@ const views: { [key: string]: ChatViewItem } = {
 
 const ChatProvider: React.FC = ({ children }) => {
 	//const { getUserData } = useContext(authContext) as AuthContextType;
-	const [isChatOpened, setIsChatOpened] = useState(false);
+//	const [isChatOpened, setIsChatOpened] = useState(false);
 	const [viewStack, setViewStack] = useState<ChatViewItem[]>([]);
 	const [chatGroups, setChatGroups] = useState<ChatGroup[]>([]);
 	const [directMessages, setDirectMessages] = useState<DirectMessage[]>([]);
 	//const userId = getUserData().id;
 	const [lastX, setLastX] = useState<number>(0);
 	const [lastY, setLastY] = useState<number>(0);
+	const { isAuthenticated, isChatOpened, setIsChatOpened } = useContext(authContext) as AuthContextType;
 	
 	/* Chat manipulation */
 	const openChat = () => {
@@ -240,6 +242,7 @@ const ChatProvider: React.FC = ({ children }) => {
 				openChat,
 				closeChat,
 				isChatOpened,
+				setIsChatOpened,
 				openChatView,
 				setChatView,
 				closeRightmostView,
@@ -258,7 +261,15 @@ const ChatProvider: React.FC = ({ children }) => {
 				setLastY
 			}}
 		>
-			{!isChatOpened ? (
+			{isAuthenticated ?
+				isChatOpened ?
+				<Chat
+					viewStack={viewStack}
+					onClose={() => {
+						setIsChatOpened(false);
+					}}
+				/>
+				:
 				<button
 					className="fixed z-50 flex items-center justify-center p-4 text-5xl bg-orange-500 rounded-full transition hover:scale-105 text-neutral-200"
 					style={{ right: "10px", bottom: "10px" }}
@@ -269,14 +280,9 @@ const ChatProvider: React.FC = ({ children }) => {
 				>
 					<BsFillChatDotsFill />
 				</button>
-			) : (
-				<Chat
-					viewStack={viewStack}
-					onClose={() => {
-						setIsChatOpened(false);
-					}}
-				/>
-			)}
+				:
+				<>:</>
+			}
 			{children}
 		</chatContext.Provider>
 	);

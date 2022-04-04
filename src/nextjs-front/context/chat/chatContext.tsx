@@ -1,4 +1,5 @@
 import { createContext } from 'react';
+import { ChatViewItem } from './ChatProvider';
 
 export type ChatView = 'groups' | 'group' | 'dms' | 'dm' | 'dm_new' | 'groupadd' | 'password_protection' | 'group_users' | 'group_settings' | 'group_new'; // plural form denotes the list, singular the chat itself
 
@@ -42,6 +43,7 @@ export type ChatContextType = {
 
 	/* chat state */
 	isChatOpened: boolean;
+	setIsChatOpened: (data: any) => any;
 
 	chatGroups: ChatGroup[];
 	directMessages: DirectMessage[];

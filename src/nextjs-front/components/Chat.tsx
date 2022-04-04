@@ -1,4 +1,4 @@
-import { Fragment, useContext, useEffect } from "react";
+import { Fragment, useContext, useEffect, useState } from "react";
 import { AiOutlineClose, AiOutlineUser } from "react-icons/ai";
 import { FaUserFriends } from "react-icons/fa";
 import { ChatViewItem } from "../context/chat/ChatProvider";
@@ -42,7 +42,7 @@ const Chat: React.FC<ChatProps> = ({ viewStack, onClose }) => {
 	}, [])
 
 	return (
-
+	
 	<Draggable
 		nodeRef={nodeRef}
 		position={{x: lastX, y: lastY}}
