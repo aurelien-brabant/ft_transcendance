@@ -26,8 +26,8 @@ function MyApp({ Component, pageProps, ...rest }: AppPropsWithLayout) {
   return (
     <AlertProvider>
       <AuthProvider>
-        <ChatProvider>
-          <RelationshipProvider>
+        <RelationshipProvider>
+          <ChatProvider>
             <Authenticator
               key={router.asPath}
               authConfig={
@@ -38,8 +38,8 @@ function MyApp({ Component, pageProps, ...rest }: AppPropsWithLayout) {
             >
               {getLayout(<Component {...pageProps} />)}
             </Authenticator>
-          </RelationshipProvider>
-        </ChatProvider>
+            </ChatProvider>
+        </RelationshipProvider>
       </AuthProvider>
     </AlertProvider>
   );

@@ -58,7 +58,7 @@ export type ChatContextType = {
 	directMessages: DirectMessage[];
 
 	/* Utils */
-	updateDirectMessages: (dm: DirectMessage) => void;
+	// ICI updateDirectMessages: (dm: DirectMessage) => void;
 	setChatGroupData: (channel: any, userId: string) => ChatGroup;
 
   /* Message utils */
