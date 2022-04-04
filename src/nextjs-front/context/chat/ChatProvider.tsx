@@ -103,7 +103,7 @@ const ChatProvider: React.FC = ({ children }) => {
 	const [directMessages, setDirectMessages] = useState<DirectMessage[]>([]);
 	const [lastX, setLastX] = useState<number>(0);
 	const [lastY, setLastY] = useState<number>(0);
-	const { isAuthenticated, isChatOpened, setIsChatOpened } = useContext(authContext) as AuthContextType;
+	const { isPreAuthenticated, isChatOpened, setIsChatOpened } = useContext(authContext) as AuthContextType;
 	const { blocked } = useContext(relationshipContext) as RelationshipContextType;
 
 	/* Chat manipulation */
@@ -317,7 +317,7 @@ const ChatProvider: React.FC = ({ children }) => {
 		setDirectMessages(dms);
 	}
 
-  return (
+	return (
 		<chatContext.Provider
 			value={{
 				openChat,
@@ -345,7 +345,7 @@ const ChatProvider: React.FC = ({ children }) => {
 				openDirectMessage,
 			}}
 		>
-			{isAuthenticated ?
+			{isPreAuthenticated ?
 				isChatOpened ?
 				<Chat
 					viewStack={viewStack}
@@ -367,7 +367,7 @@ const ChatProvider: React.FC = ({ children }) => {
 					</Bounce>
 				</button>
 				:
-				<>:</>
+				<></>
 			}
 			{children}
 		</chatContext.Provider>

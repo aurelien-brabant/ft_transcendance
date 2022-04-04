@@ -13,7 +13,7 @@ import withWildLayout from "../components/hoc/withWildLayout";
 
 const SignIn: NextPageWithLayout = () => {
   const [isLoading, setIsLoading] = useState(false);
-  const { isPreAuthenticated, isAuthenticated, setToken } = useContext(authContext) as AuthContextType;
+  const { isPreAuthenticated, isAuthenticated, setIsAuthenticated, setToken } = useContext(authContext) as AuthContextType;
   const { setAlert } = useContext(alertContext) as AlertContextType;
   const router = useRouter();
   const formConfig: ProgressiveFormConfig = {
