@@ -13,6 +13,7 @@ import GroupUsers, { GroupUsersHeader } from "../../components/chat/GroupUsers";
 import GroupSettings, { GroupSettingsHeader } from "../../components/chat/GroupSettings";
 import PasswordProtection, { PasswordProtectionHeader } from "../../components/chat/PasswordProtection";
 import authContext, { AuthContextType } from "../auth/authContext";
+import { Bounce } from "react-awesome-reveal";
 
 export type ChatViewItem = {
 	label: string;
@@ -278,7 +279,9 @@ const ChatProvider: React.FC = ({ children }) => {
 						setIsChatOpened(true);
 					}}
 				>
-					<BsFillChatDotsFill />
+					<Bounce duration={2000} triggerOnce>
+						<BsFillChatDotsFill />
+					</Bounce>
 				</button>
 				:
 				<>:</>

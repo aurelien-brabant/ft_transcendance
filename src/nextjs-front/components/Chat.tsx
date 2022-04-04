@@ -1,4 +1,4 @@
-import { Fragment, useContext, useEffect, useState } from "react";
+import { Fragment, useContext, useEffect } from "react";
 import { AiOutlineClose, AiOutlineUser } from "react-icons/ai";
 import { FaUserFriends } from "react-icons/fa";
 import { ChatViewItem } from "../context/chat/ChatProvider";
@@ -8,6 +8,7 @@ import Draggable from 'react-draggable';
 import { useMediaQuery } from "react-responsive";
 import authContext, { AuthContextType } from "../context/auth/authContext";
 import React from "react";
+import ResponsiveSlide from "./ResponsiveSlide";
 
 type ChatProps = {
 	onClose: () => void;
@@ -42,38 +43,43 @@ const Chat: React.FC<ChatProps> = ({ viewStack, onClose }) => {
 	}, [])
 
 	return (
-	
-	<Draggable
-		nodeRef={nodeRef}
-		position={{x: lastX, y: lastY}}
-		onStop={(e, data) => {
-			if (data.y > 0)
-		  		setLastY(0)
-			else if (-data.y > window.innerHeight - 670)
-		  		setLastY(-window.innerHeight + 670)
-			else
-		  		setLastY(data.y);
+		<Draggable
+			nodeRef={nodeRef}
+			position={{x: lastX, y: lastY}}
+			onStop={(e, data) => {
+				if (data.y > 0)
+		  			setLastY(0)
+				else if (-data.y > window.innerHeight - 670)
+			  		setLastY(-window.innerHeight + 670)
+				else
+		  			setLastY(data.y);
 
-			if (data.x > 0)
-			  	setLastX(0)
-			else if (-data.x > window.innerWidth - 550)
-		  		setLastX(-window.innerWidth + 550)
-			else
-		  		setLastX(data.x);
-			}}
-		disabled={useMediaQuery({ query: "(max-width: 800px)"})}
-	>
-      	<div
-			ref={nodeRef}
-			className="fixed z-50 top-0 bottom-0 left-0 right-0 md:top-auto md:left-auto md:bottom-10 md:right-10
-				drop-shadow-lg flex flex-col overflow-hidden md:w-[25rem] md:h-[35em] text-white rounded border-gray-800 border-2"
+				if (data.x > 0)
+				  	setLastX(0)
+				else if (-data.x > window.innerWidth - 550)
+		  			setLastX(-window.innerWidth + 550)
+				else
+			  		setLastX(data.x);
+				}}
+			disabled={useMediaQuery({ query: "(max-width: 800px)"})}
 		>
-			<header className="flex flex-col justify-end py-2 border-b-2 border-gray-800 cursor-move bg-gray-900/90 gap-y-4 drop-shadow-md text-neutral-200">
+      		<div
+				ref={nodeRef}
+				className="fixed z-50 top-0 bottom-0 left-0 right-0 md:top-auto md:left-auto md:bottom-10 md:right-10
+					drop-shadow-lg flex flex-col overflow-hidden md:w-[25rem] md:h-[35em] text-white rounded border-gray-800 border-2"
+			>
+		<ResponsiveSlide
+			triggerOnce
+			duration={1500}
+			direction='down'
+			useMediaQueryArg={{ query: "(min-width: 1280px)" }}
+		>
+				<header className="flex flex-col justify-end py-2 border-b-2 border-gray-800 cursor-move bg-gray-900/90 gap-y-4 drop-shadow-md text-neutral-200">
 
 				{/* Provide a default header, or use the custom one instead if any */}
 
 				{!currentView.CustomHeaderComponent ? (
-					<Fragment>
+				<Fragment>
 					<nav className="flex justify-between px-5 text-3xl">
 						<Tooltip
 							content="Dismiss chat"
@@ -115,13 +121,13 @@ const Chat: React.FC<ChatProps> = ({ viewStack, onClose }) => {
 							</button>
 						</Tooltip>
 					</nav>
-			<div className="flex flex-col items-center justify-center">
-					<h6 className="text-lg font-bold text-pink-600 uppercase">
-						{viewStack.length > 0 &&
+					<div className="flex flex-col items-center justify-center">
+						<h6 className="text-lg font-bold text-pink-600 uppercase">
+							{viewStack.length > 0 &&
 							viewStack[viewStack.length - 1].label}
-					</h6>
-					<div className="flex">
-						{viewStack.length > 1 &&
+						</h6>
+						<div className="flex">
+							{viewStack.length > 1 &&
 							viewStack.map((item, index, arr) => (
 								<Fragment key={item.label}>
 									{index != arr.length - 1 ? (
@@ -144,25 +150,25 @@ const Chat: React.FC<ChatProps> = ({ viewStack, onClose }) => {
 										</span>
 									)}
 								</Fragment>
-						))}
+							))}
+						</div>
 					</div>
-				</div>
-					</Fragment>
+				</Fragment>
 				) : (
-					<currentView.CustomHeaderComponent viewParams={currentView.params} />
+				<currentView.CustomHeaderComponent viewParams={currentView.params} />
 				)}
 
-			</header>
+				</header>
 
-			{/* active chat view */}
-			<div className="h-full overflow-hidden bg-gray-900/90">
-				{viewStack.length > 0 && (
-					<currentView.Component
-						viewParams={currentView.params}
-					/>
-				)}
-			</div>
-
+				{/* active chat view */}
+				<div className="h-full overflow-hidden bg-gray-900/90">
+					{viewStack.length > 0 && (
+						<currentView.Component
+							viewParams={currentView.params}
+						/>
+					)}
+				</div>
+			</ResponsiveSlide>
 		</div>
 	</Draggable>
 	);
