@@ -1,4 +1,5 @@
-import { useState } from "react";
+import { useRouter } from "next/router";
+import { useEffect, useState } from "react";
 import { User } from "transcendance-types";
 import authContext from "./authContext";
 

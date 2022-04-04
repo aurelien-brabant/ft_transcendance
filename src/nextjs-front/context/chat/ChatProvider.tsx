@@ -98,14 +98,17 @@ const views: { [key: string]: ChatViewItem } = {
 };
 
 const ChatProvider: React.FC = ({ children }) => {
-	const { getUserData } = useContext(authContext) as AuthContextType;
-	const { setAlert } = useContext(alertContext) as AlertContextType;
-	const { getData, blocked } = useContext(relationshipContext) as RelationshipContextType;
-	const userId = getUserData().id;
-	const [isChatOpened, setIsChatOpened] = useState(false);
 	const [viewStack, setViewStack] = useState<ChatViewItem[]>([]);
 	const [chatGroups, setChatGroups] = useState<ChatGroup[]>([]);
 	const [directMessages, setDirectMessages] = useState<DirectMessage[]>([]);
+	const [lastX, setLastX] = useState<number>(0);
+	const [lastY, setLastY] = useState<number>(0);
+	const { isPreAuthenticated } = useContext(authContext) as AuthContextType;
+	const { getUserData } = useContext(authContext) as AuthContextType;
+	const { setAlert } = useContext(alertContext) as AlertContextType;
+	const [isChatOpened, setIsChatOpened] = useState(false);
+	const { getData, blocked } = useContext(relationshipContext) as RelationshipContextType;
+	const userId = getUserData().id;
 
 	/* Chat manipulation */
 	const openChat = () => {
@@ -192,7 +195,7 @@ const ChatProvider: React.FC = ({ children }) => {
 		}));
 	}
 
-	const setChatGroupData = (channel: any) => {
+	const setChatGroupData = (channel: any, userId: string) => {
 		const lastMessage: ChatMessagePreview = getLastMessage(channel);
 
 		const group: ChatGroup = {
@@ -236,7 +239,8 @@ const ChatProvider: React.FC = ({ children }) => {
 	const createDirectMessage = async (userId: string, friendId: string) => {
 		const userData = await (await fetch(`/api/users/${userId}`)).json();
 		const friendData = await (await fetch(`/api/users/${friendId}`)).json();
-
+		const { setAlert } = useContext(alertContext) as AlertContextType;
+  
 		const res = await fetch("/api/channels", {
 			method: "POST",
 			headers: {
@@ -302,7 +306,7 @@ const ChatProvider: React.FC = ({ children }) => {
 					dms.push(setDirectMessageData(channel, friend));
 				}
 			} else {
-				groups.push(setChatGroupData(channel));
+				groups.push(setChatGroupData(channel, userId));
 			}
 		}
 		groups.sort(
@@ -346,23 +350,36 @@ const ChatProvider: React.FC = ({ children }) => {
 				setChatGroupData,
 				updateDirectMessages,
 				setDirectMessageData,
+				fetchChannelData,
+				loadChannelsOnMount,
+				lastX,
+				setLastX,
+				lastY,
+				setLastY,
 				createDirectMessage,
 				openDirectMessage,
-				fetchChannelData
 			}}
 		>
-			{!isChatOpened ? (
-				<button
-					className="fixed z-50 flex items-center justify-center p-4 text-5xl bg-orange-500 rounded-full transition hover:scale-105 text-neutral-200"
-					style={{ right: "10px", bottom: "10px" }}
-					onClick={() => {
-						setChatView("groups", "Group chats", {});
-						setIsChatOpened(true);
-					}}
-				>
-					<BsFillChatDotsFill />
-				</button>
-			) : (
+			{isPreAuthenticated ?
+				(isChatOpened ?
+					<Chat
+						viewStack={viewStack}
+						onClose={() => {
+							setIsChatOpened(false);
+						}}
+					/>
+					:
+					<button
+						className="fixed z-50 flex items-center justify-center p-4 text-5xl bg-orange-500 rounded-full transition hover:scale-105 text-neutral-200"
+						style={{ right: "10px", bottom: "10px" }}
+						onClick={() => {
+							setChatView("groups", "Group chats", {});
+							setIsChatOpened(true);
+						}}
+					>
+						<BsFillChatDotsFill />
+					</button>
+				) : (
 				<Chat
 					viewStack={viewStack}
 					onClose={() => {

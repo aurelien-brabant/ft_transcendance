@@ -60,7 +60,7 @@ export type ChatContextType = {
 	/* Chat groups utils */
 	updateChatGroups: () => void;
 	removeChatGroup: (groupId: string) => void;
-	setChatGroupData: (channel: any) => ChatGroup;
+	setChatGroupData: (channel: any, userId: string) => ChatGroup;
 	/* Direct messages utils */
 	updateDirectMessages: () => void;
 	setDirectMessageData: (channel: any, friend: BaseUserData) => DirectMessage;
@@ -69,8 +69,13 @@ export type ChatContextType = {
 
 	/* Data fetching */
 	fetchChannelData: (id: string) => Promise<any>;
-	//loadChatGroups: () => void;
-	//loadChatGroup: () => void;
+	loadChannelsOnMount: (channels: any, userId: string) => any;
+
+	/* Draggable */
+	lastX: number;
+	setLastX: (data: any) => any;
+	lastY: number;
+	setLastY: (data: any) => any;
 };
 
 const chatContext = createContext<ChatContextType | null>(null);
