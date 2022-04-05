@@ -16,6 +16,7 @@ import { ChatService } from './chat.service';
 export class ChatGateway implements OnGatewayInit, OnGatewayConnection, OnGatewayDisconnect {
   @WebSocketServer() server: Server;
   private logger: Logger = new Logger('ChatGateway');
+  private chatUsers = [];
 
   constructor(private readonly chatService: ChatService) {}
 
@@ -24,11 +25,17 @@ export class ChatGateway implements OnGatewayInit, OnGatewayConnection, OnGatewa
   }
 
   async handleConnection(@ConnectedSocket() socket: Socket) {
-    this.logger.log(`Client connected: ${socket.id}`);
+    this.logger.log(`Client connected`);
+    socket.on('newUser', (username: string) => {
+      this.chatUsers.push({
+        socketId: socket.id,
+        username: username,
+      });
+    });
   }
 
   handleDisconnect(socket: Socket) {
-    this.logger.log(`Client disconnected: ${socket.id}`);
+    this.logger.log(`Client disconnected`);
   }
 
   @SubscribeMessage('messageToServer')
@@ -36,11 +43,8 @@ export class ChatGateway implements OnGatewayInit, OnGatewayConnection, OnGatewa
     @ConnectedSocket() socket: Socket,
     @MessageBody() data: string
   ) {
-    // const author = await this.chatService.getUserFromSocket(socket);
-
     this.logger.log(`Handle message from Client [${socket.id}]\n${data}`);
     this.server.emit('messageToClient', data);
-    // this.server.to(data.channel).emit('messageToClient', data);
   }
 
   // @SubscribeMessage('joinChannel')

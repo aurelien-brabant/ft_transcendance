@@ -88,10 +88,10 @@ export class SeederService {
         await this.seedFakeUsers();
         console.log('[+] Seeding fake games...');
         await this.seedFakeGames();
-        console.log('[+] Seeding fake chat groups..');
-        await this.seedFakeGroups();
-        console.log('[+] Seeding fake DMs...');
-        await this.seedFakeDMs();
+        // console.log('[+] Seeding fake chat groups..');
+        // await this.seedFakeGroups();
+        // console.log('[+] Seeding fake DMs...');
+        // await this.seedFakeDMs();
     }
 
     async seedFakeUsers() {

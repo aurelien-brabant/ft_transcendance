@@ -1,10 +1,10 @@
-import { useContext, useEffect, useState } from "react";
+import { useContext, useState } from "react";
 import { BsFillChatDotsFill } from "react-icons/bs";
+import { Bounce } from "react-awesome-reveal";
 import { BaseUserData } from 'transcendance-types';
 import alertContext, { AlertContextType } from "../../context/alert/alertContext";
 import authContext, { AuthContextType } from "../auth/authContext";
 import relationshipContext, { RelationshipContextType } from "../../context/relationship/relationshipContext";
-import { Bounce } from "react-awesome-reveal";
 /* Chat */
 import Chat from "../../components/Chat";
 import ChatGroupsView from "../../components/chat/Groups";

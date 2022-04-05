@@ -11,7 +11,7 @@ import authContext, { AuthContextType } from "../context/auth/authContext";
 /* WS */
 import { io, Socket } from 'socket.io-client';
 
-let chatSocket: Socket;
+let socket: Socket;
 
 type ChatProps = {
 	onClose: () => void;
@@ -37,11 +37,13 @@ const Chat: React.FC<ChatProps> = ({ viewStack, onClose }) => {
 
 	/* WS */
 	const handleClientConnection = () => {
-		chatSocket = io('localhost');
+		socket = io('localhost');
 
-		chatSocket.on('connect', () => {
+		socket.on('connect', () => {
 			console.log('[Chat WS] Client connected');
 		})
+
+		socket.emit('newUser', getUserData().username);
 	}
 
 	useEffect(() => {
@@ -52,7 +54,6 @@ const Chat: React.FC<ChatProps> = ({ viewStack, onClose }) => {
 			loadChannelsOnMount(JSON.parse(JSON.stringify(data)), userId);
 		}
 		handleClientConnection();
-		// getData();
 		fetchUserChannels().catch(console.error);
 	}, [])
 

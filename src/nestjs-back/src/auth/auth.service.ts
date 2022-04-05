@@ -6,7 +6,6 @@ import fetch from 'node-fetch';
 import * as FormData from 'form-data';
 import { User } from 'src/users/entities/users.entity';
 import { UsersService } from 'src/users/users.service';
-import { TokenPayload } from './tokenPayload.interface';
 
 @Injectable()
 export class AuthService {
@@ -94,14 +93,5 @@ export class AuthService {
       id: duoQuadraUser.id,
       access_token: this.jwtService.sign({ sub: ''+duoQuadraUser.id })
     });
-  }
-
-  async getUserFromAuthToken(token: string) {
-    const payload: TokenPayload = this.jwtService.verify(token, {
-      secret: this.configService.get('JWT_ACCESS_TOKEN_SECRET')
-    });
-    if (payload.id) {
-      return this.usersService.findOne(payload.id);
-    }
   }
 }
