@@ -5,12 +5,14 @@ import withDashboardLayout from "../components/hoc/withDashboardLayout";
 import Canvas from "../components/Canvas";
 import { IRoom, User } from "../gameObjects/GameObject";
 import authContext, { AuthContextType } from "../context/auth/authContext"
+import alertContext, { AlertContextType } from "../context/alert/alertContext";
 import { NextPageWithLayout } from "./_app";
 
 let socket: Socket;
 
 const Hub: NextPageWithLayout = () => {
-		const { getUserData }: any = useContext(authContext) as AuthContextType;
+	const { getUserData }: any = useContext(authContext) as AuthContextType;
+	const { setAlert } = useContext(alertContext) as AlertContextType;
 
 	const [displayGame, setDisplayGame] = useState(false);
 	const [inQueue, setInQueue] = useState(false);
@@ -46,14 +48,26 @@ const Hub: NextPageWithLayout = () => {
 
 			socket.on("joinedQueue", (data: IRoom) => {
 				setInQueue(true);
+				setAlert({
+					type: "info",
+					content: "You were added to Queue"
+				});
 			});
 
 			socket.on("leavedQueue", (data: IRoom) => {
 				setInQueue(false);
+				setAlert({
+					type: "info",
+					content: "You were removed from Queue"
+				});	
 			});
 
 			socket.on("joinedRoom", (data: IRoom) => {
 				setDisplayGame(true);
+				setAlert({
+					type: "info",
+					content: `Game found`
+				});
 			});
 
 			socket.on("leavedRoom", (data: IRoom) => {

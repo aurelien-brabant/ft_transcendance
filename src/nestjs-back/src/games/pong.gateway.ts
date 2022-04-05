@@ -45,11 +45,11 @@ export class PongGateway implements OnGatewayInit, OnGatewayConnection, OnGatewa
 			players.push(queue.dequeue());
 
 			// emit rooms change event for spectator or create a game in DB
-			// server.emit("updateCurrentGames", rooms);			
+			// server.emit("updateCurrentGames", rooms);	
 
 			roomId = `${players[0].username}&${players[1].username}`;
 
-            room = new Room(roomId, players, {maxGoal: 3});
+            room = new Room(roomId, players, {maxGoal: 1});
 
 			server.to(players[0].socketId).emit("newRoom", room);
 			server.to(players[1].socketId).emit("newRoom",  room);
@@ -96,6 +96,7 @@ export class PongGateway implements OnGatewayInit, OnGatewayConnection, OnGatewa
 			this.rooms.forEach((room: Room) => {
 				if (room.isAPlayer(user))
 				{
+					room.removeUser(user);
 					if (room.players.length === 0)
 					{
 						this.logger.log("No player left in the room deleting it...");
@@ -151,10 +152,13 @@ export class PongGateway implements OnGatewayInit, OnGatewayConnection, OnGatewa
 		const room: Room = this.rooms.get(roomId);
 
 		if (room) {
+			let user = this.connectedUsers.getUser(client.id);
 			client.join(roomId);
-			if (this.connectedUsers.getUser(client.id).status === userStatus.INHUB)
+			if (user.status === userStatus.INHUB)
 				this.connectedUsers.changeUserStatus(client.id, userStatus.SPECTATING);
-			room.addUser(this.connectedUsers.getUser(client.id));
+			else if (room.isAPlayer(user))
+				room.addUser(user);
+
 			this.server.to(client.id).emit("joinedRoom");
 			this.server.to(client.id).emit("updateRoom", room);
 		}
