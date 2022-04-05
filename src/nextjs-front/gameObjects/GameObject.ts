@@ -9,12 +9,18 @@ export enum GameState {
 	STARTING,
 	PLAYING,
 	PAUSED,
+	RESUMED,
 	GOAL,
 	END
 }
 
+export type User = {
+	id: number;
+	username: string;
+}
+
 export interface IPlayer {
-	id: string;
+	user: User;
 	x: number;
 	y: number;
 	width: number;
@@ -37,16 +43,21 @@ export interface IBall {
 }
 
 export interface IRoom {
-	id: string;
+	roomId: string;
 	gameState: GameState;
+	users: User[];
 	playerOne: IPlayer;
 	playerTwo: IPlayer;
 	ball: IBall;
+
 	timestampStart: number;
 	lastUpdate: number;
 	goalTimestamp: number;
 	lastGoal: string;
+	pauseTime: {pause: number, resume: number}[];
 
 	winner: string;
 	loser: string;
+
+	maxGoal: number;
 }

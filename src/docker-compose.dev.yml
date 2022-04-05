@@ -20,7 +20,7 @@ services:
       - ./rproxy.nginx.conf:/etc/nginx/nginx.conf
 
     ports:
-      - 8080:80 # tmp
+      - 8080:80
 
     restart: unless-stopped
 
