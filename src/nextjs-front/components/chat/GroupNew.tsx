@@ -139,9 +139,6 @@ const GroupNew: React.FC = () => {
 				content: `Group '${formData.groupName}' already exists. Choose another name.`
 			});
 		} else {
-			console.log(res.status);
-			console.log(await res.json());
-			console.log(req);
 			setAlert({
 				type: "error",
 				content: "Failed to create group"
