@@ -1,9 +1,9 @@
 import React, { Fragment, useContext, useEffect } from "react";
-import Draggable from 'react-draggable';
+import Draggable, { DraggableEvent } from 'react-draggable';
 import { useMediaQuery } from "react-responsive";
 import { AiOutlineClose } from "react-icons/ai";
 import { FaUserFriends, FaUser } from "react-icons/fa";
-import ResponsiveSlide from "./ResponsiveSlide";
+// import ResponsiveSlide from "./ResponsiveSlide";
 import Tooltip from "./Tooltip";
 import { ChatViewItem } from "../context/chat/ChatProvider";
 import chatContext, { ChatContextType } from "../context/chat/chatContext";
@@ -61,7 +61,7 @@ const Chat: React.FC<ChatProps> = ({ viewStack, onClose }) => {
 	<Draggable
 		nodeRef={nodeRef}
 		position={{x: lastX, y: lastY}}
-		onStop={(e, data) => {
+		onStop={(e: DraggableEvent, data) => {
 			if (data.y > 0)
 				setLastY(0)
 			else if (-data.y > window.innerHeight - 670)
