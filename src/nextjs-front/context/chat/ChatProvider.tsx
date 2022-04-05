@@ -4,6 +4,7 @@ import { BaseUserData } from 'transcendance-types';
 import alertContext, { AlertContextType } from "../../context/alert/alertContext";
 import authContext, { AuthContextType } from "../auth/authContext";
 import relationshipContext, { RelationshipContextType } from "../../context/relationship/relationshipContext";
+import { Bounce } from "react-awesome-reveal";
 /* Chat */
 import Chat from "../../components/Chat";
 import ChatGroupsView from "../../components/chat/Groups";
@@ -100,15 +101,14 @@ const views: { [key: string]: ChatViewItem } = {
 };
 
 const ChatProvider: React.FC = ({ children }) => {
-	const { getUserData } = useContext(authContext) as AuthContextType;
-	const { setAlert } = useContext(alertContext) as AlertContextType;
-	const { getData, blocked } = useContext(relationshipContext) as RelationshipContextType;
-	const userId = getUserData().id;
-	const [isChatOpened, setIsChatOpened] = useState(false);
 	const [viewStack, setViewStack] = useState<ChatViewItem[]>([]);
 	const [chatGroups, setChatGroups] = useState<ChatGroup[]>([]);
 	const [directMessages, setDirectMessages] = useState<DirectMessage[]>([]);
-	let chatSocket;
+	const [lastX, setLastX] = useState<number>(0);
+	const [lastY, setLastY] = useState<number>(0);
+	const { isPreAuthenticated, isChatOpened, setIsChatOpened } = useContext(authContext) as AuthContextType;
+	const { blocked, getData } = useContext(relationshipContext) as RelationshipContextType;
+	let chatSocket: Socket;
 
 	/* Chat manipulation */
 	const openChat = () => {
@@ -195,7 +195,7 @@ const ChatProvider: React.FC = ({ children }) => {
 		}));
 	}
 
-	const setChatGroupData = (channel: any) => {
+	const setChatGroupData = (channel: any, userId: string) => {
 		const lastMessage: ChatMessagePreview = getLastMessage(channel);
 
 		const group: ChatGroup = {
@@ -239,7 +239,8 @@ const ChatProvider: React.FC = ({ children }) => {
 	const createDirectMessage = async (userId: string, friendId: string) => {
 		const userData = await (await fetch(`/api/users/${userId}`)).json();
 		const friendData = await (await fetch(`/api/users/${friendId}`)).json();
-
+		const { setAlert } = useContext(alertContext) as AlertContextType;
+  
 		const res = await fetch("/api/channels", {
 			method: "POST",
 			headers: {
@@ -290,7 +291,7 @@ const ChatProvider: React.FC = ({ children }) => {
 	}
 
 	/* Load all channels on mount */
-	const loadChannelsOnMount = (channels: any) => {
+	const loadChannelsOnMount = (channels: any, userId: string) => {
 		const groups: ChatGroup[] = [];
 		const dms: DirectMessage[] = [];
 
@@ -305,7 +306,7 @@ const ChatProvider: React.FC = ({ children }) => {
 					dms.push(setDirectMessageData(channel, friend));
 				}
 			} else {
-				groups.push(setChatGroupData(channel));
+				groups.push(setChatGroupData(channel, userId));
 			}
 		}
 		groups.sort(
@@ -359,12 +360,25 @@ const ChatProvider: React.FC = ({ children }) => {
 				setChatGroupData,
 				updateDirectMessages,
 				setDirectMessageData,
+				fetchChannelData,
+				loadChannelsOnMount,
+				lastX,
+				setLastX,
+				lastY,
+				setLastY,
 				createDirectMessage,
 				openDirectMessage,
-				fetchChannelData
 			}}
 		>
-			{!isChatOpened ? (
+			{isPreAuthenticated ?
+				isChatOpened ?
+				<Chat
+					viewStack={viewStack}
+					onClose={() => {
+						setIsChatOpened(false);
+					}}
+				/>
+				:
 				<button
 					className="fixed z-50 flex items-center justify-center p-4 text-5xl bg-orange-500 rounded-full transition hover:scale-105 text-neutral-200"
 					style={{ right: "10px", bottom: "10px" }}
@@ -373,16 +387,13 @@ const ChatProvider: React.FC = ({ children }) => {
 						setIsChatOpened(true);
 					}}
 				>
-					<BsFillChatDotsFill />
+					<Bounce duration={2000} triggerOnce>
+						<BsFillChatDotsFill />
+					</Bounce>
 				</button>
-			) : (
-				<Chat
-					viewStack={viewStack}
-					onClose={() => {
-						setIsChatOpened(false);
-					}}
-				/>
-			)}
+				:
+				<>:</>
+			}
 			{children}
 		</chatContext.Provider>
 	);

@@ -1,5 +1,4 @@
 import { createContext } from 'react';
-import { User } from 'transcendance-types';
 
 export type AuthContextType = {
 	fetchAsLoggedUser: (input: RequestInfo, init?: RequestInit | undefined) => Promise<Response>;
@@ -15,6 +14,8 @@ export type AuthContextType = {
 	mergeUserData: (data: any) => any;
 	token: string;
 	setToken: (data: any) => any;
+	isChatOpened: boolean;
+ 	setIsChatOpened: (data: any) => any;
 }
 
 const authContext = createContext<AuthContextType | null>(null);
