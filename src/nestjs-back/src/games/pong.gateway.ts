@@ -186,7 +186,8 @@ export class PongGateway implements OnGatewayInit, OnGatewayConnection, OnGatewa
 		const room: Room = this.rooms.get(roomId);
 
 		if (room) {
-			if (room.gameState === GameState.STARTING && (Date.now() - room.timestampStart) >= 3500) {
+			let currentTimestamp = Date.now();
+			if (room.gameState === GameState.STARTING && (currentTimestamp - room.timestampStart) >= 3500) {
 				room.timestampStart = Date.now();
 				room.lastUpdate = Date.now();
 				room.changeGameState(GameState.PLAYING);
@@ -194,29 +195,29 @@ export class PongGateway implements OnGatewayInit, OnGatewayConnection, OnGatewa
 			else if (room.gameState === GameState.PLAYING)
 			{
 				room.update();
+				if (room.isGameEnd) {
+					let playerOne = await this.usersService.findOne(String(room.players[0].id));
+					let playerTwo = await this.usersService.findOne(String(room.players[1].id));
+					let game = await this.gamesService.create({
+						players: [playerOne, playerTwo],
+						winnerId: room.winnerId,
+						loserId: room.loserId,
+						createdAt: new Date(room.timestampStart),
+						endedAt: new Date(currentTimestamp),
+						gameDuration: room.getDuration(),
+						winnerScore: room.winnerScore,
+						loserScore: room.loserScore
+					});
+					console.log(game);	
+				}
 			}
-			else if (room.gameState === GameState.GOAL && (Date.now() - room.goalTimestamp) >= 3500) {
+			else if (room.gameState === GameState.GOAL && (currentTimestamp - room.goalTimestamp) >= 3500) {
 				room.resetPosition();
 				room.changeGameState(GameState.PLAYING);
 				room.lastUpdate = Date.now();
-			} else if (room.gameState === GameState.RESUMED && (Date.now() - room.pauseTime[room.pauseTime.length - 1].resume) >= 3500) {
+			} else if (room.gameState === GameState.RESUMED && (currentTimestamp - room.pauseTime[room.pauseTime.length - 1].resume) >= 3500) {
 				room.lastUpdate = Date.now();
 				room.changeGameState(GameState.PLAYING);
-			} else if (room.gameState === GameState.END) {
-				let playerOne = await this.usersService.findOne(String(room.players[0].id));
-				let playerTwo = await this.usersService.findOne(String(room.players[1].id));
-				let game = await this.gamesService.create({
-					players: [playerOne, playerTwo],
-					winnerId: room.winnerId,
-					loserId: room.loserId,
-					createdAt: room.timestampStart,
-					endedAt: Date.now(),
-					gameDuration: room.getDuration(),
-					winnerScore: room.winnerScore,
-					loserScore: room.loserScore
-				});
-				this.logger.log("Created Game in DB: ", game);
-				
 			}
 
 			this.server.to(room.roomId).emit("updateRoom", room);

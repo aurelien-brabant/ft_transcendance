@@ -322,6 +322,7 @@ export default class Room implements IRoom {
 	winnerScore: number;
 	loserScore: number;
 
+	isGameEnd: boolean;
 	// settings customisation
 	maxGoal: number;
 
@@ -339,6 +340,7 @@ export default class Room implements IRoom {
 		this.pauseTime = [];
 
 		this.maxGoal = customisation.maxGoal;
+		this.isGameEnd = false;
     }
 
 	isAPlayer(user: User): boolean {
@@ -415,6 +417,7 @@ export default class Room implements IRoom {
 				this.winner = this.playerOne.goal === this.maxGoal ? this.playerOne.user.username : this.playerTwo.user.username;
 				this.loser = this.playerOne.goal === this.maxGoal ? this.playerTwo.user.username : this.playerOne.user.username;
 				this.changeGameState(GameState.END);
+				this.isGameEnd = true;
 			}
 			else
 			{

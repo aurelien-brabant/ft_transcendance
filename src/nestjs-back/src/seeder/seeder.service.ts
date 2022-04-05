@@ -102,10 +102,10 @@ export class SeederService {
 
             let game = await this.gamesService.create({
                 players: [winner, looser],
-                createdAt: Date.now() + i,
+                createdAt: new Date(Date.now() + i),
                 winnerId: (i < 9) ? i + 1 : 1,
                 loserId: (i < 8) ? i + 2 : 2,
-                endedAt: Date.now() + i + 180,
+                endedAt: new Date(Date.now() + i + 180),
                 winnerScore: faker.datatype.number(),
                 loserScore: faker.datatype.number(),
                 gameDuration: 0

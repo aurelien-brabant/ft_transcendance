@@ -32,16 +32,17 @@ export class Game {
     loserScore: number;
 
     @Column({
-        type: "date",
-        default: () => "CURRENT_TIMESTAMP"
+        type: "timestamptz",
+        default: () => "CURRENT_TIMESTAMP(6)"
     })
-    createdAt: number;
+    createdAt: Date;    
 
     @Column({
-        type: "date",
+        type: "timestamptz",
+        nullable: true,
+        default: null
     })
-    @Column({ nullable: true })
-    endedAt: number;
+    endedAt: Date;
 
     @Column({ nullable: true })
     gameDuration: number;

@@ -23,11 +23,11 @@ export class CreateGameDto {
 
     @IsOptional()
     @IsString()
-    readonly createdAt: number;
+    readonly createdAt: Date;
 
     @IsOptional()
     @IsString()
-    readonly endedAt: number;
+    readonly endedAt: Date;
 
     @IsOptional()
     @IsInt()

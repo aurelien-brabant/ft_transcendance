@@ -36,8 +36,8 @@ export type SeedGame = {
   loserId: number;
   winnerScore: number;
   loserScore: number;
-  createdAt: number;
-  endedAt: number;
+  createdAt: Date;
+  endedAt: Date;
   gameDuration: number;
 };
 
