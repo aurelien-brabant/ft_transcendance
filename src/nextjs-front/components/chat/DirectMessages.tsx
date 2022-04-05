@@ -54,7 +54,7 @@ const DirectMessages: React.FC<{ viewParams: Object; }> = ({ viewParams }) => {
 				<input
 					ref={searchInputRef}
 					type="text"
-					className="py-1 bg-transparent border-b-2 border-pink-600 text-md outline-0 max-w-[50%]"
+					className="py-1 bg-transparent border-b-2 border-pink-600 text-md outline-0 max-w-[45%]"
 					placeholder="search for a user"
 					onChange={(e) => {
 						handleSearch(e.target.value);

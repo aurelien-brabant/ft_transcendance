@@ -86,7 +86,7 @@ const Groups: React.FC<{viewParams: Object;}> = ({ viewParams }) => {
 				<input
 					ref={searchInputRef}
 					type="text"
-					className="py-1 bg-transparent border-b-2 border-pink-600 text-md outline-0 max-w-[50%]"
+					className="py-1 bg-transparent border-b-2 border-pink-600 text-md outline-0 max-w-[45%]"
 					placeholder="search for a group"
 					onChange={(e: React.ChangeEvent<HTMLInputElement>) => {
 						handleSearch(e.target.value);
