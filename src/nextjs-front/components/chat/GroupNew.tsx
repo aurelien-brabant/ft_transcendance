@@ -58,6 +58,7 @@ const GroupNew: React.FC = () => {
 		updateChatGroups,
 		setChatGroupData
 	} = useContext(chatContext) as ChatContextType;
+	const userId = getUserData().id;
 
 	const [formData, setFormData] = useState<NewGroupData>({
 		groupName: "",
@@ -108,36 +109,39 @@ const GroupNew: React.FC = () => {
 	};
 
 	const createGroup = async (formData: NewGroupData) => {
+		const req = JSON.stringify({
+			name: formData.groupName,
+			owner: { "id": userId },
+			privacy: formData.privacy,
+			password: (formData.password.length !== 0) ? formData.password : undefined,
+			users: [ { "id": userId } ]
+		});
 		const res = await fetch("/api/channels", {
 			method: "POST",
 			headers: {
 				"Content-Type": "application/json",
 			},
-			body: JSON.stringify({
-				name: formData.groupName,
-				owner: getUserData(),
-				privacy: formData.privacy,
-				password: (formData.password.length !== 0) ? formData.password : undefined,
-				users: [ getUserData() ]
-			}),
+			body: req,
 		});
 
 		if (res.status === 201) {
 			const data = await res.json();
-			const gm = setChatGroupData(JSON.parse(JSON.stringify(data)), getUserData().id);
+			const gm = setChatGroupData(JSON.parse(JSON.stringify(data)), userId);
 
 			updateChatGroups();
 			openChatView(gm.privacy === 'protected' ? 'password_protection' : 'group', gm.label, {
 				groupName: gm.label,
 				groupId: gm.id
-			}
-			);
+			});
 		} else if (res.status === 401) {
 			setAlert({
 				type: "warning",
 				content: `Group '${formData.groupName}' already exists. Choose another name.`
 			});
 		} else {
+			console.log(res.status);
+			console.log(await res.json());
+			console.log(req);
 			setAlert({
 				type: "error",
 				content: "Failed to create group"
