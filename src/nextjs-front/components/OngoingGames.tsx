@@ -25,7 +25,7 @@ let socket: Socket;
 // }
 //  const displayCurrentGames = async (getCurrentGames:any) => {
     // 	const gamesToMap = getCurrentGames()
-    //     for (const i in gamesToMap) {
+    //     for (currentGamesUpdateconst i in gamesToMap) {
     //       const ongoingGamesId = (gamesToMap[i].endedAt !== null) ? gamesToMap[i].id : "";
     //       const req = await fetch (`/api/games/${ongoingGamesId}`)
     //       const res = await req.json();
@@ -38,9 +38,9 @@ const OngoingGames:React.FC = () => {
     const [rooms, setRooms] = useState<Map<string, IRoom> | null>(null);
     // const [rooms, setRooms] = useState<Map<string, IRoom> | null>(null);
     useEffect((): any => {
-		socket = io("localhost");
+		socket = io("localhost:8080");
         // Allow reconnection    
-        socket.on("currentGamesUpdate", (newRoomData: Map<string, IRoom>) => {
+        socket.on("", (newRoomData: Map<string, IRoom>) => {
             setRooms(newRoomData);
             // return () => {};
         });
@@ -52,7 +52,7 @@ const OngoingGames:React.FC = () => {
         (rooms) ?
             rooms.forEach((room:IRoom) => {
                 <tr>
-                    key={room.id}
+                    key={room.roomId}
                 </tr>
             })
             :
