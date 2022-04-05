@@ -104,6 +104,7 @@ const ChatProvider: React.FC = ({ children }) => {
 	const [directMessages, setDirectMessages] = useState<DirectMessage[]>([]);
 	const [lastX, setLastX] = useState<number>(0);
 	const [lastY, setLastY] = useState<number>(0);
+	const { setAlert } = useContext(alertContext) as AlertContextType;
 	const { isPreAuthenticated, isChatOpened, setIsChatOpened } = useContext(authContext) as AuthContextType;
 	const { blocked } = useContext(relationshipContext) as RelationshipContextType;
 	
@@ -236,8 +237,7 @@ const ChatProvider: React.FC = ({ children }) => {
 	const createDirectMessage = async (userId: string, friendId: string) => {
 		const userData = await (await fetch(`/api/users/${userId}`)).json();
 		const friendData = await (await fetch(`/api/users/${friendId}`)).json();
-		const { setAlert } = useContext(alertContext) as AlertContextType;
-  
+
 		const res = await fetch("/api/channels", {
 			method: "POST",
 			headers: {
@@ -335,14 +335,14 @@ const ChatProvider: React.FC = ({ children }) => {
 				setChatGroupData,
 				updateDirectMessages,
 				setDirectMessageData,
+				createDirectMessage,
+				openDirectMessage,
 				fetchChannelData,
 				loadChannelsOnMount,
 				lastX,
 				setLastX,
 				lastY,
 				setLastY,
-				createDirectMessage,
-				openDirectMessage,
 			}}
 		>
 			{isPreAuthenticated ?

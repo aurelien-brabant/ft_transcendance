@@ -25,7 +25,8 @@ export class ChatGateway implements OnGatewayInit, OnGatewayConnection, OnGatewa
   }
 
   async handleConnection(@ConnectedSocket() socket: Socket) {
-    this.logger.log(`Client connected`);
+    this.logger.log(`Client connected: ${socket.id}`);
+
     socket.on('newUser', (username: string) => {
       this.chatUsers.push({
         socketId: socket.id,
@@ -35,28 +36,17 @@ export class ChatGateway implements OnGatewayInit, OnGatewayConnection, OnGatewa
   }
 
   handleDisconnect(socket: Socket) {
-    this.logger.log(`Client disconnected`);
+    this.logger.log(`Client disconnected: ${socket.id}`);
   }
 
   @SubscribeMessage('messageToServer')
   async handleMessage(
     @ConnectedSocket() socket: Socket,
-    @MessageBody() data: string
+    @MessageBody() message: string
   ) {
-    this.logger.log(`Handle message from Client [${socket.id}]\n${data}`);
-    this.server.emit('messageToClient', data);
-  }
+    const username = this.chatUsers.find(user => user.socketId === socket.id);
 
-  // @SubscribeMessage('joinChannel')
-  // joinChannel(
-  //   @ConnectedSocket() socket: Socket,
-  //   @MessageBody() data: string
-  // ) {
-  //   socket.join(data, (err) => {
-  //     if (err) {
-  //       console.log('error ', err);
-  //     }
-  //   });
-  //   this.logger.log(`Client [${socket.id}] joined channel ${channelName}`);
-  // }
+    this.logger.log(`Handle message from Client [${username}]\n${message}`);
+    this.server.to(socket.id).emit('Handled message');
+  }
 }

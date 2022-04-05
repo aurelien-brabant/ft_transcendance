@@ -1,3 +1,4 @@
+import { io, Socket } from 'socket.io-client';
 import React, { Fragment, useContext, useEffect } from "react";
 import Draggable, { DraggableEvent } from 'react-draggable';
 import { useMediaQuery } from "react-responsive";
@@ -8,10 +9,8 @@ import Tooltip from "./Tooltip";
 import { ChatViewItem } from "../context/chat/ChatProvider";
 import chatContext, { ChatContextType } from "../context/chat/chatContext";
 import authContext, { AuthContextType } from "../context/auth/authContext";
-/* WS */
-import { io, Socket } from 'socket.io-client';
 
-let socket: Socket;
+export const chatSocket: Socket = io('localhost');
 
 type ChatProps = {
 	onClose: () => void;
@@ -19,9 +18,15 @@ type ChatProps = {
 };
 
 const Chat: React.FC<ChatProps> = ({ viewStack, onClose }) => {
-	const { closeRightmostView, setChatView, loadChannelsOnMount, lastX, lastY, setLastX, setLastY } = useContext(
-		chatContext
-	) as ChatContextType;
+	const {
+		closeRightmostView,
+		setChatView,
+		loadChannelsOnMount,
+		lastX,
+		lastY,
+		setLastX,
+		setLastY
+	} = useContext(chatContext) as ChatContextType;
 	const { getUserData } = useContext(authContext) as AuthContextType;
 	const userId = getUserData().id;
 	const currentView = viewStack[viewStack.length - 1];
@@ -35,15 +40,12 @@ const Chat: React.FC<ChatProps> = ({ viewStack, onClose }) => {
 		);
 	}
 
-	/* WS */
+	/* Client is connected to chat */
 	const handleClientConnection = () => {
-		socket = io('localhost');
-
-		socket.on('connect', () => {
-			console.log('[Chat WS] Client connected');
+		chatSocket.on('connect', () => {
+			console.log('[Chat] Client connected');
 		})
-
-		socket.emit('newUser', getUserData().username);
+		chatSocket.emit('newUser', getUserData().username);
 	}
 
 	useEffect(() => {

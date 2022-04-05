@@ -82,7 +82,7 @@ export class ChannelsService {
   async create(createChannelDto: CreateChannelDto) {
     const ownedChannels = await this.usersService.getOwnedChannels(createChannelDto.owner.id.toString());
 
-    if (ownedChannels.length !== 0) {
+    if (ownedChannels && ownedChannels.length !== 0) {
       const chanExists = !!ownedChannels.find(channel => {
         return channel.name === createChannelDto.name;
       })

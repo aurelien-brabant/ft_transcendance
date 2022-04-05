@@ -8,6 +8,7 @@ import Tooltip from "../../components/Tooltip";
 import alertContext, { AlertContextType } from "../../context/alert/alertContext";
 import authContext, { AuthContextType } from "../../context/auth/authContext";
 import chatContext, { ChatContextType, ChatMessage } from "../../context/chat/chatContext";
+import { chatSocket } from "../../components/Chat";
 
 /* Header */
 export const DirectMessageHeader: React.FC<{ viewParams: any }> = ({ viewParams }) => {
@@ -73,30 +74,33 @@ const DirectMessage: React.FC<{ viewParams: { [key: string]: any } }> = ({
 	const handleDmSubmit = async () => {
 		if (currentMessage.length === 0) return;
 
-		const channelData = await fetchChannelData(dmId).catch(console.error);
-		const res = await fetch("/api/messages", {
-			method: "POST",
-			headers: {
-				"Content-Type": "application/json",
-			},
-			body: JSON.stringify({
-				author: getUserData(),
-				content: currentMessage,
-				channel: channelData
-			}),
-		});
-		const data = await res.json();
+		chatSocket.emit('messageToServer', currentMessage);
+		console.log(`[Chat] Client sends DM: "${currentMessage}"`);
 
-		if (res.status === 201) {
-			addMessage(data);
-			setCurrentMessage("");
-			return;
-		} else {
-			setAlert({
-				type: "error",
-				content: "Failed to send message"
-			});
-		}
+		// const channelData = await fetchChannelData(dmId).catch(console.error);
+		// const res = await fetch("/api/messages", {
+		// 	method: "POST",
+		// 	headers: {
+		// 		"Content-Type": "application/json",
+		// 	},
+		// 	body: JSON.stringify({
+		// 		author: getUserData(),
+		// 		content: currentMessage,
+		// 		channel: channelData
+		// 	}),
+		// });
+		// const data = await res.json();
+
+		// if (res.status === 201) {
+		// 	addMessage(data);
+		// 	setCurrentMessage("");
+		// 	return;
+		// } else {
+		// 	setAlert({
+		// 		type: "error",
+		// 		content: "Failed to send message"
+		// 	});
+		// }
 	};
 
 	/* Scroll to bottom if new message is sent */
