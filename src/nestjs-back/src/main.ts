@@ -42,7 +42,7 @@ async function bootstrap() {
     }),
   );
 
-  seeder();
+  // seeder();
 
   await app.listen(3000);
 }
