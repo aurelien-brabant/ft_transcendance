@@ -10,7 +10,7 @@ import { ChatViewItem } from "../context/chat/ChatProvider";
 import chatContext, { ChatContextType } from "../context/chat/chatContext";
 import authContext, { AuthContextType } from "../context/auth/authContext";
 
-export const chatSocket: Socket = io('localhost');
+export let chatSocket: Socket;
 
 type ChatProps = {
 	onClose: () => void;
@@ -42,10 +42,16 @@ const Chat: React.FC<ChatProps> = ({ viewStack, onClose }) => {
 
 	/* Client is connected to chat */
 	const handleClientConnection = () => {
+		chatSocket = io('localhost:8080'); // tmp
+
 		chatSocket.on('connect', () => {
 			console.log('[Chat] Client connected');
+
+			chatSocket.emit('newUser', {
+				id: getUserData().id,
+				username: getUserData().username
+			});
 		})
-		chatSocket.emit('newUser', getUserData().username);
 	}
 
 	useEffect(() => {

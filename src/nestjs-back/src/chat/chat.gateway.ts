@@ -11,12 +11,13 @@ import {
   WebSocketServer,
 } from '@nestjs/websockets';
 import { ChatService } from './chat.service';
+import { ConnectedUsers, User, userStatus } from '../games/class/Room';
 
 @WebSocketGateway({ cors: true })
 export class ChatGateway implements OnGatewayInit, OnGatewayConnection, OnGatewayDisconnect {
   @WebSocketServer() server: Server;
   private logger: Logger = new Logger('ChatGateway');
-  private chatUsers = [];
+  private readonly chatUsers: ConnectedUsers = new ConnectedUsers();
 
   constructor(private readonly chatService: ChatService) {}
 
@@ -26,27 +27,32 @@ export class ChatGateway implements OnGatewayInit, OnGatewayConnection, OnGatewa
 
   async handleConnection(@ConnectedSocket() socket: Socket) {
     this.logger.log(`Client connected: ${socket.id}`);
-
-    socket.on('newUser', (username: string) => {
-      this.chatUsers.push({
-        socketId: socket.id,
-        username: username,
-      });
-    });
   }
 
   handleDisconnect(socket: Socket) {
-    this.logger.log(`Client disconnected: ${socket.id}`);
+    const user: User = this.chatUsers.getUser(socket.id);
+
+    if (user) {
+      this.chatUsers.removeUser(user);
+      this.logger.log(`Client disconnected: ${user.username}`);
+      console.log(this.chatUsers);
+    }
   }
 
-  @SubscribeMessage('messageToServer')
-  async handleMessage(
-    @ConnectedSocket() socket: Socket,
-    @MessageBody() message: string
-  ) {
-    const username = this.chatUsers.find(user => user.socketId === socket.id);
+  @SubscribeMessage('newUser')
+  handleNewUser(@ConnectedSocket() socket: Socket, @MessageBody() data: User) {
+    if (!data.id || !data.username) return ;
 
-    this.logger.log(`Handle message from Client [${username}]\n${message}`);
-    this.server.to(socket.id).emit('Handled message');
+    let user: User = this.chatUsers.getUserById(data.id);
+    if (!user) {
+      user = new User(data.id, data.username, socket.id);
+      this.chatUsers.addUser(user);
+      this.logger.log(`Added new user: ${user.username}`);
+    } else {
+      user.setSocketId(socket.id);
+      user.setUsername(data.username);
+      this.logger.log(`Updated user: ${user.username}`);
+    }
+    console.log(this.chatUsers);
   }
 }
