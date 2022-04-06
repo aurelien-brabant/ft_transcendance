@@ -55,4 +55,13 @@ export class ChatGateway implements OnGatewayInit, OnGatewayConnection, OnGatewa
     }
     console.log(this.chatUsers);
   }
+
+  @SubscribeMessage('DmSubmit')
+  handleDmSubmit(@ConnectedSocket() socket: Socket, @MessageBody() data: User) {
+    const user: User = this.chatUsers.getUser(socket.id);
+
+    if (user) {
+      this.logger.log(`${user.username} sends DM: ${data}`);
+    }
+  }
 }

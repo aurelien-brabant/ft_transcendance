@@ -74,7 +74,10 @@ const DirectMessage: React.FC<{ viewParams: { [key: string]: any } }> = ({
 	const handleDmSubmit = async () => {
 		if (currentMessage.length === 0) return;
 
-		chatSocket.emit('messageToServer', currentMessage);
+		chatSocket.emit('DmSubmit', {
+			content: currentMessage,
+			// to:
+		});
 		console.log(`[Chat] Client sends DM: "${currentMessage}"`);
 
 		// const channelData = await fetchChannelData(dmId).catch(console.error);
