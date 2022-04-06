@@ -110,6 +110,9 @@ const Hub: NextPageWithLayout = () => {
 						:
 							<button onClick={joinQueue} className="px-6 py-2 text-xl uppercase bg-pink-600 drop-shadow-md text-bold text-neutral-200">Find a match</button>
 						}
+						<button onClick={spectate} className="px-6 py-2 text-xl uppercase bg-pink-600 drop-shadow-md text-bold text-neutral-200">
+							Spectate
+						</button>
 					</>
 				)
 
