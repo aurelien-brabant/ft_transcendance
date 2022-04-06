@@ -30,16 +30,16 @@ export type SeedUser = {
 };
 
 /* GAMES */
-
 export type SeedGame = {
   id: number;
   players: SeedUser[];
   winnerId: number;
-  looserId: number;
-  createdAt: string;
-  endedAt: string;
+  loserId: number;
   winnerScore: number;
-  looserScore: number;
+  loserScore: number;
+  createdAt: Date;
+  endedAt: Date;
+  gameDuration: number;
 };
 
 /* CHANNELS */

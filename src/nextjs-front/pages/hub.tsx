@@ -3,47 +3,77 @@ import { io, Socket } from 'socket.io-client';
 import Head from "next/head";
 import withDashboardLayout from "../components/hoc/withDashboardLayout";
 import Canvas from "../components/Canvas";
-import { GameState, IRoom } from "../gameObjects/GameObject";
+import { IRoom, User } from "../gameObjects/GameObject";
 import authContext, { AuthContextType } from "../context/auth/authContext"
+import alertContext, { AlertContextType } from "../context/alert/alertContext";
 import { NextPageWithLayout } from "./_app";
 
 let socket: Socket;
 
 const Hub: NextPageWithLayout = () => {
-	const { getUserData } = useContext(authContext) as AuthContextType;	
-	let lastRoom: IRoom;
+	const { getUserData }: any = useContext(authContext) as AuthContextType;
+	const { setAlert } = useContext(alertContext) as AlertContextType;
 
 	const [displayGame, setDisplayGame] = useState(false);
+	const [inQueue, setInQueue] = useState(false);
 	const [room, setRoom] = useState<IRoom | null>(null);
-	let roomId: string;
 
+	let roomData: IRoom;
+	let roomId: string | undefined;
+	let user: User = {id: getUserData().id, username: getUserData().username};
 
 	const joinQueue = () => {
 		socket.emit("joinQueue");
 	}
 
-	// const refreshCurrentGames = () => {
-	// 	socket.emit("refreshCurrentGames");
-	// }
+	const leaveQueue = () => {
+		socket.emit("leaveQueue");
+	}
 
 	useEffect((): any => {
 		// connect to socket server
-		socket = io("localhost");
+		socket = io("localhost:8080");
 
 		socket.on("connect", () => {
-			socket.on("newRoom", function(newRoom: IRoom) {
-					socket.emit("joinRoom", newRoom.id);
-					lastRoom = newRoom;
-					roomId = newRoom.id;
-					setRoom(newRoom);
+			// Allow reconnection
+			socket.emit("handleUserConnect", user);
+
+			socket.on("newRoom", (newRoomData: IRoom) => {
+					socket.emit("joinRoom", newRoomData.roomId);
+					roomData = newRoomData;
+					roomId = newRoomData.roomId;
+					setRoom(roomData);
+					setInQueue(false);
+			});
+
+			socket.on("joinedQueue", (data: IRoom) => {
+				setInQueue(true);
+				setAlert({
+					type: "info",
+					content: "You were added to Queue"
+				});
+			});
+
+			socket.on("leavedQueue", (data: IRoom) => {
+				setInQueue(false);
+				setAlert({
+					type: "info",
+					content: "You were removed from Queue"
+				});	
 			});
 
 			socket.on("joinedRoom", (data: IRoom) => {
 				setDisplayGame(true);
+				setAlert({
+					type: "info",
+					content: `Game found`
+				});
 			});
 
-			socket.on("leaveRoom", (data: IRoom) => {
+			socket.on("leavedRoom", (data: IRoom) => {
+				roomId = undefined;
 				setDisplayGame(false);
+				setRoom(null);
 			});
 		});
 
@@ -69,8 +99,16 @@ const Hub: NextPageWithLayout = () => {
 				(
 					<>
 						<h1>Hello World!</h1>
-						{/* <button onClick={refreshCurrentGames} className="px-6 py-2 text-xl uppercase bg-pink-600 drop-shadow-md text-bold text-neutral-200">Refresh</button> */}
-						<button onClick={joinQueue} className="px-6 py-2 text-xl uppercase bg-pink-600 drop-shadow-md text-bold text-neutral-200">Find a match</button>
+						{
+							inQueue ? 
+							<button onClick={leaveQueue} className="px-6 py-2 text-xl uppercase bg-gray-600 drop-shadow-md text-bold text-neutral-200">
+								Cancel
+							</button>
+							:
+							<button onClick={joinQueue} className="px-6 py-2 text-xl uppercase bg-pink-600 drop-shadow-md text-bold text-neutral-200">
+								Find a match
+							</button>
+						}
 					</>
 				)
 

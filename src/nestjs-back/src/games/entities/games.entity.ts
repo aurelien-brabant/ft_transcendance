@@ -23,19 +23,27 @@ export class Game {
     winnerId: number;
 
     @Column({ nullable: true })
-    looserId: number;
-
-    @Column({
-        default: () => 'CURRENT_TIMESTAMP',
-    })
-    createdAt: string;
-
-    @Column({ nullable: true })
-    endedAt: string;
+    loserId: number;
 
     @Column({ nullable: true })
     winnerScore: number;
 
     @Column({ nullable: true })
-    looserScore: number;
+    loserScore: number;
+
+    @Column({
+        type: "timestamptz",
+        default: () => "CURRENT_TIMESTAMP(6)"
+    })
+    createdAt: Date;    
+
+    @Column({
+        type: "timestamptz",
+        nullable: true,
+        default: null
+    })
+    endedAt: Date;
+
+    @Column({ nullable: true })
+    gameDuration: number;
 }

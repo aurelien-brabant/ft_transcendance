@@ -1,4 +1,4 @@
-import React, { useState } from "react";
+import React, { useState, useContext } from "react";
 // import styles from '../styles/Canvas.module.css';
 import {Socket} from 'socket.io-client';
 
@@ -10,26 +10,21 @@ import styles from "../styles/Canvas.module.css";
 // import { GameConstants, GameState, gameConstants } from "../constants/gameConstants"
 import { Draw } from "../gameObjects/Draw";
 import { canvasHeight, canvasWidth, countDown, GameState, IRoom } from "../gameObjects/GameObject";
+import authContext, { AuthContextType } from "../context/auth/authContext"
 
 const Canvas: React.FC<{socketProps: Socket, roomProps: any}> = ({socketProps, roomProps}) => {
-
-	/*
-		Canvas ref and size
-	*/
+	const { getUserData }: any = useContext(authContext) as AuthContextType;
 	const canvasRef = useRef<HTMLCanvasElement>(null);
 
     let socket: Socket = socketProps;
     let room: IRoom = roomProps;
-	let roomId: string | undefined = room?.id;
-
+	let roomId: string | undefined = room?.roomId;
 	const [gameEnded, setGameEnded] = useState(false);
-
-	// let start = Date.now();
 
 	let oldTimestamp: number = 0;
 	let secondElapsed: number = 0;
 	let seconds: number = 0;
-	let display: number = 0;	
+	let display: number = 0;
 
 	const leaveRoom = () => {
 		socket.emit("leaveRoom", roomId);
@@ -39,11 +34,11 @@ const Canvas: React.FC<{socketProps: Socket, roomProps: any}> = ({socketProps, r
 		Handle key controls
 	*/
 	const downHandler = (event: KeyboardEvent): void => {
-		socket.emit("keyDown", {roomId: roomId, key: event.key});
+		socket.emit("keyDown", {roomId: roomId, key: event.key, username: getUserData().username});
 	};
 
 	const upHandler = (event: KeyboardEvent): void => {
-		socket.emit("keyUp", {roomId: roomId, key: event.key});
+		socket.emit("keyUp", {roomId: roomId, key: event.key, username: getUserData().username});
 	};
 
 	/*
@@ -52,11 +47,11 @@ const Canvas: React.FC<{socketProps: Socket, roomProps: any}> = ({socketProps, r
 	const drawGame = (canvas: HTMLCanvasElement, draw: Draw, room: IRoom): void => {
 		draw.clear();
 		draw.drawNet();
+		draw.drawScore(room.playerOne, room.playerTwo);
 		draw.drawPaddle(room.playerOne);
 		draw.drawPaddle(room.playerTwo);
 		if (room.gameState !== GameState.GOAL && room.gameState !== GameState.END)
 			draw.drawBall(room.ball);
-		draw.drawScore(room.playerOne, room.playerTwo);
 		draw.animateNeon(canvas);
 	}
 
@@ -70,9 +65,10 @@ const Canvas: React.FC<{socketProps: Socket, roomProps: any}> = ({socketProps, r
 		canvas.width = canvasWidth;
 		canvas.height = canvasHeight;
 
-		
+
 		const draw: Draw = new Draw(canvas);
-		
+
+		// if not a spectator
 		window.addEventListener("keydown", downHandler);
 		window.addEventListener("keyup", upHandler);
 
@@ -111,7 +107,8 @@ const Canvas: React.FC<{socketProps: Socket, roomProps: any}> = ({socketProps, r
 		}
 
 		const gameLoop = (timestamp = 0) => {
-			socket.emit("requestUpdate", room?.id);
+			if (room.gameState !== GameState.END)
+				socket.emit("requestUpdate", room?.roomId);
 			secondElapsed = (timestamp - oldTimestamp) / 1000;
 			oldTimestamp = timestamp;
 
@@ -120,7 +117,7 @@ const Canvas: React.FC<{socketProps: Socket, roomProps: any}> = ({socketProps, r
 				let count: number = (Date.now() - room.timestampStart) / 1000;
 				draw.drawRectangle(0, 0, canvasWidth, canvasHeight, "rgba(0, 0, 0, 0.5)");
 				draw.drawCountDown(countDown[Math.floor(count)]);
-		
+
 			}
 			if (room.gameState === GameState.PLAYING) {
 				draw.resetParticles();
@@ -129,6 +126,11 @@ const Canvas: React.FC<{socketProps: Socket, roomProps: any}> = ({socketProps, r
 				loading();
 			} else if (room.gameState === GameState.PAUSED) {
 				draw.drawPauseButton();
+			} else if (room.gameState === GameState.RESUMED) {
+				let count: number = (Date.now() - room.pauseTime[room.pauseTime.length - 1].resume) / 1000;
+				draw.drawRectangle(0, 0, canvasWidth, canvasHeight, "rgba(0, 0, 0, 0.5)");
+				draw.drawCountDown(countDown[Math.floor(count)]);
+
 			} else if (room.gameState === GameState.GOAL) {
 				goal();
 			}
@@ -143,6 +145,7 @@ const Canvas: React.FC<{socketProps: Socket, roomProps: any}> = ({socketProps, r
 
 		return () => {
 			window.cancelAnimationFrame(animationFrameId);
+			// if not a spectator
 			window.removeEventListener("keydown", downHandler);
 			window.removeEventListener("keyup", upHandler);
 		};
@@ -154,30 +157,32 @@ const Canvas: React.FC<{socketProps: Socket, roomProps: any}> = ({socketProps, r
 			room &&
 				<div className={styles.container}>
 					<canvas ref={canvasRef} className={styles.canvas} ></canvas>
-					{
-						room.playerOne.id === socket.id ?
-						<div className="grid grid-cols-2">
-							<div>
-								<p>You are {socket.id}</p>
+						<div className="flex justify-between pt-5 pb-5">
+							<div className="grid grid-cols-2 justify-items-start">
+								<img
+									className="rounded-full sm:block"
+									height="45px"
+									width="45px"
+									src={`/api/users/${room.playerOne.user.id}/photo`}
+									alt="user's avatar"
+								/>
+								<div>{room.playerOne.user.username}</div>
 							</div>
-							<div>
-								<p className="text-right">Opponents is {room.playerTwo.id}</p>
+							<div className="grid grid-cols-2 justify-items-end">
+								<div>{room.playerTwo.user.username}</div>
+								<img
+									className="rounded-full sm:block"
+									height="45px"
+									width="45px"
+									src={`/api/users/${room.playerTwo.user.id}/photo`}
+									alt="user's avatar"
+								/>
 							</div>
 						</div>
-							:
-						<div className="grid grid-cols-2">
-							<div>
-								<p>Opponents is {room.playerOne.id}</p>
-							</div>
-							<div>
-								<p className="text-right">You are {socket.id}</p>
-							</div>
-						</div>
-					}
-					{
-						gameEnded &&
-						<button onClick={leaveRoom} className="px-6 py-2 text-xl uppercase bg-pink-600 drop-shadow-md text-bold text-neutral-200">Leave Room</button>
-					}
+						{
+							gameEnded &&
+							<button onClick={leaveRoom} className="px-6 py-2 text-xl uppercase bg-pink-600 drop-shadow-md text-bold text-neutral-200">Leave Room</button>
+						}
 				</div>
 		}
 		</>
