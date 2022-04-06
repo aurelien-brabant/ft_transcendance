@@ -21,6 +21,7 @@ const Canvas: React.FC<{socketProps: Socket, roomProps: any}> = ({socketProps, r
 	let roomId: string | undefined = room?.roomId;
 	const [gameEnded, setGameEnded] = useState(false);
 
+	let isAplayer: boolean = (room.playerOne.user.username == getUserData().username || room.playerTwo.user.username == getUserData().username);
 	let oldTimestamp: number = 0;
 	let secondElapsed: number = 0;
 	let seconds: number = 0;
@@ -69,9 +70,10 @@ const Canvas: React.FC<{socketProps: Socket, roomProps: any}> = ({socketProps, r
 		const draw: Draw = new Draw(canvas);
 
 		// if not a spectator
-		window.addEventListener("keydown", downHandler);
-		window.addEventListener("keyup", upHandler);
-
+		if (isAplayer) {
+				window.addEventListener("keydown", downHandler);
+				window.addEventListener("keyup", upHandler);
+		}
 
 		socket.on("updateRoom", function(updatedRoom: IRoom) {
 			room = updatedRoom;
@@ -107,8 +109,9 @@ const Canvas: React.FC<{socketProps: Socket, roomProps: any}> = ({socketProps, r
 		}
 
 		const gameLoop = (timestamp = 0) => {
-			if (room.gameState !== GameState.END)
-				socket.emit("requestUpdate", room?.roomId);
+			if (room.gameState !== GameState.END && isAplayer) {
+					socket.emit("requestUpdate", room?.roomId);
+			}
 			secondElapsed = (timestamp - oldTimestamp) / 1000;
 			oldTimestamp = timestamp;
 
@@ -145,9 +148,10 @@ const Canvas: React.FC<{socketProps: Socket, roomProps: any}> = ({socketProps, r
 
 		return () => {
 			window.cancelAnimationFrame(animationFrameId);
-			// if not a spectator
-			window.removeEventListener("keydown", downHandler);
-			window.removeEventListener("keyup", upHandler);
+			if (isAplayer) {
+				window.removeEventListener("keydown", downHandler);
+				window.removeEventListener("keyup", upHandler);
+			}
 		};
 	}, []);
 
@@ -180,7 +184,7 @@ const Canvas: React.FC<{socketProps: Socket, roomProps: any}> = ({socketProps, r
 							</div>
 						</div>
 						{
-							gameEnded &&
+							(gameEnded || !isAplayer) &&
 							<button onClick={leaveRoom} className="px-6 py-2 text-xl uppercase bg-pink-600 drop-shadow-md text-bold text-neutral-200">Leave Room</button>
 						}
 				</div>

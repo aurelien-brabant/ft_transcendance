@@ -32,6 +32,11 @@ const Hub: NextPageWithLayout = () => {
 		socket.emit("leaveQueue");
 	}
 
+	const spectate = () => {
+		socket.emit("spectateRoom", "funny_test212&ancient_test211");
+	}
+
+
 	useEffect((): any => {
 		// connect to socket server
 	//	socket = io("localhost:8080");
@@ -68,7 +73,7 @@ const Hub: NextPageWithLayout = () => {
 				setDisplayGame(true);
 				setAlert({
 					type: "info",
-					content: `Game found`
+					content: `Game joined`
 				});
 			});
 
@@ -111,6 +116,9 @@ const Hub: NextPageWithLayout = () => {
 								Find a match
 							</button>
 						}
+						<button onClick={spectate} className="px-6 py-2 text-xl uppercase bg-pink-600 drop-shadow-md text-bold text-neutral-200">
+							Spectate
+						</button>
 					</>
 				)
 

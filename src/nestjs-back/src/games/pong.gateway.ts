@@ -45,7 +45,7 @@ export class PongGateway implements OnGatewayInit, OnGatewayConnection, OnGatewa
 			players.push(queue.dequeue());
 
 			// emit rooms change event for spectator or create a game in DB
-			// server.emit("updateCurrentGames", rooms);	
+			// server.emit("updateCurrentGames", rooms);
 
 			roomId = `${players[0].username}&${players[1].username}`;
             room = new Room(roomId, players, {maxGoal: 1});
@@ -144,6 +144,18 @@ export class PongGateway implements OnGatewayInit, OnGatewayConnection, OnGatewa
 		}
 	}
 
+	@SubscribeMessage('spectateRoom')
+	handleSpectateRoom(@ConnectedSocket() client: Socket, @MessageBody() roomId: string) {
+		const room: Room = this.rooms.get(roomId);
+		this.logger.log("User tried to join: ", roomId);
+
+		if (room) {
+			let user = this.connectedUsers.getUser(client.id);
+			if (!room.isAPlayer(user))
+				this.server.to(client.id).emit("newRoom", room);
+		}
+	}
+
 	// Etape 2 : The player was assigned a Room and received the roomId we add him to the room
 	@SubscribeMessage('joinRoom')
 	handleJoinRoom(@ConnectedSocket() client: Socket, @MessageBody() roomId: string) {
@@ -152,11 +164,11 @@ export class PongGateway implements OnGatewayInit, OnGatewayConnection, OnGatewa
 		if (room) {
 			let user = this.connectedUsers.getUser(client.id);
 			client.join(roomId);
-			if (user.status === userStatus.INHUB)
+			if (user.status === userStatus.INHUB) {
 				this.connectedUsers.changeUserStatus(client.id, userStatus.SPECTATING);
+			}
 			else if (room.isAPlayer(user))
 				room.addUser(user);
-
 			this.server.to(client.id).emit("joinedRoom");
 			this.server.to(client.id).emit("updateRoom", room);
 		}
