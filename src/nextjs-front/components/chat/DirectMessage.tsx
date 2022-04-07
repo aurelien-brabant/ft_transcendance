@@ -60,7 +60,7 @@ const DirectMessage: React.FC<{ viewParams: { [key: string]: any } }> = ({
 	const addMessage = (message: any) => {
 		setMessages([
 			...messages, {
-				id: message.id,
+				id: messages.length.toString(),
 				author: message.author.username,
 				content: message.content,
 				isMe: (message.author.id === userId),
@@ -97,7 +97,7 @@ const DirectMessage: React.FC<{ viewParams: { [key: string]: any } }> = ({
 
 		for (var i in dms) {
 			messages.push({
-				id: dms[i].id,
+				id: messages.length.toString(),
 				author: dms[i].author.username,
 				content: dms[i].content,
 				isMe: (dms[i].author.id === userId),
