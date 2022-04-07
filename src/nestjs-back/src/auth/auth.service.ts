@@ -7,7 +7,7 @@ import { Socket } from 'socket.io';
 import fetch from 'node-fetch';
 import * as FormData from 'form-data';
 
-export interface CustomSocket extends Socket { 
+export interface CustomSocket extends Socket {
   user: User;
 }
 
@@ -19,28 +19,29 @@ export class AuthService {
   ) {}
 
   async validateUser(email: string, password: string): Promise<any> {
-
     const user = await this.usersService.findUserPassword(email);
 
-    if (user && await comparePassword(password, user.password)) {
-
+    if (user && (await comparePassword(password, user.password))) {
       const u = await this.usersService.findOneByEmail(email);
-      if (!u)
-        return null;
-        
+      if (!u) return null;
+
       return u;
     }
     return null;
-  };
-
-  async generateJWT(user: User) {
-    const payload = { sub: user.id };
-
-    return {
-      access_token: this.jwtService.sign(payload)
-    };
   }
-  
+
+  async getCookieWithJwtToken(userId: number) {
+    const payload = { sub: userId };
+    const token = this.jwtService.sign(payload);
+
+    return `Authentication=${token}; HttpOnly; Path=/;`;
+    /*
+    return {
+      access_token: this.jwtService.sign(payload),
+    };
+    */
+  }
+
   async loginDuoQuadra(apiCode: string): Promise<string | null> {
     const tokenEndpoint = 'https://api.intra.42.fr/oauth/token/';
     const formData = new FormData();
@@ -54,9 +55,9 @@ export class AuthService {
     const res = await fetch(tokenEndpoint, {
       method: 'POST',
       headers: {
-        ...formData.getHeaders()
+        ...formData.getHeaders(),
       },
-      body: formData.getBuffer().toString()
+      body: formData.getBuffer().toString(),
     });
 
     console.log(res.status);
@@ -67,25 +68,33 @@ export class AuthService {
     }
 
     // refresh_token not used yet (don't have any plan to use it, to be removed one day then...)
-    const { access_token: ft_access_token, refresh_token: ft_refresh_token } = await res.json();
+    const { access_token: ft_access_token, refresh_token: ft_refresh_token } =
+      await res.json();
 
-    const duoQuadraProfile = await (await fetch('https://api.intra.42.fr/v2/me', {
-      headers: {
-        'Authorization': `Bearer ${ft_access_token}`
-      }
-    })).json();
+    const duoQuadraProfile = await (
+      await fetch('https://api.intra.42.fr/v2/me', {
+        headers: {
+          Authorization: `Bearer ${ft_access_token}`,
+        },
+      })
+    ).json();
 
-    let duoQuadraUser = await this.usersService.findOneByDuoQuadraLogin(duoQuadraProfile.login);
+    let duoQuadraUser = await this.usersService.findOneByDuoQuadraLogin(
+      duoQuadraProfile.login,
+    );
 
     // first login using 42 credentials, creating a ft_transcendance account
     if (!duoQuadraUser) {
-
-      duoQuadraUser = await this.usersService.createDuoQuadra({
-        phone: duoQuadraProfile.phone !== 'hidden' ? duoQuadraUser.phone : null,
-        email: duoQuadraProfile.email,
-        imageUrl: duoQuadraProfile.image_url,
-        login: duoQuadraProfile.login,
-      }, ft_access_token);
+      duoQuadraUser = await this.usersService.createDuoQuadra(
+        {
+          phone:
+            duoQuadraProfile.phone !== 'hidden' ? duoQuadraUser.phone : null,
+          email: duoQuadraProfile.email,
+          imageUrl: duoQuadraProfile.image_url,
+          login: duoQuadraProfile.login,
+        },
+        ft_access_token,
+      );
 
       console.log(duoQuadraUser);
     } else {
@@ -94,7 +103,7 @@ export class AuthService {
 
     return JSON.stringify({
       id: duoQuadraUser.id,
-      access_token: this.jwtService.sign({ sub: ''+duoQuadraUser.id })
+      access_token: this.jwtService.sign({ sub: '' + duoQuadraUser.id }),
     });
   }
 }
