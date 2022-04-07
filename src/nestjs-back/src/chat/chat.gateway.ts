@@ -30,7 +30,7 @@ export class ChatGateway implements OnGatewayInit, OnGatewayConnection, OnGatewa
   }
 
   handleDisconnect(socket: Socket) {
-    const user: User = this.chatUsers.getUser(socket.id);
+    const user = this.chatUsers.getUser(socket.id);
 
     if (user) {
       this.chatUsers.removeUser(user);
@@ -43,7 +43,7 @@ export class ChatGateway implements OnGatewayInit, OnGatewayConnection, OnGatewa
   handleNewUser(@ConnectedSocket() socket: Socket, @MessageBody() data: User) {
     if (!data.id || !data.username) return ;
 
-    let user: User = this.chatUsers.getUserById(data.id);
+    let user = this.chatUsers.getUserById(data.id);
     if (!user) {
       user = new User(data.id, data.username, socket.id);
       user.setUserStatus(userStatus.ONLINE);
@@ -62,14 +62,15 @@ export class ChatGateway implements OnGatewayInit, OnGatewayConnection, OnGatewa
     @ConnectedSocket() socket: Socket,
     @MessageBody() data: { content: string, to: string, channelId: string }
   ) {
-    const user: User = this.chatUsers.getUser(socket.id);
+    const user = this.chatUsers.getUser(socket.id);
+    const recipient = this.chatUsers.getUser(data.to);
+    const message = await this.chatService.saveMessage(data.content, user.id.toString(), data.channelId);
 
     this.logger.log(`${user.username} sends DM "${data.content}" on channel ${data.channelId}`);
-
-    if (user) {
-      const message = await this.chatService.saveMessage(data.content, user.id.toString(), data.channelId);
-
-      this.server.to(socket.id).emit('dmSubmitted', { message });
+    this.server.to(socket.id).emit('newDm', { message });
+    /* If recipient is offline, message will be sent once connected */
+    if (recipient) {
+      this.server.to(recipient.socketId).emit('newDm', { message });
     }
   }
 }

@@ -78,7 +78,7 @@ const DirectMessage: React.FC<{ viewParams: { [key: string]: any } }> = ({
 			to: viewParams.friendId,
 			channelId: dmId
 		});
-		chatSocket.on('dmSubmitted', ({message}) => {
+		chatSocket.on('newDm', ({message}) => {
 			addMessage(message);
 		});
 		setCurrentMessage("");
