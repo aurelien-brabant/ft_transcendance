@@ -45,8 +45,6 @@ export type ChatContextType = {
 	/* Chat views manipulation */
 	openChatView: (view: ChatView, label: string, params: Object) => void;
 	setChatView: (view: ChatView, label: string, params: Object) => void;
-	//setChatView: (view: ChatView) => void;
-	//closeCurrentChatView: () => void;
 	closeRightmostView: (n?: number) => void;
 
 	/* Chat state */
