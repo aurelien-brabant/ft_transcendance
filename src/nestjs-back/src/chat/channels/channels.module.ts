@@ -8,6 +8,7 @@ import { UsersModule } from 'src/users/users.module';
 @Module({
   imports: [TypeOrmModule.forFeature([Channel]), UsersModule],
   controllers: [ChannelsController],
-  providers: [ChannelsService]
+  providers: [ChannelsService],
+  exports: [ChannelsService]
 })
 export class ChannelsModule {}

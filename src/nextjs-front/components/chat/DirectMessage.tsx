@@ -5,7 +5,6 @@ import { RiPingPongLine } from 'react-icons/ri';
 import Link from 'next/link';
 import { UserStatusItem } from "../UserStatus";
 import Tooltip from "../../components/Tooltip";
-import alertContext, { AlertContextType } from "../../context/alert/alertContext";
 import authContext, { AuthContextType } from "../../context/auth/authContext";
 import chatContext, { ChatContextType, ChatMessage } from "../../context/chat/chatContext";
 import { chatSocket } from "../../components/Chat";
@@ -49,7 +48,6 @@ export const DirectMessageHeader: React.FC<{ viewParams: any }> = ({ viewParams 
 const DirectMessage: React.FC<{ viewParams: { [key: string]: any } }> = ({
 	viewParams,
 }) => {
-	const { setAlert } = useContext(alertContext) as AlertContextType;
 	const { getUserData } = useContext(authContext) as AuthContextType;
 	const { fetchChannelData } = useContext(chatContext) as ChatContextType;
 	const [messages, setMessages] = useState<ChatMessage[]>([]);
@@ -58,6 +56,7 @@ const DirectMessage: React.FC<{ viewParams: { [key: string]: any } }> = ({
 	const dmId = viewParams.dmId;
 	const userId = getUserData().id;
 
+	/* Add message to discussion */
 	const addMessage = (message: any) => {
 		setMessages([
 			...messages, {
@@ -74,39 +73,18 @@ const DirectMessage: React.FC<{ viewParams: { [key: string]: any } }> = ({
 	const handleDmSubmit = async () => {
 		if (currentMessage.length === 0) return;
 
-		chatSocket.emit('DmSubmit', {
+		chatSocket.emit('dmSubmit', {
 			content: currentMessage,
-			// to:
+			to: viewParams.friendId,
+			channelId: dmId
 		});
-		console.log(`[Chat] Client sends DM: "${currentMessage}"`);
-
-		// const channelData = await fetchChannelData(dmId).catch(console.error);
-		// const res = await fetch("/api/messages", {
-		// 	method: "POST",
-		// 	headers: {
-		// 		"Content-Type": "application/json",
-		// 	},
-		// 	body: JSON.stringify({
-		// 		author: getUserData(),
-		// 		content: currentMessage,
-		// 		channel: channelData
-		// 	}),
-		// });
-		// const data = await res.json();
-
-		// if (res.status === 201) {
-		// 	addMessage(data);
-		// 	setCurrentMessage("");
-		// 	return;
-		// } else {
-		// 	setAlert({
-		// 		type: "error",
-		// 		content: "Failed to send message"
-		// 	});
-		// }
+		chatSocket.on('dmSubmitted', ({message}) => {
+			addMessage(message);
+		});
+		setCurrentMessage("");
 	};
 
-	/* Scroll to bottom if new message is sent */
+	/* Scroll to bottom if a new message is sent */
 	useEffect(() => {
 		chatBottom.current?.scrollIntoView();
 	}, [messages]);

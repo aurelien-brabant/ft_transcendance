@@ -46,6 +46,7 @@ export class ChatGateway implements OnGatewayInit, OnGatewayConnection, OnGatewa
     let user: User = this.chatUsers.getUserById(data.id);
     if (!user) {
       user = new User(data.id, data.username, socket.id);
+      user.setUserStatus(userStatus.ONLINE);
       this.chatUsers.addUser(user);
       this.logger.log(`Added new user: ${user.username}`);
     } else {
@@ -56,12 +57,19 @@ export class ChatGateway implements OnGatewayInit, OnGatewayConnection, OnGatewa
     console.log(this.chatUsers);
   }
 
-  @SubscribeMessage('DmSubmit')
-  handleDmSubmit(@ConnectedSocket() socket: Socket, @MessageBody() data: User) {
+  @SubscribeMessage('dmSubmit')
+  async handleDmSubmit(
+    @ConnectedSocket() socket: Socket,
+    @MessageBody() data: { content: string, to: string, channelId: string }
+  ) {
     const user: User = this.chatUsers.getUser(socket.id);
 
+    this.logger.log(`${user.username} sends DM "${data.content}" on channel ${data.channelId}`);
+
     if (user) {
-      this.logger.log(`${user.username} sends DM: ${data}`);
+      const message = await this.chatService.saveMessage(data.content, user.id.toString(), data.channelId);
+
+      this.server.to(socket.id).emit('dmSubmitted', { message });
     }
   }
 }

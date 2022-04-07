@@ -138,13 +138,13 @@ export class SeederService {
                     content: `I am ${fakeSender.username}`,
                     author: fakeSender,
                     channel: dstChannel
-                });
+                } as SeedMessage);
             } else {
                 await this.messagesService.create({
                     content: `I am ${fakeFriend.username}`,
                     author: fakeFriend,
                     channel: dstChannel
-                });
+                } as SeedMessage);
             }
         }
     }
@@ -202,7 +202,7 @@ export class SeederService {
             let channel = await this.channelsService.create({
                 name: 'fakeDM_' + i,
                 privacy: 'dm',
-                owner: fakeOwner,
+                owner: {"id": 1},
                 users: [fakeOwner, fakeFriend],
                 messages: []
             } as SeedChannel);
