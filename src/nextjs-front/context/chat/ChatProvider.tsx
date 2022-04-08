@@ -255,6 +255,7 @@ const ChatProvider: React.FC = ({ children }) => {
 			const data = await res.json();
 			setDirectMessageData(JSON.parse(JSON.stringify(data)), friendData);
 			updateDirectMessages();
+			return (JSON.parse(JSON.stringify(data)).id);
 		} else {
 			setAlert({
 				type: "error",
@@ -267,12 +268,15 @@ const ChatProvider: React.FC = ({ children }) => {
 		const openDirectMessage = async (userId: string, friend: any) => {
 			const res = await fetch(`/api/users/${userId}/directmessages?friendId=${friend.id}`);
 			const data = await res.json();
+			let id: string;
 	
 			if (res.status !== 200) {
-				createDirectMessage(userId.toString(), friend.id.toString());
+				id = await createDirectMessage(userId.toString(), friend.id.toString());
+			} else {
+				id = JSON.parse(JSON.stringify(data)).id;
 			}
 			openChatView('dm', 'direct message', {
-				dmId: JSON.parse(JSON.stringify(data)).id,
+				dmId: id,
 				friendUsername: friend.username,
 				friendId: friend.id
 			});

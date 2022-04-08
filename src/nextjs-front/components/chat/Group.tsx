@@ -108,7 +108,7 @@ const Group: React.FC<{ viewParams: { [key: string]: any } }> = ({
 
 		chatSocket.emit('gmSubmit', {
 			content: currentMessage,
-			to: groupId
+			groupId
 		});
 		chatSocket.on('newGm', ({message}) => {
 			addMessage(message);

@@ -77,14 +77,15 @@ export class ChatGateway implements OnGatewayInit, OnGatewayConnection, OnGatewa
   @SubscribeMessage('gmSubmit')
   async handleGmSubmit(
     @ConnectedSocket() socket: Socket,
-    @MessageBody() data: { content: string, channelId: string }
+    @MessageBody() data: { content: string, groupId: string }
   ) {
     const user = this.chatUsers.getUser(socket.id);
     // const channel = ;
-    const message = await this.chatService.saveMessage(data.content, user.id.toString(), data.channelId);
+    const message = await this.chatService.saveMessage(data.content, user.id.toString(), data.groupId);
 
-    this.logger.log(`${user.username} sends message "${data.content}" on channel ${data.channelId}`);
+    this.logger.log(`${user.username} sends message "${data.content}" on channel ${data.groupId}`);
     this.server.to(socket.id).emit('newGm', { message });
+    // TODO: send to room
     // if (channel) {
     //   this.server.to(recipient.socketId).emit('newGm', { message });
     // }
