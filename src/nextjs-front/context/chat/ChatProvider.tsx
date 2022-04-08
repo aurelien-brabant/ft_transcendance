@@ -246,7 +246,7 @@ const ChatProvider: React.FC = ({ children }) => {
 				"Content-Type": "application/json",
 			},
 			body: JSON.stringify({
-				name: friendData.username,
+				name: `${userId}_${friendId}`,
 				owner: userData,
 				privacy: "dm",
 				users: [ userData, friendData ]
@@ -268,6 +268,8 @@ const ChatProvider: React.FC = ({ children }) => {
 
 	/* Find existing DM or create a new one */
 		const openDirectMessage = async (userId: string, friend: any) => {
+			if (userId === friend.id.toString()) return ;
+
 			const res = await fetch(`/api/users/${userId}/directmessages?friendId=${friend.id}`);
 			const data = await res.json();
 			let id: string;

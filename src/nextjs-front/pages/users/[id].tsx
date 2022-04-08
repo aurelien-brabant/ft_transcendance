@@ -164,8 +164,13 @@ const UserProfilePage: NextPageWithLayout = ({}) => {
 
   /* Send DM to user */
   const handleMessage = async () => {
-    await openDirectMessage(userId.toString(), userData);
-    openChat();
+    const from: string = getUserData().id;
+    const to: string = userData.id;
+
+    if (from != to) {
+      await openDirectMessage(from, userData);
+      openChat();
+    }
   }
 
   /* Update user's information */
