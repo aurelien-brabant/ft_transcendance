@@ -16,7 +16,7 @@ import { ConnectedUsers, User, userStatus } from '../games/class/Room';
 @WebSocketGateway({ cors: true })
 export class ChatGateway implements OnGatewayInit, OnGatewayConnection, OnGatewayDisconnect {
   @WebSocketServer() server: Server;
-  private logger: Logger = new Logger('ChatGateway');
+  private logger: Logger = new Logger('Chat Gateway');
   private readonly chatUsers: ConnectedUsers = new ConnectedUsers();
 
   constructor(private readonly chatService: ChatService) {}

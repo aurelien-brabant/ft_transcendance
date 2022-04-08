@@ -1,4 +1,4 @@
-import { Injectable, NotFoundException } from '@nestjs/common';
+import { Injectable, Logger, NotFoundException } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Repository } from 'typeorm';
 import { Message } from './entities/messages.entity';
@@ -7,6 +7,8 @@ import { UpdateMessageDto } from './dto/update-message.dto';
 
 @Injectable()
 export class MessagesService {
+  private logger: Logger = new Logger('Messages Service');
+
   constructor(
     @InjectRepository(Message)
     private readonly messagesRepository: Repository<Message>,
@@ -22,6 +24,7 @@ export class MessagesService {
     const message =  await this.messagesRepository.findOne(id, {
       relations: ['author', 'channel']
     });
+
     if (!message) {
       throw new NotFoundException(`Message [${id}] not found`);
     }
@@ -30,6 +33,8 @@ export class MessagesService {
 
   create(createMessageDto: CreateMessageDto) {
     const message = this.messagesRepository.create(createMessageDto);
+
+    this.logger.log(`Create new message in channel [${createMessageDto.channel.id}][${createMessageDto.channel.name}]`);
     return this.messagesRepository.save(message);
   }
 
@@ -38,6 +43,7 @@ export class MessagesService {
       id: +id,
       ...updateMessageDto,
     });
+
     if (!message) {
       throw new NotFoundException(`Cannot update Message [${id}]: Not found`);
     }
@@ -46,6 +52,7 @@ export class MessagesService {
 
   async remove(id: string) { 
     const message = await this.findOne(id);
+
     if (!message) {
       throw new NotFoundException(`Message [${id}] not found`);
     }
