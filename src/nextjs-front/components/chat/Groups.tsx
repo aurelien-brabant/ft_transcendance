@@ -113,9 +113,12 @@ const Groups: React.FC<{viewParams: Object;}> = ({ viewParams }) => {
 						key={gm.label}
 						className="relative items-center px-10 py-5 grid grid-cols-3 border-b border-gray-800 bg-gray-900/90 hover:bg-gray-800/90 transition"
 						onClick={() => {
-							openChatView(gm.privacy === 'protected' ? 'password_protection' : 'group', gm.label, {
-									groupName: gm.label,
+							openChatView(
+								gm.privacy === 'protected' ? 'password_protection' : 'group',
+								gm.label,
+								{
 									groupId: gm.id,
+									groupName: gm.label,
 									groupOwnerId: gm.ownerId,
 									peopleCount: gm.peopleCount,
 									groupPrivacy: gm.privacy
@@ -136,8 +139,9 @@ const Groups: React.FC<{viewParams: Object;}> = ({ viewParams }) => {
 							<div
 								style={
 									{
-										backgroundColor: gm.privacy === 'public' ? "#48bb78"
-										: gm.privacy === 'private' ? "#3182ce" : "#805ad5"
+										backgroundColor: gm.privacy === 'public'
+											? "#48bb78"
+											: gm.privacy === 'private' ? "#3182ce" : "#805ad5"
 									}
 								}
 								className="flex items-center justify-center w-16 h-16 text-4xl rounded-full"

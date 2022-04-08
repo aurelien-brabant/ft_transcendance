@@ -129,10 +129,17 @@ const GroupNew: React.FC = () => {
 			const gm = setChatGroupData(JSON.parse(JSON.stringify(data)), userId);
 
 			updateChatGroups();
-			openChatView(gm.privacy === 'protected' ? 'password_protection' : 'group', gm.label, {
-				groupName: gm.label,
-				groupId: gm.id
-			});
+			openChatView(
+				gm.privacy === 'protected' ? 'password_protection' : 'group',
+				gm.label,
+				{
+					groupId: gm.id,
+					groupName: gm.label,
+					groupOwnerId: gm.ownerId,
+					peopleCount: gm.peopleCount,
+					groupPrivacy: gm.privacy
+				}
+			);
 		} else if (res.status === 401) {
 			setAlert({
 				type: "warning",
