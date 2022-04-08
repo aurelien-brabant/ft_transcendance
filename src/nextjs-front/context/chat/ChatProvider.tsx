@@ -235,6 +235,8 @@ const ChatProvider: React.FC = ({ children }) => {
 	}
 
 	const createDirectMessage = async (userId: string, friendId: string) => {
+		if (userId === friendId) return ;
+
 		const userData = await (await fetch(`/api/users/${userId}`)).json();
 		const friendData = await (await fetch(`/api/users/${friendId}`)).json();
 
