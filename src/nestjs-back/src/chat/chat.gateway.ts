@@ -73,4 +73,20 @@ export class ChatGateway implements OnGatewayInit, OnGatewayConnection, OnGatewa
       this.server.to(recipient.socketId).emit('newDm', { message });
     }
   }
+
+  @SubscribeMessage('gmSubmit')
+  async handleGmSubmit(
+    @ConnectedSocket() socket: Socket,
+    @MessageBody() data: { content: string, channelId: string }
+  ) {
+    const user = this.chatUsers.getUser(socket.id);
+    // const channel = ;
+    const message = await this.chatService.saveMessage(data.content, user.id.toString(), data.channelId);
+
+    this.logger.log(`${user.username} sends message "${data.content}" on channel ${data.channelId}`);
+    this.server.to(socket.id).emit('newGm', { message });
+    // if (channel) {
+    //   this.server.to(recipient.socketId).emit('newGm', { message });
+    // }
+  }
 }

@@ -4,9 +4,9 @@ import { FaUserFriends, FaUserPlus } from "react-icons/fa";
 import { FiSend } from 'react-icons/fi';
 import { RiSettings5Line } from "react-icons/ri";
 import Tooltip from "../../components/Tooltip";
-import chatContext, { ChatContextType, ChatMessage } from "../../context/chat/chatContext";
 import authContext, { AuthContextType } from "../../context/auth/authContext";
-import alertContext, { AlertContextType } from "../../context/alert/alertContext";
+import chatContext, { ChatContextType, ChatMessage } from "../../context/chat/chatContext";
+import { chatSocket } from "../../components/Chat";
 import relationshipContext, { RelationshipContextType } from "../../context/relationship/relationshipContext";
 
 /* Header */
@@ -78,22 +78,22 @@ export const GroupHeader: React.FC<{ viewParams: any }> = ({ viewParams }) => {
 const Group: React.FC<{ viewParams: { [key: string]: any } }> = ({
 	viewParams,
 }) => {
-	const { setAlert } = useContext(alertContext) as AlertContextType;
 	const { getUserData } = useContext(authContext) as AuthContextType;
 	const { fetchChannelData } = useContext(chatContext) as ChatContextType;
 	const { blocked, getData } = useContext(relationshipContext) as RelationshipContextType;
 	const [messages, setMessages] = useState<ChatMessage[]>([]);
 	const [currentMessage, setCurrentMessage] = useState("");
 	const chatBottom = useRef<HTMLDivElement>(null);
-	const channelId = viewParams.groupId;
+	const groupId = viewParams.groupId;
 	const userId = getUserData().id;
 
+	/* Add message to discussion */
 	const addMessage = (message: any) => {
 		const isBlocked = !!blocked.find(user => user.id === message.author.id);
 
 		setMessages([
 			...messages, {
-				id: message.id,
+				id: messages.length.toString(),
 				author: message.author.username,
 				content: isBlocked ? "Blocked message" : message.content,
 				isMe: (message.author.id === userId),
@@ -106,31 +106,14 @@ const Group: React.FC<{ viewParams: { [key: string]: any } }> = ({
 	const handleGroupMessageSubmit = async () => {
 		if (currentMessage.length === 0) return;
 
-		const channelData = await fetchChannelData(channelId).catch(console.error);
-
-		const res = await fetch("/api/messages", {
-			method: "POST",
-			headers: {
-				"Content-Type": "application/json",
-			},
-			body: JSON.stringify({
-				author: getUserData(),
-				content: currentMessage,
-				channel: channelData
-			}),
+		chatSocket.emit('gmSubmit', {
+			content: currentMessage,
+			to: groupId
 		});
-		const data = await res.json();
-
-		if (res.status === 201) {
-			addMessage(data);
-			setCurrentMessage('');
-			return;
-		} else {
-			setAlert({
-				type: "error",
-				content: "Failed to send message"
-			});
-		}
+		chatSocket.on('newGm', ({message}) => {
+			addMessage(message);
+		});
+		setCurrentMessage("");
 	};
 
 	/* Scroll to bottom if new message is sent */
@@ -140,7 +123,7 @@ const Group: React.FC<{ viewParams: { [key: string]: any } }> = ({
 
 	/* Load all messages on mount */
 	const loadGroupOnMount = async () => {
-		const data = await fetchChannelData(channelId).catch(console.error);
+		const data = await fetchChannelData(groupId).catch(console.error);
 		const gms = JSON.parse(JSON.stringify(data)).messages;
 		const messages: ChatMessage[] = [];
 
@@ -148,7 +131,7 @@ const Group: React.FC<{ viewParams: { [key: string]: any } }> = ({
 			const isBlocked = !!blocked.find(user => user.id == gms[i].author.id);
 
 			messages.push({
-				id: gms[i].id,
+				id: messages.length.toString(),
 				author: gms[i].author.username,
 				content: isBlocked ? "Blocked message" : gms[i].content,
 				isMe: (gms[i].author.id === userId),
