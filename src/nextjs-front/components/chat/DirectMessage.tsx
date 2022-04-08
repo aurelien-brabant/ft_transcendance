@@ -56,19 +56,6 @@ const DirectMessage: React.FC<{ viewParams: { [key: string]: any } }> = ({
 	const dmId = viewParams.dmId;
 	const userId = getUserData().id;
 
-	/* Add message to discussion */
-	const addMessage = (message: any) => {
-		setMessages([
-			...messages, {
-				id: messages.length.toString(),
-				author: message.author.username,
-				content: message.content,
-				isMe: (message.author.id === userId),
-				isBlocked: false
-			}
-		]);
-	}
-
 	/* Send new message */
 	const handleDmSubmit = async () => {
 		if (currentMessage.length === 0) return;
@@ -77,9 +64,6 @@ const DirectMessage: React.FC<{ viewParams: { [key: string]: any } }> = ({
 			content: currentMessage,
 			to: viewParams.friendId,
 			channelId: dmId
-		});
-		chatSocket.on('newDm', ({message}) => {
-			addMessage(message);
 		});
 		setCurrentMessage("");
 	};
@@ -108,6 +92,18 @@ const DirectMessage: React.FC<{ viewParams: { [key: string]: any } }> = ({
 	}
 
 	useEffect(() => {
+		/* New message received */
+		chatSocket.on('newDm', ({ message }) => {
+			console.log(`Received message from ${message.author.username}`);
+			loadDmsOnMount();
+			// messages.push({
+			// 	id: messages.length.toString(),
+			// 	author: message.author.username,
+			// 	content: message.content,
+			// 	isMe: (message.author.id === userId),
+			// 	isBlocked: false
+			// });
+		});
 		loadDmsOnMount();
 	}, []);
 

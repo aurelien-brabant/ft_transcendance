@@ -168,8 +168,8 @@ const UserProfilePage: NextPageWithLayout = ({}) => {
     const to: string = userData.id;
 
     if (from != to) {
-      await openDirectMessage(from, userData);
       openChat();
+      await openDirectMessage(from, userData);
     }
   }
 
