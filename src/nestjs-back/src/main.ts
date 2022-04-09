@@ -4,7 +4,8 @@ import { DocumentBuilder, SwaggerCustomOptions, SwaggerModule } from '@nestjs/sw
 import { AppModule } from './app.module';
 import { join } from 'path';
 import { ValidationPipe } from '@nestjs/common';
-import seeder from './seeder';
+//import seeder from './seeder';
+import * as cookieParser from 'cookie-parser'
 
 async function bootstrap() {
   const app = await NestFactory.create<NestExpressApplication>(AppModule, {
@@ -43,6 +44,8 @@ async function bootstrap() {
   );
 
   // seeder();
+
+    app.use(cookieParser())
 
   await app.listen(3000);
 }

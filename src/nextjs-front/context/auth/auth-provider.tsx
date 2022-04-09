@@ -43,7 +43,7 @@ const AuthProvider: React.FC = ({ children }) => {
         payload: LoginPayload
     ): Promise<boolean> => {
         const res = await fetch(
-            `${process.env.NEXT_PUBLIC_API_URL}/auth/${
+            `/api/auth/${
                 method === '42' ? 'login42' : 'login'
             }`,
             {

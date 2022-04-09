@@ -642,6 +642,6 @@ const Welcome: NextPageWithLayout = () => {
 };
 
 Welcome.getLayout = withDashboardLayout;
-Welcome.isAuthRestricted = true;
+Welcome.authConfig = true;
 
 export default Welcome;
