@@ -165,7 +165,6 @@ const DashboardTopNav: React.FC<DashboardTopNavProps> = ({
     const router = useRouter();
 
     const handleLogout = async () => {
-        setAlert({ type: 'success', content: 'Logged out' });
         await logout();
     };
 

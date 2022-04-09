@@ -37,8 +37,7 @@ const AuthenticatedPage: React.FC<{ config: PageAuthConfig }> = ({
     if (session.state !== 'authenticated') {
         if (session.state === 'unauthenticated') {
             router.push(
-                (typeof config !== 'boolean' && config.fallbackUrl) ||
-                    '/sign-in'
+                (typeof config !== 'boolean' && config.fallbackUrl) || '/signin'
             );
         } else if (session.state === 'tfa_required') {
             router.push('/validate-tfa');

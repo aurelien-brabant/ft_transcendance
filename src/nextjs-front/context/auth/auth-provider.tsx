@@ -6,6 +6,7 @@ import { useRouter } from 'next/router';
 const lastActionToRoute: { [key: string]: string } = {
     login: '/welcome',
     tfa_required: '/validate-tfa',
+    logout: '/signin',
 };
 
 const AuthProvider: React.FC = ({ children }) => {
