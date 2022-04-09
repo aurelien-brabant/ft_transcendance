@@ -46,7 +46,7 @@ export class AuthService {
     return `Authentication=; HttpOnly; Path=/;`;
   }
 
-  async loginDuoQuadra(apiCode: string): Promise<string | null> {
+  async loginDuoQuadra(apiCode: string): Promise<User | null> {
     const tokenEndpoint = 'https://api.intra.42.fr/oauth/token/';
     const formData = new FormData();
 
@@ -105,9 +105,6 @@ export class AuthService {
       console.log('Existing duoquadra', duoQuadraUser);
     }
 
-    return JSON.stringify({
-      id: duoQuadraUser.id,
-      access_token: this.jwtService.sign({ sub: '' + duoQuadraUser.id }),
-    });
+    return duoQuadraUser;
   }
 }

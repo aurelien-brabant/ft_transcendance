@@ -98,18 +98,33 @@ export class AuthController {
   }
 
   @Post('/login42')
-  async loginDuoQuadra(@Body() login42Dto: Login42Dto) {
-    const data = await this.authService.loginDuoQuadra(login42Dto.apiCode);
-    const accessToken = JSON.parse(data).access_token;
-    if (!accessToken) throw new UnauthorizedException();
+  async loginDuoQuadra(@Body() { apiCode }: Login42Dto, @Res() res: Response) {
+    const duoQuadraUser = await this.authService.loginDuoQuadra(apiCode);
 
-    const id = JSON.parse(data).id;
-    if (!id) throw new NotFoundException();
+    if (!duoQuadraUser) {
+      throw new UnauthorizedException();
+    }
 
-    return {
-      id: id,
-      access_token: accessToken,
-    };
+    if (duoQuadraUser.tfa) {
+      await this.usersService.generateTfaRequestForNow(
+        String(duoQuadraUser.id),
+      );
+
+      return res.status(401).json({
+        error: 'TFA_REQUIRED',
+        userId: duoQuadraUser.id,
+        message:
+          'Two factor authentication has been enabled on that account. You are now able to verify your login action by sending the appropriate code.',
+      });
+    }
+    await this.usersService.invalidateTfaRequest(String(duoQuadraUser.id));
+    const authCookie = await this.authService.getCookieWithJwtToken(
+      duoQuadraUser.id,
+    );
+
+    res.setHeader('Set-Cookie', authCookie);
+
+    return res.status(201).send(duoQuadraUser);
   }
 
   @Get('/log-out')

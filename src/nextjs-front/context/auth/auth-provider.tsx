@@ -1,4 +1,9 @@
-import AuthContext, { User, UserSession } from './auth-context';
+import AuthContext, {
+    LoginMethod,
+    LoginPayload,
+    User,
+    UserSession,
+} from './auth-context';
 import axios from 'axios';
 import React, { useEffect, useState } from 'react';
 import { useRouter } from 'next/router';
@@ -24,7 +29,6 @@ const AuthProvider: React.FC = ({ children }) => {
             lastLoginAction: { action, queryString },
         } = session;
         if (action !== 'none') {
-            console.log(session.lastLoginAction);
             setSession({
                 ...session,
                 lastLoginAction: {
@@ -35,15 +39,20 @@ const AuthProvider: React.FC = ({ children }) => {
         }
     }, [session]);
 
-    const login = async (email: string, password: string): Promise<boolean> => {
+    const login = async (
+        method: LoginMethod,
+        payload: LoginPayload
+    ): Promise<boolean> => {
         const res = await fetch(
-            `${process.env.NEXT_PUBLIC_API_URL}/auth/login`,
+            `${process.env.NEXT_PUBLIC_API_URL}/auth/${
+                method === '42' ? 'login42' : 'login'
+            }`,
             {
                 headers: {
                     'Content-Type': 'application/json',
                 },
                 method: 'POST',
-                body: JSON.stringify({ email, password }),
+                body: JSON.stringify(payload),
             }
         );
 
