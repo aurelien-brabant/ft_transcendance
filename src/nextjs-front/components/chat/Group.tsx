@@ -6,7 +6,6 @@ import { RiSettings5Line } from "react-icons/ri";
 import Tooltip from "../../components/Tooltip";
 import authContext, { AuthContextType } from "../../context/auth/authContext";
 import chatContext, { ChatContextType, ChatMessage } from "../../context/chat/chatContext";
-import { chatSocket } from "../../components/Chat";
 import relationshipContext, { RelationshipContextType } from "../../context/relationship/relationshipContext";
 
 /* Header */
@@ -79,7 +78,7 @@ const Group: React.FC<{ viewParams: { [key: string]: any } }> = ({
 	viewParams,
 }) => {
 	const { getUserData } = useContext(authContext) as AuthContextType;
-	const { fetchChannelData } = useContext(chatContext) as ChatContextType;
+	const { chatSocket, fetchChannelData } = useContext(chatContext) as ChatContextType;
 	const { blocked, getData } = useContext(relationshipContext) as RelationshipContextType;
 	const [messages, setMessages] = useState<ChatMessage[]>([]);
 	const [currentMessage, setCurrentMessage] = useState("");

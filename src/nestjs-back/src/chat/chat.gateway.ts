@@ -25,64 +25,63 @@ export class ChatGateway implements OnGatewayInit, OnGatewayConnection, OnGatewa
     this.logger.log('Init Chat Gateway');
   }
 
-  async handleConnection(@ConnectedSocket() socket: Socket) {
-    this.logger.log(`Client connected: ${socket.id}`);
+  async handleConnection(@ConnectedSocket() client: Socket) {
+    // this.logger.log(`Client connected: ${client.id}`);
   }
 
-  handleDisconnect(socket: Socket) {
-    const user = this.chatUsers.getUser(socket.id);
+  handleDisconnect(client: Socket) {
+    const user = this.chatUsers.getUser(client.id);
 
     if (user) {
       this.chatUsers.removeUser(user);
-      this.logger.log(`Client disconnected: ${user.username}`);
-      console.log(this.chatUsers);
+      // this.logger.log(`Client disconnected: ${user.username}`)
     }
   }
 
   @SubscribeMessage('newUser')
-  handleNewUser(@ConnectedSocket() socket: Socket, @MessageBody() data: User) {
+  handleNewUser(@ConnectedSocket() client: Socket, @MessageBody() data: User) {
     if (!data.id || !data.username) return ;
 
     let user = this.chatUsers.getUserById(data.id);
     if (!user) {
-      user = new User(data.id, data.username, socket.id);
+      user = new User(data.id, data.username, client.id);
       user.setUserStatus(userStatus.ONLINE);
       this.chatUsers.addUser(user);
-      this.logger.log(`Added new user: ${user.username}`);
     } else {
-      user.setSocketId(socket.id);
+      user.setSocketId(client.id);
       user.setUsername(data.username);
-      this.logger.log(`Updated user: ${user.username}`);
     }
     console.log(this.chatUsers);
   }
 
   @SubscribeMessage('dmSubmit')
   async handleDmSubmit(
-    @ConnectedSocket() socket: Socket,
-    @MessageBody() data: { content: string, to: string, channelId: string }
+    @ConnectedSocket() client: Socket,
+    @MessageBody() data: { content: string, from: number, to: number, channelId: string }
   ) {
-    const user = this.chatUsers.getUser(socket.id);
-    const recipient = this.chatUsers.getUser(data.to);
+    const user = this.chatUsers.getUserById(data.from);
+    const recipient = this.chatUsers.getUserById(data.to);
     const message = await this.chatService.saveMessage(data.content, user.id.toString(), data.channelId);
 
-    this.logger.log(`${user.username} sends DM "${data.content}" to ${data.to}`);
-    console.log(recipient.socketId);
-    this.server.to(socket.id).emit('newDm', { message });
-    this.server.to(recipient.socketId).emit('newDm', { message });
+    this.logger.log(`${user.username} sends DM "${data.content}" on channel ${data.channelId}`);
+    this.server.to(user.socketId).emit('newDm', { message });
+    /* If recipient is offline, message will be sent once connected */
+    if (recipient) {
+      this.server.to(recipient.socketId).emit('newDm', { message });
+    }
   }
 
   @SubscribeMessage('gmSubmit')
   async handleGmSubmit(
-    @ConnectedSocket() socket: Socket,
+    @ConnectedSocket() client: Socket,
     @MessageBody() data: { content: string, groupId: string }
   ) {
-    const user = this.chatUsers.getUser(socket.id);
+    const user = this.chatUsers.getUser(client.id);
     // const channel = ;
     const message = await this.chatService.saveMessage(data.content, user.id.toString(), data.groupId);
 
     this.logger.log(`${user.username} sends message "${data.content}" on channel ${data.groupId}`);
-    this.server.to(socket.id).emit('newGm', { message });
+    this.server.to(client.id).emit('newGm', { message });
     // TODO: send to room
     // if (channel) {
     //   this.server.to(recipient.socketId).emit('newGm', { message });

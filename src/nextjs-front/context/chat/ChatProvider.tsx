@@ -18,6 +18,7 @@ import GroupNew, { GroupNewHeader } from "../../components/chat/GroupNew";
 import GroupSettings, { GroupSettingsHeader } from "../../components/chat/GroupSettings";
 import GroupUsers, { GroupUsersHeader } from "../../components/chat/GroupUsers";
 import PasswordProtection, { PasswordProtectionHeader } from "../../components/chat/PasswordProtection";
+import { io, Socket } from 'socket.io-client';
 
 export type ChatViewItem = {
 	label: string;
@@ -104,10 +105,11 @@ const ChatProvider: React.FC = ({ children }) => {
 	const [directMessages, setDirectMessages] = useState<DirectMessage[]>([]);
 	const [lastX, setLastX] = useState<number>(0);
 	const [lastY, setLastY] = useState<number>(0);
+	const chatSocket: Socket = io('localhost:8080'); // port tmp
 	const { setAlert } = useContext(alertContext) as AlertContextType;
 	const { isPreAuthenticated, isChatOpened, setIsChatOpened } = useContext(authContext) as AuthContextType;
 	const { blocked } = useContext(relationshipContext) as RelationshipContextType;
-	
+
 	/* Chat manipulation */
 	const openChat = () => {
 		setIsChatOpened(true);
@@ -337,6 +339,7 @@ const ChatProvider: React.FC = ({ children }) => {
 				closeRightmostView,
 				chatGroups,
 				directMessages,
+				chatSocket,
 				getLastMessage,
 				updateChatGroups,
 				removeChatGroup,
@@ -348,8 +351,8 @@ const ChatProvider: React.FC = ({ children }) => {
 				fetchChannelData,
 				loadChannelsOnMount,
 				lastX,
-				setLastX,
 				lastY,
+				setLastX,
 				setLastY,
 			}}
 		>

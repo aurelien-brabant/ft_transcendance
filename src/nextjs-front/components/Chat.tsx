@@ -1,16 +1,12 @@
-import { io, Socket } from 'socket.io-client';
 import React, { Fragment, useContext, useEffect } from "react";
 import Draggable, { DraggableEvent } from 'react-draggable';
 import { useMediaQuery } from "react-responsive";
 import { AiOutlineClose } from "react-icons/ai";
 import { FaUserFriends, FaUser } from "react-icons/fa";
-// import ResponsiveSlide from "./ResponsiveSlide";
 import Tooltip from "./Tooltip";
 import { ChatViewItem } from "../context/chat/ChatProvider";
 import chatContext, { ChatContextType } from "../context/chat/chatContext";
 import authContext, { AuthContextType } from "../context/auth/authContext";
-
-export let chatSocket: Socket;
 
 type ChatProps = {
 	onClose: () => void;
@@ -19,8 +15,9 @@ type ChatProps = {
 
 const Chat: React.FC<ChatProps> = ({ viewStack, onClose }) => {
 	const {
-		closeRightmostView,
 		setChatView,
+		closeRightmostView,
+		chatSocket,
 		loadChannelsOnMount,
 		lastX,
 		lastY,
@@ -42,8 +39,6 @@ const Chat: React.FC<ChatProps> = ({ viewStack, onClose }) => {
 
 	/* Client is connected to chat */
 	const handleClientConnection = () => {
-		chatSocket = io('localhost:8080'); // tmp
-
 		chatSocket.on('connect', () => {
 			console.log('[Chat] Client connected');
 

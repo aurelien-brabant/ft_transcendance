@@ -62,7 +62,7 @@ export class PongGateway implements OnGatewayInit, OnGatewayConnection, OnGatewa
 	}
 
 	async handleConnection(@ConnectedSocket() client: Socket) {
-		this.logger.log(`Client connected: ${client.id}`);
+		// this.logger.log(`Client connected: ${client.id}`);
 	}
 
 	@SubscribeMessage('handleUserConnect')

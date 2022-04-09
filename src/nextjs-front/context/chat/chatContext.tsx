@@ -1,5 +1,6 @@
 import { createContext } from 'react';
 import { BaseUserData } from 'transcendance-types';
+import { Socket } from 'socket.io-client';
 
 export type ChatView = 'dms' | 'dm' | 'dm_new' | 'groups' | 'group' | 'group_new' | 'group_add' | 'group_users' | 'group_settings' |'password_protection'; // plural form denotes the list, singular the chat itself
 
@@ -50,8 +51,10 @@ export type ChatContextType = {
 	/* Chat state */
 	isChatOpened: boolean;
 
+	/* Message */
 	chatGroups: ChatGroup[];
 	directMessages: DirectMessage[];
+	chatSocket: Socket;
 
 	/* Message utils */
 	getLastMessage: (channel: any) => ChatMessagePreview;
@@ -71,8 +74,8 @@ export type ChatContextType = {
 
 	/* Draggable */
 	lastX: number;
-	setLastX: (data: any) => any;
 	lastY: number;
+	setLastX: (data: any) => any;
 	setLastY: (data: any) => any;
 };
 

@@ -7,7 +7,6 @@ import { UserStatusItem } from "../UserStatus";
 import Tooltip from "../../components/Tooltip";
 import authContext, { AuthContextType } from "../../context/auth/authContext";
 import chatContext, { ChatContextType, ChatMessage } from "../../context/chat/chatContext";
-import { chatSocket } from "../../components/Chat";
 
 /* Header */
 export const DirectMessageHeader: React.FC<{ viewParams: any }> = ({ viewParams }) => {
@@ -49,12 +48,23 @@ const DirectMessage: React.FC<{ viewParams: { [key: string]: any } }> = ({
 	viewParams,
 }) => {
 	const { getUserData } = useContext(authContext) as AuthContextType;
-	const { fetchChannelData } = useContext(chatContext) as ChatContextType;
+	const { chatSocket, fetchChannelData } = useContext(chatContext) as ChatContextType;
 	const [messages, setMessages] = useState<ChatMessage[]>([]);
 	const [currentMessage, setCurrentMessage] = useState("");
 	const chatBottom = useRef<HTMLDivElement>(null);
 	const dmId = viewParams.dmId;
 	const userId = getUserData().id;
+
+	/* Add new message */
+	const addMessage = async (message: any) => {
+		messages.push({
+			id: messages.length.toString(),
+			author: message.author.username,
+			content: message.content,
+			isMe: (message.author.id === userId),
+			isBlocked: false
+		});
+	}
 
 	/* Send new message */
 	const handleDmSubmit = async () => {
@@ -62,6 +72,7 @@ const DirectMessage: React.FC<{ viewParams: { [key: string]: any } }> = ({
 
 		chatSocket.emit('dmSubmit', {
 			content: currentMessage,
+			from: getUserData().id,
 			to: viewParams.friendId,
 			channelId: dmId
 		});
@@ -80,31 +91,19 @@ const DirectMessage: React.FC<{ viewParams: { [key: string]: any } }> = ({
 		const messages: ChatMessage[] = [];
 
 		for (var i in dms) {
-			messages.push({
-				id: messages.length.toString(),
-				author: dms[i].author.username,
-				content: dms[i].content,
-				isMe: (dms[i].author.id === userId),
-				isBlocked: false
-			});
+			addMessage(dms[i]);
 		}
 		setMessages(messages);
 	}
 
 	useEffect(() => {
+		loadDmsOnMount();
+
 		/* New message received */
 		chatSocket.on('newDm', ({ message }) => {
 			console.log(`Received message from ${message.author.username}`);
-			loadDmsOnMount();
-			// messages.push({
-			// 	id: messages.length.toString(),
-			// 	author: message.author.username,
-			// 	content: message.content,
-			// 	isMe: (message.author.id === userId),
-			// 	isBlocked: false
-			// });
+			addMessage(message);
 		});
-		loadDmsOnMount();
 	}, []);
 
 	return (

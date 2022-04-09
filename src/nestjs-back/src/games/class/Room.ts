@@ -24,7 +24,7 @@ export enum userStatus {
 
 
 export class User {
-    id: number;
+	id: number;
 	username: string;
 	status?: userStatus;
 	socketId?: string;

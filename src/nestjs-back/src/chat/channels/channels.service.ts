@@ -99,7 +99,7 @@ export class ChannelsService {
       ...createChannelDto,
       password: hashedPwd
     });
-    this.logger.log(`Create new channel [${channel.id}][${channel.name}]`);
+    this.logger.log(`Create new channel [${channel.name}]`);
     return this.channelsRepository.save(channel);
   }
 
