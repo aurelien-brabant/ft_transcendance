@@ -9,7 +9,7 @@ type UseSessionParams = {
 };
 
 export const useSession = ({ waitingTime }: UseSessionParams = {}) => {
-    const { authenticateUser, getTranscendanceApi, session, logout, login } =
+    const { loginWithTfa, authenticateUser, session, logout, login } =
         useContext(AuthContext) as AuthContextValue;
     const [currentSession, setCurrentSession] = useState<UserSession>(session);
 
@@ -22,9 +22,9 @@ export const useSession = ({ waitingTime }: UseSessionParams = {}) => {
 
     return {
         ...currentSession,
-        transcendanceApi: getTranscendanceApi(),
         logout,
         login,
         reloadUser: authenticateUser,
+        loginWithTfa,
     };
 };

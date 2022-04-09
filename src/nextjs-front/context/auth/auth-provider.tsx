@@ -1,136 +1,162 @@
-import AuthContext, {
-    LOCAL_STORAGE_TOKEN_KEY,
-    User,
-    UserSession,
-} from './auth-context';
+import AuthContext, { User, UserSession } from './auth-context';
 import axios from 'axios';
 import React, { useEffect, useState } from 'react';
 import { useRouter } from 'next/router';
 
+const lastActionToRoute: { [key: string]: string } = {
+    login: '/welcome',
+    tfa_required: '/validate-tfa',
+};
+
 const AuthProvider: React.FC = ({ children }) => {
-    const [token, setToken] = useState<string | null>(null);
     const [session, setSession] = useState<UserSession>({
         state: 'loading',
         user: null,
-        lastLoginAction: 'none',
+        lastLoginAction: {
+            action: 'none',
+        },
     });
     const router = useRouter();
 
     useEffect(() => {
-        if (session.lastLoginAction !== 'none') {
+        const {
+            lastLoginAction: { action, queryString },
+        } = session;
+        if (action !== 'none') {
+            console.log(session.lastLoginAction);
             setSession({
                 ...session,
-                lastLoginAction: 'none',
+                lastLoginAction: {
+                    action: 'none',
+                },
             });
-            router.push(
-                session.lastLoginAction === 'login' ? '/welcome' : '/signin'
-            );
+            router.push(`${lastActionToRoute[action]}${queryString || ''}`);
         }
     }, [session]);
 
     const login = async (email: string, password: string): Promise<boolean> => {
-        try {
-            const axiosRes = await axios.post(
-                process.env.NEXT_PUBLIC_API_URL + '/auth/login',
-                { email, password }
-            );
-            const { accessToken } = axiosRes.data;
-
-            if (typeof window !== 'undefined') {
-                window.localStorage.setItem(
-                    LOCAL_STORAGE_TOKEN_KEY,
-                    accessToken
-                );
+        const res = await fetch(
+            `${process.env.NEXT_PUBLIC_API_URL}/auth/login`,
+            {
+                headers: {
+                    'Content-Type': 'application/json',
+                },
+                method: 'POST',
+                body: JSON.stringify({ email, password }),
             }
-            setSession({
-                ...session,
-                state: 'loading',
-                lastLoginAction: 'login',
-            });
+        );
 
-            return true;
-        } catch (error) {}
+        if (res.status !== 201) {
+            const { error, userId } = await res.json();
 
-        return false;
+            if (error === 'TFA_REQUIRED') {
+                setSession({
+                    ...session,
+                    lastLoginAction: {
+                        action: 'tfa_required',
+                        queryString: `?userId=${userId}`,
+                    },
+                });
+            }
+
+            return false;
+        }
+
+        setSession({
+            ...session,
+            state: 'loading',
+            lastLoginAction: { action: 'login' },
+        });
+
+        return true;
     };
 
-    const getToken = () => {
-        if (token) {
-            return token;
-        }
-        if (typeof window === 'undefined') {
+    const loginWithTfa = async (
+        userId: number,
+        tfaCode: string
+    ): Promise<User | null> => {
+        const validateTfaRes = await fetch(
+            `/api/users/${userId}/validate-tfa`,
+            {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                },
+                body: JSON.stringify({ code: tfaCode }),
+            }
+        );
+
+        if (validateTfaRes.status !== 200) {
             return null;
         }
 
-        const t = window.localStorage.getItem(LOCAL_STORAGE_TOKEN_KEY);
-
-        setToken(t);
-
-        return t;
-    };
-
-    /**
-     * Make requests to the metric API as the currently logged in user
-     */
-    const getTranscendanceApi = () =>
-        axios.create({
-            baseURL: process.env.NEXT_PUBLIC_API_URL,
+        const loginTfaRes = await fetch('/api/auth/login-tfa', {
+            method: 'POST',
             headers: {
-                ...(getToken()
-                    ? { Authorization: `Bearer ${getToken()}` }
-                    : {}),
+                'Content-Type': 'application/json',
+            },
+            body: JSON.stringify({ userId }),
+        });
+
+        if (loginTfaRes.status !== 201) {
+            return null;
+        }
+
+        const user = await loginTfaRes.json();
+
+        setSession({
+            ...session,
+            state: 'loading',
+            lastLoginAction: {
+                action: 'login',
             },
         });
 
-    const logout = (): void => {
-        window.localStorage.removeItem(LOCAL_STORAGE_TOKEN_KEY);
-        setToken(null);
+        return user;
+    };
+
+    const logout = async (): Promise<void> => {
+        const res = await fetch('/api/auth/log-out');
+
         setSession({
             state: 'unauthenticated',
             user: null,
-            lastLoginAction: 'logout',
+            lastLoginAction: {
+                action: 'logout',
+            },
         });
     };
 
     const authenticateUser = async (): Promise<null | User> => {
-        let t = getToken();
+        const res = await fetch('/api/auth/login');
 
-        if (!t) {
+        if (res.status !== 200) {
             setSession({
                 ...session,
-                user: null,
                 state: 'unauthenticated',
+                user: null,
             });
+
             return null;
         }
 
-        try {
-            const axiosRes = await getTranscendanceApi().get('/auth/login');
+        const user = await res.json();
 
-            setSession({
-                ...session,
-                state: 'authenticated',
-                user: axiosRes.data,
-            });
+        setSession({
+            ...session,
+            state: 'authenticated',
+            user,
+        });
 
-            return axiosRes.data;
-        } catch (error) {
-            setSession({
-                ...session,
-                state: 'unauthenticated',
-                user: null,
-            });
-        }
-
-        return null;
+        return user;
     };
 
     return (
         <AuthContext.Provider
             value={{
-                getTranscendanceApi,
                 authenticateUser,
                 session,
+                loginWithTfa,
                 logout,
                 login,
             }}

@@ -32,12 +32,16 @@ const AuthenticatedPage: React.FC<{ config: PageAuthConfig }> = ({
     const session = useSession({ waitingTime: 1500 });
     const router = useRouter();
 
+    console.log(session.state);
+
     if (session.state !== 'authenticated') {
         if (session.state === 'unauthenticated') {
             router.push(
                 (typeof config !== 'boolean' && config.fallbackUrl) ||
                     '/sign-in'
             );
+        } else if (session.state === 'tfa_required') {
+            router.push('/validate-tfa');
         }
 
         return <PageLoadingScreen />;

@@ -13,10 +13,10 @@ import { UsersModule } from 'src/users/users.module';
     PassportModule,
     JwtModule.register({
       secret: process.env.JWT_SECRET,
-      signOptions: { expiresIn: process.env.JWT_LIFETIME || '15m' } // use JWT_LIFETIME and fallback to 15 minutes if not set
-    })
+      signOptions: { expiresIn: process.env.JWT_LIFETIME || '15m' }, // use JWT_LIFETIME and fallback to 15 minutes if not set
+    }),
   ],
   providers: [AuthService, LocalStrategy, JwtStrategy],
-  controllers: [AuthController]
+  controllers: [AuthController],
 })
 export class AuthModule {}

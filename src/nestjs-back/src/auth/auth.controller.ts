@@ -15,6 +15,8 @@ import { AuthService } from './auth.service';
 import { JwtAuthGuard } from './jwt-auth.guard';
 import { Login42Dto } from './dto/login-42.dto';
 import { UsersService } from '../users/users.service';
+import { ValidateTfaDto } from './dto/validate-tfa-dto';
+import { LoginTfaDto } from './dto/login-tfa.dto';
 
 @Controller('auth')
 export class AuthController {
@@ -40,10 +42,59 @@ export class AuthController {
   @Post('/login')
   async loginUser(@Request() req: any, @Res() res: Response) {
     const { user } = req;
+
+    /*
+     * if TFA is enabled, generate a TFA request that will allow the user to actually login
+     * using the /validate-tfa endpoint for a limited amount of time.
+     */
+    if (user.tfa) {
+      await this.usersService.generateTfaRequestForNow(user.id);
+
+      return res.status(401).json({
+        error: 'TFA_REQUIRED',
+        userId: user.id,
+        message:
+          'Two factor authentication has been enabled on that account. You are now able to verify your login action by sending the appropriate code.',
+      });
+    }
+
     const authCookie = await this.authService.getCookieWithJwtToken(user.id);
 
     res.setHeader('Set-Cookie', authCookie);
     return res.send(user);
+  }
+
+  @Post('/login-tfa')
+  async loginTfa(@Body() { userId }: LoginTfaDto, @Res() res: Response) {
+    const user = await this.usersService.findOne(userId);
+
+    if (!user) {
+      throw new NotFoundException();
+    }
+
+    const hasOnGoingTfaRequest = await this.usersService.hasOnGoingTfaRequest(
+      userId,
+    );
+
+    if (!hasOnGoingTfaRequest) {
+      throw new UnauthorizedException(
+        'There is no ongoing tfa request for that user',
+      );
+    }
+
+    const canLogin = user.hasTfaBeenValidated;
+
+    if (!canLogin) {
+      throw new UnauthorizedException(
+        "Ongoing tfa request hasn't  been validated",
+      );
+    }
+    await this.usersService.invalidateTfaRequest(userId);
+    const authCookie = await this.authService.getCookieWithJwtToken(+userId);
+
+    res.setHeader('Set-Cookie', authCookie);
+
+    return res.status(201).send(user);
   }
 
   @Post('/login42')
@@ -61,9 +112,13 @@ export class AuthController {
     };
   }
 
-  @Post('/loginTfa')
-  async loginTfa(@Request() req: any) {
-    return this.authService.getCookieWithJwtToken(req.user);
+  @Get('/log-out')
+  async logoutUser(@Res() res: Response) {
+    const logOutCookie = await this.authService.getLogOutCookie();
+
+    res.setHeader('Set-Cookie', logOutCookie);
+
+    return res.sendStatus(200);
   }
 
   @UseGuards(JwtAuthGuard)

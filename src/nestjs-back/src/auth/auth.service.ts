@@ -36,10 +36,14 @@ export class AuthService {
 
     return `Authentication=${token}; HttpOnly; Path=/;`;
     /*
-    return {
-      access_token: this.jwtService.sign(payload),
-    };
-    */
+        return {
+          access_token: this.jwtService.sign(payload),
+        };
+        */
+  }
+
+  async getLogOutCookie() {
+    return `Authentication=; HttpOnly; Path=/;`;
   }
 
   async loginDuoQuadra(apiCode: string): Promise<string | null> {
