@@ -17,12 +17,17 @@ const ValidateFortyTwo: NextPageWithLayout = () => {
     const [error, setError] = useState<null | string>(null);
     const { setAlert } = useContext(alertContext) as AlertContextType;
 
-    const router = useRouter();
-
     const fetchData = async () => {
         const searchParams = new URLSearchParams(window.location.search);
+        const apiCode = searchParams.get('code');
+
+        if (apiCode === null) {
+            setError('Missing 42 api code');
+            return;
+        }
+
         await login('42', {
-            apiCode: searchParams.get('code'),
+            apiCode,
         });
     };
 

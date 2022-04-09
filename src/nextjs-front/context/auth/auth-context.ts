@@ -16,7 +16,7 @@ export type AuthContextValue = {
     session: UserSession;
     logout: () => Promise<void>;
     login: (method: LoginMethod, payload: LoginPayload) => Promise<boolean>;
-    loginWithTfa: (userId: string, tfaCode: string) => Promise<User>;
+    loginWithTfa: (userId: string, tfaCode: string) => Promise<User | null>;
 };
 
 type LoginAction = 'tfa_required' | 'login' | 'logout' | 'none';

@@ -4,7 +4,6 @@ import AuthContext, {
     User,
     UserSession,
 } from './auth-context';
-import axios from 'axios';
 import React, { useEffect, useState } from 'react';
 import { useRouter } from 'next/router';
 
@@ -82,7 +81,7 @@ const AuthProvider: React.FC = ({ children }) => {
     };
 
     const loginWithTfa = async (
-        userId: number,
+        userId: string,
         tfaCode: string
     ): Promise<User | null> => {
         const validateTfaRes = await fetch(
