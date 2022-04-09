@@ -1,4 +1,4 @@
-import {
+import React, {
     Fragment,
     useContext,
     useEffect,
@@ -24,6 +24,10 @@ const ValidateCode = () => {
     const inputToFocus = useRef<HTMLInputElement>(null);
 
     const userId = useMemo(() => {
+        if (typeof window === 'undefined') {
+            return null;
+        }
+
         const urlParams = new URLSearchParams(window.location.search);
 
         return urlParams.get('userId');
@@ -43,12 +47,9 @@ const ValidateCode = () => {
     };
 
     useEffect(() => {
-        if (!tfaCode.length) {
-            setAlert({
-                type: 'info',
-                content: 'Waiting for 2FA code...',
-            });
-        } else if (tfaCode.length === 6) authenticateWithTfa();
+        if (tfaCode.length === 6) {
+            authenticateWithTfa();
+        }
     }, [tfaCode]);
 
     const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
@@ -59,7 +60,6 @@ const ValidateCode = () => {
             e.target.value = tfaCode[currentStep];
             setCurrentStep(currentStep + 1);
         } else if (key !== 'Escape') {
-            setAlert({ type: 'info', content: 'Only digit!' });
             e.target.value = '';
         }
     };
@@ -77,6 +77,7 @@ const ValidateCode = () => {
     };
 
     useEffect(() => {
+        console.log(currentStep);
         inputToFocus.current?.focus();
     }, [currentStep]);
 
@@ -125,22 +126,10 @@ const ValidateCode = () => {
     );
 };
 const ValidateTfaPage: NextPageWithLayout = () => {
-    const [isLoading, setIsLoading] = useState(true);
-    const { setAlert } = useContext(alertContext) as AlertContextType;
-
-    useEffect(() => {
-        setAlert({ type: 'info', content: '2FA verification code needed' });
-        setIsLoading(false);
-    }, []);
-
     return (
         <Fragment>
             <Head>
-                <title>
-                    {!isLoading
-                        ? '2FA Authentication'
-                        : 'Validating 2FA authorization'}
-                </title>
+                <title>2FA Authentication</title>
                 <meta
                     name="description"
                     content="Validate authorization using the temporary code provided by the Authenticator App"
@@ -154,24 +143,7 @@ const ValidateTfaPage: NextPageWithLayout = () => {
                 }}
             >
                 <main className="container flex flex-col items-center mx-auto gap-y-16">
-                    {isLoading ? (
-                        <Fragment>
-                            <div className="relative flex flex-col items-center justify-center min-h-screen gap-y-4">
-                                <div className="absolute inset-0 z-50 flex items-center justify-center">
-                                    <Image
-                                        src="/logo.svg"
-                                        height="200"
-                                        width="200"
-                                    />
-                                </div>
-                                <BounceLoader size={400} color="#db2777" />
-                            </div>
-                        </Fragment>
-                    ) : (
-                        <Fragment>
-                            <ValidateCode />
-                        </Fragment>
-                    )}
+                    <ValidateCode />
                 </main>
             </div>
         </Fragment>

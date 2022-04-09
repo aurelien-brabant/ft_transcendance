@@ -66,6 +66,8 @@ const AuthProvider: React.FC = ({ children }) => {
                         queryString: `?userId=${userId}`,
                     },
                 });
+
+                return true;
             }
 
             return false;

@@ -20,7 +20,6 @@ const SignIn: NextPageWithLayout = () => {
     const { login } = useSession();
     const [isLoading, setIsLoading] = useState(false);
     const { setAlert } = useContext(alertContext) as AlertContextType;
-    const router = useRouter();
     const formConfig: ProgressiveFormConfig = {
         steps: [
             {
