@@ -13,6 +13,7 @@ import notificationsContext, { NotificationsContextType } from "../context/notif
 import Tooltip from '../components/Tooltip';
 import ResponsiveSlide from '../components/ResponsiveSlide';
 import withDashboardLayout from "../components/hoc/withDashboardLayout";
+import {useSession} from "../hooks/use-session";
 
 const labelClassName = "grow uppercase text-neutral-400";
 const inputClassName =
@@ -50,31 +51,31 @@ const validatePhone = (phone: string | null) => {
 };
 
 const Welcome: NextPageWithLayout = () => {
-  const { getUserData, mergeUserData, logout, clearUser } = useContext(authContext) as AuthContextType;
+  const { user, logout, reloadUser } = useSession();
   const [invalidInputs, setInvalidInputs] = useState<InvalidInputs>({});
   const { setAlert } = useContext(alertContext) as AlertContextType;
   const router = useRouter();
   const [pendingPic, setPendingPic] = useState(false);
   const [pendingQR, setPendingQR] = useState(false);
   const [tfaCode, setTfaCode] = useState('');
-  const [tfaStatus, setTfaStatus] = useState(getUserData().tfa ? 'enabled' : 'disabled');
+  const [tfaStatus, setTfaStatus] = useState(user.tfa ? 'enabled' : 'disabled');
   const [currentStep, setCurrentStep] = useState(0);
   const inputToFocus = useRef<HTMLInputElement>(null);
-  const phoneNb = getUserData().phone;
+  const phoneNb = user.phone;
 
   const [formData, setFormData] = useState<FormData>({
 
-    username: getUserData().username,
-    email: getUserData().email,
+    username: user.username,
+    email: user.email,
     phone: phoneNb === undefined ? null : phoneNb,
-    tfa: getUserData().tfa,
-    pic: getUserData().pic
+    tfa: user.tfa,
+    pic: user.pic
   });
 
   let baseObject: FormData;
 
   const reactivateAccount = () => {
-    fetch(`/api/users/${getUserData().id}`, {
+    fetch(`/api/users/${user.id}`, {
       method: 'PATCH',
       headers: {
         'Content-Type': 'application/json'
@@ -87,7 +88,7 @@ const Welcome: NextPageWithLayout = () => {
 
   const checkPendingFriendsRequests = () => {
 
-    const data = getUserData().pendingFriendsReceived;
+    const data = user.pendingFriendsReceived;
     if (data.length) {
       for (let i in data)
         setNotifications([...notifications, {category: 'Friend request', content: `${data[i].username} wants to be you friend`, isRead: false, id: data[i].id, issuedAt: `${new Date(Date.now())}`}]);
@@ -95,17 +96,17 @@ const Welcome: NextPageWithLayout = () => {
   }
   
   useEffect(() => {
-    if (getUserData().accountDeactivated)
+    if (user.accountDeactivated)
       reactivateAccount();
 
-    const basePhoneNb = getUserData().phone;
+    const basePhoneNb = user.phone;
 
     baseObject = {
-      username: getUserData().username,
-      email: getUserData().email,
+      username: user.username,
+      email: user.email,
       phone: basePhoneNb === undefined ? null : basePhoneNb,
-      tfa: getUserData().tfa,
-      pic: getUserData().pic
+      tfa: user.tfa,
+      pic: user.pic
     }
     checkPendingFriendsRequests();
   }, [])
@@ -126,13 +127,11 @@ const Welcome: NextPageWithLayout = () => {
 
   const handleLogout = async () => {
 		setAlert({type: 'success', content: 'Logged out'});
-		logout();
-		await router.push('/');
-		clearUser();
+		await logout();
 	}
 
   const deactivateAccount = async () => {
-    const req = await fetch(`/api/users/${getUserData().id}`, {
+    const req = await fetch(`/api/users/${user.id}`, {
       method: 'PATCH',
       headers: {
         'Content-Type': 'application/json'
@@ -141,14 +140,14 @@ const Welcome: NextPageWithLayout = () => {
     });
 
     const res = await req.json();
-    console.log(res);
+
     if (req.status === 200) {
-      handleLogout();
+      await handleLogout();
     }
   }
 
   const editUser = async (formData: FormData) => {
-  	const req = await fetch(`/api/users/${getUserData().id}`, {
+  	const req = await fetch(`/api/users/${user.id}`, {
       method: 'PATCH',
       headers: {
         'Content-Type': 'application/json'
@@ -159,9 +158,9 @@ const Welcome: NextPageWithLayout = () => {
     });
 
     const res = await req.json();
-    console.log(res);
+
     if (req.status === 200) {
-      mergeUserData(formData);
+      await reloadUser();
       setAlert({ type: 'success', content: 'User edited successfully' });
     }
     else
@@ -198,7 +197,7 @@ const Welcome: NextPageWithLayout = () => {
 
   const activateTfa = async () => {
  
-    const req = await fetch(`/api/users/${getUserData().id}/enableTfa`, {
+    const req = await fetch(`/api/users/${user.id}/enableTfa`, {
       method: 'POST',
       headers: {
         'Content-Type': 'application/json'
@@ -223,7 +222,7 @@ const Welcome: NextPageWithLayout = () => {
 
   const deactivateTfa = async () => {
 
-    const req = await fetch(`/api/users/${getUserData().id}`, {
+    const req = await fetch(`/api/users/${user.id}`, {
       method: 'PATCH',
       headers: {
         'Content-Type': 'application/json'
@@ -340,7 +339,7 @@ const Welcome: NextPageWithLayout = () => {
       const body = new FormData();
       body.append("image", image);
 
-      const req = await fetch(`/api/users/${getUserData().id}/uploadAvatar`, {
+      const req = await fetch(`/api/users/${user.id}/uploadAvatar`, {
         method: "POST",
         body
       });
@@ -382,7 +381,7 @@ const Welcome: NextPageWithLayout = () => {
 
     setAlert({type: 'info', content: 'New random avatar'})
 
-    const req = await fetch(`/api/users/${getUserData().id}/randomAvatar`);
+    const req = await fetch(`/api/users/${user.id}/randomAvatar`);
 
     if (req.ok)
       router.reload();
@@ -394,7 +393,7 @@ const Welcome: NextPageWithLayout = () => {
 
     setAlert({type: 'info', content: 'Default 42 pic requested'})
 
-    const req = await fetch(`/api/users/${getUserData().id}/avatar42`);
+    const req = await fetch(`/api/users/${user.id}/avatar42`);
    
     if (req.ok)
       router.reload();
@@ -413,7 +412,7 @@ const Welcome: NextPageWithLayout = () => {
         className="px-2 py-16 mx-auto"
       >
       
-      {(getUserData().duoquadra_login) ?
+      {(user.duoquadra_login) ?
       <div className="flex flex-col items-center p-2">
         <div className="border border-gray-900 hover:border-pink-600 rounded-full pb-0 pt-2 pr-2 pl-2">
           <Image
@@ -437,7 +436,7 @@ const Welcome: NextPageWithLayout = () => {
           <div className="relative w-48 h-48">
            <img
               className="object-cover object-center w-full h-full rounded drop-shadow-md"
-              src={`/api/users/${getUserData().id}/photo`}
+              src={`/api/users/${user.id}/photo`}
             /> 
 
             {pendingPic ?
@@ -484,9 +483,9 @@ const Welcome: NextPageWithLayout = () => {
           :
           <div className="text-center">
             <h2 className="text-xl font-bold text-pink-600">
-              {getUserData().username}
+              {user.username}
             </h2>
-            <Link href={`/users/${getUserData().id}`}>
+            <Link href={`/users/${user.id}`}>
               <a className="block py-1 text-sm uppercase text-neutral-200 hover:underline">
                 See public profile
               </a>
@@ -631,7 +630,7 @@ const Welcome: NextPageWithLayout = () => {
           <div className="relative w-48 h-48">
             <img
               className="object-cover object-center w-full h-full rounded drop-shadow-md"
-              src={`/api/users/${getUserData().id}/generateTfa`}
+              src={`/api/users/${user.id}/generateTfa`}
             />
           </div>
           {getTfaForm()}
