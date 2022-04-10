@@ -7,11 +7,10 @@ import { MdVoiceOverOff } from "react-icons/md";
 import { RiPingPongLine } from 'react-icons/ri';
 import Link from "next/link";
 import { BaseUserData } from "transcendance-types";
+import Tooltip from "../../components/Tooltip";
 import alertContext, { AlertContextType } from "../../context/alert/alertContext";
-import authContext, { AuthContextType } from "../../context/auth/authContext";
 import chatContext, { ChatContextType } from "../../context/chat/chatContext";
 import relationshipContext, { RelationshipContextType } from "../../context/relationship/relationshipContext";
-import Tooltip from "../../components/Tooltip";
 
 type UserSummary = {
 	id: string;
@@ -56,11 +55,9 @@ export const GroupUsersHeader: React.FC<{ viewParams: any }> = ({ viewParams }) 
 
 const GroupUsers: React.FC<{ viewParams: any }> = ({ viewParams }) => {
 	const { setAlert } = useContext(alertContext) as AlertContextType;
-	const { getUserData } = useContext(authContext) as AuthContextType;
-	const { fetchChannelData } = useContext(chatContext) as ChatContextType;
+	const { session, fetchChannelData } = useContext(chatContext) as ChatContextType;
 	const { blocked, getData } = useContext(relationshipContext) as RelationshipContextType;
 	const [users, setUsers] = useState<UserSummary[]>([]);
-	const userId = getUserData().id;
 	const groupId = viewParams.groupId;
 	const actionTooltipStyles = "font-bold bg-gray-900 text-neutral-200";
 
@@ -227,7 +224,7 @@ const GroupUsers: React.FC<{ viewParams: any }> = ({ viewParams }) => {
 				id: chanUsers[i].id,
 				username: chanUsers[i].username,
 				pic: `/api/users/${chanUsers[i].id}/photo`,
-				isMe: (chanUsers[i].id === userId),
+				isMe: (chanUsers[i].id === session.user.id),
 				isOwner: (chanUsers[i].id === chanOwner.id),
 				isAdmin: (chanUsers[i].id === chanOwner.id) || !!chanAdmins.find((admin: BaseUserData) => {
 					return admin.id === chanUsers[i].id;

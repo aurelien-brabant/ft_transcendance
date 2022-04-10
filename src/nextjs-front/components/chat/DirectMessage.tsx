@@ -6,7 +6,6 @@ import Link from 'next/link';
 import { UserStatusItem } from "../UserStatus";
 import Tooltip from "../../components/Tooltip";
 import alertContext, { AlertContextType } from "../../context/alert/alertContext";
-import authContext, { AuthContextType } from "../../context/auth/authContext";
 import chatContext, { ChatContextType, ChatMessage } from "../../context/chat/chatContext";
 
 /* Header */
@@ -49,13 +48,11 @@ const DirectMessage: React.FC<{ viewParams: { [key: string]: any } }> = ({
 	viewParams,
 }) => {
 	const { setAlert } = useContext(alertContext) as AlertContextType;
-	const { getUserData } = useContext(authContext) as AuthContextType;
-	const { fetchChannelData } = useContext(chatContext) as ChatContextType;
+	const { session, fetchChannelData } = useContext(chatContext) as ChatContextType;
 	const [messages, setMessages] = useState<ChatMessage[]>([]);
 	const [currentMessage, setCurrentMessage] = useState("");
 	const chatBottom = useRef<HTMLDivElement>(null);
 	const dmId = viewParams.dmId;
-	const userId = getUserData().id;
 
 	const addMessage = (message: any) => {
 		setMessages([
@@ -63,7 +60,7 @@ const DirectMessage: React.FC<{ viewParams: { [key: string]: any } }> = ({
 				id: message.id,
 				author: message.author.username,
 				content: message.content,
-				isMe: (message.author.id === userId),
+				isMe: (message.author.id === session.user.id),
 				isBlocked: false
 			}
 		]);
@@ -80,7 +77,7 @@ const DirectMessage: React.FC<{ viewParams: { [key: string]: any } }> = ({
 				"Content-Type": "application/json",
 			},
 			body: JSON.stringify({
-				author: getUserData(),
+				author: session.user,
 				content: currentMessage,
 				channel: channelData
 			}),
@@ -115,7 +112,7 @@ const DirectMessage: React.FC<{ viewParams: { [key: string]: any } }> = ({
 				id: dms[i].id,
 				author: dms[i].author.username,
 				content: dms[i].content,
-				isMe: (dms[i].author.id === userId),
+				isMe: (dms[i].author.id === session.user.id),
 				isBlocked: false
 			});
 		}

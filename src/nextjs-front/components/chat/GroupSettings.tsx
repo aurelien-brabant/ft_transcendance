@@ -2,7 +2,6 @@ import { Fragment, useContext, useState } from "react";
 import { AiOutlineArrowLeft, AiOutlineClose } from "react-icons/ai";
 import { BaseUserData } from "transcendance-types";
 import alertContext, { AlertContextType } from "../../context/alert/alertContext";
-import authContext, { AuthContextType } from "../../context/auth/authContext";
 import chatContext, { ChatContextType, ChatGroupPrivacy } from "../../context/chat/chatContext";
 
 type updateGroupData = {
@@ -55,11 +54,14 @@ export const GroupSettingsHeader: React.FC<{ viewParams: any }> = ({ viewParams 
 
 const GroupSettings: React.FC<{ viewParams: any }> = ({ viewParams }) => {
 	const { setAlert } = useContext(alertContext) as AlertContextType;
-	const { getUserData } = useContext(authContext) as AuthContextType;
-	const { closeRightmostView, removeChatGroup, fetchChannelData } = useContext(chatContext) as ChatContextType;
+	const {
+		session,
+		closeRightmostView,
+		removeChatGroup,
+		fetchChannelData
+	} = useContext(chatContext) as ChatContextType;
 	const groupId = viewParams.groupId;
 	const groupPrivacy = viewParams.groupPrivacy as ChatGroupPrivacy;
-	const userId = getUserData().id;
 	const inputGroupClassName = "flex flex-col gap-y-2";
 	const inputClassName = "px-2 py-1 border border-pink-600 bg-transparent outline-none";
 	const labelClassName = "text-xs text-neutral-200 uppercase";
@@ -174,7 +176,7 @@ const GroupSettings: React.FC<{ viewParams: any }> = ({ viewParams }) => {
 		const channelData = await fetchChannelData(groupId).catch(console.error);
 		const currentUsers = JSON.parse(JSON.stringify(channelData)).users;
 		const users = currentUsers.filter((user: BaseUserData) => {
-			return user.id != userId
+			return user.id != session.user.id
 		})
 
 		const res = await fetch(`/api/channels/${groupId}`, {

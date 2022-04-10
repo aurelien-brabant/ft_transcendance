@@ -1,7 +1,6 @@
 import { Fragment, useContext } from "react";
 import { AiFillLock, AiOutlineArrowLeft, AiOutlineClose } from "react-icons/ai";
 import alertContext, { AlertContextType } from "../../context/alert/alertContext";
-import authContext, { AuthContextType } from "../../context/auth/authContext";
 import chatContext, { ChatContextType } from "../../context/chat/chatContext";
 
 export const PasswordProtectionHeader: React.FC<{ viewParams: any }> = ({ viewParams}) => {
@@ -29,16 +28,14 @@ export const PasswordProtectionHeader: React.FC<{ viewParams: any }> = ({ viewPa
 }
 
 const PasswordProtection: React.FC<{ viewParams: any }> = ({ viewParams }) => {
-	const { getUserData } = useContext(authContext) as AuthContextType;
-	const userId = getUserData().id;
-	const { setChatView } = useContext(chatContext) as ChatContextType;
+	const { session, setChatView } = useContext(chatContext) as ChatContextType;
 	const { setAlert } = useContext(alertContext) as AlertContextType;
 
 	/* Check password is correct */
 	const handleSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
 		e.preventDefault();
 		const input = (e.currentTarget.elements[0] as HTMLInputElement).value;
-		const res = await fetch(`/api/channels/${viewParams.groupId}/join?userId=${userId}&password=${input}`, {
+		const res = await fetch(`/api/channels/${viewParams.groupId}/join?userId=${session.user.id}&password=${input}`, {
 			method: "POST",
 			headers: {
 			"Content-Type": "application/json",

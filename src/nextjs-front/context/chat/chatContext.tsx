@@ -1,5 +1,6 @@
 import { createContext } from 'react';
 import { BaseUserData } from 'transcendance-types';
+import { UserSession } from "../auth/authContext";
 
 export type ChatView = 'dms' | 'dm' | 'dm_new' | 'groups' | 'group' | 'group_new' | 'group_add' | 'group_users' | 'group_settings' |'password_protection'; // plural form denotes the list, singular the chat itself
 
@@ -39,6 +40,9 @@ export type DirectMessage = {
 };
 
 export type ChatContextType = {
+	/* User session */
+	session: UserSession;
+
 	/* Chat manipulation */
 	openChat: () => void;
 	closeChat: () => void;

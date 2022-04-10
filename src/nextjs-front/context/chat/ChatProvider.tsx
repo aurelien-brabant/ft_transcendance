@@ -3,9 +3,8 @@ import { BsFillChatDotsFill } from "react-icons/bs";
 import { BaseUserData } from 'transcendance-types';
 import alertContext, { AlertContextType } from "../alert/alertContext";
 import authContext, { AuthContextValue } from "../auth/authContext";
-import relationshipContext, { RelationshipContextType } from "../relationship/relationshipContext";
+// import relationshipContext, { RelationshipContextType } from "../relationship/relationshipContext";
 import { Bounce } from "react-awesome-reveal";
-import { useSession } from "../../hooks/use-session";
 /* Chat */
 import Chat from "../../components/Chat";
 import ChatGroupsView from "../../components/chat/Groups";
@@ -105,8 +104,7 @@ const ChatProvider: React.FC = ({ children }) => {
 	const [directMessages, setDirectMessages] = useState<DirectMessage[]>([]);
 	const [lastX, setLastX] = useState<number>(0);
 	const [lastY, setLastY] = useState<number>(0);
-	const session = useSession();
-	const { isChatOpened, setIsChatOpened } = useContext(authContext) as AuthContextValue;
+	const { session, isChatOpened, setIsChatOpened } = useContext(authContext) as AuthContextValue;
 	// const { blocked } = useContext(relationshipContext) as RelationshipContextType;
 
 	/* Chat manipulation */
@@ -323,6 +321,7 @@ const ChatProvider: React.FC = ({ children }) => {
   return (
 		<chatContext.Provider
 			value={{
+				session,
 				openChat,
 				closeChat,
 				isChatOpened,
@@ -337,14 +336,14 @@ const ChatProvider: React.FC = ({ children }) => {
 				setChatGroupData,
 				updateDirectMessages,
 				setDirectMessageData,
+				createDirectMessage,
+				openDirectMessage,
 				fetchChannelData,
 				loadChannelsOnMount,
 				lastX,
 				lastY,
 				setLastX,
 				setLastY,
-				createDirectMessage,
-				openDirectMessage,
 			}}
 		>
 			{session.state === 'authenticated' ?

@@ -1,14 +1,12 @@
-import { Fragment, useContext, useEffect } from "react";
+import React, { Fragment, useContext, useEffect } from "react";
 import Draggable from 'react-draggable';
 import { useMediaQuery } from "react-responsive";
 import { AiOutlineClose } from "react-icons/ai";
 import { FaUserFriends, FaUser } from "react-icons/fa";
+import ResponsiveSlide from "./ResponsiveSlide";
 import Tooltip from "./Tooltip";
 import { ChatViewItem } from "../context/chat/ChatProvider";
 import chatContext, { ChatContextType } from "../context/chat/chatContext";
-import authContext, { AuthContextType } from "../context/auth/authContext";
-import React from "react";
-import ResponsiveSlide from "./ResponsiveSlide";
 
 type ChatProps = {
 	onClose: () => void;
@@ -16,11 +14,16 @@ type ChatProps = {
 };
 
 const Chat: React.FC<ChatProps> = ({ viewStack, onClose }) => {
-	const { closeRightmostView, setChatView, loadChannelsOnMount, lastX, lastY, setLastX, setLastY } = useContext(
-		chatContext
-	) as ChatContextType;
-	const { getUserData } = useContext(authContext) as AuthContextType;
-	const userId = getUserData().id;
+	const {
+		session,
+		closeRightmostView,
+		setChatView,
+		loadChannelsOnMount,
+		lastX,
+		lastY,
+		setLastX,
+		setLastY
+	} = useContext(chatContext) as ChatContextType;
 	const currentView = viewStack[viewStack.length - 1];
 	const buttonTooltipClassName = "p-3 font-bold bg-gray-900";
 	const buttonClassName = "hover:scale-105 transition text-2xl";
@@ -34,10 +37,10 @@ const Chat: React.FC<ChatProps> = ({ viewStack, onClose }) => {
 
 	useEffect(() => {
 		const fetchUserChannels = async () => {
-			const res = await fetch(`/api/users/${userId}/channels`);
+			const res = await fetch(`/api/users/${session.user.id}/channels`);
 			const data = await res.json();
 
-			loadChannelsOnMount(JSON.parse(JSON.stringify(data)), userId);
+			loadChannelsOnMount(JSON.parse(JSON.stringify(data)), session.user.id);
 		}
 		fetchUserChannels().catch(console.error);
 	}, [])

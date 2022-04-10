@@ -5,15 +5,13 @@ import { FiSend } from 'react-icons/fi';
 import { RiSettings5Line } from "react-icons/ri";
 import Tooltip from "../../components/Tooltip";
 import chatContext, { ChatContextType, ChatMessage } from "../../context/chat/chatContext";
-import authContext, { AuthContextType } from "../../context/auth/authContext";
 import alertContext, { AlertContextType } from "../../context/alert/alertContext";
 import relationshipContext, { RelationshipContextType } from "../../context/relationship/relationshipContext";
 
 /* Header */
 export const GroupHeader: React.FC<{ viewParams: any }> = ({ viewParams }) => {
-	const { getUserData } = useContext(authContext) as AuthContextType;
-	const { closeChat, openChatView, setChatView } = useContext(chatContext) as ChatContextType;
-	const ownerView = (viewParams.groupOwnerId === getUserData().id);
+	const { session, closeChat, openChatView, setChatView } = useContext(chatContext) as ChatContextType;
+	const ownerView = (viewParams.groupOwnerId === session.user.id);
 	const actionTooltipStyles = "font-bold bg-gray-900 text-neutral-200";
 
 	return (
@@ -79,14 +77,12 @@ const Group: React.FC<{ viewParams: { [key: string]: any } }> = ({
 	viewParams,
 }) => {
 	const { setAlert } = useContext(alertContext) as AlertContextType;
-	const { getUserData } = useContext(authContext) as AuthContextType;
-	const { fetchChannelData } = useContext(chatContext) as ChatContextType;
+	const { session, fetchChannelData } = useContext(chatContext) as ChatContextType;
 	const { blocked, getData } = useContext(relationshipContext) as RelationshipContextType;
 	const [messages, setMessages] = useState<ChatMessage[]>([]);
 	const [currentMessage, setCurrentMessage] = useState("");
 	const chatBottom = useRef<HTMLDivElement>(null);
 	const channelId = viewParams.groupId;
-	const userId = getUserData().id;
 
 	const addMessage = (message: any) => {
 		const isBlocked = !!blocked.find(user => user.id === message.author.id);
@@ -96,7 +92,7 @@ const Group: React.FC<{ viewParams: { [key: string]: any } }> = ({
 				id: message.id,
 				author: message.author.username,
 				content: isBlocked ? "Blocked message" : message.content,
-				isMe: (message.author.id === userId),
+				isMe: (message.author.id === session.user.id),
 				isBlocked: isBlocked
 			}
 		]);
@@ -114,7 +110,7 @@ const Group: React.FC<{ viewParams: { [key: string]: any } }> = ({
 				"Content-Type": "application/json",
 			},
 			body: JSON.stringify({
-				author: getUserData(),
+				author: session.user,
 				content: currentMessage,
 				channel: channelData
 			}),
@@ -151,7 +147,7 @@ const Group: React.FC<{ viewParams: { [key: string]: any } }> = ({
 				id: gms[i].id,
 				author: gms[i].author.username,
 				content: isBlocked ? "Blocked message" : gms[i].content,
-				isMe: (gms[i].author.id === userId),
+				isMe: (gms[i].author.id === session.user.id),
 				isBlocked: isBlocked
 			});
 		}
