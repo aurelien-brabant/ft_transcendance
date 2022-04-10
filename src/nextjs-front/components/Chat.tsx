@@ -50,7 +50,7 @@ const Chat: React.FC<ChatProps> = ({ viewStack, onClose }) => {
 	<Draggable
 		nodeRef={nodeRef}
 		position={{x: lastX, y: lastY}}
-		onStop={(e: DraggableEvent, data) => {
+		onStop={(e: DraggableEvent, data) => { // BUG: is triggered with other event
 			if (data.y > 0)
 				setLastY(0)
 			else if (-data.y > window.innerHeight - 670)
@@ -72,7 +72,7 @@ const Chat: React.FC<ChatProps> = ({ viewStack, onClose }) => {
 			className="fixed z-50 top-0 bottom-0 left-0 right-0 md:top-auto md:left-auto md:bottom-10 md:right-10
 			drop-shadow-lg flex flex-col overflow-hidden md:w-[25rem] md:h-[35em] text-white rounded border-gray-800 border-2"
 		>
-			<ResponsiveSlide
+			<ResponsiveSlide // BUG: breaks the chat layout on all views (comment it to see the differences)
 				triggerOnce
 				duration={1500}
 				direction='down'
