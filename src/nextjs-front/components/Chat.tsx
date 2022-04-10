@@ -1,5 +1,5 @@
 import React, { Fragment, useContext, useEffect } from "react";
-import Draggable from 'react-draggable';
+import Draggable, { DraggableEvent } from 'react-draggable';
 import { useMediaQuery } from "react-responsive";
 import { AiOutlineClose } from "react-icons/ai";
 import { FaUserFriends, FaUser } from "react-icons/fa";
@@ -50,7 +50,7 @@ const Chat: React.FC<ChatProps> = ({ viewStack, onClose }) => {
 	<Draggable
 		nodeRef={nodeRef}
 		position={{x: lastX, y: lastY}}
-		onStop={(e, data) => {
+		onStop={(e: DraggableEvent, data) => {
 			if (data.y > 0)
 				setLastY(0)
 			else if (-data.y > window.innerHeight - 670)
@@ -68,15 +68,15 @@ const Chat: React.FC<ChatProps> = ({ viewStack, onClose }) => {
 		disabled={useMediaQuery({ query: "(max-width: 800px)" })}
 	>
 		<div
- 			ref={nodeRef}
- 			className="fixed z-50 top-0 bottom-0 left-0 right-0 md:top-auto md:left-auto md:bottom-10 md:right-10
- 			drop-shadow-lg flex flex-col overflow-hidden md:w-[25rem] md:h-[35em] text-white rounded border-gray-800 border-2"
- 		>
- 			<ResponsiveSlide
- 				triggerOnce
- 				duration={1500}
- 				direction='down'
- 				useMediaQueryArg={{ query: "(min-width: 1280px)" }}
+			ref={nodeRef}
+			className="fixed z-50 top-0 bottom-0 left-0 right-0 md:top-auto md:left-auto md:bottom-10 md:right-10
+			drop-shadow-lg flex flex-col overflow-hidden md:w-[25rem] md:h-[35em] text-white rounded border-gray-800 border-2"
+		>
+			<ResponsiveSlide
+				triggerOnce
+				duration={1500}
+				direction='down'
+				useMediaQueryArg={{ query: "(min-width: 1280px)" }}
 			>
 				<header className="flex flex-col justify-end py-2 border-b-2 border-gray-800 cursor-move bg-gray-900/90 gap-y-4 drop-shadow-md text-neutral-200">
 
@@ -167,7 +167,6 @@ const Chat: React.FC<ChatProps> = ({ viewStack, onClose }) => {
 					)}
 				</div>
 			</ResponsiveSlide>
-
 		</div>
 	</Draggable>
 	);
