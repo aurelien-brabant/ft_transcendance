@@ -26,6 +26,7 @@ export class CreateChannelDto {
   @MinLength(8)
   readonly password?: string;
 
+  @IsOptional()
   @IsNumber()
   @IsIn([1, 5, 15])
   readonly restrictionDuration?: number;

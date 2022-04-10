@@ -114,10 +114,10 @@ const GroupNew: React.FC = () => {
 			},
 			body: JSON.stringify({
 				name: formData.groupName,
-				owner: session.user,
+				owner: { "id": session.user.id },
 				privacy: formData.privacy,
 				password: (formData.password.length !== 0) ? formData.password : undefined,
-				users: [ session.user ]
+				users: [ { "id": session.user.id } ]
 			}),
 		});
 
@@ -129,14 +129,14 @@ const GroupNew: React.FC = () => {
 			openChatView(gm.privacy === 'protected' ? 'password_protection' : 'group', gm.label, {
 				groupName: gm.label,
 				groupId: gm.id
-			}
-			);
+			});
 		} else if (res.status === 401) {
 			setAlert({
 				type: "warning",
 				content: `Group '${formData.groupName}' already exists. Choose another name.`
 			});
 		} else {
+			console.log(res);
 			setAlert({
 				type: "error",
 				content: "Failed to create group"
