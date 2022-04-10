@@ -1,10 +1,10 @@
 import '../styles/globals.css';
 import type { AppProps } from 'next/app';
 import { NextPage } from 'next';
-import React, { ReactElement, ReactNode, useEffect } from 'react';
-import AuthProvider from '../context/auth/AuthProvider';
-import AlertProvider from '../context/alert/AlertProvider';
 import { useRouter } from 'next/router';
+import React, { ReactElement, ReactNode } from 'react';
+import AlertProvider from '../context/alert/AlertProvider';
+import AuthProvider from '../context/auth/AuthProvider';
 // import RelationshipProvider from '../context/relationship/RelationshipProvider';
 import { useSession } from '../hooks/use-session';
 import PageLoadingScreen from '../components/page-loading-screen';
@@ -56,13 +56,13 @@ function MyApp({ Component, pageProps }: AppPropsWithLayout) {
         <AlertProvider>
             <AuthProvider>
                 {/*<RelationshipProvider>*/}
-                {Component.authConfig ? (
-                    <AuthenticatedPage config={Component.authConfig}>
-                        {getLayout(<Component {...pageProps} />)}
-                    </AuthenticatedPage>
-                ) : (
-                    getLayout(<Component {...pageProps} />)
-                )}
+                    {Component.authConfig ? (
+                        <AuthenticatedPage config={Component.authConfig}>
+                            {getLayout(<Component {...pageProps} />)}
+                        </AuthenticatedPage>
+                    ) : (
+                        getLayout(<Component {...pageProps} />)
+                    )}
                 {/*</RelationshipProvider>*/}
             </AuthProvider>
         </AlertProvider>
