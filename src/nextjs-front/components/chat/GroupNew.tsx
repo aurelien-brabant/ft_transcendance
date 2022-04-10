@@ -1,5 +1,6 @@
 import { Fragment, useContext, useState } from "react";
 import { AiOutlineArrowLeft, AiOutlineClose } from "react-icons/ai";
+import { useSession } from "../../hooks/use-session";
 import alertContext, { AlertContextType } from "../../context/alert/alertContext";
 import chatContext, { ChatContextType, ChatGroupPrivacy } from "../../context/chat/chatContext";
 
@@ -50,9 +51,9 @@ export const GroupNewHeader: React.FC = () => {
 };
 
 const GroupNew: React.FC = () => {
+	const { user } = useSession();
 	const { setAlert } = useContext(alertContext) as AlertContextType;
 	const {
-		session,
 		openChatView,
 		updateChatGroups,
 		setChatGroupData
@@ -114,16 +115,16 @@ const GroupNew: React.FC = () => {
 			},
 			body: JSON.stringify({
 				name: formData.groupName,
-				owner: { "id": session.user.id },
+				owner: { "id": user.id },
 				privacy: formData.privacy,
 				password: (formData.password.length !== 0) ? formData.password : undefined,
-				users: [ { "id": session.user.id } ]
+				users: [ { "id": user.id } ]
 			}),
 		});
 
 		if (res.status === 201) {
 			const data = await res.json();
-			const gm = setChatGroupData(JSON.parse(JSON.stringify(data)), session.user.id);
+			const gm = setChatGroupData(JSON.parse(JSON.stringify(data)), user.id);
 
 			updateChatGroups();
 			openChatView(gm.privacy === 'protected' ? 'password_protection' : 'group', gm.label, {

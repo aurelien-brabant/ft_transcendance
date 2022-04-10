@@ -5,6 +5,7 @@ import { AiOutlineClose } from "react-icons/ai";
 import { FaUserFriends, FaUser } from "react-icons/fa";
 import ResponsiveSlide from "./ResponsiveSlide";
 import Tooltip from "./Tooltip";
+import { useSession } from "../hooks/use-session";
 import { ChatViewItem } from "../context/chat/ChatProvider";
 import chatContext, { ChatContextType } from "../context/chat/chatContext";
 
@@ -15,7 +16,6 @@ type ChatProps = {
 
 const Chat: React.FC<ChatProps> = ({ viewStack, onClose }) => {
 	const {
-		session,
 		closeRightmostView,
 		setChatView,
 		loadChannelsOnMount,
@@ -24,6 +24,7 @@ const Chat: React.FC<ChatProps> = ({ viewStack, onClose }) => {
 		setLastX,
 		setLastY
 	} = useContext(chatContext) as ChatContextType;
+	const { user } = useSession();
 	const currentView = viewStack[viewStack.length - 1];
 	const buttonTooltipClassName = "p-3 font-bold bg-gray-900";
 	const buttonClassName = "hover:scale-105 transition text-2xl";
@@ -37,10 +38,10 @@ const Chat: React.FC<ChatProps> = ({ viewStack, onClose }) => {
 
 	useEffect(() => {
 		const fetchUserChannels = async () => {
-			const res = await fetch(`/api/users/${session.user.id}/channels`);
+			const res = await fetch(`/api/users/${user.id}/channels`);
 			const data = await res.json();
 
-			loadChannelsOnMount(JSON.parse(JSON.stringify(data)), session.user.id);
+			loadChannelsOnMount(JSON.parse(JSON.stringify(data)), user.id);
 		}
 		fetchUserChannels().catch(console.error);
 	}, [])

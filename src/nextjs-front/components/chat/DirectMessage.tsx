@@ -4,6 +4,7 @@ import { FiSend } from "react-icons/fi";
 import { RiPingPongLine } from 'react-icons/ri';
 import Link from 'next/link';
 import { UserStatusItem } from "../UserStatus";
+import { useSession } from "../../hooks/use-session";
 import Tooltip from "../../components/Tooltip";
 import alertContext, { AlertContextType } from "../../context/alert/alertContext";
 import chatContext, { ChatContextType, ChatMessage } from "../../context/chat/chatContext";
@@ -47,8 +48,9 @@ export const DirectMessageHeader: React.FC<{ viewParams: any }> = ({ viewParams 
 const DirectMessage: React.FC<{ viewParams: { [key: string]: any } }> = ({
 	viewParams,
 }) => {
+	const { user } = useSession();
 	const { setAlert } = useContext(alertContext) as AlertContextType;
-	const { session, fetchChannelData } = useContext(chatContext) as ChatContextType;
+	const { fetchChannelData } = useContext(chatContext) as ChatContextType;
 	const [messages, setMessages] = useState<ChatMessage[]>([]);
 	const [currentMessage, setCurrentMessage] = useState("");
 	const chatBottom = useRef<HTMLDivElement>(null);
@@ -60,7 +62,7 @@ const DirectMessage: React.FC<{ viewParams: { [key: string]: any } }> = ({
 				id: message.id,
 				author: message.author.username,
 				content: message.content,
-				isMe: (message.author.id === session.user.id),
+				isMe: (message.author.id === user.id),
 				isBlocked: false
 			}
 		]);
@@ -77,7 +79,7 @@ const DirectMessage: React.FC<{ viewParams: { [key: string]: any } }> = ({
 				"Content-Type": "application/json",
 			},
 			body: JSON.stringify({
-				author: session.user,
+				author: user,
 				content: currentMessage,
 				channel: channelData
 			}),
@@ -112,7 +114,7 @@ const DirectMessage: React.FC<{ viewParams: { [key: string]: any } }> = ({
 				id: dms[i].id,
 				author: dms[i].author.username,
 				content: dms[i].content,
-				isMe: (dms[i].author.id === session.user.id),
+				isMe: (dms[i].author.id === user.id),
 				isBlocked: false
 			});
 		}

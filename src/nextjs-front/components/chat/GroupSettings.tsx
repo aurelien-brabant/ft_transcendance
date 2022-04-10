@@ -1,6 +1,7 @@
 import { Fragment, useContext, useState } from "react";
 import { AiOutlineArrowLeft, AiOutlineClose } from "react-icons/ai";
 import { BaseUserData } from "transcendance-types";
+import { useSession } from "../../hooks/use-session";
 import alertContext, { AlertContextType } from "../../context/alert/alertContext";
 import chatContext, { ChatContextType, ChatGroupPrivacy } from "../../context/chat/chatContext";
 
@@ -53,9 +54,9 @@ export const GroupSettingsHeader: React.FC<{ viewParams: any }> = ({ viewParams 
 };
 
 const GroupSettings: React.FC<{ viewParams: any }> = ({ viewParams }) => {
+	const { user } = useSession();
 	const { setAlert } = useContext(alertContext) as AlertContextType;
 	const {
-		session,
 		closeRightmostView,
 		removeChatGroup,
 		fetchChannelData
@@ -176,7 +177,7 @@ const GroupSettings: React.FC<{ viewParams: any }> = ({ viewParams }) => {
 		const channelData = await fetchChannelData(groupId).catch(console.error);
 		const currentUsers = JSON.parse(JSON.stringify(channelData)).users;
 		const users = currentUsers.filter((user: BaseUserData) => {
-			return user.id != session.user.id
+			return user.id != user.id
 		})
 
 		const res = await fetch(`/api/channels/${groupId}`, {

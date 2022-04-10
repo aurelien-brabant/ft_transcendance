@@ -7,6 +7,7 @@ import { MdVoiceOverOff } from "react-icons/md";
 import { RiPingPongLine } from 'react-icons/ri';
 import Link from "next/link";
 import { BaseUserData } from "transcendance-types";
+import { useSession } from "../../hooks/use-session";
 import Tooltip from "../../components/Tooltip";
 import alertContext, { AlertContextType } from "../../context/alert/alertContext";
 import chatContext, { ChatContextType } from "../../context/chat/chatContext";
@@ -54,8 +55,9 @@ export const GroupUsersHeader: React.FC<{ viewParams: any }> = ({ viewParams }) 
 };
 
 const GroupUsers: React.FC<{ viewParams: any }> = ({ viewParams }) => {
+	const { user } = useSession();
 	const { setAlert } = useContext(alertContext) as AlertContextType;
-	const { session, fetchChannelData } = useContext(chatContext) as ChatContextType;
+	const { fetchChannelData } = useContext(chatContext) as ChatContextType;
 	// const { blocked, getData } = useContext(relationshipContext) as RelationshipContextType;
 	const [users, setUsers] = useState<UserSummary[]>([]);
 	const groupId = viewParams.groupId;
@@ -224,7 +226,7 @@ const GroupUsers: React.FC<{ viewParams: any }> = ({ viewParams }) => {
 				id: chanUsers[i].id,
 				username: chanUsers[i].username,
 				pic: `/api/users/${chanUsers[i].id}/photo`,
-				isMe: (chanUsers[i].id === session.user.id),
+				isMe: (chanUsers[i].id === user.id),
 				isOwner: (chanUsers[i].id === chanOwner.id),
 				isAdmin: (chanUsers[i].id === chanOwner.id) || !!chanAdmins.find((admin: BaseUserData) => {
 					return admin.id === chanUsers[i].id;
