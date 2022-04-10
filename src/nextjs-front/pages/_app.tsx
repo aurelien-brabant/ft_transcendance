@@ -2,10 +2,10 @@ import '../styles/globals.css';
 import type { AppProps } from 'next/app';
 import { NextPage } from 'next';
 import React, { ReactElement, ReactNode, useEffect } from 'react';
-import AuthProvider from '../context/auth/auth-provider';
+import AuthProvider from '../context/auth/AuthProvider';
 import AlertProvider from '../context/alert/AlertProvider';
 import { useRouter } from 'next/router';
-import RelationshipProvider from '../context/relationship/RelationshipProvider';
+// import RelationshipProvider from '../context/relationship/RelationshipProvider';
 import { useSession } from '../hooks/use-session';
 import PageLoadingScreen from '../components/page-loading-screen';
 

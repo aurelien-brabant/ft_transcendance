@@ -2,7 +2,7 @@ import { useContext, useEffect, useState } from 'react';
 import AuthContext, {
     AuthContextValue,
     UserSession,
-} from '../context/auth/auth-context';
+} from '../context/auth/authContext';
 
 type UseSessionParams = {
     waitingTime?: number;

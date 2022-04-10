@@ -1,115 +1,180 @@
-import { useState } from "react";
-import { User } from "transcendance-types";
-import authContext from "./authContext";
+import AuthContext, {
+    LoginMethod,
+    LoginPayload,
+    User,
+    UserSession,
+} from './authContext';
+import React, { useEffect, useState } from 'react';
+import { useRouter } from 'next/router';
+
+const lastActionToRoute: { [key: string]: string } = {
+    login: '/welcome',
+    tfa_required: '/validate-tfa',
+    logout: '/signin',
+};
 
 const AuthProvider: React.FC = ({ children }) => {
-	const [userData, setUserData] = useState<User | null>();
-	const [isPreAuthenticated, setIsPreAuthenticated] = useState(false);
-	const [isAuthenticated, setIsAuthenticated] = useState(false);
-	const [token, setToken] = useState<string>('');
-	const [isChatOpened, setIsChatOpened] = useState(false);
+    const [session, setSession] = useState<UserSession>({
+        state: 'loading',
+        user: null,
+        lastLoginAction: {
+            action: 'none',
+        },
+    });
+    const router = useRouter();
 
-	const loadBearer = () => window.localStorage.getItem("bearer");
+    useEffect(() => {
+        const {
+            lastLoginAction: { action, queryString },
+        } = session;
+        if (action !== 'none') {
+            setSession({
+                ...session,
+                lastLoginAction: {
+                    action: 'none',
+                },
+            });
+            router.push(`${lastActionToRoute[action]}${queryString || ''}`);
+        }
+    }, [session]);
 
-	const logout = () => {
-		setIsChatOpened(false);
-		window.localStorage.removeItem('bearer');
-		setIsPreAuthenticated(false);
-		setIsAuthenticated(false);
-	}
+    const login = async (
+        method: LoginMethod,
+        payload: LoginPayload
+    ): Promise<boolean> => {
+        const res = await fetch(
+            `/api/auth/${
+                method === '42' ? 'login42' : 'login'
+            }`,
+            {
+                headers: {
+                    'Content-Type': 'application/json',
+                },
+                method: 'POST',
+                body: JSON.stringify(payload),
+            }
+        );
 
-	const clearUser = () => { setUserData(null); }
-	const getUserData = (): any => userData;
+        if (res.status !== 201) {
+            const { error, userId } = await res.json();
 
-	/**
-	 * Merge the object passed as an argument with the current userData object.
-	 * Updated data is NOT fetched from the API. It's arbitrarily updated on the
-	 * front-end side. DON'T use that if you're not sure changes have been applied
-	 * correctly.
-	 */
+            if (error === 'TFA_REQUIRED') {
+                setSession({
+                    ...session,
+                    lastLoginAction: {
+                        action: 'tfa_required',
+                        queryString: `?userId=${userId}`,
+                    },
+                });
 
-	const mergeUserData = (data: any) => {
-		const mergedData = { ...userData, ...data };
-		setUserData(mergedData);
-		
-		return mergedData;
-	}
+                return true;
+            }
 
-	/**
-	 * Wrapper around the standard fetch API that automatically
-	 * sets the bearer token.
-	 */
+            return false;
+        }
 
-	const fetchAsLoggedUser = (
-		input: RequestInfo,
-		init?: RequestInit | undefined
-	): Promise<Response> => {
-		const bearer = loadBearer();
+        setSession({
+            ...session,
+            state: 'loading',
+            lastLoginAction: { action: 'login' },
+        });
 
-		return fetch(input, {
-			...init,
-			headers: {
-				Authorization: `Bearer ${bearer}`,
-			},
-		});
-	};
+        return true;
+    };
 
-	/**
-	 * Authenticate the user by calling the API diretly, using the currently set bearer token.
-	 *
-	 * If no bearer token is available, no call is made and this function returns false.
-	 * Otherwise, a request to the /api/auth/login endpoint is made in order to authenticate
-	 * the user. If the response's status code is not 200, the authentication process is aborted
-	 * and the bearer is deleted from the local storage.
-	 *
-	 * An optional 'refresh' parameter can be passed to this function, which is set to false
-	 * by default. If set to true, authenticateUser can be used to refresh the userData by
-	 * making a new call to the same API endpoint. This can be used to fetch changed user data.
-	 * HOWEVER, consider updating it dynamically on the front-end side if possible since it doesn't
-	 * require an extra API call.
-	 */
+    const loginWithTfa = async (
+        userId: string,
+        tfaCode: string
+    ): Promise<User | null> => {
+        const validateTfaRes = await fetch(
+            `/api/users/${userId}/validate-tfa`,
+            {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                },
+                body: JSON.stringify({ code: tfaCode }),
+            }
+        );
 
-	const authenticateUser = async (refresh: boolean = false): Promise<boolean> => {
-		if (isAuthenticated && !refresh) return true; /* already authenticated */
-		const bearer = loadBearer();
-		if (bearer === null) return false;
+        if (validateTfaRes.status !== 200) {
+            return null;
+        }
 
-		const res = await fetchAsLoggedUser('/api/auth/login');
+        const loginTfaRes = await fetch('/api/auth/login-tfa', {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+            },
+            body: JSON.stringify({ userId }),
+        });
 
-		if (res.status != 200) {
-			logout();
-			return false;
-		}
+        if (loginTfaRes.status !== 201) {
+            return null;
+        }
 
-		setUserData(await res.json());
-		setIsPreAuthenticated(true);
-		return true;
-	}
+        const user = await loginTfaRes.json();
 
-	return (
-		<authContext.Provider
-			value={{
-				fetchAsLoggedUser,
-				getUserData,
-				authenticateUser,
-				logout,
-				isPreAuthenticated,
-				isAuthenticated,
-				setIsAuthenticated,
-				setIsPreAuthenticated,
-				setUserData,
-				clearUser,
-				mergeUserData,
-				token,
-				setToken,
-				isChatOpened,
- 				setIsChatOpened
-				 
-			}}
-		>
-			{children}
-		</authContext.Provider>
-	);
+        setSession({
+            ...session,
+            state: 'loading',
+            lastLoginAction: {
+                action: 'login',
+            },
+        });
+
+        return user;
+    };
+
+    const logout = async (): Promise<void> => {
+        const res = await fetch('/api/auth/log-out');
+
+        setSession({
+            state: 'unauthenticated',
+            user: null,
+            lastLoginAction: {
+                action: 'logout',
+            },
+        });
+    };
+
+    const authenticateUser = async (): Promise<null | User> => {
+        const res = await fetch('/api/auth/login');
+
+        if (res.status !== 200) {
+            setSession({
+                ...session,
+                state: 'unauthenticated',
+                user: null,
+            });
+
+            return null;
+        }
+
+        const user = await res.json();
+
+        setSession({
+            ...session,
+            state: 'authenticated',
+            user,
+        });
+
+        return user;
+    };
+
+    return (
+        <AuthContext.Provider
+            value={{
+                authenticateUser,
+                session,
+                loginWithTfa,
+                logout,
+                login,
+            }}
+        >
+            {children}
+        </AuthContext.Provider>
+    );
 };
 
 export default AuthProvider;
