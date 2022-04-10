@@ -11,7 +11,7 @@ import { useSession } from "../../hooks/use-session";
 import Tooltip from "../../components/Tooltip";
 import alertContext, { AlertContextType } from "../../context/alert/alertContext";
 import chatContext, { ChatContextType } from "../../context/chat/chatContext";
-// import relationshipContext, { RelationshipContextType } from "../../context/relationship/relationshipContext";
+import relationshipContext, { RelationshipContextType } from "../../context/relationship/relationshipContext";
 
 type UserSummary = {
 	id: string;
@@ -58,7 +58,7 @@ const GroupUsers: React.FC<{ viewParams: any }> = ({ viewParams }) => {
 	const { user } = useSession();
 	const { setAlert } = useContext(alertContext) as AlertContextType;
 	const { fetchChannelData } = useContext(chatContext) as ChatContextType;
-	// const { blocked, getData } = useContext(relationshipContext) as RelationshipContextType;
+	const { blocked, getData } = useContext(relationshipContext) as RelationshipContextType;
 	const [users, setUsers] = useState<UserSummary[]>([]);
 	const groupId = viewParams.groupId;
 	const actionTooltipStyles = "font-bold bg-gray-900 text-neutral-200";
@@ -237,8 +237,7 @@ const GroupUsers: React.FC<{ viewParams: any }> = ({ viewParams }) => {
 				isBanned: !!bannedUsers.find((user: BaseUserData) => {
 					return user.id === chanUsers[i].id;
 				}),
-				// isBlocked: !!blocked.find(user => user.id === chanUsers[i].id)
-				isBlocked: false // to be removed
+				isBlocked: !!blocked.find(user => user.id === chanUsers[i].id)
 			});
 		}
 		users.sort((a, b) => (a.isBlocked ? 1 : -1)).sort((a, b) => (a.isAdmin ? -1 : 1)).sort((a, b) => (a.isOwner ? -1 : 1));
@@ -246,13 +245,11 @@ const GroupUsers: React.FC<{ viewParams: any }> = ({ viewParams }) => {
 	}
 
 	useEffect(() => {
-		// getData();
+		getData();
 		updateUsers();
 	}, []);
 
-	// TODO: don't display Pong icon if user is blocked
-
-	if (viewParams.ownerView) { // also admin
+	if (viewParams.ownerView) { // NEED FIX: also admin
 		return (
 			<div className="flex flex-col h-full py-4 overflow-auto ">
 				{users.map((user) => (

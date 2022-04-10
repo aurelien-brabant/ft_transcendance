@@ -1,9 +1,10 @@
-import { useContext, useState } from "react";
+import { useState } from "react";
 import { User } from 'transcendance-types';
-import authContext, { AuthContextType } from "../auth/authContext";
+import { useSession } from "../../hooks/use-session";
 import relationshipContext from "./relationshipContext";
 
 const RelationshipProvider: React.FC = ({ children }) => {
+	const { user } = useSession();
 	const [users, setUsers] = useState<User[]>([]);
 	const [friends, setFriends] = useState<User[]>([]);
 	const [friends42, setFriends42] = useState<User[]>([]);
@@ -11,7 +12,6 @@ const RelationshipProvider: React.FC = ({ children }) => {
 	const [pendingFriendsReceived, setPendingFriendsReceived] = useState<User[]>([]);
 	const [pendingFriendsSent, setPendingFriendsSent] = useState<User[]>([]);
 	const [suggested, setSuggested] = useState<User[]>([]);
-	const { getUserData } = useContext(authContext) as AuthContextType;
 
 	const createSuggested = (
 		users: User[], friends: User[], blocked: User[]
@@ -27,7 +27,7 @@ const RelationshipProvider: React.FC = ({ children }) => {
 
 		let suggestedList: User[] = [];
 		for (var i in users) {
-			if (users[i].id !== getUserData().id
+			if (users[i].id !== user.id
 				&& checkSuggested(blocked, users[i].id)
 				&& checkSuggested(friends, users[i].id))
 					suggestedList = [...suggestedList, users[i]]
@@ -61,7 +61,7 @@ const RelationshipProvider: React.FC = ({ children }) => {
 		const req = await fetch('/api/users/');
 		const data = await req.json()
 		setUsers(data);
-		getRelationships(data, getUserData().id);
+		getRelationships(data, user.id);
 	}
 
 	return (

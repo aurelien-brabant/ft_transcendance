@@ -1,4 +1,4 @@
-import { useContext, Fragment, useState, useEffect } from 'react';
+import { useContext, Fragment, useState } from 'react';
 import Image from 'next/image';
 import { FiSearch } from 'react-icons/fi';
 import { GiHamburgerMenu } from 'react-icons/gi';
@@ -7,7 +7,6 @@ import { BiBell } from 'react-icons/bi';
 import Link from 'next/link';
 import { dashboardNavItems } from '../constants/nav';
 import notificationsContext from '../context/notifications/notificationsContext';
-import authContext, { AuthContextType } from '../context/auth/authContext';
 import alertContext, { AlertContextType } from '../context/alert/alertContext';
 import { useSession } from '../hooks/use-session';
 

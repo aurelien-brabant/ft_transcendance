@@ -7,7 +7,7 @@ import Tooltip from "../../components/Tooltip";
 import { useSession } from "../../hooks/use-session";
 import chatContext, { ChatContextType, ChatMessage } from "../../context/chat/chatContext";
 import alertContext, { AlertContextType } from "../../context/alert/alertContext";
-// import relationshipContext, { RelationshipContextType } from "../../context/relationship/relationshipContext";
+import relationshipContext, { RelationshipContextType } from "../../context/relationship/relationshipContext";
 
 /* Header */
 export const GroupHeader: React.FC<{ viewParams: any }> = ({ viewParams }) => {
@@ -81,7 +81,7 @@ const Group: React.FC<{ viewParams: { [key: string]: any } }> = ({
 	const { user } = useSession();
 	const { setAlert } = useContext(alertContext) as AlertContextType;
 	const { fetchChannelData } = useContext(chatContext) as ChatContextType;
-	// const { blocked, getData } = useContext(relationshipContext) as RelationshipContextType;
+	const { blocked, getData } = useContext(relationshipContext) as RelationshipContextType;
 	const [messages, setMessages] = useState<ChatMessage[]>([]);
 	const [currentMessage, setCurrentMessage] = useState("");
 	const chatBottom = useRef<HTMLDivElement>(null);
@@ -145,8 +145,7 @@ const Group: React.FC<{ viewParams: { [key: string]: any } }> = ({
 		const messages: ChatMessage[] = [];
 
 		for (var i in gms) {
-			// const isBlocked = !!blocked.find(user => user.id == gms[i].author.id);
-			const isBlocked = false; // to be removed
+			const isBlocked = !!blocked.find(user => user.id == gms[i].author.id);
 
 			messages.push({
 				id: gms[i].id,
