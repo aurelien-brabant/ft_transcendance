@@ -45,13 +45,11 @@ export type ChatContextType = {
 	/* Chat views manipulation */
 	openChatView: (view: ChatView, label: string, params: Object) => void;
 	setChatView: (view: ChatView, label: string, params: Object) => void;
-	//setChatView: (view: ChatView) => void;
-	//closeCurrentChatView: () => void;
 	closeRightmostView: (n?: number) => void;
 
 	/* Chat state */
 	isChatOpened: boolean;
-
+	/* Chat messages */
 	chatGroups: ChatGroup[];
 	directMessages: DirectMessage[];
 
@@ -73,8 +71,8 @@ export type ChatContextType = {
 
 	/* Draggable */
 	lastX: number;
-	setLastX: (data: any) => any;
 	lastY: number;
+	setLastX: (data: any) => any;
 	setLastY: (data: any) => any;
 };
 

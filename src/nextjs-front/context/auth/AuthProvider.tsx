@@ -14,6 +14,10 @@ const lastActionToRoute: { [key: string]: string } = {
 };
 
 const AuthProvider: React.FC = ({ children }) => {
+    /* Chat */
+    const [isChatOpened, setIsChatOpened] = useState(false);
+
+    /* Session */
     const [session, setSession] = useState<UserSession>({
         state: 'loading',
         user: null,
@@ -136,6 +140,7 @@ const AuthProvider: React.FC = ({ children }) => {
                 action: 'logout',
             },
         });
+        setIsChatOpened(false);
     };
 
     const authenticateUser = async (): Promise<null | User> => {
@@ -170,6 +175,8 @@ const AuthProvider: React.FC = ({ children }) => {
                 loginWithTfa,
                 logout,
                 login,
+                isChatOpened,
+                setIsChatOpened
             }}
         >
             {children}

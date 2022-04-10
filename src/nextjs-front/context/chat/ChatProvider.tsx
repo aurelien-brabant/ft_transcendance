@@ -1,10 +1,11 @@
-import { useContext, useEffect, useState } from "react";
+import { useContext, useState } from "react";
 import { BsFillChatDotsFill } from "react-icons/bs";
 import { BaseUserData } from 'transcendance-types';
-import alertContext, { AlertContextType } from "../../context/alert/alertContext";
-import authContext, { AuthContextType } from "../auth/authContext";
-import relationshipContext, { RelationshipContextType } from "../../context/relationship/relationshipContext";
+import alertContext, { AlertContextType } from "../alert/alertContext";
+import authContext, { AuthContextValue } from "../auth/authContext";
+import relationshipContext, { RelationshipContextType } from "../relationship/relationshipContext";
 import { Bounce } from "react-awesome-reveal";
+import { useSession } from "../../hooks/use-session";
 /* Chat */
 import Chat from "../../components/Chat";
 import ChatGroupsView from "../../components/chat/Groups";
@@ -104,9 +105,10 @@ const ChatProvider: React.FC = ({ children }) => {
 	const [directMessages, setDirectMessages] = useState<DirectMessage[]>([]);
 	const [lastX, setLastX] = useState<number>(0);
 	const [lastY, setLastY] = useState<number>(0);
-	const { isPreAuthenticated, isChatOpened, setIsChatOpened } = useContext(authContext) as AuthContextType;
-	const { blocked } = useContext(relationshipContext) as RelationshipContextType;
-	
+	const session = useSession();
+	const { isChatOpened, setIsChatOpened } = useContext(authContext) as AuthContextValue;
+	// const { blocked } = useContext(relationshipContext) as RelationshipContextType;
+
 	/* Chat manipulation */
 	const openChat = () => {
 		setIsChatOpened(true);
@@ -166,11 +168,11 @@ const ChatProvider: React.FC = ({ children }) => {
 				message.createdAt = new Date(lastMessage.createdAt);
 
 				if (channel.privacy !== "protected") {
-					if (!!blocked.find(user => user.id == lastMessage.author.id)) {
-						message.content = "Blocked message";
-					} else {
+					// if (!!blocked.find(user => user.id == lastMessage.author.id)) {
+					// 	message.content = "Blocked message";
+					// } else {
 						message.content = lastMessage.content;
-					}
+					// }
 				}
 			}
 		}
@@ -298,10 +300,10 @@ const ChatProvider: React.FC = ({ children }) => {
 			if (channel.privacy === "dm") {
 				const friend = (channel.users[0].id === userId) ? channel.users[1] : channel.users[0];
 				/* Don't display DMs from blocked users */
-				const isBlocked = !!blocked.find(user => user.id == friend.id);
-				if (!isBlocked) {
+				// const isBlocked = !!blocked.find(user => user.id == friend.id);
+				// if (!isBlocked) {
 					dms.push(setDirectMessageData(channel, friend));
-				}
+				// }
 			} else {
 				groups.push(setChatGroupData(channel, userId));
 			}
@@ -338,14 +340,14 @@ const ChatProvider: React.FC = ({ children }) => {
 				fetchChannelData,
 				loadChannelsOnMount,
 				lastX,
-				setLastX,
 				lastY,
+				setLastX,
 				setLastY,
 				createDirectMessage,
 				openDirectMessage,
 			}}
 		>
-			{isPreAuthenticated ?
+			{session.state === 'authenticated' ?
 				isChatOpened ?
 				<Chat
 					viewStack={viewStack}

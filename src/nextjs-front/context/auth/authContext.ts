@@ -16,6 +16,8 @@ export type AuthContextValue = {
     logout: () => Promise<void>;
     login: (method: LoginMethod, payload: LoginPayload) => Promise<boolean>;
     loginWithTfa: (userId: string, tfaCode: string) => Promise<User | null>;
+    isChatOpened: boolean;
+    setIsChatOpened: (chatIsOpen: boolean) => void;
 };
 
 type LoginAction = 'tfa_required' | 'login' | 'logout' | 'none';
