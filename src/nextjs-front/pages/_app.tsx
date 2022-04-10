@@ -6,7 +6,7 @@ import React, { ReactElement, ReactNode } from 'react';
 import AlertProvider from '../context/alert/AlertProvider';
 import AuthProvider from '../context/auth/AuthProvider';
 import ChatProvider from '../context/chat/ChatProvider';
-// import RelationshipProvider from '../context/relationship/RelationshipProvider';
+import RelationshipProvider from '../context/relationship/RelationshipProvider';
 import { useSession } from '../hooks/use-session';
 import PageLoadingScreen from '../components/page-loading-screen';
 
@@ -56,7 +56,7 @@ function MyApp({ Component, pageProps }: AppPropsWithLayout) {
     return (
         <AlertProvider>
             <AuthProvider>
-                {/*<RelationshipProvider>*/}
+                <RelationshipProvider>
                     <ChatProvider>
                         {Component.authConfig ? (
                             <AuthenticatedPage config={Component.authConfig}>
@@ -66,7 +66,7 @@ function MyApp({ Component, pageProps }: AppPropsWithLayout) {
                             getLayout(<Component {...pageProps} />)
                         )}
                     </ChatProvider>
-                {/*</RelationshipProvider>*/}
+                </RelationshipProvider>
             </AuthProvider>
         </AlertProvider>
     );
