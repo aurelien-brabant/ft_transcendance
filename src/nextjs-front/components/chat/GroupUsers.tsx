@@ -10,7 +10,7 @@ import { BaseUserData } from "transcendance-types";
 import Tooltip from "../../components/Tooltip";
 import alertContext, { AlertContextType } from "../../context/alert/alertContext";
 import chatContext, { ChatContextType } from "../../context/chat/chatContext";
-import relationshipContext, { RelationshipContextType } from "../../context/relationship/relationshipContext";
+// import relationshipContext, { RelationshipContextType } from "../../context/relationship/relationshipContext";
 
 type UserSummary = {
 	id: string;
@@ -56,7 +56,7 @@ export const GroupUsersHeader: React.FC<{ viewParams: any }> = ({ viewParams }) 
 const GroupUsers: React.FC<{ viewParams: any }> = ({ viewParams }) => {
 	const { setAlert } = useContext(alertContext) as AlertContextType;
 	const { session, fetchChannelData } = useContext(chatContext) as ChatContextType;
-	const { blocked, getData } = useContext(relationshipContext) as RelationshipContextType;
+	// const { blocked, getData } = useContext(relationshipContext) as RelationshipContextType;
 	const [users, setUsers] = useState<UserSummary[]>([]);
 	const groupId = viewParams.groupId;
 	const actionTooltipStyles = "font-bold bg-gray-900 text-neutral-200";
@@ -235,7 +235,8 @@ const GroupUsers: React.FC<{ viewParams: any }> = ({ viewParams }) => {
 				isBanned: !!bannedUsers.find((user: BaseUserData) => {
 					return user.id === chanUsers[i].id;
 				}),
-				isBlocked: !!blocked.find(user => user.id === chanUsers[i].id)
+				// isBlocked: !!blocked.find(user => user.id === chanUsers[i].id)
+				isBlocked: false // to be removed
 			});
 		}
 		users.sort((a, b) => (a.isBlocked ? 1 : -1)).sort((a, b) => (a.isAdmin ? -1 : 1)).sort((a, b) => (a.isOwner ? -1 : 1));
@@ -243,7 +244,7 @@ const GroupUsers: React.FC<{ viewParams: any }> = ({ viewParams }) => {
 	}
 
 	useEffect(() => {
-		getData();
+		// getData();
 		updateUsers();
 	}, []);
 
