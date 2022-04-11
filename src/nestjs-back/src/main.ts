@@ -45,7 +45,7 @@ async function bootstrap() {
 
   // seeder();
 
-    app.use(cookieParser())
+  app.use(cookieParser())
 
   await app.listen(3000);
 }

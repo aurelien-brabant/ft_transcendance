@@ -11,7 +11,7 @@ export class AchievementsController {
     findAll() {
         return this.achievementsService.findAll();
     }
-    
+
     @Get(':id')
     findOne(@Param('id') id: string) {
         return this.achievementsService.findOne(id);
