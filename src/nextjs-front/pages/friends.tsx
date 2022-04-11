@@ -5,11 +5,11 @@ import { RiUserSettingsLine } from "react-icons/ri";
 import Image from 'next/image';
 import { useRouter } from "next/router";
 import { NextPageWithLayout } from "./_app";
-import authContext, { AuthContextType } from "../context/auth/authContext";
 import relationshipContext, { RelationshipContextType } from "../context/relationship/relationshipContext";
 import FriendsTable from "../components/FriendsTable";
 import Selector from "../components/Selector";
 import Tooltip from "../components/Tooltip";
+import { useSession } from "../hooks/use-session";
 import { UserStatusItem } from "../components/UserStatus";
 import withDashboardLayout from "../components/hoc/withDashboardLayout";
 
@@ -60,7 +60,7 @@ const FriendsPage: NextPageWithLayout = ({}) => {
 
   const [isLoading, setIsLoading] = useState(true);
   const [selected, setSelected] = useState(0);
-  const { getUserData } = useContext(authContext) as AuthContextType;
+  const { user } = useSession();
   const { getData, getRelationships, createSuggested, setSuggested, suggested,
     users, friends, friends42, blocked, pendingFriendsReceived
   } = useContext(relationshipContext) as RelationshipContextType;
@@ -73,7 +73,7 @@ const FriendsPage: NextPageWithLayout = ({}) => {
 
   useEffect(() => {
     setIsLoading(true);
-    getRelationships(users, getUserData().id);
+    getRelationships(users, user.id);
     createSuggested(users, friends, blocked);
     setIsLoading(false);
   }, [selected])
@@ -88,7 +88,7 @@ const FriendsPage: NextPageWithLayout = ({}) => {
           <div className="relative w-48 h-48 flex justify-center items-center text-center">
             <img
               className="object-cover object-center w-full h-full rounded drop-shadow-md"
-              src={`/api/users/${getUserData().id}/photo`} />
+              src={`/api/users/${user.id}/photo`} />
             <div className="absolute left-0 right-0 flex items-center justify-center -bottom-4 gap-x-2">
               <Tooltip className='font-bold bg-gray-900 text-neutral-200' content="Edit user">
                 <button className="p-2 text-2xl text-gray-900 bg-white rounded-full transition hover:scale-105">
@@ -99,8 +99,8 @@ const FriendsPage: NextPageWithLayout = ({}) => {
           </div>
        
           <div className="flex flex-col items-center">
-            <h1 className="text-2xl text-pink-600">{getUserData().username}</h1>
-            <UserStatusItem status={(getUserData().accountDeactivated) ? "deactivated" : "online"}/>
+            <h1 className="text-2xl text-pink-600">{user.username}</h1>
+            <UserStatusItem status={(user.accountDeactivated) ? "deactivated" : "online"}/>
           </div>
        
           <div className="space-y-7 md:space-y-0 w-full p-2 bg-gray-800 border-2 border-gray-800 rounded drop-shadow-md grid grid-cols-2 md:grid-cols-4 items-end">

@@ -2,7 +2,7 @@ import { Fragment, useContext, useEffect, useRef, useState } from "react";
 import { AiOutlineArrowLeft, AiOutlineClose } from "react-icons/ai";
 import { User } from "transcendance-types";
 import { UserStatusItem } from "../UserStatus";
-import authContext, { AuthContextType } from "../../context/auth/authContext";
+import { useSession } from "../../hooks/use-session";
 import chatContext, { ChatContextType } from "../../context/chat/chatContext";
 import relationshipContext, { RelationshipContextType } from "../../context/relationship/relationshipContext";
 
@@ -33,10 +33,9 @@ export const DirectMessageNewHeader: React.FC = () => {
 
 /* Search bar and friend list */
 const DirectMessageNew: React.FC = () => {
-	const { getUserData } = useContext(authContext) as AuthContextType;
+	const { user } = useSession();
 	const { openDirectMessage } = useContext(chatContext) as ChatContextType;
 	const { getData, friends } = useContext(relationshipContext) as RelationshipContextType;
-	const userId = getUserData().id;
 	const [filteredFriends, setFilteredFriends] = useState<User[]>([]);
 	const searchInputRef = useRef<HTMLInputElement>(null);
 
@@ -53,7 +52,7 @@ const DirectMessageNew: React.FC = () => {
 
 	/* Find existing DM or create a new one */
 	const handleSelect = async (friend: User) => {
-		await openDirectMessage(userId, friend);
+		await openDirectMessage(user.id, friend);
 	}
 
 	useEffect(() => {

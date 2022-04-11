@@ -49,7 +49,7 @@ export type ChatContextType = {
 
 	/* Chat state */
 	isChatOpened: boolean;
-
+	/* Chat messages */
 	chatGroups: ChatGroup[];
 	directMessages: DirectMessage[];
 
@@ -71,8 +71,8 @@ export type ChatContextType = {
 
 	/* Draggable */
 	lastX: number;
-	setLastX: (data: any) => any;
 	lastY: number;
+	setLastX: (data: any) => any;
 	setLastY: (data: any) => any;
 };
 
