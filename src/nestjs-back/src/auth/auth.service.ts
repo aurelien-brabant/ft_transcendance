@@ -4,9 +4,8 @@ import {ConfigService} from '@nestjs/config';
 import {compare as comparePassword} from 'bcrypt';
 import fetch from 'node-fetch';
 import * as FormData from 'form-data';
-import {User} from 'src/users/entities/users.entity';
-import {UsersService} from 'src/users/users.service';
-import {TokenPayload} from './tokenPayload.interface';
+import { User } from 'src/users/entities/users.entity';
+import { UsersService } from 'src/users/users.service';
 
 @Injectable()
 export class AuthService {
@@ -108,14 +107,5 @@ export class AuthService {
         }
 
         return duoQuadraUser;
-    }
-
-    async getUserFromAuthToken(token: string) {
-        const payload: TokenPayload = this.jwtService.verify(token, {
-            secret: this.configService.get('JWT_ACCESS_TOKEN_SECRET')
-        });
-        if (payload.id) {
-            return this.usersService.findOne(payload.id);
-        }
     }
 }

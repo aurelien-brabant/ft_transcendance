@@ -58,6 +58,7 @@ const GroupNew: React.FC = () => {
 		updateChatGroups,
 		setChatGroupData
 	} = useContext(chatContext) as ChatContextType;
+	const userId = getUserData().id;
 
 	const [formData, setFormData] = useState<NewGroupData>({
 		groupName: "",

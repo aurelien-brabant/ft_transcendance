@@ -8,6 +8,7 @@ import Tooltip from "./Tooltip";
 import { useSession } from "../hooks/use-session";
 import { ChatViewItem } from "../context/chat/ChatProvider";
 import chatContext, { ChatContextType } from "../context/chat/chatContext";
+import relationshipContext, { RelationshipContextType } from "../context/relationship/relationshipContext";
 
 type ChatProps = {
 	onClose: () => void;
@@ -24,6 +25,7 @@ const Chat: React.FC<ChatProps> = ({ viewStack, onClose }) => {
 		setLastX,
 		setLastY
 	} = useContext(chatContext) as ChatContextType;
+	const { blocked, getData } = useContext(relationshipContext) as RelationshipContextType;
 	const { user } = useSession();
 	const currentView = viewStack[viewStack.length - 1];
 	const buttonTooltipClassName = "p-3 font-bold bg-gray-900";
@@ -41,6 +43,7 @@ const Chat: React.FC<ChatProps> = ({ viewStack, onClose }) => {
 			const res = await fetch(`/api/users/${user.id}/channels`);
 			const data = await res.json();
 
+			await getData();
 			loadChannelsOnMount(JSON.parse(JSON.stringify(data)), user.id);
 		}
 		fetchUserChannels().catch(console.error);
