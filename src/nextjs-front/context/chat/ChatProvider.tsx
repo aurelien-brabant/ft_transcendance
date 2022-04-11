@@ -2,9 +2,10 @@ import { useContext, useState } from "react";
 import { BsFillChatDotsFill } from "react-icons/bs";
 import { Bounce } from "react-awesome-reveal";
 import { BaseUserData } from 'transcendance-types';
-import alertContext, { AlertContextType } from "../../context/alert/alertContext";
-import authContext, { AuthContextType } from "../auth/authContext";
-import relationshipContext, { RelationshipContextType } from "../../context/relationship/relationshipContext";
+import alertContext, { AlertContextType } from "../alert/alertContext";
+import authContext, { AuthContextValue } from "../auth/authContext";
+import relationshipContext, { RelationshipContextType } from "../relationship/relationshipContext";
+import { useSession } from "../../hooks/use-session";
 /* Chat */
 import Chat from "../../components/Chat";
 import ChatGroupsView from "../../components/chat/Groups";
@@ -105,10 +106,11 @@ const ChatProvider: React.FC = ({ children }) => {
 	const [directMessages, setDirectMessages] = useState<DirectMessage[]>([]);
 	const [lastX, setLastX] = useState<number>(0);
 	const [lastY, setLastY] = useState<number>(0);
-	const chatSocket: Socket = io('localhost:8080'); // port tmp
 	const { setAlert } = useContext(alertContext) as AlertContextType;
-	const { isPreAuthenticated, isChatOpened, setIsChatOpened } = useContext(authContext) as AuthContextType;
+	const session = useSession();
+	const { isChatOpened, setIsChatOpened } = useContext(authContext) as AuthContextValue;
 	const { blocked } = useContext(relationshipContext) as RelationshipContextType;
+	const chatSocket: Socket = io('localhost:8080'); // port tmp
 
 	/* Chat manipulation */
 	const openChat = () => {
@@ -356,7 +358,7 @@ const ChatProvider: React.FC = ({ children }) => {
 				setLastY,
 			}}
 		>
-			{isPreAuthenticated ?
+			{session.state === 'authenticated' ?
 				isChatOpened ?
 				<Chat
 					viewStack={viewStack}

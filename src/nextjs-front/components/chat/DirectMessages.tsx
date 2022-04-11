@@ -11,7 +11,6 @@ const DirectMessages: React.FC<{ viewParams: Object; }> = ({ viewParams }) => {
 		getLastMessage,
 		updateDirectMessages
 	} = useContext(chatContext) as ChatContextType;
-
 	const [filteredDms, setFilteredDms] = useState(directMessages);
 	const [visiblityFilter, setVisiblityFilter] = useState<ChatGroupPrivacy | null>(null);
 	const searchInputRef = useRef<HTMLInputElement>(null);

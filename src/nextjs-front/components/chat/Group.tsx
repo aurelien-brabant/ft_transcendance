@@ -4,15 +4,16 @@ import { FaUserFriends, FaUserPlus } from "react-icons/fa";
 import { FiSend } from 'react-icons/fi';
 import { RiSettings5Line } from "react-icons/ri";
 import Tooltip from "../../components/Tooltip";
-import authContext, { AuthContextType } from "../../context/auth/authContext";
+import { useSession } from "../../hooks/use-session";
 import chatContext, { ChatContextType, ChatMessage } from "../../context/chat/chatContext";
+import alertContext, { AlertContextType } from "../../context/alert/alertContext";
 import relationshipContext, { RelationshipContextType } from "../../context/relationship/relationshipContext";
 
 /* Header */
 export const GroupHeader: React.FC<{ viewParams: any }> = ({ viewParams }) => {
-	const { getUserData } = useContext(authContext) as AuthContextType;
+	const { user } = useSession();
 	const { closeChat, openChatView, setChatView } = useContext(chatContext) as ChatContextType;
-	const ownerView = (viewParams.groupOwnerId === getUserData().id);
+	const ownerView = (viewParams.groupOwnerId === user.id);
 	const actionTooltipStyles = "font-bold bg-gray-900 text-neutral-200";
 
 	return (
@@ -77,25 +78,26 @@ export const GroupHeader: React.FC<{ viewParams: any }> = ({ viewParams }) => {
 const Group: React.FC<{ viewParams: { [key: string]: any } }> = ({
 	viewParams,
 }) => {
-	const { getUserData } = useContext(authContext) as AuthContextType;
+	const { user } = useSession();
+	const { setAlert } = useContext(alertContext) as AlertContextType;
 	const { chatSocket, fetchChannelData } = useContext(chatContext) as ChatContextType;
 	const { blocked, getData } = useContext(relationshipContext) as RelationshipContextType;
 	const [messages, setMessages] = useState<ChatMessage[]>([]);
 	const [currentMessage, setCurrentMessage] = useState("");
 	const chatBottom = useRef<HTMLDivElement>(null);
 	const groupId = viewParams.groupId;
-	const userId = getUserData().id;
 
 	/* Add message to discussion */
 	const addMessage = (message: any) => {
-		const isBlocked = !!blocked.find(user => user.id === message.author.id);
+		// const isBlocked = !!blocked.find(user => user.id === message.author.id);
+		const isBlocked = false; // to be removed
 
 		setMessages([
 			...messages, {
 				id: messages.length.toString(),
 				author: message.author.username,
 				content: isBlocked ? "Blocked message" : message.content,
-				isMe: (message.author.id === userId),
+				isMe: (message.author.id === user.id),
 				isBlocked: isBlocked
 			}
 		]);
@@ -105,11 +107,14 @@ const Group: React.FC<{ viewParams: { [key: string]: any } }> = ({
 	const handleGroupMessageSubmit = async () => {
 		if (currentMessage.length === 0) return;
 
+		console.log('[Chat] Submit group message');
+
 		chatSocket.emit('gmSubmit', {
 			content: currentMessage,
 			groupId
 		});
 		chatSocket.on('newGm', ({message}) => {
+			console.log(`[Chat] Receive new group message in group [${groupId}]`);
 			addMessage(message);
 		});
 		setCurrentMessage("");
@@ -133,7 +138,7 @@ const Group: React.FC<{ viewParams: { [key: string]: any } }> = ({
 				id: messages.length.toString(),
 				author: gms[i].author.username,
 				content: isBlocked ? "Blocked message" : gms[i].content,
-				isMe: (gms[i].author.id === userId),
+				isMe: (gms[i].author.id === user.id),
 				isBlocked: isBlocked
 			});
 		}
@@ -142,7 +147,7 @@ const Group: React.FC<{ viewParams: { [key: string]: any } }> = ({
 
 	useEffect(() => {
 		loadGroupOnMount();
-		getData();
+		// getData();
 	}, []);
 
 	return (

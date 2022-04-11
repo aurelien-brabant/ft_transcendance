@@ -4,8 +4,9 @@ import { FiSend } from "react-icons/fi";
 import { RiPingPongLine } from 'react-icons/ri';
 import Link from 'next/link';
 import { UserStatusItem } from "../UserStatus";
+import { useSession } from "../../hooks/use-session";
 import Tooltip from "../../components/Tooltip";
-import authContext, { AuthContextType } from "../../context/auth/authContext";
+import alertContext, { AlertContextType } from "../../context/alert/alertContext";
 import chatContext, { ChatContextType, ChatMessage } from "../../context/chat/chatContext";
 
 /* Header */
@@ -47,13 +48,13 @@ export const DirectMessageHeader: React.FC<{ viewParams: any }> = ({ viewParams 
 const DirectMessage: React.FC<{ viewParams: { [key: string]: any } }> = ({
 	viewParams,
 }) => {
-	const { getUserData } = useContext(authContext) as AuthContextType;
+	const { user } = useSession();
+	const { setAlert } = useContext(alertContext) as AlertContextType;
 	const { chatSocket, fetchChannelData } = useContext(chatContext) as ChatContextType;
 	const [messages, setMessages] = useState<ChatMessage[]>([]);
 	const [currentMessage, setCurrentMessage] = useState("");
 	const chatBottom = useRef<HTMLDivElement>(null);
 	const dmId = viewParams.dmId;
-	const userId = getUserData().id;
 
 	/* Add new message */
 	const addMessage = async (message: any) => {
@@ -61,7 +62,7 @@ const DirectMessage: React.FC<{ viewParams: { [key: string]: any } }> = ({
 			id: messages.length.toString(),
 			author: message.author.username,
 			content: message.content,
-			isMe: (message.author.id === userId),
+			isMe: (message.author.id === user.id),
 			isBlocked: false
 		});
 	}
@@ -70,9 +71,11 @@ const DirectMessage: React.FC<{ viewParams: { [key: string]: any } }> = ({
 	const handleDmSubmit = async () => {
 		if (currentMessage.length === 0) return;
 
+		console.log('[Chat] Submit DM');
+
 		chatSocket.emit('dmSubmit', {
 			content: currentMessage,
-			from: getUserData().id,
+			from: user.id,
 			to: viewParams.friendId,
 			channelId: dmId
 		});
@@ -101,7 +104,7 @@ const DirectMessage: React.FC<{ viewParams: { [key: string]: any } }> = ({
 
 		/* New message received */
 		chatSocket.on('newDm', ({ message }) => {
-			console.log(`Received message from ${message.author.username}`);
+			console.log(`[Chat] Receive new DM from ${message.author.username}`);
 			addMessage(message);
 		});
 	}, []);

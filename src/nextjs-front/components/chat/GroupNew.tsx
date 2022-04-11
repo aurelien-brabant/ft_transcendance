@@ -1,7 +1,7 @@
 import { Fragment, useContext, useState } from "react";
 import { AiOutlineArrowLeft, AiOutlineClose } from "react-icons/ai";
+import { useSession } from "../../hooks/use-session";
 import alertContext, { AlertContextType } from "../../context/alert/alertContext";
-import authContext, { AuthContextType } from "../../context/auth/authContext";
 import chatContext, { ChatContextType, ChatGroupPrivacy } from "../../context/chat/chatContext";
 
 type NewGroupData = {
@@ -51,8 +51,8 @@ export const GroupNewHeader: React.FC = () => {
 };
 
 const GroupNew: React.FC = () => {
+	const { user } = useSession();
 	const { setAlert } = useContext(alertContext) as AlertContextType;
-	const { getUserData } = useContext(authContext) as AuthContextType;
 	const {
 		openChatView,
 		updateChatGroups,
@@ -109,24 +109,23 @@ const GroupNew: React.FC = () => {
 	};
 
 	const createGroup = async (formData: NewGroupData) => {
-		const req = JSON.stringify({
-			name: formData.groupName,
-			owner: { "id": userId },
-			privacy: formData.privacy,
-			password: (formData.password.length !== 0) ? formData.password : undefined,
-			users: [ { "id": userId } ]
-		});
 		const res = await fetch("/api/channels", {
 			method: "POST",
 			headers: {
 				"Content-Type": "application/json",
 			},
-			body: req,
+			body: JSON.stringify({
+				name: formData.groupName,
+				owner: { "id": user.id },
+				privacy: formData.privacy,
+				password: (formData.password.length !== 0) ? formData.password : undefined,
+				users: [ { "id": user.id } ]
+			}),
 		});
 
 		if (res.status === 201) {
 			const data = await res.json();
-			const gm = setChatGroupData(JSON.parse(JSON.stringify(data)), userId);
+			const gm = setChatGroupData(JSON.parse(JSON.stringify(data)), user.id);
 
 			updateChatGroups();
 			openChatView(
@@ -146,6 +145,7 @@ const GroupNew: React.FC = () => {
 				content: `Group '${formData.groupName}' already exists. Choose another name.`
 			});
 		} else {
+			console.log(res);
 			setAlert({
 				type: "error",
 				content: "Failed to create group"

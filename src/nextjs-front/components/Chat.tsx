@@ -3,10 +3,12 @@ import Draggable, { DraggableEvent } from 'react-draggable';
 import { useMediaQuery } from "react-responsive";
 import { AiOutlineClose } from "react-icons/ai";
 import { FaUserFriends, FaUser } from "react-icons/fa";
+import ResponsiveSlide from "./ResponsiveSlide";
 import Tooltip from "./Tooltip";
+import { useSession } from "../hooks/use-session";
 import { ChatViewItem } from "../context/chat/ChatProvider";
 import chatContext, { ChatContextType } from "../context/chat/chatContext";
-import authContext, { AuthContextType } from "../context/auth/authContext";
+import relationshipContext, { RelationshipContextType } from "../context/relationship/relationshipContext";
 
 type ChatProps = {
 	onClose: () => void;
@@ -24,8 +26,8 @@ const Chat: React.FC<ChatProps> = ({ viewStack, onClose }) => {
 		setLastX,
 		setLastY
 	} = useContext(chatContext) as ChatContextType;
-	const { getUserData } = useContext(authContext) as AuthContextType;
-	const userId = getUserData().id;
+	const { blocked, getData } = useContext(relationshipContext) as RelationshipContextType;
+	const { user } = useSession();
 	const currentView = viewStack[viewStack.length - 1];
 	const buttonTooltipClassName = "p-3 font-bold bg-gray-900";
 	const buttonClassName = "hover:scale-105 transition text-2xl";
@@ -43,18 +45,19 @@ const Chat: React.FC<ChatProps> = ({ viewStack, onClose }) => {
 			console.log('[Chat] Client connected');
 
 			chatSocket.emit('newUser', {
-				id: getUserData().id,
-				username: getUserData().username
+				id: user.id,
+				username: user.username
 			});
 		})
 	}
 
 	useEffect(() => {
 		const fetchUserChannels = async () => {
-			const res = await fetch(`/api/users/${userId}/channels`);
+			const res = await fetch(`/api/users/${user.id}/channels`);
 			const data = await res.json();
 
-			loadChannelsOnMount(JSON.parse(JSON.stringify(data)), userId);
+			await getData();
+			loadChannelsOnMount(JSON.parse(JSON.stringify(data)), user.id);
 		}
 		handleClientConnection();
 		fetchUserChannels().catch(console.error);
@@ -65,7 +68,7 @@ const Chat: React.FC<ChatProps> = ({ viewStack, onClose }) => {
 	<Draggable
 		nodeRef={nodeRef}
 		position={{x: lastX, y: lastY}}
-		onStop={(e: DraggableEvent, data) => {
+		onStop={(e: DraggableEvent, data) => { // BUG: is triggered with other event
 			if (data.y > 0)
 				setLastY(0)
 			else if (-data.y > window.innerHeight - 670)
@@ -87,12 +90,12 @@ const Chat: React.FC<ChatProps> = ({ viewStack, onClose }) => {
 			className="fixed z-50 top-0 bottom-0 left-0 right-0 md:top-auto md:left-auto md:bottom-10 md:right-10
 			drop-shadow-lg flex flex-col overflow-hidden md:w-[25rem] md:h-[35em] text-white rounded border-gray-800 border-2"
 		>
-			{/* <ResponsiveSlide
+			<ResponsiveSlide // BUG: breaks the chat layout on all views (comment it to see the differences)
 				triggerOnce
 				duration={1500}
 				direction='down'
 				useMediaQueryArg={{ query: "(min-width: 1280px)" }}
-			> */}
+			>
 				<header className="flex flex-col justify-end py-2 border-b-2 border-gray-800 cursor-move bg-gray-900/90 gap-y-4 drop-shadow-md text-neutral-200">
 
 				{/* Provide a default header, or use the custom one instead if any */}
@@ -181,8 +184,7 @@ const Chat: React.FC<ChatProps> = ({ viewStack, onClose }) => {
 						/>
 					)}
 				</div>
-			{/* </ResponsiveSlide> */}
-
+			</ResponsiveSlide>
 		</div>
 	</Draggable>
 	);
