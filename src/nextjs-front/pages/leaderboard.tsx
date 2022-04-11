@@ -1,4 +1,4 @@
-import { useEffect, useState } from "react";
+import { useContext, useEffect, useState } from "react";
 import { BounceLoader } from "react-spinners";
 import { useMediaQuery } from "react-responsive";
 import { BsFillQuestionCircleFill } from "react-icons/bs";
@@ -9,6 +9,7 @@ import { NextPageWithLayout } from "./_app";
 import Achievements from "../components/Achievements";
 import Selector from "../components/Selector";
 import withDashboardLayout from "../components/hoc/withDashboardLayout";
+import relationshipContext, { RelationshipContextType } from "../context/relationship/relationshipContext";
 
 export type RankingList = {
   id: string;
@@ -133,6 +134,7 @@ const LeaderboardPage: NextPageWithLayout = ({}) => {
   const [activeRank, setActiveRank] = useState<RankingList[]>([]);
   const [selected, setSelected] = useState(0);
   const [mobileScreen] = useState(useMediaQuery({ query: "(min-width: 1280px)"}));
+  const {users} = useContext(relationshipContext) as RelationshipContextType;
 
   const createRankingLists = (data: any) => {
 
@@ -172,10 +174,12 @@ const LeaderboardPage: NextPageWithLayout = ({}) => {
   useEffect(() => {
     const fetchData = async () => {
 
-      const req = await fetch('/api/users');
-      const data = await req.json();
+    //  const req = await fetch('/api/users');
+     // const data = await req.json();
       
-      createRankingLists(data);
+      //createRankingLists(data);
+      setIsLoading(true);
+      createRankingLists(users);
       setIsLoading(false);
     }
 

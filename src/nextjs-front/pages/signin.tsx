@@ -14,7 +14,7 @@ import {useSession} from "../hooks/use-session";
 
 const SignIn: NextPageWithLayout = () => {
     const router = useRouter();
-    const {user, login, state: authState } = useSession();
+    const { login, state: authState } = useSession();
     const [isLoading, setIsLoading] = useState(false);
     const {setAlert} = useContext(alertContext) as AlertContextType;
 

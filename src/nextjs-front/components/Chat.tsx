@@ -3,7 +3,6 @@ import Draggable, { DraggableEvent } from 'react-draggable';
 import { useMediaQuery } from "react-responsive";
 import { AiOutlineClose } from "react-icons/ai";
 import { FaUserFriends, FaUser } from "react-icons/fa";
-import ResponsiveSlide from "./ResponsiveSlide";
 import Tooltip from "./Tooltip";
 import { useSession } from "../hooks/use-session";
 import { ChatViewItem } from "../context/chat/ChatProvider";
@@ -76,13 +75,7 @@ const Chat: React.FC<ChatProps> = ({ viewStack, onClose }) => {
 			className="fixed z-50 top-0 bottom-0 left-0 right-0 md:top-auto md:left-auto md:bottom-10 md:right-10
 			drop-shadow-lg flex flex-col overflow-hidden md:w-[25rem] md:h-[35em] text-white rounded border-gray-800 border-2"
 		>
-			<ResponsiveSlide // BUG: breaks the chat layout on all views (comment it to see the differences)
-				triggerOnce
-				duration={1500}
-				direction='down'
-				useMediaQueryArg={{ query: "(min-width: 1280px)" }}
-			>
-				<header className="flex flex-col justify-end py-2 border-b-2 border-gray-800 cursor-move bg-gray-900/90 gap-y-4 drop-shadow-md text-neutral-200">
+			<header className="flex flex-col justify-end py-2 border-b-2 border-gray-800 cursor-move bg-gray-900/90 gap-y-4 drop-shadow-md text-neutral-200">
 
 				{/* Provide a default header, or use the custom one instead if any */}
 
@@ -160,17 +153,16 @@ const Chat: React.FC<ChatProps> = ({ viewStack, onClose }) => {
 					<currentView.CustomHeaderComponent viewParams={currentView.params} />
 				)}
 
-				</header>
+			</header>
 
-				{/* active chat view */}
-				<div className="h-full overflow-hidden bg-gray-900/90">
-					{viewStack.length > 0 && (
-						<currentView.Component
-							viewParams={currentView.params}
-						/>
-					)}
-				</div>
-			</ResponsiveSlide>
+			{/* active chat view */}
+			<div className="h-full overflow-hidden bg-gray-900/90">
+				{viewStack.length > 0 && (
+					<currentView.Component
+						viewParams={currentView.params}
+					/>
+				)}
+			</div>
 		</div>
 	</Draggable>
 	);

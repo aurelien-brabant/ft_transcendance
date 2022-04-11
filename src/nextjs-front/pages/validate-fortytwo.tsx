@@ -5,12 +5,12 @@ import Head from "next/head";
 import {useRouter} from "next/router";
 import {authorizationLink} from "../constants/authorize42";
 import {NextPageWithLayout} from "./_app";
-import alertContext, {AlertContextType} from "../context/alert/alertContext";
-import authContext, {AuthContextType} from "../context/auth/authContext";
+//import alertContext, {AlertContextType} from "../context/alert/alertContext";
+//import authContext, {AuthContextType} from "../context/auth/authContext";
 import {useSession} from "../hooks/use-session";
 
 const ValidateFortyTwo: NextPageWithLayout = () => {
-    const router = useRouter();
+    //const router = useRouter();
     const {login} = useSession();
     const [isLoading, setIsLoading] = useState(true);
     const [error, setError] = useState<null | string>(null);

@@ -6,13 +6,13 @@ import React, {
     useRef,
     useState,
 } from 'react';
-import { BounceLoader } from 'react-spinners';
+//import { BounceLoader } from 'react-spinners';
 import { NextPageWithLayout } from './_app';
-import Image from 'next/image';
+//import Image from 'next/image';
 import Head from 'next/head';
-import Router, { useRouter } from 'next/router';
+//import Router, { useRouter } from 'next/router';
 import alertContext, { AlertContextType } from '../context/alert/alertContext';
-import authContext, { AuthContextType } from '../context/auth/authContext';
+//import authContext, { AuthContextType } from '../context/auth/authContext';
 import { FiRefreshCcw } from 'react-icons/fi';
 import { useSession } from '../hooks/use-session';
 
