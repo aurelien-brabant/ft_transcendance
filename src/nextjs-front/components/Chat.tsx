@@ -8,6 +8,7 @@ import Tooltip from "./Tooltip";
 import { useSession } from "../hooks/use-session";
 import { ChatViewItem } from "../context/chat/ChatProvider";
 import chatContext, { ChatContextType } from "../context/chat/chatContext";
+import relationshipContext, { RelationshipContextType } from "../context/relationship/relationshipContext";
 
 type ChatProps = {
 	onClose: () => void;
@@ -24,6 +25,7 @@ const Chat: React.FC<ChatProps> = ({ viewStack, onClose }) => {
 		setLastX,
 		setLastY
 	} = useContext(chatContext) as ChatContextType;
+	const { blocked, getData } = useContext(relationshipContext) as RelationshipContextType;
 	const { user } = useSession();
 	const currentView = viewStack[viewStack.length - 1];
 	const buttonTooltipClassName = "p-3 font-bold bg-gray-900";
@@ -36,24 +38,14 @@ const Chat: React.FC<ChatProps> = ({ viewStack, onClose }) => {
 		);
 	}
 
-	/* WS */
-	const handleClientConnection = () => {
-		chatSocket = io('localhost');
-
-		chatSocket.on('connect', () => {
-			console.log('[Chat WS] Client connected');
-		})
-	}
-
 	useEffect(() => {
 		const fetchUserChannels = async () => {
 			const res = await fetch(`/api/users/${user.id}/channels`);
 			const data = await res.json();
 
+			await getData();
 			loadChannelsOnMount(JSON.parse(JSON.stringify(data)), user.id);
 		}
-		handleClientConnection();
-		// getData();
 		fetchUserChannels().catch(console.error);
 	}, [])
 
@@ -62,11 +54,7 @@ const Chat: React.FC<ChatProps> = ({ viewStack, onClose }) => {
 	<Draggable
 		nodeRef={nodeRef}
 		position={{x: lastX, y: lastY}}
-<<<<<<< HEAD
-		onStop={(e: DraggableEvent, data) => {
-=======
 		onStop={(e: DraggableEvent, data) => { // BUG: is triggered with other event
->>>>>>> 28d1b3d428ec7fef36a91fa778d9270e715ddfde
 			if (data.y > 0)
 				setLastY(0)
 			else if (-data.y > window.innerHeight - 670)
