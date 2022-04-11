@@ -10,10 +10,10 @@ import styles from "../styles/Canvas.module.css";
 // import { GameConstants, GameState, gameConstants } from "../constants/gameConstants"
 import { Draw } from "../gameObjects/Draw";
 import { canvasHeight, canvasWidth, countDown, GameState, IRoom } from "../gameObjects/GameObject";
-import authContext, { AuthContextType } from "../context/auth/authContext"
+import { useSession } from "../hooks/use-session";
 
 const Canvas: React.FC<{socketProps: Socket, roomProps: any}> = ({socketProps, roomProps}) => {
-	const { getUserData }: any = useContext(authContext) as AuthContextType;
+	const { user } = useSession();
 	const canvasRef = useRef<HTMLCanvasElement>(null);
 
     let socket: Socket = socketProps;
@@ -34,11 +34,11 @@ const Canvas: React.FC<{socketProps: Socket, roomProps: any}> = ({socketProps, r
 		Handle key controls
 	*/
 	const downHandler = (event: KeyboardEvent): void => {
-		socket.emit("keyDown", {roomId: roomId, key: event.key, username: getUserData().username});
+		socket.emit("keyDown", {roomId: roomId, key: event.key, username: user.username});
 	};
 
 	const upHandler = (event: KeyboardEvent): void => {
-		socket.emit("keyUp", {roomId: roomId, key: event.key, username: getUserData().username});
+		socket.emit("keyUp", {roomId: roomId, key: event.key, username: user.username});
 	};
 
 	/*

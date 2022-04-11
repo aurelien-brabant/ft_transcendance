@@ -4,14 +4,14 @@ import Head from "next/head";
 import withDashboardLayout from "../components/hoc/withDashboardLayout";
 import Canvas from "../components/Canvas";
 import { IRoom, User } from "../gameObjects/GameObject";
-import authContext, { AuthContextType } from "../context/auth/authContext"
 import alertContext, { AlertContextType } from "../context/alert/alertContext";
 import { NextPageWithLayout } from "./_app";
+import { useSession } from "../hooks/use-session";
 
 let socket: Socket;
 
 const Hub: NextPageWithLayout = () => {
-	const { getUserData }: any = useContext(authContext) as AuthContextType;
+	const { user } = useSession();
 	const { setAlert } = useContext(alertContext) as AlertContextType;
 
 	const [displayGame, setDisplayGame] = useState(false);
@@ -20,7 +20,7 @@ const Hub: NextPageWithLayout = () => {
 
 	let roomData: IRoom;
 	let roomId: string | undefined;
-	let user: User = {id: getUserData().id, username: getUserData().username};
+	let userData: User = {id: user.id, username: user.username};
 
 	const joinQueue = () => {
 		socket.emit("joinQueue");
@@ -36,7 +36,7 @@ const Hub: NextPageWithLayout = () => {
 
 		socket.on("connect", () => {
 			// Allow reconnection
-			socket.emit("handleUserConnect", user);
+			socket.emit("handleUserConnect", userData);
 
 			socket.on("newRoom", (newRoomData: IRoom) => {
 					socket.emit("joinRoom", newRoomData.roomId);
@@ -120,5 +120,5 @@ const Hub: NextPageWithLayout = () => {
 }
 
 Hub.getLayout = withDashboardLayout;
-Hub.isAuthRestricted = true;
+Hub.authConfig = true;
 export default Hub
