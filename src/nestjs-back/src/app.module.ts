@@ -7,9 +7,7 @@ import { AchievementsModule } from './achievements/achievements.module';
 import { AuthModule } from './auth/auth.module';
 import { ChannelsModule } from './chat/channels/channels.module';
 import { ChatModule } from './chat/chat.module';
-import { FriendsInvitesModule } from './friendsInvites/friendsInvites.module';
 import { GamesModule } from './games/games.module';
-import { GamesInvitesModule } from './gamesInvites/gamesInvites.module';
 import { MessagesModule } from './chat/messages/messages.module';
 import { SeederModule } from './seeder/seeder.module';
 import { UsersModule } from './users/users.module';
@@ -20,9 +18,7 @@ import { UsersModule } from './users/users.module';
     AuthModule,
     ChannelsModule,
     ChatModule,
-    FriendsInvitesModule,
     GamesModule,
-    GamesInvitesModule,
     MessagesModule,
     SeederModule,
     UsersModule,

@@ -173,12 +173,12 @@ const LeaderboardPage: NextPageWithLayout = ({}) => {
 
   useEffect(() => {
     const fetchData = async () => {
-
-    //  const req = await fetch('/api/users');
-     // const data = await req.json();
+      setIsLoading(true);
+      
+      //const req = await fetch('/api/users');
+      //const data = await req.json();
       
       //createRankingLists(data);
-      setIsLoading(true);
       createRankingLists(users);
       setIsLoading(false);
     }

@@ -10,13 +10,13 @@ import { RiPingPongLine, RiMessage2Line, RiUserSettingsLine } from 'react-icons/
 import { ActiveUser } from 'transcendance-types';
 import { NextPageWithLayout } from "../_app";
 import alertContext, { AlertContextType } from "../../context/alert/alertContext";
-import authContext, { AuthContextType } from "../../context/auth/authContext";
 import chatContext, { ChatContextType } from "../../context/chat/chatContext";
 import Achievements from "../../components/Achievements";
 import Selector from "../../components/Selector";
 import Tooltip from "../../components/Tooltip";
 import { UserStatusItem } from "../../components/UserStatus";
 import withDashboardLayout from "../../components/hoc/withDashboardLayout";
+import { useSession } from "../../hooks/use-session";
 
 export type GameSummary = {
   id: string;
@@ -129,42 +129,28 @@ const HighlightItem: React.FC<Highlight> = ({ n, label, hint, nColor }) => (
 );
 
 const UserProfilePage: NextPageWithLayout = ({}) => {
+  const router = useRouter();
+  const [userId, setUserId] = useState<string | string[]>();
 
+  useEffect(() => {
+    const query = router.query;
+    setUserId(query.id);
+  }, [router.query])
+  
+  const { user } = useSession();
   const actionTooltipStyles = 'font-bold bg-gray-900 text-neutral-200';
-  const { getUserData } = useContext(authContext) as AuthContextType;
   const { setAlert } = useContext(alertContext) as AlertContextType;
   const { openChat, openDirectMessage } = useContext(chatContext) as ChatContextType;
   const [gamesHistory, setGamesHistory] = useState([]);
-  const url: string = window.location.href;
-  const userId: string = parseInt(url.substring(url.lastIndexOf('/') + 1)).toString();
   const [isLoading, setIsLoading] = useState(true);
   const [alreadyFriend, setAlreadyFriend] = useState(false);
   const [selected, setSelected] = useState(0);
   const [rank, setRank] = useState("-");
-  const [userData, setUserData] = useState<ActiveUser>(
-    {
-      id: getUserData().id,
-      username: getUserData().username,
-      pic: getUserData().pic,
-      accountDeactivated: getUserData().accountDeactivated,
-      games: getUserData().games,
-      wins: getUserData().wins,
-      losses: getUserData().losses,
-      draws: getUserData().draws,
-      ratio: (!getUserData().wins && !getUserData().losses) ? "-" : getUserData().ratio,
-      achievements: getUserData().achievements,
-      friends: getUserData().friends,
-      blockedUsers: getUserData().blockedUsers,
-      pendingFriendsSent: getUserData().pendingFriendsSent,
-      pendingFriendsReceived: getUserData().pendingFriendsReceived,
-    }
-  );
-
-  const router = useRouter();
+  const [userData, setUserData] = useState<ActiveUser>(user);
 
   /* Send DM to user */
   const handleMessage = async () => {
-    await openDirectMessage(userId.toString(), userData);
+    await openDirectMessage("13".toString(), userData);
     openChat();
   }
 
@@ -200,7 +186,7 @@ const UserProfilePage: NextPageWithLayout = ({}) => {
 
   /* Send friendship invite */
   const requestFriend = async (id: string, username: string) => {
-    const reqSent = await fetch (`/api/users/${getUserData().id}`, {
+    const reqSent = await fetch (`/api/users/${user.id}`, {
       method: "PATCH",
       headers: {
         "Content-Type": "application/json",
@@ -212,7 +198,7 @@ const UserProfilePage: NextPageWithLayout = ({}) => {
       headers: {
         "Content-Type": "application/json",
       },
-      body: JSON.stringify({pendingFriendsReceived: [{"id": getUserData().id}]}),
+      body: JSON.stringify({pendingFriendsReceived: [{"id": user.id}]}),
     });
 
     if (reqSent.ok && reqReceived.ok) {
@@ -238,6 +224,9 @@ const UserProfilePage: NextPageWithLayout = ({}) => {
   }
 
   useEffect(() => {
+    if (!userId || !user)
+      return;
+  
     const fetchData = async () => {
 
       const req = await fetch(`/api/users/${userId}`);
@@ -253,7 +242,7 @@ const UserProfilePage: NextPageWithLayout = ({}) => {
         setRank(res);
       }
 
-      const already = alreadyFriendOrAsked(getUserData().pendingFriendsSent, getUserData().friends);
+      const already = alreadyFriendOrAsked(user.pendingFriendsSent, user.friends);
       setAlreadyFriend(already);
 
       setIsLoading(false);
@@ -261,7 +250,7 @@ const UserProfilePage: NextPageWithLayout = ({}) => {
 
     fetchData()
     .catch(console.error);
-  }, [userId])
+  }, [userId, user])
 
   return (
     <div className="min-h-screen overflow-x-auto text-white bg-fixed bg-center bg-fill grow" style={{
@@ -277,7 +266,7 @@ const UserProfilePage: NextPageWithLayout = ({}) => {
 
             {/* actions */}
             {(userData.accountDeactivated) ? <></> : 
-            (userData.id === getUserData().id) ? 
+            (userData.id === user.id) ? 
             <div className="absolute left-0 right-0 flex items-center justify-center -bottom-4 gap-x-2">
               <Tooltip className={actionTooltipStyles} content="Edit user">
                 <button className="p-2 text-2xl text-gray-900 bg-white rounded-full transition hover:scale-105">
@@ -316,7 +305,7 @@ const UserProfilePage: NextPageWithLayout = ({}) => {
           </div>
           <div className="flex flex-col items-center">
             <h1 className="text-2xl text-pink-600">{userData.username}</h1>
-            <UserStatusItem status={(userData.accountDeactivated) ? "deactivated" : "online"}/>
+            <UserStatusItem status={(userData.accountDeactivated) ? "deactivated" : "online"} id={userData.id}/>
           </div>
           <div className="w-full p-5 bg-gray-800 border-2 border-gray-800 rounded drop-shadow-md grid lg:grid-cols-3">
             <HighlightItem

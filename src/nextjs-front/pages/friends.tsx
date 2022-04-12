@@ -66,7 +66,10 @@ const FriendsPage: NextPageWithLayout = ({}) => {
   } = useContext(relationshipContext) as RelationshipContextType;
   const router = useRouter();
 
-   useEffect(() => {
+  if (!user)
+    return null;
+
+  useEffect(() => {
       getData();
       setIsLoading(false);
     }, [])
@@ -100,7 +103,7 @@ const FriendsPage: NextPageWithLayout = ({}) => {
        
           <div className="flex flex-col items-center">
             <h1 className="text-2xl text-pink-600">{user.username}</h1>
-            <UserStatusItem status={(user.accountDeactivated) ? "deactivated" : "online"}/>
+            <UserStatusItem status={(user.accountDeactivated) ? "deactivated" : "online"} id={user.id}/>
           </div>
        
           <div className="space-y-7 md:space-y-0 w-full p-2 bg-gray-800 border-2 border-gray-800 rounded drop-shadow-md grid grid-cols-2 md:grid-cols-4 items-end">

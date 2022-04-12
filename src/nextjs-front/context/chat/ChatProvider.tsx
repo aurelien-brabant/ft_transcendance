@@ -19,6 +19,7 @@ import GroupNew, { GroupNewHeader } from "../../components/chat/GroupNew";
 import GroupSettings, { GroupSettingsHeader } from "../../components/chat/GroupSettings";
 import GroupUsers, { GroupUsersHeader } from "../../components/chat/GroupUsers";
 import PasswordProtection, { PasswordProtectionHeader } from "../../components/chat/PasswordProtection";
+import socketContext, { SocketContextType } from "../../context/socket/socketContext";
 
 export type ChatViewItem = {
 	label: string;
@@ -108,6 +109,7 @@ const ChatProvider: React.FC = ({ children }) => {
 	const session = useSession();
 	const { isChatOpened, setIsChatOpened } = useContext(authContext) as AuthContextValue;
 	const { blocked } = useContext(relationshipContext) as RelationshipContextType;
+	const { chatRoomLen } = useContext(socketContext) as SocketContextType;
 
 	/* Chat manipulation */
 	const openChat = () => {
@@ -364,9 +366,15 @@ const ChatProvider: React.FC = ({ children }) => {
 						setIsChatOpened(true);
 					}}
 				>
-					<Bounce duration={2000} triggerOnce>
-						<BsFillChatDotsFill />
-					</Bounce>
+					<div>
+						{/*TO BE REMOVED AFTER TESTING INSTANT CHAT...*/}
+						<div>
+							{chatRoomLen}
+						</div>
+						<Bounce duration={2000} triggerOnce>
+							<BsFillChatDotsFill />
+						</Bounce>
+					</div>
 				</button>
 				:
 				<>:</>

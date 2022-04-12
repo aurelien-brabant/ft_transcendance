@@ -1,4 +1,4 @@
-import { useContext, Fragment, useState } from 'react';
+import { useContext, Fragment, useState, useEffect } from 'react';
 import Image from 'next/image';
 import { FiSearch } from 'react-icons/fi';
 import { GiHamburgerMenu } from 'react-icons/gi';
@@ -7,7 +7,6 @@ import { BiBell } from 'react-icons/bi';
 import Link from 'next/link';
 import { dashboardNavItems } from '../constants/nav';
 import notificationsContext from '../context/notifications/notificationsContext';
-import alertContext, { AlertContextType } from '../context/alert/alertContext';
 import { useSession } from '../hooks/use-session';
 
 type SearchBarProps = {
@@ -160,14 +159,19 @@ const DashboardTopNav: React.FC<DashboardTopNavProps> = ({
     const [isUserMenuOpened, setIsUserMenuOpened] = useState(false);
     const { notifications, markAllAsRead } = useContext(notificationsContext);
     const { user, logout } = useSession();
-    const { setAlert } = useContext(alertContext) as AlertContextType;
-    const router = useRouter();
 
     const handleLogout = async () => {
         await logout();
     };
 
+    useEffect(() => {
+        if (!user)
+            return;
+
+    }, [user])
+
     return (
+        user &&
         <div className="sticky top-0 z-30 flex items-center gap-x-8 bg-neutral-100 h-14 drop-shadow-lg">
             <div className="flex items-center h-full gap-x-4 md:gap-x-">
                 <div className="flex items-center justify-center w-24 h-full bg-gray-900">

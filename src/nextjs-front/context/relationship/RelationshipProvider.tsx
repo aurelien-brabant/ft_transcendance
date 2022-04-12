@@ -29,7 +29,8 @@ const RelationshipProvider: React.FC = ({ children }) => {
 		for (var i in users) {
 			if (users[i].id !== user.id
 				&& checkSuggested(blocked, users[i].id)
-				&& checkSuggested(friends, users[i].id))
+				&& checkSuggested(friends, users[i].id)
+				&& !users[i].accountDeactivated)
 					suggestedList = [...suggestedList, users[i]]
 		}
 

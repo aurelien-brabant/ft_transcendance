@@ -43,7 +43,7 @@ async function bootstrap() {
     }),
   );
 
-  // seeder();
+  //seeder();
 
   app.use(cookieParser())
 

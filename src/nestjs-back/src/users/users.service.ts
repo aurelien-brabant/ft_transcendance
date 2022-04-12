@@ -1,11 +1,11 @@
 import {Injectable, NotFoundException} from '@nestjs/common';
 import {InjectRepository} from '@nestjs/typeorm';
-import {Repository, getConnection} from 'typeorm';
+import {Repository} from 'typeorm';
 import {User} from './entities/users.entity';
 import {CreateDuoQuadraDto} from './dto/create-duoquadra.dto';
 import {CreateUserDto} from './dto/create-user.dto';
 import {UpdateUserDto} from './dto/update-user.dto';
-import {hash as hashPassword} from 'bcrypt';
+import {hash as hashPassword} from 'bcryptjs';
 import {prefixWithRandomAdjective} from 'src/utils/prefixWithRandomAdjective';
 import {PaginationQueryDto} from 'src/common/dto/pagination-query.dto';
 import {downloadResource} from 'src/utils/download';
@@ -13,8 +13,6 @@ import {join} from 'path';
 import {faker} from '@faker-js/faker';
 import {authenticator} from 'otplib';
 import {toFileStream} from 'qrcode';
-import achievementsList from 'src/constants/achievementsList';
-import {Achievement} from 'src/achievements/entities/achievements.entity';
 import {AchievementsService} from 'src/achievements/achievements.service';
 
 @Injectable()

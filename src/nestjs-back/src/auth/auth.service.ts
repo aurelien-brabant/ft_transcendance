@@ -1,7 +1,7 @@
 import {Injectable} from '@nestjs/common';
 import {JwtService} from '@nestjs/jwt';
 import {ConfigService} from '@nestjs/config';
-import {compare as comparePassword} from 'bcrypt';
+import {compare as comparePassword} from 'bcryptjs';
 import fetch from 'node-fetch';
 import * as FormData from 'form-data';
 import { User } from 'src/users/entities/users.entity';
