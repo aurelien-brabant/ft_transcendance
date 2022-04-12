@@ -365,9 +365,7 @@ const ChatProvider: React.FC = ({ children }) => {
 					<Bounce duration={2000} triggerOnce>
 						<BsFillChatDotsFill />
 					</Bounce>
-				</button>
-				:
-				<>:</>
+				</button> : <></>
 			}
 			{children}
 		</chatContext.Provider>
