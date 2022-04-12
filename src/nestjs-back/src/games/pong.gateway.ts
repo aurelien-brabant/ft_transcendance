@@ -41,7 +41,7 @@ export class PongGateway implements OnGatewayInit, OnGatewayConnection, OnGatewa
 			players.push(queue.dequeue());
 
 			// emit rooms change event for spectator or create a game in DB
-			// server.emit("updateCurrentGames", rooms);
+			server.emit("updateCurrentGames", rooms);
 
 			roomId = `${players[0].username}&${players[1].username}`;
             room = new Room(roomId, players, {maxGoal: 1});
@@ -275,5 +275,20 @@ export class PongGateway implements OnGatewayInit, OnGatewayConnection, OnGatewa
 			if (data.key === 'ArrowDown')
 				room.playerTwo.down = false;
 		}
+	}
+
+
+	// Etape 1 : Player JoinQueue
+	@SubscribeMessage('getCurrentGames')
+	handleCurrentGames(@ConnectedSocket() client: Socket) {
+		if (this.rooms.size != 0) {
+			this.server.to(client.id).emit("updateCurrentGames", (this.rooms));
+			console.log(this.rooms);
+		}
+		else {
+			this.logger.log("No rooms available");
+			this.server.to(client.id).emit("updateCurrentGames", (this.rooms));
+		}
+
 	}
 }

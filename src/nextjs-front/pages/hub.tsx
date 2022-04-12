@@ -1,4 +1,3 @@
-/* eslint-disable react-hooks/exhaustive-deps */
 import { Fragment, useEffect, useState, useContext } from "react";
 import { io, Socket } from 'socket.io-client';
 import Head from "next/head";
@@ -7,13 +6,9 @@ import Canvas from "../components/Canvas";
 import { IRoom, User } from "../gameObjects/GameObject";
 import alertContext, { AlertContextType } from "../context/alert/alertContext";
 import { useSession } from "../hooks/use-session";
-import { NextPageWithLayout } from "./_app";
 // import socketContext, { SocketContextType } from "../context/socket/socketContext";
-import { Feature, features } from "../constants/feature";
-import ResponsiveFade from "../components/ResponsiveFade";
-import Link from "next/link";
-import Selector from "../components/Selector";
 import OngoingGames from "../components/OngoingGames";
+import { NextPageWithLayout } from "./_app";
 
 let socket: Socket;
 
@@ -94,11 +89,6 @@ const Hub: NextPageWithLayout = () => {
 			socket.disconnect();
 		}
 	}, []);
-	
-	// useEffect((): any => {
-	// 	getCurrentGames();
-
-	// }, [selected])
   
 	return (
 		<Fragment>
@@ -119,16 +109,13 @@ const Hub: NextPageWithLayout = () => {
 				(
 					<>
 						<h1>Hello World!</h1>
-						<OngoingGames/>
+						<OngoingGames socketProps={socket}></OngoingGames>
 						{
 						inQueue ?
 							<button onClick={leaveQueue} className="px-6 py-2 text-xl uppercase bg-grey-600 drop-shadow-md text-bold text-neutral-200">Cancel</button>
 						:
 							<button onClick={joinQueue} className="px-6 py-2 text-xl uppercase bg-pink-600 drop-shadow-md text-bold text-neutral-200">Find a match</button>
 						}
-						<button onClick={spectate} className="px-6 py-2 text-xl uppercase bg-pink-600 drop-shadow-md text-bold text-neutral-200">
-							Spectate
-						</button>
 					</>
 				)				
 			}

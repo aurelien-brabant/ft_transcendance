@@ -1,6 +1,6 @@
 import React, { useState, useContext } from "react";
 // import styles from '../styles/Canvas.module.css';
-import {Socket} from 'socket.io-client';
+import { Socket } from 'socket.io-client';
 
 import { useRef, useEffect } from 'react';
 import styles from "../styles/Canvas.module.css";
