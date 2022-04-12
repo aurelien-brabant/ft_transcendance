@@ -66,19 +66,20 @@ const FriendsPage: NextPageWithLayout = ({}) => {
   } = useContext(relationshipContext) as RelationshipContextType;
   const router = useRouter();
 
-  if (!user)
-    return null;
-
   useEffect(() => {
+    if (user) {
       getData();
       setIsLoading(false);
-    }, [])
+    }
+  }, [])
 
   useEffect(() => {
     setIsLoading(true);
-    getRelationships(users, user.id);
-    createSuggested(users, friends, blocked);
-    setIsLoading(false);
+    if (user) {
+      getRelationships(users, user.id);
+      createSuggested(users, friends, blocked);
+      setIsLoading(false);
+    }
   }, [selected])
 
   return (
