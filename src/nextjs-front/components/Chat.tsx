@@ -8,7 +8,6 @@ import { ChatViewItem } from "../context/chat/ChatProvider";
 import chatContext, { ChatContextType } from "../context/chat/chatContext";
 import authContext, { AuthContextType } from "../context/auth/authContext";
 import React from "react";
-import ResponsiveSlide from "./ResponsiveSlide";
 
 type ChatProps = {
 	onClose: () => void;
