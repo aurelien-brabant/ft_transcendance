@@ -93,7 +93,7 @@ const Groups: React.FC<{viewParams: Object;}> = ({ viewParams }) => {
 					}}
 				/>
 				<select
-					className="px-2 py-1 text-sm bg-gray-900 outline-none"
+					className="drag-cancellable px-2 py-1 text-sm bg-gray-900 outline-none"
 					onChange={handleSelect}
 				>
 					<option value="all">all</option>

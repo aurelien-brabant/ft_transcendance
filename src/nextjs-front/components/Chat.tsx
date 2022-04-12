@@ -8,7 +8,6 @@ import { ChatViewItem } from "../context/chat/ChatProvider";
 import chatContext, { ChatContextType } from "../context/chat/chatContext";
 import authContext, { AuthContextType } from "../context/auth/authContext";
 import React from "react";
-import ResponsiveSlide from "./ResponsiveSlide";
 
 type ChatProps = {
 	onClose: () => void;
@@ -45,9 +44,12 @@ const Chat: React.FC<ChatProps> = ({ viewStack, onClose }) => {
 	return (
 
 	<Draggable
+		enableUserSelectHack={true}
+		cancel={'.drag-cancellable'}
 		nodeRef={nodeRef}
 		position={{x: lastX, y: lastY}}
 		onStop={(e, data) => {
+			console.log('hillan')
 			if (data.y > 0)
 				setLastY(0)
 			else if (-data.y > window.innerHeight - 670)
@@ -69,12 +71,6 @@ const Chat: React.FC<ChatProps> = ({ viewStack, onClose }) => {
  			className="fixed z-50 top-0 bottom-0 left-0 right-0 md:top-auto md:left-auto md:bottom-10 md:right-10
  			drop-shadow-lg flex flex-col overflow-hidden md:w-[25rem] md:h-[35em] text-white rounded border-gray-800 border-2"
  		>
- 			<ResponsiveSlide
- 				triggerOnce
- 				duration={1500}
- 				direction='down'
- 				useMediaQueryArg={{ query: "(min-width: 1280px)" }}
-			>
 				<header className="flex flex-col justify-end py-2 border-b-2 border-gray-800 cursor-move bg-gray-900/90 gap-y-4 drop-shadow-md text-neutral-200">
 
 				{/* Provide a default header, or use the custom one instead if any */}
@@ -163,7 +159,6 @@ const Chat: React.FC<ChatProps> = ({ viewStack, onClose }) => {
 						/>
 					)}
 				</div>
-			</ResponsiveSlide>
 
 		</div>
 	</Draggable>
