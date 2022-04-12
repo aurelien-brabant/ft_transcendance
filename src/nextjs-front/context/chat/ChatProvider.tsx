@@ -375,9 +375,7 @@ const ChatProvider: React.FC = ({ children }) => {
 							<BsFillChatDotsFill />
 						</Bounce>
 					</div>
-				</button>
-				:
-				<>:</>
+				</button> : <></>
 			}
 			{children}
 		</chatContext.Provider>
