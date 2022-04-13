@@ -1,9 +1,11 @@
 import { Fragment, useContext, useEffect, useRef, useState } from "react";
 import { UserStatusItem } from "../UserStatus";
+import { useSession } from "../../hooks/use-session";
 import chatContext, { ChatContextType, ChatGroupPrivacy, DirectMessage } from "../../context/chat/chatContext";
 
 /* All DM conversations tab */
 const DirectMessages: React.FC<{ viewParams: Object; }> = ({ viewParams }) => {
+	const { user } = useSession();
 	const {
 		openChatView,
 		directMessages,
@@ -88,7 +90,7 @@ const DirectMessages: React.FC<{ viewParams: Object; }> = ({ viewParams }) => {
 							className="relative z-20 flex items-center justify-center w-16 h-16 text-4xl rounded-full"
 						>
 							<img src={dm.friendPic} className="object-fill w-full h-full rounded-full" />
-							<UserStatusItem withText={false} status={Math.random() > 0.3 ? 'offline' : 'online'} className="absolute bottom-0 right-0 z-50" />
+							<UserStatusItem withText={false} status={Math.random() > 0.3 ? 'offline' : 'online'} className="absolute bottom-0 right-0 z-50" id={user.id} />
 						</div>
 					</div>
 					<div className="col-span-2">

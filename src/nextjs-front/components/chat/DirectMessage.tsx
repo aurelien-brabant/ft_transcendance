@@ -15,6 +15,7 @@ export const DirectMessageHeader: React.FC<{ viewParams: any }> = ({ viewParams 
 		chatContext
 	) as ChatContextType;
 	const actionTooltipStyles = 'font-bold bg-gray-900 text-neutral-200';
+	const { user } = useSession();
 
 	return (
 		<Fragment>
@@ -38,7 +39,7 @@ export const DirectMessageHeader: React.FC<{ viewParams: any }> = ({ viewParams 
 			<div className="flex items-center justify-center gap-x-3">
 				<Link href={`/users/${viewParams.friendId}`}><h6 className="font-bold hover:text-pink-600">
 						{viewParams.friendUsername}
-					</h6></Link> <UserStatusItem status="online" withText={false} />
+					</h6></Link> <UserStatusItem withText={false} status={(user.accountDeactivated) ? "deactivated" : "online"} id={user.id} />
 			</div>
 		</Fragment>
 	);
