@@ -11,48 +11,45 @@ import {
   WebSocketServer,
 } from '@nestjs/websockets';
 import { ChatService } from './chat.service';
+import { User, ChatRoom } from './class/ChatRoom';
 
 @WebSocketGateway({ cors: true })
 export class ChatGateway implements OnGatewayInit, OnGatewayConnection, OnGatewayDisconnect {
   @WebSocketServer() server: Server;
   private logger: Logger = new Logger('ChatGateway');
+  private readonly room: ChatRoom = new ChatRoom();
 
   constructor(private readonly chatService: ChatService) {}
+  handleConnection(client: Socket, ...args: any[]) {
+    this.logger.log(`client connected...`);
+  }
 
   afterInit(server: Server) {
-    this.logger.log('Init Chat Gateway');
+    this.logger.log('[+] Init Chat Gateway');
   }
 
-  async handleConnection(@ConnectedSocket() socket: Socket) {
-    this.logger.log(`Client connected: ${socket.id}`);
-  }
+  @SubscribeMessage('handleChatConnect')
+	handleChatConnect(@ConnectedSocket() client: Socket, @MessageBody() user: User) {
+	  let newUser: User;
+    if (user) {
+  	  newUser = new User(user.id, user.username, client.id);
+      newUser.setSocketId(client.id);
+	    this.room.addUser(newUser);
+      this.server.to(newUser.socketId).emit('joinChat', this.room);
+		  for (let i in this.room.users)
+		    this.server.to(this.room.users[i].socketId).emit('updateChatRoomLen', this.room.users.length)
+		  }
+	}
 
-  handleDisconnect(socket: Socket) {
-    this.logger.log(`Client disconnected: ${socket.id}`);
-  }
+	async handleDisconnect(@ConnectedSocket() client: Socket) {
+		const user = this.room.getUser(client.id);
 
-  @SubscribeMessage('messageToServer')
-  async handleMessage(
-    @ConnectedSocket() socket: Socket,
-    @MessageBody() data: string
-  ) {
-    // const author = await this.chatService.getUserFromSocket(socket);
-
-    this.logger.log(`Handle message from Client [${socket.id}]\n${data}`);
-    this.server.emit('messageToClient', data);
-    // this.server.to(data.channel).emit('messageToClient', data);
-  }
-
-  // @SubscribeMessage('joinChannel')
-  // joinChannel(
-  //   @ConnectedSocket() socket: Socket,
-  //   @MessageBody() data: string
-  // ) {
-  //   socket.join(data, (err) => {
-  //     if (err) {
-  //       console.log('error ', err);
-  //     }
-  //   });
-  //   this.logger.log(`Client [${socket.id}] joined channel ${channelName}`);
-  // }
+		if (user) {
+      this.logger.log(`Client ${user.username} disconnected: ${client.id}`);
+			this.room.removeUser(user);
+    	this.server.to(user.socketId).emit('leaveChat', this.room)
+			for (let i in this.room.users)
+			  this.server.to(this.room.users[i].socketId).emit('updateChatRoomLen', this.room.users.length)
+	  }
+	}
 }

@@ -1,47 +1,7 @@
-import { useContext, useEffect, useState } from "react";
+import { useEffect, useState } from "react";
 import { FaUserFriends, FaGamepad } from "react-icons/fa";
 import { RiMedalLine } from "react-icons/ri";
-import authContext, { AuthContextType } from "../context/auth/authContext";
-
-
-//TO DO FIX THIS...
-/*export const checkList = (type: string, userId: string) => {
-
-    const { getUserData }= useContext(authContext) as AuthContextType;
-    const [achievements, setAchievements] = useState(getUserData().achievements);
-    const [achievementsList, setAchievementsList] = useState([]);
-
-    if (type === 'friends') {
-
-        const friendsLen = getUserData().friends.length;
-
-        const check = async (len: number, id: string) => {
-            if (friendsLen === len - 1) {
-                const updateAchievement = await fetch(`/api/achievements/${id}`, {
-                    method: "PATCH",
-                    headers: {
-                      "Content-Type": "application/json",
-                    },
-                    body: JSON.stringify([{"id": `${userId}`}])
-                });
-                const res = await updateAchievement.json();
-                console.log('updateAchievement', updateAchievement);
-                console.log('res', res);
-             //   return true;
-            }
-            //return false;
-        }
-
-        for (let i in achievements) {
-            if (achievements[i].type === 'friends') {
-                check(achievements[i].levelToReach, achievements[i].id);
-//                  setAlert({ type: 'info', content: `New achievement: ${achievements[i].description}` });
-            }
-        }
-    }
-
-}
-*/
+import { useSession } from "../hooks/use-session";
 
 const getAchievements = (type: string) => {
     return (
@@ -54,15 +14,18 @@ const getAchievements = (type: string) => {
 }
 
 const Achievements: React.FC<{}> = () => {
-    const { getUserData } = useContext(authContext) as AuthContextType;
-    const [achievements, setAchievements] = useState(getUserData().achievements);
+    const { user } = useSession();
+//    const { getUserData } = useContext(authContext) as AuthContextType;
+//    const [achievements, setAchievements] = useState(getUserData().achievements);
+    const [achievements, setAchievements] = useState(user.achievements);
     const [achievementsList, setAchievementsList] = useState([]);
   
     const getData = async () => {
         const reqList = await fetch('/api/achievements')
         const list = await reqList.json();
         setAchievementsList(list);
-        setAchievements(getUserData().achievements)
+        setAchievements(user.achievements);
+//        setAchievements(getUserData().achievements)
     }
 
     useEffect(() => {

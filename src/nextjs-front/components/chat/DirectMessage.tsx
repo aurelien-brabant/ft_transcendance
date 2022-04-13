@@ -4,9 +4,9 @@ import { FiSend } from "react-icons/fi";
 import { RiPingPongLine } from 'react-icons/ri';
 import Link from 'next/link';
 import { UserStatusItem } from "../UserStatus";
+import { useSession } from "../../hooks/use-session";
 import Tooltip from "../../components/Tooltip";
 import alertContext, { AlertContextType } from "../../context/alert/alertContext";
-import authContext, { AuthContextType } from "../../context/auth/authContext";
 import chatContext, { ChatContextType, ChatMessage } from "../../context/chat/chatContext";
 
 /* Header */
@@ -48,14 +48,13 @@ export const DirectMessageHeader: React.FC<{ viewParams: any }> = ({ viewParams 
 const DirectMessage: React.FC<{ viewParams: { [key: string]: any } }> = ({
 	viewParams,
 }) => {
+	const { user } = useSession();
 	const { setAlert } = useContext(alertContext) as AlertContextType;
-	const { getUserData } = useContext(authContext) as AuthContextType;
 	const { fetchChannelData } = useContext(chatContext) as ChatContextType;
 	const [messages, setMessages] = useState<ChatMessage[]>([]);
 	const [currentMessage, setCurrentMessage] = useState("");
 	const chatBottom = useRef<HTMLDivElement>(null);
 	const dmId = viewParams.dmId;
-	const userId = getUserData().id;
 
 	const addMessage = (message: any) => {
 		setMessages([
@@ -63,7 +62,7 @@ const DirectMessage: React.FC<{ viewParams: { [key: string]: any } }> = ({
 				id: message.id,
 				author: message.author.username,
 				content: message.content,
-				isMe: (message.author.id === userId),
+				isMe: (message.author.id === user.id),
 				isBlocked: false
 			}
 		]);
@@ -80,7 +79,7 @@ const DirectMessage: React.FC<{ viewParams: { [key: string]: any } }> = ({
 				"Content-Type": "application/json",
 			},
 			body: JSON.stringify({
-				author: getUserData(),
+				author: user,
 				content: currentMessage,
 				channel: channelData
 			}),
@@ -115,7 +114,7 @@ const DirectMessage: React.FC<{ viewParams: { [key: string]: any } }> = ({
 				id: dms[i].id,
 				author: dms[i].author.username,
 				content: dms[i].content,
-				isMe: (dms[i].author.id === userId),
+				isMe: (dms[i].author.id === user.id),
 				isBlocked: false
 			});
 		}

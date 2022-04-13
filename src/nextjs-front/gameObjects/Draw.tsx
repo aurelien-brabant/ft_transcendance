@@ -18,7 +18,6 @@ type Net = {
 	y: number;
 	width: number;
 	height: number;
-
 }
 
 export class Draw {

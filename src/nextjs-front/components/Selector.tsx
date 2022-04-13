@@ -12,7 +12,7 @@ export type SelectorProps = {
 };
 
 const Selector: React.FC<SelectorProps> = ({ selected, setSelected, items }) => {
-	
+
 	return (
 		<div className="w-full">
 			<div className="flex overflow-x-auto">

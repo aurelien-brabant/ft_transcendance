@@ -1,6 +1,7 @@
-import { NestFactory } from "@nestjs/core";
+/*import { NestFactory } from "@nestjs/core";
 import { AppModule } from "./app.module";
 import { SeederService } from "./seeder/seeder.service";
+
 
 async function seed() {
   NestFactory.createApplicationContext(AppModule)
@@ -19,3 +20,5 @@ async function seed() {
 }
 
 export default seed;
+*/
+export default null

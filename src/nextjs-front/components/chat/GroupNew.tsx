@@ -1,7 +1,7 @@
 import { Fragment, useContext, useState } from "react";
 import { AiOutlineArrowLeft, AiOutlineClose } from "react-icons/ai";
+import { useSession } from "../../hooks/use-session";
 import alertContext, { AlertContextType } from "../../context/alert/alertContext";
-import authContext, { AuthContextType } from "../../context/auth/authContext";
 import chatContext, { ChatContextType, ChatGroupPrivacy } from "../../context/chat/chatContext";
 
 type NewGroupData = {
@@ -51,13 +51,14 @@ export const GroupNewHeader: React.FC = () => {
 };
 
 const GroupNew: React.FC = () => {
+	const { user } = useSession();
 	const { setAlert } = useContext(alertContext) as AlertContextType;
-	const { getUserData } = useContext(authContext) as AuthContextType;
 	const {
 		openChatView,
 		updateChatGroups,
 		setChatGroupData
 	} = useContext(chatContext) as ChatContextType;
+	const userId = getUserData().id;
 
 	const [formData, setFormData] = useState<NewGroupData>({
 		groupName: "",
@@ -115,29 +116,29 @@ const GroupNew: React.FC = () => {
 			},
 			body: JSON.stringify({
 				name: formData.groupName,
-				owner: getUserData(),
+				owner: { "id": user.id },
 				privacy: formData.privacy,
 				password: (formData.password.length !== 0) ? formData.password : undefined,
-				users: [ getUserData() ]
+				users: [ { "id": user.id } ]
 			}),
 		});
 
 		if (res.status === 201) {
 			const data = await res.json();
-			const gm = setChatGroupData(JSON.parse(JSON.stringify(data)), getUserData().id);
+			const gm = setChatGroupData(JSON.parse(JSON.stringify(data)), user.id);
 
 			updateChatGroups();
 			openChatView(gm.privacy === 'protected' ? 'password_protection' : 'group', gm.label, {
 				groupName: gm.label,
 				groupId: gm.id
-			}
-			);
+			});
 		} else if (res.status === 401) {
 			setAlert({
 				type: "warning",
 				content: `Group '${formData.groupName}' already exists. Choose another name.`
 			});
 		} else {
+			console.log(res);
 			setAlert({
 				type: "error",
 				content: "Failed to create group"

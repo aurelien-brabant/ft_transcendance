@@ -36,7 +36,7 @@ services:
 
     volumes:
       - ./nextjs-front:/usr/app
-
+     
     environment:
       - NODE_ENV=development
       - NEXT_PUBLIC_FT_CLIENT_ID=30b33f3cd460d6aa6b4b8b25dd65d9ed457f2af783bd63d0a1c2c191f24b107d

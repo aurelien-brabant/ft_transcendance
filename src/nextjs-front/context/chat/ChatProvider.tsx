@@ -1,10 +1,11 @@
-import { useContext, useEffect, useState } from "react";
+import { useContext, useState } from "react";
 import { BsFillChatDotsFill } from "react-icons/bs";
 import { BaseUserData } from 'transcendance-types';
-import alertContext, { AlertContextType } from "../../context/alert/alertContext";
-import authContext, { AuthContextType } from "../auth/authContext";
-import relationshipContext, { RelationshipContextType } from "../../context/relationship/relationshipContext";
+import alertContext, { AlertContextType } from "../alert/alertContext";
+import authContext, { AuthContextValue } from "../auth/authContext";
+import relationshipContext, { RelationshipContextType } from "../relationship/relationshipContext";
 import { Bounce } from "react-awesome-reveal";
+import { useSession } from "../../hooks/use-session";
 /* Chat */
 import Chat from "../../components/Chat";
 import ChatGroupsView from "../../components/chat/Groups";
@@ -18,6 +19,7 @@ import GroupNew, { GroupNewHeader } from "../../components/chat/GroupNew";
 import GroupSettings, { GroupSettingsHeader } from "../../components/chat/GroupSettings";
 import GroupUsers, { GroupUsersHeader } from "../../components/chat/GroupUsers";
 import PasswordProtection, { PasswordProtectionHeader } from "../../components/chat/PasswordProtection";
+import socketContext, { SocketContextType } from "../../context/socket/socketContext";
 
 export type ChatViewItem = {
 	label: string;
@@ -104,9 +106,11 @@ const ChatProvider: React.FC = ({ children }) => {
 	const [directMessages, setDirectMessages] = useState<DirectMessage[]>([]);
 	const [lastX, setLastX] = useState<number>(0);
 	const [lastY, setLastY] = useState<number>(0);
-	const { isPreAuthenticated, isChatOpened, setIsChatOpened } = useContext(authContext) as AuthContextType;
+	const session = useSession();
+	const { isChatOpened, setIsChatOpened } = useContext(authContext) as AuthContextValue;
 	const { blocked } = useContext(relationshipContext) as RelationshipContextType;
-	
+	const { chatRoomLen } = useContext(socketContext) as SocketContextType;
+
 	/* Chat manipulation */
 	const openChat = () => {
 		setIsChatOpened(true);
@@ -335,17 +339,17 @@ const ChatProvider: React.FC = ({ children }) => {
 				setChatGroupData,
 				updateDirectMessages,
 				setDirectMessageData,
+				createDirectMessage,
+				openDirectMessage,
 				fetchChannelData,
 				loadChannelsOnMount,
 				lastX,
-				setLastX,
 				lastY,
+				setLastX,
 				setLastY,
-				createDirectMessage,
-				openDirectMessage,
 			}}
 		>
-			{isPreAuthenticated ?
+			{session.state === 'authenticated' ?
 				isChatOpened ?
 				<Chat
 					viewStack={viewStack}
@@ -362,9 +366,15 @@ const ChatProvider: React.FC = ({ children }) => {
 						setIsChatOpened(true);
 					}}
 				>
-					<Bounce duration={2000} triggerOnce>
-						<BsFillChatDotsFill />
-					</Bounce>
+					<div>
+						{/*TO BE REMOVED AFTER TESTING INSTANT CHAT...*/}
+						<div>
+							{chatRoomLen}
+						</div>
+						<Bounce duration={2000} triggerOnce>
+							<BsFillChatDotsFill />
+						</Bounce>
+					</div>
 				</button> : <></>
 			}
 			{children}

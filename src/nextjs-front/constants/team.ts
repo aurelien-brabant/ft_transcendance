@@ -2,7 +2,7 @@ import aldubarPic from "../public/team/aldubar.webp";
 import mboivinPic from "../public/team/mboivin.webp";
 import abrabantPic from "../public/team/abrabant.webp";
 import vdeschamPic from "../public/team/vdescham.webp";
-import smaccaryPic from "../public/team/smaccary.webp";
+import adelcrosPic from "../public/team/adelcros.jpeg"; // if someone can download it again in .webp
 
 export type TeamMember = {
 	firstname: string;
@@ -20,7 +20,7 @@ export const team: TeamMember[] = [
 		firstname: "Mathilde",
 		lastname: "Boivin",
 		login42: "mboivin",
-		role: "Typescript Frontend Developer",
+		role: "Developer",
 		imageSrc: mboivinPic,
 		githubLink: 'https://github.com/matboivin'
 	},
@@ -53,11 +53,11 @@ export const team: TeamMember[] = [
 		githubLink: 'https://github.com/Nnevalti'
 	},
 	{
-		firstname: "Noël",
-		lastname: "Maccary",
-		login42: "smaccary",
-		role: "Typescript Frontend Developer",
-		imageSrc: smaccaryPic,
-		githubLink: 'https://github.com/Dirty-No'
+		firstname: "Astrid",
+		lastname: "Delcros",
+		login42: "adelcros",
+		role: "Node.js developer",
+		imageSrc: adelcrosPic,
+		githubLink: 'https://github.com/AstridDELCROS'
 	},
 ];
