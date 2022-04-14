@@ -41,8 +41,6 @@ const Hub: NextPageWithLayout = () => {
 		socket.on("connect", () => {
 
 			socket.on("updateCurrentGames", (newRoomData: Array<string>) => {
-                console.log("received new rooom data");
-                console.log(newRoomData);
                 setCurrentGames(newRoomData);
             });
 
@@ -113,15 +111,17 @@ const Hub: NextPageWithLayout = () => {
 						
 				:
 				(
-					<>
-						<h1 className="text-neutral-200">Hello World!</h1>
-						
+					<>						
 						<OngoingGames currentGamesProps={currentGames} socketProps={socket}></OngoingGames>
 						{
-						inQueue ?
-							<button onClick={leaveQueue} className="px-6 py-2 text-xl uppercase bg-grey-600 drop-shadow-md text-bold text-neutral-200">Cancel</button>
-						:
-							<button onClick={joinQueue} className="px-6 py-2 text-xl uppercase bg-pink-600 drop-shadow-md text-bold text-neutral-200">Find a match</button>
+							inQueue ? 
+							<button onClick={leaveQueue} className="px-6 py-2 mx-auto mt-60 text-xl uppercase bg-gray-600 drop-shadow-md text-bold text-neutral-200">
+								Cancel
+							</button>
+							:
+							<button onClick={joinQueue} className="px-6 py-2 mx-auto mt-60 text-xl uppercase bg-pink-600 drop-shadow-md text-bold text-neutral-200">
+								Find a match
+							</button>
 						}
 					</>
 				)				
