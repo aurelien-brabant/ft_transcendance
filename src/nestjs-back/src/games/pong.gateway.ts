@@ -26,33 +26,36 @@ export class PongGateway implements OnGatewayInit, OnGatewayConnection, OnGatewa
 	private logger: Logger = new Logger('gameGateway');
     private readonly queue: Queue = new Queue();
     private readonly rooms: Map<string, Room> = new Map();
+	private readonly currentGames: Array<string> = new Array();
 
 	// see if it can be done another way
 	private readonly connectedUsers: ConnectedUsers = new ConnectedUsers();
 
-	async findMatches(server: Server, queue: Queue, rooms: Map<string, Room>) {
-		if (queue.size() > 1) {
-			let players: User[] = Array();
-			let roomId: string;
-            let room: Room;
-
-			players.push(queue.dequeue());
-			// Match players based on ratio, etc...
-			players.push(queue.dequeue());
-
-			// emit rooms change event for spectator or create a game in DB
-			server.emit("updateCurrentGames", rooms);
-
-			roomId = `${players[0].username}&${players[1].username}`;
-            room = new Room(roomId, players, {maxGoal: 1});
-			server.to(players[0].socketId).emit("newRoom", room);
-			server.to(players[1].socketId).emit("newRoom",  room);
-            rooms.set(roomId, room);
-        }
-    }
-
 	afterInit(server: Server) {
-		setInterval(this.findMatches, 5000, this.server, this.queue, this.rooms);
+		setInterval(() => {
+			if (this.queue.size() > 1) {
+				let players: User[] = Array();
+				let roomId: string;
+				let room: Room;
+
+				players.push(this.queue.dequeue());
+				// Match players based on ratio, etc...
+				players.push(this.queue.dequeue());
+
+				// emit rooms change event for spectator or create a game in DB
+				
+				roomId = `${players[0].username}&${players[1].username}`;
+				
+				room = new Room(roomId, players, {maxGoal: 1});
+				
+				this.server.to(players[0].socketId).emit("newRoom", room);
+				this.server.to(players[1].socketId).emit("newRoom",  room);
+				this.rooms.set(roomId, room);
+				this.currentGames.push(roomId);
+				this.server.emit("updateCurrentGames", this.currentGames);
+			}
+		}, 5000);
+		this.logger.log(`Init Pong Gateway`);
 	}
 
 	async handleConnection(@ConnectedSocket() client: Socket) {
@@ -95,6 +98,11 @@ export class PongGateway implements OnGatewayInit, OnGatewayConnection, OnGatewa
 					{
 						this.logger.log("No player left in the room deleting it...");
 						this.rooms.delete(room.roomId);
+
+						let roomIndex: number = this.currentGames.findIndex(roomIdRm => roomIdRm === room.roomId);
+						if (roomIndex !== -1)
+							this.currentGames.splice(roomIndex, 1);
+						this.server.emit("updateCurrentGames", this.currentGames);
 					}
 					else if (room.gameState !== GameState.END) {
 						if (room.gameState === GameState.GOAL)
@@ -181,6 +189,11 @@ export class PongGateway implements OnGatewayInit, OnGatewayConnection, OnGatewa
 			if (room.players.length === 0) {
 				this.logger.log("No user left in the room deleting it...");
 				this.rooms.delete(room.roomId);
+
+				let roomIndex: number = this.currentGames.findIndex(roomIdRm => roomIdRm === room.roomId);
+				if (roomIndex !== -1)
+					this.currentGames.splice(roomIndex, 1);
+				this.server.emit("updateCurrentGames", this.currentGames);
 			}
 			if (room.isAPlayer(user) && room.gameState !== GameState.END)
 				room.pause();
@@ -218,7 +231,11 @@ export class PongGateway implements OnGatewayInit, OnGatewayConnection, OnGatewa
 						winnerScore: room.winnerScore,
 						loserScore: room.loserScore
 					});
-					console.log(game);	
+
+					let roomIndex: number = this.currentGames.findIndex(roomIdRm => roomIdRm === room.roomId);
+					if (roomIndex !== -1)
+						this.currentGames.splice(roomIndex, 1);
+					this.server.emit("updateCurrentGames", this.currentGames);
 				}
 			}
 			else if (room.gameState === GameState.GOAL && (currentTimestamp - room.goalTimestamp) >= 3500) {
@@ -281,14 +298,6 @@ export class PongGateway implements OnGatewayInit, OnGatewayConnection, OnGatewa
 	// Etape 1 : Player JoinQueue
 	@SubscribeMessage('getCurrentGames')
 	handleCurrentGames(@ConnectedSocket() client: Socket) {
-		if (this.rooms.size != 0) {
-			this.server.to(client.id).emit("updateCurrentGames", (this.rooms));
-			console.log(this.rooms);
-		}
-		else {
-			this.logger.log("No rooms available");
-			this.server.to(client.id).emit("updateCurrentGames", (this.rooms));
-		}
-
+		this.server.to(client.id).emit("updateCurrentGames", (this.currentGames));
 	}
 }

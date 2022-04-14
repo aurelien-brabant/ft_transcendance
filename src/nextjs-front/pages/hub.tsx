@@ -17,10 +17,11 @@ const Hub: NextPageWithLayout = () => {
 	const { setAlert } = useContext(alertContext) as AlertContextType;
 	// const { socket } = useContext(socketContext) as SocketContextType;
 	const [displayGame, setDisplayGame] = useState(false);
-	const [selected, setSelected] = useState(0);
 	const [inQueue, setInQueue] = useState(false);
 	const [room, setRoom] = useState<IRoom | null>(null);
-	const[currentGame, setCurrentGame] = useState([]);
+	const [currentGames, setCurrentGames] = useState<Array<string>>(new Array());
+
+
 	let roomData: IRoom;
 	let roomId: string | undefined;
 	let userData: User = {id: user.id, username: user.username};
@@ -33,15 +34,18 @@ const Hub: NextPageWithLayout = () => {
 		socket.emit("leaveQueue");
 	}
 
-	const spectate = () => {
-		socket.emit("spectateRoom", "funny_test212&ancient_test211");
-	}
-
 	useEffect((): any => {
 		// connect to socket server
 		socket = io("localhost:8080");
 
 		socket.on("connect", () => {
+
+			socket.on("updateCurrentGames", (newRoomData: Array<string>) => {
+                console.log("received new rooom data");
+                console.log(newRoomData);
+                setCurrentGames(newRoomData);
+            });
+
 			// Allow reconnection
 			socket.emit("handleUserConnect", userData);
 
@@ -82,6 +86,8 @@ const Hub: NextPageWithLayout = () => {
 				setDisplayGame(false);
 				setRoom(null);
 			});
+
+			socket.emit("getCurrentGames");
 		});
 		
 	return () => {
@@ -108,8 +114,9 @@ const Hub: NextPageWithLayout = () => {
 				:
 				(
 					<>
-						<h1>Hello World!</h1>
-						<OngoingGames socketProps={socket}></OngoingGames>
+						<h1 className="text-neutral-200">Hello World!</h1>
+						
+						<OngoingGames currentGamesProps={currentGames} socketProps={socket}></OngoingGames>
 						{
 						inQueue ?
 							<button onClick={leaveQueue} className="px-6 py-2 text-xl uppercase bg-grey-600 drop-shadow-md text-bold text-neutral-200">Cancel</button>
