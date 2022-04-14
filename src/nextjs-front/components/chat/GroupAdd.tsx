@@ -2,6 +2,7 @@ import { Fragment, useContext, useEffect, useRef, useState } from "react";
 import { AiOutlineArrowLeft, AiOutlineClose } from "react-icons/ai";
 import { BaseUserData, User } from "transcendance-types";
 import { UserStatusItem } from "../UserStatus";
+import { useSession } from "../../hooks/use-session";
 import alertContext, { AlertContextType } from "../../context/alert/alertContext";
 import chatContext, { ChatContextType } from "../../context/chat/chatContext";
 import relationshipContext, { RelationshipContextType } from "../../context/relationship/relationshipContext";
@@ -32,6 +33,7 @@ export const GroupAddHeader: React.FC<{ viewParams: any }> = ({ viewParams }) =>
 };
 
 const GroupAdd: React.FC<{ viewParams: any }> = ({ viewParams }) => {
+	const { user } = useSession();
 	const { setAlert } = useContext(alertContext) as AlertContextType;
 	const { closeRightmostView, fetchChannelData } = useContext(chatContext) as ChatContextType;
 	const { getData, friends } = useContext(relationshipContext) as RelationshipContextType;
@@ -136,7 +138,7 @@ const GroupAdd: React.FC<{ viewParams: any }> = ({ viewParams }) => {
 							src={`/api/users/${friend.id}/photo`}
 							className="object-fill w-full h-full rounded-full"
 						/>
-						<UserStatusItem withText={false} status={Math.random() > 0.3 ? 'offline' : 'online'} className="absolute bottom-0 right-0 z-50" />
+						<UserStatusItem status={(user.accountDeactivated) ? "deactivated" : "online"} withText={false} className="absolute bottom-0 right-0 z-50" id={user.id} />
 					</div>
 					{friend.username}
 				</div>
