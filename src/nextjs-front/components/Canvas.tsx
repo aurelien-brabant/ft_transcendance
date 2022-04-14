@@ -21,7 +21,7 @@ const Canvas: React.FC<{socketProps: Socket, roomProps: any}> = ({socketProps, r
 	let roomId: string | undefined = room?.roomId;
 	const [gameEnded, setGameEnded] = useState(false);
 
-	let isAplayer: boolean = (room.playerOne.user.username == getUserData().username || room.playerTwo.user.username == getUserData().username);
+	let isAplayer: boolean = (room.playerOne.user.username == user.username || room.playerTwo.user.username == user.username);
 	let oldTimestamp: number = 0;
 	let secondElapsed: number = 0;
 	let seconds: number = 0;

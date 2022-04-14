@@ -1,5 +1,5 @@
 import { Fragment, useEffect, useState, useContext } from "react";
-//import { io, Socket } from 'socket.io-client';
+import { io, Socket } from 'socket.io-client';
 import Head from "next/head";
 import withDashboardLayout from "../components/hoc/withDashboardLayout";
 import Canvas from "../components/Canvas";
@@ -7,14 +7,14 @@ import { IRoom, User } from "../gameObjects/GameObject";
 import alertContext, { AlertContextType } from "../context/alert/alertContext";
 import { NextPageWithLayout } from "./_app";
 import { useSession } from "../hooks/use-session";
-import socketContext, { SocketContextType } from "../context/socket/socketContext";
+// import socketContext, { SocketContextType } from "../context/socket/socketContext";
 
-//let socket: Socket;
+let socket: Socket;
 
 const Hub: NextPageWithLayout = () => {
 	const { user } = useSession();
 	const { setAlert } = useContext(alertContext) as AlertContextType;
-	const { socket } = useContext(socketContext) as SocketContextType;
+	// const { socket } = useContext(socketContext) as SocketContextType;
 
 	const [displayGame, setDisplayGame] = useState(false);
 	const [inQueue, setInQueue] = useState(false);
@@ -39,7 +39,7 @@ const Hub: NextPageWithLayout = () => {
 
 	useEffect((): any => {
 		// connect to socket server
-	//	socket = io("localhost:8080");
+		socket = io("localhost:8080");
 
 		socket.on("connect", () => {
 			// Allow reconnection
