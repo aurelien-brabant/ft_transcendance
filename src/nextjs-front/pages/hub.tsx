@@ -39,13 +39,13 @@ const Hub: NextPageWithLayout = () => {
 		socket = io("localhost:8080");
 
 		socket.on("connect", () => {
+			// Allow reconnection
+			socket.emit("handleUserConnect", userData);
 
 			socket.on("updateCurrentGames", (newRoomData: Array<string>) => {
                 setCurrentGames(newRoomData);
             });
 
-			// Allow reconnection
-			socket.emit("handleUserConnect", userData);
 
 			socket.on("newRoom", (newRoomData: IRoom) => {
 					socket.emit("joinRoom", newRoomData.roomId);

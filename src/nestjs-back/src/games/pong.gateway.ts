@@ -63,7 +63,7 @@ export class PongGateway implements OnGatewayInit, OnGatewayConnection, OnGatewa
 	}
 
 	@SubscribeMessage('handleUserConnect')
-	handlUserConnect(@ConnectedSocket() client: Socket, @MessageBody() user: User) {
+	async handleUserConnect(@ConnectedSocket() client: Socket, @MessageBody() user: User) {
 		let newUser: User = new User(user.id, user.username, client.id);
 		newUser.setSocketId(client.id);
 		newUser.setUserStatus(userStatus.INHUB);
@@ -84,7 +84,45 @@ export class PongGateway implements OnGatewayInit, OnGatewayConnection, OnGatewa
 			}
 		});
 		this.connectedUsers.addUser(newUser);
+		// this.logger.log(`Client connected: ${client.id}`);
 	}
+
+	// @SubscribeMessage('gameDisconnect')
+	// async handleGameDisconnect(@ConnectedSocket() client: Socket) {
+	// 	let user: User = this.connectedUsers.getUser(client.id);
+
+	// 	if (user) {
+	// 		this.rooms.forEach((room: Room) => {
+	// 			if (room.isAPlayer(user))
+	// 			{
+	// 				room.removeUser(user);
+	// 				if (room.players.length === 0)
+	// 				{
+	// 					this.logger.log("No player left in the room deleting it...");
+	// 					this.rooms.delete(room.roomId);
+
+	// 					let roomIndex: number = this.currentGames.findIndex(roomIdRm => roomIdRm === room.roomId);
+	// 					if (roomIndex !== -1)
+	// 						this.currentGames.splice(roomIndex, 1);
+	// 					this.server.emit("updateCurrentGames", this.currentGames);
+	// 				}
+	// 				else if (room.gameState !== GameState.END) {
+	// 					if (room.gameState === GameState.GOAL)
+	// 						room.resetPosition();
+	// 					room.pause();
+	// 				}
+	// 				client.leave(room.roomId);
+	// 				return ;
+	// 			}
+	// 		});
+
+	// 		// remove from queue and connected user
+	// 		this.queue.remove(user);
+	// 		this.logger.log(`Client ${user.username} disconnected: ${client.id}`);
+	// 		this.connectedUsers.removeUser(user);
+	// 	}
+	// }
+
 
 	async handleDisconnect(@ConnectedSocket() client: Socket) {
 		let user: User = this.connectedUsers.getUser(client.id);
@@ -151,7 +189,6 @@ export class PongGateway implements OnGatewayInit, OnGatewayConnection, OnGatewa
 	@SubscribeMessage('spectateRoom')
 	handleSpectateRoom(@ConnectedSocket() client: Socket, @MessageBody() roomId: string) {
 		const room: Room = this.rooms.get(roomId);
-		this.logger.log("User tried to join: ", roomId);
 
 		if (room) {
 			let user = this.connectedUsers.getUser(client.id);
