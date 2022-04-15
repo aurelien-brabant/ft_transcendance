@@ -11,11 +11,8 @@ import {
 	WebSocketServer
 } from "@nestjs/websockets";
 
-// Not yet in place
 import { GamesService } from './games.service';
 import { UsersService } from 'src/users/users.service';
-// import { CreateGameDto } from 'src/games/dto/create-game.dto';
-// import { UpdateGameDto } from 'src/games/dto/update-game.dto';
 
 import Queue from './class/Queue';
 import Room, { ConnectedUsers, GameState, User, userStatus } from './class/Room';
