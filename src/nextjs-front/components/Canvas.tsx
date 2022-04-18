@@ -156,13 +156,13 @@ const Canvas: React.FC<{socketProps: Socket, roomProps: any}> = ({socketProps, r
 	}, []);
 
 	return (
-		<>
+		<>		
 		{
 			room &&
-				<div className={styles.container}>
+				<div className="flex flex-col items-center gap-y-10">	
 					<canvas ref={canvasRef} className={styles.canvas} ></canvas>
-						<div className="flex justify-between pt-5 pb-5">
-							<div className="grid grid-cols-2 justify-items-start">
+						<div className="flex justify-between w-full">
+							<div className="flex gap-x-5 items-center">
 								<img
 									className="rounded-full sm:block"
 									height="45px"
@@ -172,7 +172,7 @@ const Canvas: React.FC<{socketProps: Socket, roomProps: any}> = ({socketProps, r
 								/>
 								<div>{room.playerOne.user.username}</div>
 							</div>
-							<div className="grid grid-cols-2 justify-items-end">
+							<div className="flex gap-x-5 items-center">
 								<div>{room.playerTwo.user.username}</div>
 								<img
 									className="rounded-full sm:block"

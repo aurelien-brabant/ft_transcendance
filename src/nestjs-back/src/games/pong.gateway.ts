@@ -16,7 +16,7 @@ import { UsersService } from 'src/users/users.service';
 import Queue from './class/Queue';
 import Room, { ConnectedUsers, GameState, User, userStatus } from './class/Room';
 
-@WebSocketGateway({ cors: true })
+@WebSocketGateway({ cors: true, namespace: "game" })
 export class PongGateway implements OnGatewayInit, OnGatewayConnection, OnGatewayDisconnect {
 	constructor(private readonly gamesService: GamesService,
 				private readonly usersService: UsersService) {}

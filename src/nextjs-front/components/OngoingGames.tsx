@@ -9,7 +9,7 @@ const OngoingGames: React.FC<{currentGamesProps: Array<string>, socketProps: Soc
 	}
 
     return (
-        <>
+        <div className="col-span-1">
         {
             (currentGames.length !== 0) ?
                 <tbody>
@@ -27,7 +27,7 @@ const OngoingGames: React.FC<{currentGamesProps: Array<string>, socketProps: Soc
             :
                 <p className="px-6 py-2 mx-auto mt-60 text-xl font-bold drop-shadow-md text-bold text-pink-600">Nobody is playing</p>
             }
-        </>
+        </div>
     )
 };
 

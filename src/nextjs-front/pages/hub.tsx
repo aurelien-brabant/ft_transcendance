@@ -36,7 +36,7 @@ const Hub: NextPageWithLayout = () => {
 
 	useEffect((): any => {
 		// connect to socket server
-		socket = io("localhost:8080");
+		socket = io("localhost:8080/game");
 
 		socket.on("connect", () => {
 			// Allow reconnection
@@ -103,29 +103,31 @@ const Hub: NextPageWithLayout = () => {
 					content="This is the Hub"
 				/>
 			</Head>
-			
-			{
-				
-				displayGame ?
-						<Canvas socketProps={socket} roomProps={room}></Canvas>
-						
-				:
-				(
-					<>						
-						<OngoingGames currentGamesProps={currentGames} socketProps={socket}></OngoingGames>
-						{
-							inQueue ? 
-							<button onClick={leaveQueue} className="px-6 py-2 mx-auto mt-60 text-xl uppercase bg-gray-600 drop-shadow-md text-bold text-neutral-200">
-								Cancel
-							</button>
-							:
-							<button onClick={joinQueue} className="px-6 py-2 mx-auto mt-60 text-xl uppercase bg-pink-600 drop-shadow-md text-bold text-neutral-200">
-								Find a match
-							</button>
-						}
-					</>
-				)				
-			}
+			<div className="min-h-screen overflow-hidden text-white bg-fixed bg-center bg-fill grow" style={{backgroundImage: "url('/triangles.png')"}}>
+				<div style={{ maxWidth: "1080px" }} className="px-2 py-10 mx-auto">
+				{	
+					displayGame ?
+							<Canvas socketProps={socket} roomProps={room}></Canvas>
+							
+					:
+					(
+						<div className="flex flex-col items-center gap-y-10">
+							<OngoingGames currentGamesProps={currentGames} socketProps={socket}></OngoingGames>
+							{
+								inQueue ? 
+								<button onClick={leaveQueue} className="px-6 py-2 mx-auto mt-60 text-xl uppercase bg-gray-600 drop-shadow-md text-bold text-neutral-200">
+									Cancel
+								</button>
+								:
+								<button onClick={joinQueue} className="px-6 py-2 mx-auto mt-60 text-xl uppercase bg-pink-600 drop-shadow-md text-bold text-neutral-200">
+									Find a match
+								</button>
+							}
+						</div>
+					)				
+				}
+				</div>
+			</div>
 		</Fragment>
 		
 	);
