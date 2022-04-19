@@ -73,8 +73,10 @@ export class ChannelsService {
         'owner',
         'users',
         'admins',
-        'mutedUsers', 'bannedUsers',
-        'messages', 'messages.author'
+        'mutedUsers',
+        'bannedUsers',
+        'messages',
+        'messages.author'
       ]
     });
     if (!channel) {
@@ -97,7 +99,8 @@ export class ChannelsService {
     const hashedPwd = (createChannelDto.password) ? await hashPassword(createChannelDto.password, 10) : "";
     const channel = this.channelsRepository.create({
       ...createChannelDto,
-      password: hashedPwd
+      password: hashedPwd,
+      users: [ { "id": createChannelDto.owner.id } ]
     });
     this.logger.log(`Create new channel [${channel.name}]`);
     return this.channelsRepository.save(channel);

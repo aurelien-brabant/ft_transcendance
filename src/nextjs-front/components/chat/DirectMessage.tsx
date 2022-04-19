@@ -70,7 +70,7 @@ const DirectMessage: React.FC<{ viewParams: { [key: string]: any } }> = ({
 
 	/* Send new message */
 	const handleDmSubmit = async () => {
-		if (currentMessage.length === 0) return;
+		if (currentMessage.trim().length === 0) return;
 
 		console.log('[Chat] Submit DM');
 

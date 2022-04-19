@@ -84,6 +84,8 @@ const GroupNew: React.FC = () => {
 		e.preventDefault();
 		const errors: Partial<NewGroupData> = {};
 
+		formData.groupName = formData.groupName.trim();
+
 		if (formData.groupName.length < 3 || formData.groupName.length > 20) {
 			errors['groupName'] = 'Group name should be between 3 and 20 characters long';
 		}

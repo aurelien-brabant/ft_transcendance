@@ -104,7 +104,7 @@ const Group: React.FC<{ viewParams: { [key: string]: any } }> = ({
 
 	/* Send new message */
 	const handleGroupMessageSubmit = async () => {
-		if (currentMessage.length === 0) return;
+		if (currentMessage.trim().length === 0) return;
 
 		console.log('[Chat] Submit group message');
 
