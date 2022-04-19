@@ -1,5 +1,5 @@
 import React, { Fragment, useContext, useEffect } from "react";
-import Draggable, { DraggableEvent } from 'react-draggable';
+import Draggable from 'react-draggable';
 import { useMediaQuery } from "react-responsive";
 import { AiOutlineClose } from "react-icons/ai";
 import { FaUserFriends, FaUser } from "react-icons/fa";
@@ -56,7 +56,6 @@ const Chat: React.FC<ChatProps> = ({ viewStack, onClose }) => {
 		nodeRef={nodeRef}
 		position={{x: lastX, y: lastY}}
 		onStop={(e, data) => {
-			console.log('hillan')
 			if (data.y > 0)
 				setLastY(0)
 			else if (-data.y > window.innerHeight - 670)
