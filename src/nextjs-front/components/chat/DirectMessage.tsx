@@ -71,7 +71,7 @@ const DirectMessage: React.FC<{ viewParams: { [key: string]: any } }> = ({
 
 	/* Send new message */
 	const handleDmSubmit = async () => {
-		if (currentMessage.length === 0) return;
+		if (currentMessage.trim().length === 0) return;
 
 		const channelData = await fetchChannelData(dmId).catch(console.error);
 		const res = await fetch("/api/messages", {
