@@ -25,7 +25,6 @@ export interface IPlayer {
 	y: number;
 	width: number;
 	height: number
-	speed: number;
 	goal: number;
 	color: string;
 }
@@ -34,30 +33,22 @@ export interface IBall {
 	x: number;
 	y: number;
 	r: number;
-	defaultRadius: number;
-	speed: number;
-	maxSpeed: number;
-	acceleration: number;
-	velocity: {dx: number, dy: number};
-	goal: boolean;
+	color: string;
+	// color: string;
 }
 
 export interface IRoom {
 	roomId: string;
 	gameState: GameState;
-	users: User[];
 	playerOne: IPlayer;
 	playerTwo: IPlayer;
 	ball: IBall;
 
 	timestampStart: number;
-	lastUpdate: number;
 	goalTimestamp: number;
 	lastGoal: string;
 	pauseTime: {pause: number, resume: number}[];
 
 	winner: string;
 	loser: string;
-
-	maxGoal: number;
 }

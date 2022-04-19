@@ -14,7 +14,9 @@ import { GamesService } from './games.service';
 import { UsersService } from 'src/users/users.service';
 
 import Queue from './class/Queue';
-import Room, { ConnectedUsers, GameState, User, userStatus } from './class/Room';
+import Room from './class/Room';
+import { ConnectedUsers, User } from './class/ConnectedUsers';
+import { GameState, userStatus } from './class/Constants';
 
 @WebSocketGateway({ cors: true, namespace: "game" })
 export class PongGateway implements OnGatewayInit, OnGatewayConnection, OnGatewayDisconnect {
@@ -24,11 +26,10 @@ export class PongGateway implements OnGatewayInit, OnGatewayConnection, OnGatewa
 	@WebSocketServer()
 	server: Server;
 	private logger: Logger = new Logger('gameGateway');
+
     private readonly queue: Queue = new Queue();
     private readonly rooms: Map<string, Room> = new Map();
 	private readonly currentGames: Array<string> = new Array();
-
-	// see if it can be done another way
 	private readonly connectedUsers: ConnectedUsers = new ConnectedUsers();
 
 	afterInit(server: Server) {
@@ -84,45 +85,7 @@ export class PongGateway implements OnGatewayInit, OnGatewayConnection, OnGatewa
 			}
 		});
 		this.connectedUsers.addUser(newUser);
-		// this.logger.log(`Client connected: ${client.id}`);
 	}
-
-	// @SubscribeMessage('gameDisconnect')
-	// async handleGameDisconnect(@ConnectedSocket() client: Socket) {
-	// 	let user: User = this.connectedUsers.getUser(client.id);
-
-	// 	if (user) {
-	// 		this.rooms.forEach((room: Room) => {
-	// 			if (room.isAPlayer(user))
-	// 			{
-	// 				room.removeUser(user);
-	// 				if (room.players.length === 0)
-	// 				{
-	// 					this.logger.log("No player left in the room deleting it...");
-	// 					this.rooms.delete(room.roomId);
-
-	// 					let roomIndex: number = this.currentGames.findIndex(roomIdRm => roomIdRm === room.roomId);
-	// 					if (roomIndex !== -1)
-	// 						this.currentGames.splice(roomIndex, 1);
-	// 					this.server.emit("updateCurrentGames", this.currentGames);
-	// 				}
-	// 				else if (room.gameState !== GameState.END) {
-	// 					if (room.gameState === GameState.GOAL)
-	// 						room.resetPosition();
-	// 					room.pause();
-	// 				}
-	// 				client.leave(room.roomId);
-	// 				return ;
-	// 			}
-	// 		});
-
-	// 		// remove from queue and connected user
-	// 		this.queue.remove(user);
-	// 		this.logger.log(`Client ${user.username} disconnected: ${client.id}`);
-	// 		this.connectedUsers.removeUser(user);
-	// 	}
-	// }
-
 
 	async handleDisconnect(@ConnectedSocket() client: Socket) {
 		let user: User = this.connectedUsers.getUser(client.id);
@@ -258,7 +221,7 @@ export class PongGateway implements OnGatewayInit, OnGatewayConnection, OnGatewa
 				if (room.isGameEnd) {
 					let playerOne = await this.usersService.findOne(String(room.players[0].id));
 					let playerTwo = await this.usersService.findOne(String(room.players[1].id));
-					let game = await this.gamesService.create({
+					await this.gamesService.create({
 						players: [playerOne, playerTwo],
 						winnerId: room.winnerId,
 						loserId: room.loserId,
