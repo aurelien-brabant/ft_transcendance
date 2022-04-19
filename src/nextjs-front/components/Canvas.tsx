@@ -1,13 +1,9 @@
-import React, { useState, useContext } from "react";
-// import styles from '../styles/Canvas.module.css';
-import {Socket} from 'socket.io-client';
+import React, { useState } from "react";
+import { Socket } from 'socket.io-client';
 
 import { useRef, useEffect } from 'react';
 import styles from "../styles/Canvas.module.css";
 
-// import { animateNeon, drawGame } from "../lib/drawGame";
-// import { updateGame, resetGame } from "../lib/updateGame";
-// import { GameConstants, GameState, gameConstants } from "../constants/gameConstants"
 import { Draw } from "../gameObjects/Draw";
 import { canvasHeight, canvasWidth, countDown, GameState, IRoom } from "../gameObjects/GameObject";
 import { useSession } from "../hooks/use-session";
@@ -21,6 +17,7 @@ const Canvas: React.FC<{socketProps: Socket, roomProps: any}> = ({socketProps, r
 	let roomId: string | undefined = room?.roomId;
 	const [gameEnded, setGameEnded] = useState(false);
 
+	let isAplayer: boolean = (room.playerOne.user.username == user.username || room.playerTwo.user.username == user.username);
 	let oldTimestamp: number = 0;
 	let secondElapsed: number = 0;
 	let seconds: number = 0;
@@ -59,7 +56,7 @@ const Canvas: React.FC<{socketProps: Socket, roomProps: any}> = ({socketProps, r
 		const canvas = canvasRef.current;
 		if (!canvas)
 			return ;
-		const context = canvas.getContext('2d');
+		// const context = canvas.getContext('2d');
 		let animationFrameId: number;
 
 		canvas.width = canvasWidth;
@@ -69,9 +66,10 @@ const Canvas: React.FC<{socketProps: Socket, roomProps: any}> = ({socketProps, r
 		const draw: Draw = new Draw(canvas);
 
 		// if not a spectator
-		window.addEventListener("keydown", downHandler);
-		window.addEventListener("keyup", upHandler);
-
+		if (isAplayer) {
+				window.addEventListener("keydown", downHandler);
+				window.addEventListener("keyup", upHandler);
+		}
 
 		socket.on("updateRoom", function(updatedRoom: IRoom) {
 			room = updatedRoom;
@@ -107,8 +105,9 @@ const Canvas: React.FC<{socketProps: Socket, roomProps: any}> = ({socketProps, r
 		}
 
 		const gameLoop = (timestamp = 0) => {
-			if (room.gameState !== GameState.END)
-				socket.emit("requestUpdate", room?.roomId);
+			if (room.gameState !== GameState.END && isAplayer) {
+					socket.emit("requestUpdate", roomId);
+			}
 			secondElapsed = (timestamp - oldTimestamp) / 1000;
 			oldTimestamp = timestamp;
 
@@ -117,7 +116,6 @@ const Canvas: React.FC<{socketProps: Socket, roomProps: any}> = ({socketProps, r
 				let count: number = (Date.now() - room.timestampStart) / 1000;
 				draw.drawRectangle(0, 0, canvasWidth, canvasHeight, "rgba(0, 0, 0, 0.5)");
 				draw.drawCountDown(countDown[Math.floor(count)]);
-
 			}
 			if (room.gameState === GameState.PLAYING) {
 				draw.resetParticles();
@@ -145,20 +143,21 @@ const Canvas: React.FC<{socketProps: Socket, roomProps: any}> = ({socketProps, r
 
 		return () => {
 			window.cancelAnimationFrame(animationFrameId);
-			// if not a spectator
-			window.removeEventListener("keydown", downHandler);
-			window.removeEventListener("keyup", upHandler);
+			if (isAplayer) {
+				window.removeEventListener("keydown", downHandler);
+				window.removeEventListener("keyup", upHandler);
+			}
 		};
 	}, []);
 
 	return (
-		<>
+		<>		
 		{
 			room &&
-				<div className={styles.container}>
+				<div className="flex flex-col items-center gap-y-10">	
 					<canvas ref={canvasRef} className={styles.canvas} ></canvas>
-						<div className="flex justify-between pt-5 pb-5">
-							<div className="grid grid-cols-2 justify-items-start">
+						<div className="flex justify-between w-full">
+							<div className="flex gap-x-5 items-center">
 								<img
 									className="rounded-full sm:block"
 									height="45px"
@@ -168,7 +167,7 @@ const Canvas: React.FC<{socketProps: Socket, roomProps: any}> = ({socketProps, r
 								/>
 								<div>{room.playerOne.user.username}</div>
 							</div>
-							<div className="grid grid-cols-2 justify-items-end">
+							<div className="flex gap-x-5 items-center">
 								<div>{room.playerTwo.user.username}</div>
 								<img
 									className="rounded-full sm:block"
@@ -180,7 +179,7 @@ const Canvas: React.FC<{socketProps: Socket, roomProps: any}> = ({socketProps, r
 							</div>
 						</div>
 						{
-							gameEnded &&
+							(gameEnded || !isAplayer) &&
 							<button onClick={leaveRoom} className="px-6 py-2 text-xl uppercase bg-pink-600 drop-shadow-md text-bold text-neutral-200">Leave Room</button>
 						}
 				</div>

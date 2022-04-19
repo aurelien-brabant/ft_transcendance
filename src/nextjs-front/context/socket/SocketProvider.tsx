@@ -3,6 +3,8 @@ import { io } from "socket.io-client";
 import { useSession } from "../../hooks/use-session";
 import socketContext from "./socketContext";
 
+const socket = io("localhost:8080");
+
 export type ChatUser = {
 	id : string,
 	username: string,
@@ -14,9 +16,7 @@ const SocketProvider: React.FC = ({ children }) => {
 	const { user } = useSession();
 	const [chatRoom, setChatRoom] = useState<ChatUser[]>([]);
   	const [chatRoomLen, setChatRoomLen] = useState(0);
- 
-  	const socket = io("localhost:8080");
-  
+   
 	useEffect((): any => {
 
 		if (!socket)
