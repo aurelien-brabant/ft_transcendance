@@ -31,19 +31,27 @@ const SocketProvider: React.FC = ({ children }) => {
 					username: user.username
 				});
 
+				socket.on('newDm', ({ message }) => {
+					console.log(`[Chat] Receive new message from [${message.author.username}]`);
+				});
+
+				socket.on('newGm', ({ message }) => {
+					console.log(`[Chat] Receive new message in group [${message.channel.name}]`);
+				});
+
 				// socket.emit("handleChatConnect", user);
 
-				// socket.on("joinChat", (data: ChatUser[]) => {
-				// 	setChatRoom(data);
-				// });
+				socket.on("joinChat", (data: ChatUser[]) => {
+					setChatRoom(data);
+				});
 
-				// socket.on("leaveChat", (data: ChatUser[]) => {
-				// 	setChatRoom(data);
-				// });
+				socket.on("leaveChat", (data: ChatUser[]) => {
+					setChatRoom(data);
+				});
 
-				// socket.on('updateChatRoomLen', (len: number) => {
-				// 	setChatRoomLen(len);
-				// });
+				socket.on('updateChatRoomLen', (len: number) => {
+					setChatRoomLen(len);
+				});
 			});
 		}
 		handleChat();

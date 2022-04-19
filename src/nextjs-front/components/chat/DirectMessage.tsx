@@ -57,17 +57,6 @@ const DirectMessage: React.FC<{ viewParams: { [key: string]: any } }> = ({
 	const chatBottom = useRef<HTMLDivElement>(null);
 	const dmId = viewParams.dmId;
 
-	/* Add new message */
-	const addMessage = async (message: any) => {
-		messages.push({
-			id: messages.length.toString(),
-			author: message.author.username,
-			content: message.content,
-			isMe: (message.author.id === user.id),
-			isBlocked: false
-		});
-	}
-
 	/* Send new message */
 	const handleDmSubmit = async () => {
 		if (currentMessage.trim().length === 0) return;
@@ -81,11 +70,6 @@ const DirectMessage: React.FC<{ viewParams: { [key: string]: any } }> = ({
 			channelId: dmId
 		});
 		setCurrentMessage("");
-
-		socket.on('newDm', (message) => {
-			console.log('[Chat] new DM');
-			console.log(message);
-		});
 	};
 
 	/* Scroll to bottom if a new message is sent */
@@ -100,19 +84,19 @@ const DirectMessage: React.FC<{ viewParams: { [key: string]: any } }> = ({
 		const messages: ChatMessage[] = [];
 
 		for (var i in dms) {
-			addMessage(dms[i]);
+			messages.push({
+				id: messages.length.toString(),
+				author: dms[i].author.username,
+				content: dms[i].content,
+				isMe: (dms[i].author.id === user.id),
+				isBlocked: false
+			});
 		}
 		setMessages(messages);
 	}
 
 	useEffect(() => {
 		loadDmsOnMount();
-
-		/* New message received */
-		socket.on('newDm', ({ message }) => {
-			console.log(`[Chat] Receive new DM from ${message.author.username}`);
-			addMessage(message);
-		});
 	}, []);
 
 	return (

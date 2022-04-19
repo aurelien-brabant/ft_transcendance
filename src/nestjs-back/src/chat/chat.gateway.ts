@@ -65,7 +65,7 @@ export class ChatGateway implements OnGatewayInit, OnGatewayConnection, OnGatewa
 
     this.logger.log(`${user.username} sends DM "${data.content}" on channel ${data.channelId}`);
     this.server.to(user.socketId).emit('newDm', { message });
-    /* If recipient is offline, message will be sent once connected */
+    // TODO: If recipient is offline, message will be sent once connected
     if (recipient) {
       this.server.to(recipient.socketId).emit('newDm', { message });
     }
@@ -76,6 +76,8 @@ export class ChatGateway implements OnGatewayInit, OnGatewayConnection, OnGatewa
     @ConnectedSocket() client: Socket,
     @MessageBody() data: { content: string, groupId: string }
   ) {
+    console.log('-----------> gmSubmit');
+    console.log(data);
     const user = this.chatUsers.getUser(client.id);
     // const channel = ;
     const message = await this.chatService.saveMessage(data.content, user.id.toString(), data.groupId);

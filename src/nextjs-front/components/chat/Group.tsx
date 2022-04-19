@@ -87,21 +87,6 @@ const Group: React.FC<{ viewParams: { [key: string]: any } }> = ({
 	const chatBottom = useRef<HTMLDivElement>(null);
 	const groupId = viewParams.groupId;
 
-	/* Add message to discussion */
-	const addMessage = (message: any) => {
-		const isBlocked = !!blocked.find(user => user.id === message.author.id);
-
-		setMessages([
-			...messages, {
-				id: messages.length.toString(),
-				author: message.author.username,
-				content: isBlocked ? "Blocked message" : message.content,
-				isMe: (message.author.id === user.id),
-				isBlocked: isBlocked
-			}
-		]);
-	}
-
 	/* Send new message */
 	const handleGroupMessageSubmit = async () => {
 		if (currentMessage.trim().length === 0) return;
@@ -112,16 +97,7 @@ const Group: React.FC<{ viewParams: { [key: string]: any } }> = ({
 			content: currentMessage,
 			groupId
 		});
-		socket.on('newGm', ({message}) => {
-			console.log(`[Chat] Receive new group message in group [${groupId}]`);
-			addMessage(message);
-		});
 		setCurrentMessage("");
-
-		socket.on('newGm', (message) => {
-			console.log('[Chat] new GM');
-			console.log(message);
-		});
 	};
 
 	/* Scroll to bottom if new message is sent */
