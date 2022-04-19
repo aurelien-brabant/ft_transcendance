@@ -5,7 +5,7 @@ import { useRef, useEffect } from 'react';
 import styles from "../styles/Canvas.module.css";
 
 import { Draw } from "../gameObjects/Draw";
-import { canvasHeight, canvasWidth, countDown, GameState, IRoom } from "../gameObjects/GameObject";
+import { canvasHeight, canvasWidth, countDown, GameMode, GameState, IRoom } from "../gameObjects/GameObject";
 import { useSession } from "../hooks/use-session";
 
 const Canvas: React.FC<{socketProps: Socket, roomProps: any}> = ({socketProps, roomProps}) => {
@@ -43,6 +43,9 @@ const Canvas: React.FC<{socketProps: Socket, roomProps: any}> = ({socketProps, r
 	*/
 	const drawGame = (canvas: HTMLCanvasElement, draw: Draw, room: IRoom): void => {
 		draw.clear();
+		
+		if (room.mode === GameMode.TIMER)
+			draw.drawTimer(room);
 		draw.drawNet();
 		draw.drawScore(room.playerOne, room.playerTwo);
 		draw.drawPaddle(room.playerOne);

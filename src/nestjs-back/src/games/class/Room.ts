@@ -1,6 +1,6 @@
 import { Ball } from "./Ball";
 import { User } from "./ConnectedUsers";
-import { canvasWidth, GameState } from "./Constants";
+import { canvasWidth, GameMode, GameState } from "./Constants";
 import { Player } from "./Player";
 
 export interface IRoom {
@@ -25,6 +25,9 @@ export interface IRoom {
 
 	// settings customisation
 	maxGoal: number;
+
+	timer: number;
+	gameDuration: number;
 }
 
 export default class Room implements IRoom {
@@ -52,7 +55,12 @@ export default class Room implements IRoom {
 	// settings customisation
 	maxGoal: number;
 
-    constructor(roomId: string, users: User[], customisation: {maxGoal?: number} = {maxGoal: 3}) {
+	mode: GameMode;
+
+	timer: number;
+	gameDuration: number;
+
+    constructor(roomId: string, users: User[], customisation: {maxGoal?: number, mode?: GameMode} = {maxGoal: 3, mode: GameMode.DEFAULT}) {
 		this.roomId = roomId;
 		this.gameState = GameState.STARTING;
 		this.players = [];
@@ -65,8 +73,17 @@ export default class Room implements IRoom {
 		this.goalTimestamp = Date.now();
 		this.pauseTime = [];
 
+		this.mode = customisation.mode;		
 		this.maxGoal = customisation.maxGoal;
+
+		console.log(this.mode, this.maxGoal);
+		// if (this.mode === GameMode.DEFAULT)
+		// else if (this.mode === GameMode.LIFE)
+		// 	this.maxGoal = 5;
 		this.isGameEnd = false;
+
+		this.timer = 0;
+		this.gameDuration = 30000;
     }
 
 	isAPlayer(user: User): boolean {
@@ -74,7 +91,6 @@ export default class Room implements IRoom {
 	}
 
 	addUser(user: User) {
-		// console.log(user, " added to ", this.users);
 		this.players.push(user);
 	}
 
@@ -85,7 +101,7 @@ export default class Room implements IRoom {
 	}
 
 	getDuration(): number {
-		let duration = Date.now() - this.timestampStart;
+		let duration: number = Date.now() - this.timestampStart;
 
 		this.pauseTime.forEach((pause) => {
 			duration -= (pause.pause - pause.resume) - 3500;
@@ -99,7 +115,7 @@ export default class Room implements IRoom {
 
 	pause(): void {
 		this.changeGameState(GameState.PAUSED);
-		this.pauseTime.push({pause: Date.now(), resume: 0});
+		this.pauseTime.push({pause: Date.now(), resume: Date.now()});
 
 	}
 
@@ -107,6 +123,53 @@ export default class Room implements IRoom {
 		this.playerOne.reset();
 		this.playerTwo.reset();
 		this.ball.reset();
+	}
+
+	defaultGameMode(): void {
+		if (this.playerOne.goal === this.maxGoal) {
+			this.winner = this.playerOne.user.username;
+			this.winnerId = this.playerOne.user.id;
+			this.winnerScore = this.playerOne.goal;
+			this.loser = this.playerTwo.user.username;
+			this.loserId = this.playerTwo.user.id;
+			this.loserScore = this.playerTwo.goal;
+
+		} else {
+			this.winner = this.playerTwo.user.username;
+			this.winnerId = this.playerTwo.user.id;
+			this.winnerScore = this.playerTwo.goal;
+			this.loser = this.playerOne.user.username;
+			this.loserId = this.playerOne.user.id;
+			this.loserScore = this.playerOne.goal;
+		}
+	}
+
+	timerGameMode() {
+		if (this.playerOne.goal > this.playerTwo.goal) {
+			this.winner = this.playerOne.user.username;
+			this.winnerId = this.playerOne.user.id;
+			this.winnerScore = this.playerOne.goal;
+			this.loser = this.playerTwo.user.username;
+			this.loserId = this.playerTwo.user.id;
+			this.loserScore = this.playerTwo.goal;
+
+		} else {
+			this.winner = this.playerTwo.user.username;
+			this.winnerId = this.playerTwo.user.id;
+			this.winnerScore = this.playerTwo.goal;
+			this.loser = this.playerOne.user.username;
+			this.loserId = this.playerOne.user.id;
+			this.loserScore = this.playerOne.goal;
+		}
+
+	}
+
+	updateTimer() {
+		let time: number = ((this.lastUpdate - this.timestampStart));
+		this.pauseTime.forEach((pause) => {
+			time += (pause.pause - pause.resume) - 3500;
+		});
+		this.timer = time;
 	}
 
 	update(): void {
@@ -117,31 +180,14 @@ export default class Room implements IRoom {
 		this.playerTwo.update(secondPassed);
 		this.ball.update(secondPassed, this.playerOne, this.playerTwo);
 
-		if (this.ball.goal === true)
-		{
+
+		if (this.ball.goal === true) {
 			this.goalTimestamp = Date.now();
-			if (this.playerOne.goal === this.maxGoal || this.playerTwo.goal === this.maxGoal)
+			if (this.mode === GameMode.DEFAULT && (this.playerOne.goal === this.maxGoal || this.playerTwo.goal === this.maxGoal))
 			{
-				if (this.playerOne.goal === this.maxGoal) {
-					this.winner = this.playerOne.user.username;
-					this.winnerId = this.playerOne.user.id;
-					this.winnerScore = this.playerOne.goal;
-					this.loser = this.playerTwo.user.username;
-					this.loserId = this.playerTwo.user.id;
-					this.loserScore = this.playerTwo.goal;
-
-				} else {
-					this.winner = this.playerTwo.user.username;
-					this.winnerId = this.playerTwo.user.id;
-					this.winnerScore = this.playerTwo.goal;
-					this.loser = this.playerOne.user.username;
-					this.loserId = this.playerOne.user.id;
-					this.loserScore = this.playerOne.goal;
-
-
-				}
-				this.winner = this.playerOne.goal === this.maxGoal ? this.playerOne.user.username : this.playerTwo.user.username;
-				this.loser = this.playerOne.goal === this.maxGoal ? this.playerTwo.user.username : this.playerOne.user.username;
+				this.defaultGameMode();
+				// this.winner = this.playerOne.goal === this.maxGoal ? this.playerOne.user.username : this.playerTwo.user.username;
+				// this.loser = this.playerOne.goal === this.maxGoal ? this.playerTwo.user.username : this.playerOne.user.username;
 				this.changeGameState(GameState.END);
 				this.isGameEnd = true;
 			}
@@ -151,6 +197,12 @@ export default class Room implements IRoom {
 				this.changeGameState(GameState.GOAL);
 			}
 			this.ball.goal = false;
+		}
+
+		if (this.mode === GameMode.TIMER && (this.playerOne.goal !== this.playerTwo.goal) && (Date.now() - this.timestampStart) >= this.gameDuration) {
+			this.timerGameMode();
+			this.changeGameState(GameState.END);
+			this.isGameEnd = true;
 		}
 	}
 }

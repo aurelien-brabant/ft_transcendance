@@ -16,7 +16,7 @@ import { UsersService } from 'src/users/users.service';
 import Queue from './class/Queue';
 import Room from './class/Room';
 import { ConnectedUsers, User } from './class/ConnectedUsers';
-import { GameState, userStatus } from './class/Constants';
+import { GameMode, GameState, userStatus } from './class/Constants';
 
 @WebSocketGateway({ cors: true, namespace: "game" })
 export class PongGateway implements OnGatewayInit, OnGatewayConnection, OnGatewayDisconnect {
@@ -25,6 +25,7 @@ export class PongGateway implements OnGatewayInit, OnGatewayConnection, OnGatewa
 
 	@WebSocketServer()
 	server: Server;
+
 	private logger: Logger = new Logger('gameGateway');
 
     private readonly queue: Queue = new Queue();
@@ -47,7 +48,8 @@ export class PongGateway implements OnGatewayInit, OnGatewayConnection, OnGatewa
 				
 				roomId = `${players[0].username}&${players[1].username}`;
 				
-				room = new Room(roomId, players, {maxGoal: 1});
+				// room = new Room(roomId, players, {maxGoal: 1, mode: GameMode.DEFAULT});
+				room = new Room(roomId, players, {mode: GameMode.TIMER});
 				
 				this.server.to(players[0].socketId).emit("newRoom", room);
 				this.server.to(players[1].socketId).emit("newRoom",  room);
@@ -245,6 +247,12 @@ export class PongGateway implements OnGatewayInit, OnGatewayConnection, OnGatewa
 			} else if (room.gameState === GameState.RESUMED && (currentTimestamp - room.pauseTime[room.pauseTime.length - 1].resume) >= 3500) {
 				room.lastUpdate = Date.now();
 				room.changeGameState(GameState.PLAYING);
+			}
+
+			if (room.mode === GameMode.TIMER && (room.gameState === GameState.GOAL || room.gameState === GameState.PLAYING))
+			{
+				console.log("NTM");
+				room.updateTimer();
 			}
 
 			this.server.to(room.roomId).emit("updateRoom", room);
