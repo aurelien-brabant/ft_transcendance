@@ -5,6 +5,7 @@ import { BaseUserData } from 'transcendance-types';
 import alertContext, { AlertContextType } from "../alert/alertContext";
 import authContext, { AuthContextValue } from "../auth/authContext";
 import relationshipContext, { RelationshipContextType } from "../relationship/relationshipContext";
+import socketContext, { SocketContextType } from "../../context/socket/socketContext";
 import { useSession } from "../../hooks/use-session";
 /* Chat */
 import Chat from "../../components/Chat";
@@ -19,7 +20,6 @@ import GroupNew, { GroupNewHeader } from "../../components/chat/GroupNew";
 import GroupSettings, { GroupSettingsHeader } from "../../components/chat/GroupSettings";
 import GroupUsers, { GroupUsersHeader } from "../../components/chat/GroupUsers";
 import PasswordProtection, { PasswordProtectionHeader } from "../../components/chat/PasswordProtection";
-import { io, Socket } from 'socket.io-client';
 
 export type ChatViewItem = {
 	label: string;
@@ -110,7 +110,7 @@ const ChatProvider: React.FC = ({ children }) => {
 	const session = useSession();
 	const { isChatOpened, setIsChatOpened } = useContext(authContext) as AuthContextValue;
 	const { blocked } = useContext(relationshipContext) as RelationshipContextType;
-	const chatSocket: Socket = io('localhost:8080'); // port tmp
+	const { chatRoomLen } = useContext(socketContext) as SocketContextType;
 
 	/* Chat manipulation */
 	const openChat = () => {
@@ -341,7 +341,6 @@ const ChatProvider: React.FC = ({ children }) => {
 				closeRightmostView,
 				chatGroups,
 				directMessages,
-				chatSocket,
 				getLastMessage,
 				updateChatGroups,
 				removeChatGroup,
@@ -375,12 +374,16 @@ const ChatProvider: React.FC = ({ children }) => {
 						setIsChatOpened(true);
 					}}
 				>
-					<Bounce duration={2000} triggerOnce>
-						<BsFillChatDotsFill />
-					</Bounce>
-				</button>
-				:
-				<>:</>
+					<div>
+						{/*TO BE REMOVED AFTER TESTING INSTANT CHAT...*/}
+						<div>
+							{chatRoomLen}
+						</div>
+						<Bounce duration={2000} triggerOnce>
+							<BsFillChatDotsFill />
+						</Bounce>
+					</div>
+				</button> : <></>
 			}
 			{children}
 		</chatContext.Provider>

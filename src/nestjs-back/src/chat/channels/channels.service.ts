@@ -6,7 +6,7 @@ import { CronJob } from 'cron';
 import {
   hash as hashPassword,
   compare as comparePassword
-} from 'bcrypt';
+} from 'bcryptjs';
 import { Channel } from './entities/channels.entity';
 import { CreateChannelDto } from './dto/create-channel.dto';
 import { UpdateChannelDto } from './dto/update-channel.dto';

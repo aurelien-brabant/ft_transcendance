@@ -41,7 +41,7 @@ export class AchievementsService {
 
     async update(id: string, updateAchievementDto: UpdateAchievementDto) { 
         let achievement: Achievement | null = null;
-        
+
         achievement = await this.findOne(id);
         if (!achievement)
             throw new NotFoundException(`Cannot update achievement[${id}]: Not found`);
@@ -58,7 +58,7 @@ export class AchievementsService {
             id: +id,
             users: updated
         });
-       
+
         return this.achievementsRepository.save(achievement);
     }
 

@@ -22,7 +22,7 @@ export class ChatGateway implements OnGatewayInit, OnGatewayConnection, OnGatewa
   constructor(private readonly chatService: ChatService) {}
 
   afterInit(server: Server) {
-    this.logger.log('Init Chat Gateway');
+    this.logger.log('[+] Init Chat Gateway');
   }
 
   async handleConnection(@ConnectedSocket() client: Socket) {

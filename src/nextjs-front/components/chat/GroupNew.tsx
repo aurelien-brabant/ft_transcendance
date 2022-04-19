@@ -58,7 +58,6 @@ const GroupNew: React.FC = () => {
 		updateChatGroups,
 		setChatGroupData
 	} = useContext(chatContext) as ChatContextType;
-	const userId = getUserData().id;
 
 	const [formData, setFormData] = useState<NewGroupData>({
 		groupName: "",
@@ -182,7 +181,7 @@ const GroupNew: React.FC = () => {
 						group visiblity
 					</label>
 					<select
-						className="px-2 py-2 bg-gray-900 border-b border-pink-600 outline-none"
+						className="drag-cancellable px-2 py-2 bg-gray-900 border-b border-pink-600 outline-none"
 						name="privacy"
 						value={formData.privacy}
 						onChange={handleChange}

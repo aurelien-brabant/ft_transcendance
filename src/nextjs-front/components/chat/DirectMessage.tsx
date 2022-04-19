@@ -6,8 +6,8 @@ import Link from 'next/link';
 import { UserStatusItem } from "../UserStatus";
 import { useSession } from "../../hooks/use-session";
 import Tooltip from "../../components/Tooltip";
-import alertContext, { AlertContextType } from "../../context/alert/alertContext";
 import chatContext, { ChatContextType, ChatMessage } from "../../context/chat/chatContext";
+import socketContext, { SocketContextType } from "../../context/socket/socketContext";
 
 /* Header */
 export const DirectMessageHeader: React.FC<{ viewParams: any }> = ({ viewParams }) => {
@@ -15,6 +15,7 @@ export const DirectMessageHeader: React.FC<{ viewParams: any }> = ({ viewParams 
 		chatContext
 	) as ChatContextType;
 	const actionTooltipStyles = 'font-bold bg-gray-900 text-neutral-200';
+	const { user } = useSession();
 
 	return (
 		<Fragment>
@@ -38,7 +39,7 @@ export const DirectMessageHeader: React.FC<{ viewParams: any }> = ({ viewParams 
 			<div className="flex items-center justify-center gap-x-3">
 				<Link href={`/users/${viewParams.friendId}`}><h6 className="font-bold hover:text-pink-600">
 						{viewParams.friendUsername}
-					</h6></Link> <UserStatusItem status="online" withText={false} />
+					</h6></Link> <UserStatusItem withText={false} status={(user.accountDeactivated) ? "deactivated" : "online"} id={user.id} />
 			</div>
 		</Fragment>
 	);
@@ -49,8 +50,8 @@ const DirectMessage: React.FC<{ viewParams: { [key: string]: any } }> = ({
 	viewParams,
 }) => {
 	const { user } = useSession();
-	const { setAlert } = useContext(alertContext) as AlertContextType;
-	const { chatSocket, fetchChannelData } = useContext(chatContext) as ChatContextType;
+	const { fetchChannelData } = useContext(chatContext) as ChatContextType;
+	const { socket } = useContext(socketContext) as SocketContextType;
 	const [messages, setMessages] = useState<ChatMessage[]>([]);
 	const [currentMessage, setCurrentMessage] = useState("");
 	const chatBottom = useRef<HTMLDivElement>(null);
@@ -73,13 +74,18 @@ const DirectMessage: React.FC<{ viewParams: { [key: string]: any } }> = ({
 
 		console.log('[Chat] Submit DM');
 
-		chatSocket.emit('dmSubmit', {
+		socket.emit('dmSubmit', {
 			content: currentMessage,
 			from: user.id,
 			to: viewParams.friendId,
 			channelId: dmId
 		});
 		setCurrentMessage("");
+
+		socket.on('newDm', (message) => {
+			console.log('[Chat] new DM');
+			console.log(message);
+		});
 	};
 
 	/* Scroll to bottom if a new message is sent */
@@ -103,7 +109,7 @@ const DirectMessage: React.FC<{ viewParams: { [key: string]: any } }> = ({
 		loadDmsOnMount();
 
 		/* New message received */
-		chatSocket.on('newDm', ({ message }) => {
+		socket.on('newDm', ({ message }) => {
 			console.log(`[Chat] Receive new DM from ${message.author.username}`);
 			addMessage(message);
 		});

@@ -54,7 +54,6 @@ export type ChatContextType = {
 	/* Chat Messages */
 	chatGroups: ChatGroup[];
 	directMessages: DirectMessage[];
-	chatSocket: Socket;
 
 	/* Message utils */
 	getLastMessage: (channel: any) => ChatMessagePreview;

@@ -6,8 +6,8 @@ import { RiSettings5Line } from "react-icons/ri";
 import Tooltip from "../../components/Tooltip";
 import { useSession } from "../../hooks/use-session";
 import chatContext, { ChatContextType, ChatMessage } from "../../context/chat/chatContext";
-import alertContext, { AlertContextType } from "../../context/alert/alertContext";
 import relationshipContext, { RelationshipContextType } from "../../context/relationship/relationshipContext";
+import socketContext, { SocketContextType } from "../../context/socket/socketContext";
 
 /* Header */
 export const GroupHeader: React.FC<{ viewParams: any }> = ({ viewParams }) => {
@@ -79,9 +79,9 @@ const Group: React.FC<{ viewParams: { [key: string]: any } }> = ({
 	viewParams,
 }) => {
 	const { user } = useSession();
-	const { setAlert } = useContext(alertContext) as AlertContextType;
-	const { chatSocket, fetchChannelData } = useContext(chatContext) as ChatContextType;
+	const { fetchChannelData } = useContext(chatContext) as ChatContextType;
 	const { blocked, getData } = useContext(relationshipContext) as RelationshipContextType;
+	const { socket } = useContext(socketContext) as SocketContextType;
 	const [messages, setMessages] = useState<ChatMessage[]>([]);
 	const [currentMessage, setCurrentMessage] = useState("");
 	const chatBottom = useRef<HTMLDivElement>(null);
@@ -89,8 +89,7 @@ const Group: React.FC<{ viewParams: { [key: string]: any } }> = ({
 
 	/* Add message to discussion */
 	const addMessage = (message: any) => {
-		// const isBlocked = !!blocked.find(user => user.id === message.author.id);
-		const isBlocked = false; // to be removed
+		const isBlocked = !!blocked.find(user => user.id === message.author.id);
 
 		setMessages([
 			...messages, {
@@ -109,15 +108,20 @@ const Group: React.FC<{ viewParams: { [key: string]: any } }> = ({
 
 		console.log('[Chat] Submit group message');
 
-		chatSocket.emit('gmSubmit', {
+		socket.emit('gmSubmit', {
 			content: currentMessage,
 			groupId
 		});
-		chatSocket.on('newGm', ({message}) => {
+		socket.on('newGm', ({message}) => {
 			console.log(`[Chat] Receive new group message in group [${groupId}]`);
 			addMessage(message);
 		});
 		setCurrentMessage("");
+
+		socket.on('newGm', (message) => {
+			console.log('[Chat] new GM');
+			console.log(message);
+		});
 	};
 
 	/* Scroll to bottom if new message is sent */
@@ -147,7 +151,7 @@ const Group: React.FC<{ viewParams: { [key: string]: any } }> = ({
 
 	useEffect(() => {
 		loadGroupOnMount();
-		// getData();
+		getData();
 	}, []);
 
 	return (

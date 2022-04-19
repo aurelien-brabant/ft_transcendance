@@ -93,6 +93,6 @@ export class User {
         type: 'timestamp',
         nullable: true,
     })
-    lastTfaRequestTimestamp;
+    lastTfaRequestTimestamp: string | number | Date;
 }
 
