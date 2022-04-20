@@ -77,6 +77,28 @@ const DirectMessage: React.FC<{ viewParams: { [key: string]: any } }> = ({
 		chatBottom.current?.scrollIntoView();
 	}, [messages]);
 
+	/* Received message */
+	useEffect(() => {
+		const messageListener = (message: any) => {
+			console.log(`[Chat] Receive new DM from [${message.author.username}]`);
+
+			messages.push({
+				id: messages.length.toString(),
+				author: message.author.username,
+				content: message.content,
+				isMe: (message.author.id === user.id),
+				isBlocked: false
+			});
+			setMessages(messages);
+		};
+
+		socket.on('newDm', messageListener);
+
+		return () => {
+			socket.off('newDm', messageListener);
+		};
+	}, [socket]);
+
 	/* Load all messages on mount */
 	const loadDmsOnMount = async () => {
 		const data = await fetchChannelData(dmId).catch(console.error);

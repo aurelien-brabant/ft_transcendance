@@ -13,7 +13,18 @@ import {
 import { ChatService } from './chat.service';
 import { ConnectedUsers, User, userStatus } from '../games/class/Room';
 
-@WebSocketGateway({ cors: true })
+@WebSocketGateway(
+  {
+    cors: {
+      origin: "http://localhost:8080",
+      methods: ["GET", "POST"],
+      transports: ['websocket', 'polling'],
+      // credentials: true
+    },
+    allowEIO3: true,
+    // namespace: '/chat'
+  }
+)
 export class ChatGateway implements OnGatewayInit, OnGatewayConnection, OnGatewayDisconnect {
   @WebSocketServer() server: Server;
   private logger: Logger = new Logger('Chat Gateway');
