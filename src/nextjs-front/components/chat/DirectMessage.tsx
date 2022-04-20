@@ -11,9 +11,7 @@ import socketContext, { SocketContextType } from "../../context/socket/socketCon
 
 /* Header */
 export const DirectMessageHeader: React.FC<{ viewParams: any }> = ({ viewParams }) => {
-	const { closeChat, setChatView } = useContext(
-		chatContext
-	) as ChatContextType;
+	const { closeChat, setChatView } = useContext(chatContext) as ChatContextType;
 	const actionTooltipStyles = 'font-bold bg-gray-900 text-neutral-200';
 	const { user } = useSession();
 
@@ -77,28 +75,6 @@ const DirectMessage: React.FC<{ viewParams: { [key: string]: any } }> = ({
 		chatBottom.current?.scrollIntoView();
 	}, [messages]);
 
-	/* Received message */
-	useEffect(() => {
-		const messageListener = (message: any) => {
-			console.log(`[Chat] Receive new DM from [${message.author.username}]`);
-
-			messages.push({
-				id: messages.length.toString(),
-				author: message.author.username,
-				content: message.content,
-				isMe: (message.author.id === user.id),
-				isBlocked: false
-			});
-			setMessages(messages);
-		};
-
-		socket.on('newDm', messageListener);
-
-		return () => {
-			socket.off('newDm', messageListener);
-		};
-	}, [socket]);
-
 	/* Load all messages on mount */
 	const loadDmsOnMount = async () => {
 		const data = await fetchChannelData(dmId).catch(console.error);
@@ -118,7 +94,26 @@ const DirectMessage: React.FC<{ viewParams: { [key: string]: any } }> = ({
 	}
 
 	useEffect(() => {
+		const messageListener = (message) => {
+			console.log(`[Chat] Receive new DM from [${message.author.username}]`);
+
+			messages.push({
+				id: messages.length.toString(),
+				author: message.author.username,
+				content: message.content,
+				isMe: (message.author.id === user.id),
+				isBlocked: false
+			});
+			setMessages(messages);
+			return messages;
+		};
+
 		loadDmsOnMount();
+
+		socket.on('newDm', messageListener);
+		return () => {
+			socket.off('newDm', messageListener);
+		}
 	}, []);
 
 	return (

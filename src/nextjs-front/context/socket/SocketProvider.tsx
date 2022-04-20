@@ -15,7 +15,8 @@ const SocketProvider: React.FC = ({ children }) => {
 	const user = session.user;
 	const [chatRoom, setChatRoom] = useState<ChatUser[]>([]);
 	const [chatRoomLen, setChatRoomLen] = useState(0);
-	const socket = io("localhost:8080");
+	const ENDPOINT = 'localhost:8080';
+	const socket = io(ENDPOINT);
 
 	useEffect((): any => {
 
@@ -26,32 +27,27 @@ const SocketProvider: React.FC = ({ children }) => {
 			socket.on("connect", () => {
 				console.log('[Chat] Client connected');
 
+				socket.on('connect_error', (err) => {
+					console.log(`connect_error due to ${err.message}`);
+					socket.close();
+				});
+
 				socket.emit('newUser', {
 					id: user.id,
 					username: user.username
 				});
 
-				socket.on('newDm', ({ message }) => {
-					console.log(`[Chat] Receive new message from [${message.author.username}]`);
-				});
+				// socket.on("joinChat", (data: ChatUser[]) => {
+				// 	setChatRoom(data);
+				// });
 
-				socket.on('newGm', ({ message }) => {
-					console.log(`[Chat] Receive new message in group [${message.channel.name}]`);
-				});
+				// socket.on("leaveChat", (data: ChatUser[]) => {
+				// 	setChatRoom(data);
+				// });
 
-				// socket.emit("handleChatConnect", user);
-
-				socket.on("joinChat", (data: ChatUser[]) => {
-					setChatRoom(data);
-				});
-
-				socket.on("leaveChat", (data: ChatUser[]) => {
-					setChatRoom(data);
-				});
-
-				socket.on('updateChatRoomLen', (len: number) => {
-					setChatRoomLen(len);
-				});
+				// socket.on('updateChatRoomLen', (len: number) => {
+				// 	setChatRoomLen(len);
+				// });
 			});
 		}
 		handleChat();

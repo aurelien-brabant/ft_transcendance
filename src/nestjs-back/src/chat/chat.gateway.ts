@@ -15,12 +15,7 @@ import { ConnectedUsers, User, userStatus } from '../games/class/Room';
 
 @WebSocketGateway(
   {
-    cors: {
-      origin: "http://localhost:8080",
-      methods: ["GET", "POST"],
-      transports: ['websocket', 'polling'],
-      // credentials: true
-    },
+    cors: true,
     allowEIO3: true,
     // namespace: '/chat'
   }

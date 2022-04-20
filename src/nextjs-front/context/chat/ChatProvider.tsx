@@ -1,12 +1,12 @@
-import { useContext, useState } from "react";
+import { useContext, useEffect, useState } from "react";
 import { BsFillChatDotsFill } from "react-icons/bs";
 import { Bounce } from "react-awesome-reveal";
 import { BaseUserData } from 'transcendance-types';
+import { useSession } from "../../hooks/use-session";
 import alertContext, { AlertContextType } from "../alert/alertContext";
 import authContext, { AuthContextValue } from "../auth/authContext";
 import relationshipContext, { RelationshipContextType } from "../relationship/relationshipContext";
 import socketContext, { SocketContextType } from "../../context/socket/socketContext";
-import { useSession } from "../../hooks/use-session";
 /* Chat */
 import Chat from "../../components/Chat";
 import ChatGroupsView from "../../components/chat/Groups";
@@ -108,10 +108,11 @@ const ChatProvider: React.FC = ({ children }) => {
 	const [lastY, setLastY] = useState<number>(0);
 	const { setAlert } = useContext(alertContext) as AlertContextType;
 	const session = useSession();
+	const user = session.user;
 	const { isChatOpened, setIsChatOpened } = useContext(authContext) as AuthContextValue;
 	const { blocked } = useContext(relationshipContext) as RelationshipContextType;
 	const { chatRoomLen } = useContext(socketContext) as SocketContextType;
-
+	
 	/* Chat manipulation */
 	const openChat = () => {
 		setIsChatOpened(true);
@@ -330,7 +331,7 @@ const ChatProvider: React.FC = ({ children }) => {
 		setDirectMessages(dms);
 	}
 
-  return (
+	return (
 		<chatContext.Provider
 			value={{
 				openChat,

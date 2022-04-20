@@ -1,6 +1,5 @@
 import { createContext } from 'react';
 import { BaseUserData } from 'transcendance-types';
-import { Socket } from 'socket.io-client';
 
 export type ChatView = 'dms' | 'dm' | 'dm_new' | 'groups' | 'group' | 'group_new' | 'group_add' | 'group_users' | 'group_settings' |'password_protection'; // plural form denotes the list, singular the chat itself
 
