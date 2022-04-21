@@ -1,4 +1,4 @@
-import { useEffect, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import { io } from "socket.io-client";
 import { useSession } from "../../hooks/use-session";
 import socketContext from "./socketContext";
@@ -13,12 +13,13 @@ const SocketProvider: React.FC = ({ children }) => {
 
 	const session = useSession();
 	const user = session.user;
-	const [chatRoom, setChatRoom] = useState<ChatUser[]>([]);
+	const [chatRoom, setChatRoom] = useState<ChatUser[]>([]);;
 	const [chatRoomLen, setChatRoomLen] = useState(0);
-	const ENDPOINT = 'localhost:8080';
-	const socket = io(ENDPOINT);
+	const socket = io('localhost:8080');
 
 	useEffect((): any => {
+
+		console.log("SOCKET PROVIDER USEEFFECT");
 
 		if (!socket || session.state !== 'authenticated')
 			return;
@@ -35,6 +36,10 @@ const SocketProvider: React.FC = ({ children }) => {
 				socket.emit('newUser', {
 					id: user.id,
 					username: user.username
+				});
+
+				socket.on('newDm', () => {
+					console.log("[Chat] newDm -> SOCKET PROVIDER");
 				});
 
 				// socket.on("joinChat", (data: ChatUser[]) => {
