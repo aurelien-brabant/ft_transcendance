@@ -99,8 +99,7 @@ export class ChannelsService {
     const hashedPwd = (createChannelDto.password) ? await hashPassword(createChannelDto.password, 10) : "";
     const channel = this.channelsRepository.create({
       ...createChannelDto,
-      password: hashedPwd,
-      users: [ { "id": createChannelDto.owner.id } ]
+      password: hashedPwd
     });
     this.logger.log(`Create new channel [${channel.name}]`);
     return this.channelsRepository.save(channel);

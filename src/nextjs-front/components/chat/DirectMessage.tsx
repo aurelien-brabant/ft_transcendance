@@ -72,20 +72,6 @@ const DirectMessage: React.FC<{ viewParams: { [key: string]: any } }> = ({
   const chatBottom = useRef<HTMLDivElement>(null);
   const dmId = viewParams.dmId;
 
-  /* Handle new message */
-  const newDmListener = ({ message }) => {
-    console.log(`[Chat] Receive new DM from [${message.author.username}]`);
-
-    messages.push({
-      id: messages.length.toString(),
-      author: message.author.username,
-      content: message.content,
-      isMe: message.author.id === user.id,
-      isBlocked: false,
-    });
-    return messages;
-  };
-
   /* Send new message */
   const handleDmSubmit = async () => {
     if (currentMessage.trim().length === 0) return;
@@ -126,6 +112,20 @@ const DirectMessage: React.FC<{ viewParams: { [key: string]: any } }> = ({
 
   useEffect(() => {
     loadDmsOnMount();
+
+    /* Handle new message */
+    const newDmListener = ({ message }) => {
+      console.log(`[Chat] Receive new DM from [${message.author.username}]`);
+
+      messages.push({
+        id: messages.length.toString(),
+        author: message.author.username,
+        content: message.content,
+        isMe: message.author.id === user.id,
+        isBlocked: false,
+      });
+      return messages;
+    };
 
     socket.on("newDm", newDmListener);
     return () => {

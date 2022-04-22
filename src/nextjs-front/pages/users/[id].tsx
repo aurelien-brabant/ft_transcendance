@@ -158,7 +158,7 @@ const UserProfilePage: NextPageWithLayout = ({}) => {
     const from: string = user.id;
     const to: string = userData.id;
 
-    if (from != to) {
+    if (from !== to) {
       await openDirectMessage(from, userData);
       openChat();
     }

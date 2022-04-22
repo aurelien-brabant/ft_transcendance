@@ -87,22 +87,6 @@ const Group: React.FC<{ viewParams: { [key: string]: any } }> = ({
 	const chatBottom = useRef<HTMLDivElement>(null);
 	const groupId = viewParams.groupId;
 
-	/* Handle new message in group */
-	const newGmListener = ({ message }) => {
-		console.log(`[Chat] Receive new message in [${message.channel.name}]`);
-
-		const isBlocked = !!blocked.find(user => user.id == message.author.id);
-
-		messages.push({
-			id: messages.length.toString(),
-			author: message.author.username,
-			content: message.content,
-			isMe: message.author.id === user.id,
-			isBlocked: isBlocked,
-		});
-		return messages;
-	};
-
 	/* Send new message */
 	const handleGroupMessageSubmit = async () => {
 		if (currentMessage.trim().length === 0) return;
@@ -144,6 +128,22 @@ const Group: React.FC<{ viewParams: { [key: string]: any } }> = ({
 	useEffect(() => {
 		loadGroupOnMount();
 		getData();
+
+		/* Handle new message in group */
+		const newGmListener = ({ message }) => {
+			console.log(`[Chat] Receive new message in [${message.channel.name}]`);
+
+			const isBlocked = !!blocked.find(user => user.id == message.author.id);
+
+			messages.push({
+				id: messages.length.toString(),
+				author: message.author.username,
+				content: message.content,
+				isMe: message.author.id === user.id,
+				isBlocked: isBlocked,
+			});
+			return messages;
+		};
 
 		socket.on("newGm", newGmListener);
 		return () => {

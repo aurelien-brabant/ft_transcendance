@@ -242,8 +242,8 @@ const ChatProvider: React.FC = ({ children }) => {
 	const createDirectMessage = async (userId: string, friendId: string) => {
 		if (userId === friendId) return ;
 
-		const userData = await (await fetch(`/api/users/${userId}`)).json();
-		const friendData = await (await fetch(`/api/users/${friendId}`)).json();
+		const friendRes = await fetch(`/api/users/${friendId}`);
+		const friendData = await friendRes.json();
 
 		const res = await fetch("/api/channels", {
 			method: "POST",
@@ -252,17 +252,19 @@ const ChatProvider: React.FC = ({ children }) => {
 			},
 			body: JSON.stringify({
 				name: `${userId}_${friendId}`,
-				owner: userData,
+				owner: { id: userId },
 				privacy: "dm",
-				users: [ userData, friendData ]
+				users: [ { id: userId }, { id: friendId } ],
 			}),
 		});
 
 		if (res.status === 201) {
 			const data = await res.json();
-			setDirectMessageData(JSON.parse(JSON.stringify(data)), friendData);
+			const channelData = JSON.parse(JSON.stringify(data));
+
+			setDirectMessageData(channelData, friendData);
 			updateDirectMessages();
-			return (JSON.parse(JSON.stringify(data)).id);
+			return (channelData.id);
 		} else {
 			setAlert({
 				type: "error",
@@ -311,7 +313,7 @@ const ChatProvider: React.FC = ({ children }) => {
 			if (channel.privacy === "dm") {
 				const friend = (channel.users[0].id === userId) ? channel.users[1] : channel.users[0];
 				/* Don't display DMs from blocked users */
-				const isBlocked = !!blocked.find(user => user.id == friend.id);
+				const isBlocked = !!blocked.find(user => user.id === friend.id);
 				if (!isBlocked) {
 					dms.push(setDirectMessageData(channel, friend));
 				}
