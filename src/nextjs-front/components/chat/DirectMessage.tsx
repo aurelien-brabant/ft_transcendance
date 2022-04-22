@@ -6,13 +6,8 @@ import Link from "next/link";
 import { UserStatusItem } from "../UserStatus";
 import { useSession } from "../../hooks/use-session";
 import Tooltip from "../../components/Tooltip";
-import chatContext, {
-  ChatContextType,
-  ChatMessage,
-} from "../../context/chat/chatContext";
-import socketContext, {
-  SocketContextType,
-} from "../../context/socket/socketContext";
+import chatContext, { ChatContextType, ChatMessage } from "../../context/chat/chatContext";
+import socketContext, { SocketContextType } from "../../context/socket/socketContext";
 
 /* Header */
 export const DirectMessageHeader: React.FC<{ viewParams: any }> = ({
@@ -77,6 +72,20 @@ const DirectMessage: React.FC<{ viewParams: { [key: string]: any } }> = ({
   const chatBottom = useRef<HTMLDivElement>(null);
   const dmId = viewParams.dmId;
 
+  /* Handle new message */
+  const newDmListener = ({ message }) => {
+    console.log(`[Chat] Receive new DM from [${message.author.username}]`);
+
+    messages.push({
+      id: messages.length.toString(),
+      author: message.author.username,
+      content: message.content,
+      isMe: message.author.id === user.id,
+      isBlocked: false,
+    });
+    return messages;
+  };
+
   /* Send new message */
   const handleDmSubmit = async () => {
     if (currentMessage.trim().length === 0) return;
@@ -116,31 +125,12 @@ const DirectMessage: React.FC<{ viewParams: { [key: string]: any } }> = ({
   };
 
   useEffect(() => {
-    const messageListener = ({ message }) => {
-		console.log(message)
-      console.log(`[Chat] Receive new DM from [${message.author.username}]`);
-
-      messages.push({
-        id: messages.length.toString(),
-        author: message.author.username,
-        content: message.content,
-        isMe: message.author.id === user.id,
-        isBlocked: false,
-      });
-      setMessages(messages);
-      return messages;
-    };
-
     loadDmsOnMount();
 
-    socket.on("newDm", messageListener);
+    socket.on("newDm", newDmListener);
     return () => {
-      socket.off("newDm", messageListener);
+      socket.off("newDm", newDmListener);
     };
-
-    //socket.on('newDm', () => {
-    //	console.log("[Chat] newDm -> DIRECT MESSAGE");
-    //});
   }, []);
 
   return (
