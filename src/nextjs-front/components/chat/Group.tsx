@@ -81,15 +81,14 @@ const Group: React.FC<{ viewParams: { [key: string]: any } }> = ({
 	const { user } = useSession();
 	const { setAlert } = useContext(alertContext) as AlertContextType;
 	const { fetchChannelData } = useContext(chatContext) as ChatContextType;
-	const { blocked, getData } = useContext(relationshipContext) as RelationshipContextType;
+	const { blocked } = useContext(relationshipContext) as RelationshipContextType;
 	const [messages, setMessages] = useState<ChatMessage[]>([]);
 	const [currentMessage, setCurrentMessage] = useState("");
 	const chatBottom = useRef<HTMLDivElement>(null);
 	const channelId = viewParams.groupId;
 
 	const addMessage = (message: any) => {
-		// const isBlocked = !!blocked.find(user => user.id === message.author.id);
-		const isBlocked = false; // to be removed
+		const isBlocked = !!blocked.find(user => user.id === message.author.id);
 
 		setMessages([
 			...messages, {
@@ -104,7 +103,7 @@ const Group: React.FC<{ viewParams: { [key: string]: any } }> = ({
 
 	/* Send new message */
 	const handleGroupMessageSubmit = async () => {
-		if (currentMessage.length === 0) return;
+		if (currentMessage.trim().length === 0) return;
 
 		const channelData = await fetchChannelData(channelId).catch(console.error);
 
@@ -160,7 +159,6 @@ const Group: React.FC<{ viewParams: { [key: string]: any } }> = ({
 
 	useEffect(() => {
 		loadGroupOnMount();
-		// getData();
 	}, []);
 
 	return (

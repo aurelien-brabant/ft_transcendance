@@ -42,8 +42,8 @@ const Chat: React.FC<ChatProps> = ({ viewStack, onClose }) => {
 			const res = await fetch(`/api/users/${user.id}/channels`);
 			const data = await res.json();
 
-			await getData();
 			loadChannelsOnMount(JSON.parse(JSON.stringify(data)), user.id);
+			await getData();
 		}
 		fetchUserChannels().catch(console.error);
 	}, [])
