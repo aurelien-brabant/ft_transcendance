@@ -350,6 +350,6 @@ const UserProfilePage: NextPageWithLayout = ({}) => {
 }
 
 UserProfilePage.getLayout = withDashboardLayout;
-UserProfilePage.isAuthRestricted = true;
+UserProfilePage.authConfig = true
 
 export default UserProfilePage;
