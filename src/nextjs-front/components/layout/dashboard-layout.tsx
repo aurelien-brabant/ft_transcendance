@@ -238,7 +238,7 @@ export const DashboardLayout: FunctionComponent = ({ children }) => {
                         <img
                           src={`/api/users/${user.id}/photo`}
                           alt=""
-                          className={"object-center"}
+                          className={'h-full w-full object-cover'}
                         />
                       </div>
                     </Menu.Button>
