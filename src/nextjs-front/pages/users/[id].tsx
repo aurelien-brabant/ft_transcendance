@@ -79,7 +79,7 @@ const HistoryTable: React.FC<{ history: GameSummary[]; userId: string }> = ({
       {history.map((game, index) => (
         <tr
           key={game.id}
-          className={`py-6 ${index % 2 ? "bg-gray-800" : "bg-gray-700"}`}
+          className={`py-6 ${index % 2 ? "bg-02dp" : "bg-03dp"}`}
         >
           <td className="p-3 font-bold">
             <Link
@@ -280,7 +280,7 @@ const UserProfilePage: NextPageWithLayout = ({}) => {
               ) : userData.id === user.id ? (
                 <div className="absolute left-0 right-0 flex items-center justify-center -bottom-4 gap-x-2">
                   <Tooltip className={actionTooltipStyles} content="Edit user">
-                    <button className="p-2 text-2xl text-white/80 bg-02dp rounded-full transition hover:scale-105">
+                    <button className="p-2 text-2xl text-white/90 bg-01dp rounded-full transition hover:scale-105">
                       <RiUserSettingsLine
                         onClick={() => {
                           router.push("/welcome");
@@ -292,14 +292,14 @@ const UserProfilePage: NextPageWithLayout = ({}) => {
               ) : (
                 <div className="absolute left-0 right-0 flex items-center justify-center -bottom-4 gap-x-2">
                   <Tooltip className={actionTooltipStyles} content="challenge">
-                    <button className="p-2 text-2xl text-gray-900 bg-02dp rounded-full transition hover:scale-105">
+                    <button className="p-2 text-2xl text-gray-900 bg-pink-200 text-pink-700 rounded-full transition hover:scale-105">
                       <RiPingPongLine />
                     </button>
                   </Tooltip>
 
                   <Tooltip className={actionTooltipStyles} content="message">
                     <button
-                      className="p-2 text-2xl text-gray-900 bg-02dp rounded-full transition hover:scale-105"
+                      className="p-2 text-pink-700 bg-pink-200 text-2xl rounded-full transition hover:scale-105"
                       onClick={handleMessage}
                     >
                       <RiMessage2Line />
@@ -313,9 +313,9 @@ const UserProfilePage: NextPageWithLayout = ({}) => {
                     <button
                       className={`${
                         alreadyFriend
-                          ? "bg-black text-gray-100 cursor-normal"
-                          : "cursor-pointer text-white/90 bg-02dp"
-                      } p-2 text-2xl rounded-full transition hover:scale-105`}
+                          ? "cursor-normal opacity-80"
+                          : "cursor-pointer"
+                      } p-2 text-2xl bg-pink-200 text-pink-700 rounded-full transition hover:scale-105`}
                     >
                       {alreadyFriend ? (
                         <IoMdPersonAdd
