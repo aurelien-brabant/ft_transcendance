@@ -276,7 +276,13 @@ export const DashboardLayout: FunctionComponent = ({ children }) => {
             </div>
           </div>
 
-          <main className="bg-dark flex-1">
+          <main
+            className="bg-dark flex-1 relative"
+            style={{
+              background:
+                "repeating-linear-gradient(rgba(18,18,18,0.90), rgba(18,18,18,0.90)), url('/triangles.png') repeat",
+            }}
+          >
             <div className="py-6">
               <div className="max-w-7xl mx-auto px-4 sm:px-6 md:px-8">
                 {children}

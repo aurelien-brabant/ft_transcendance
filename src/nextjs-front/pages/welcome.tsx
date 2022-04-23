@@ -407,7 +407,7 @@ const Welcome: NextPageWithLayout = () => {
   return (
     <div className="min-h-screen text-white grow" id="main-content">
       <div 
-        style={{ minHeight: "300vh", maxWidth: "800px" }}
+        style={{ maxWidth: "800px" }}
         className="px-2 mx-auto"
       >
       

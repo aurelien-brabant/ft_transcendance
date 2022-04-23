@@ -253,9 +253,7 @@ const UserProfilePage: NextPageWithLayout = ({}) => {
   }, [userId, user])
 
   return (
-    <div className="min-h-screen overflow-x-auto text-white bg-fixed bg-center bg-fill grow" style={{
-      backgroundImage: "url('/triangles.png')"
-    }}>
+    <div className="min-h-screen overflow-x-auto text-white bg-fixed bg-center bg-fill grow">
       { !isLoading ?
       <div style={{ maxWidth: "800px" }} className="px-2 py-16 mx-auto">
         <div className="flex flex-col items-center gap-y-10">
@@ -307,7 +305,7 @@ const UserProfilePage: NextPageWithLayout = ({}) => {
             <h1 className="text-2xl text-pink-600">{userData.username}</h1>
             <UserStatusItem status={(userData.accountDeactivated) ? "deactivated" : "online"} id={userData.id}/>
           </div>
-          <div className="w-full p-5 bg-gray-800 border-2 border-gray-800 rounded drop-shadow-md grid lg:grid-cols-3">
+          <div className="w-full p-5 bg-01dp border-2 border-02dp rounded drop-shadow-md grid lg:grid-cols-3">
             <HighlightItem
               n={rank}
               label="Ranking"
