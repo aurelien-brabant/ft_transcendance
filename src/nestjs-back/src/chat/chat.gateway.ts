@@ -11,7 +11,8 @@ import {
   WebSocketServer,
 } from '@nestjs/websockets';
 import { ChatService } from './chat.service';
-import { ConnectedUsers, User, userStatus } from '../games/class/Room';
+import { userStatus } from '../games/class/Constants';
+import { ConnectedUsers, User } from '../games/class/ConnectedUsers';
 
 @WebSocketGateway(
   {

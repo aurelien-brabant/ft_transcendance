@@ -38,15 +38,15 @@ const SocketProvider: React.FC = ({ children }) => {
         });
 
         // socket.on("joinChat", (data: ChatUser[]) => {
-        // 	setChatRoom(data);
+        //   setChatRoom(data);
         // });
 
         // socket.on("leaveChat", (data: ChatUser[]) => {
-        // 	setChatRoom(data);
+        //   setChatRoom(data);
         // });
 
         // socket.on('updateChatRoomLen', (len: number) => {
-        // 	setChatRoomLen(len);
+        //   setChatRoomLen(len);
         // });
       });
     };

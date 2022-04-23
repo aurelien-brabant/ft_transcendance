@@ -24,7 +24,6 @@ export class Game {
 
     @Column({ nullable: true })
     loserId: number;
-
     @Column({ nullable: true })
     winnerScore: number;
 

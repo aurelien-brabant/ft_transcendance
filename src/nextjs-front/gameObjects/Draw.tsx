@@ -63,7 +63,7 @@ export class Draw {
 		this.dot = 0;
 	}
 
-	/* General Drawind functions*/
+	/* General Drawing functions*/
 	clear() {
 		if (this.context)
 			this.context.clearRect(0, 0, this.width, this.height);
@@ -141,7 +141,7 @@ export class Draw {
 
 	/* Game Object */
 	drawBall(ball: IBall) {
-		this.drawCircle(ball.x, ball.y, ball.r, 'white');
+		this.drawCircle(ball.x, ball.y, ball.r, ball.color);
 	}
 
 	drawPaddle(paddle: IPlayer) {
