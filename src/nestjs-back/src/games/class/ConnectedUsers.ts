@@ -1,7 +1,7 @@
 import { userStatus } from "./Constants";
 
 export class User {
-    id: number;
+	id: number;
 	username: string;
 	status?: userStatus;
 	socketId?: string;
@@ -15,6 +15,10 @@ export class User {
 
 	setSocketId(socketId: string) {
 		this.socketId = socketId;
+	}
+
+	setUsername(username: string) {
+		this.username = username;
 	}
 
 	setUserStatus(status: userStatus) {
@@ -44,6 +48,13 @@ export class ConnectedUsers {
 
 	getUser(socketId: string): User | undefined {
 		let userIndex: number = this.users.findIndex(user => user.socketId === socketId);
+		if (userIndex === -1)
+			return undefined;
+		return this.users[userIndex];
+	}
+
+	getUserById(userId: number): User | undefined {
+		let userIndex: number = this.users.findIndex(user => user.id === userId);
 		if (userIndex === -1)
 			return undefined;
 		return this.users[userIndex];
