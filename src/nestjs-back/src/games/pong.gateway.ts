@@ -10,17 +10,15 @@ import {
 	WebSocketGateway,
 	WebSocketServer
 } from "@nestjs/websockets";
-
-// Not yet in place
 import { GamesService } from './games.service';
 import { UsersService } from 'src/users/users.service';
-// import { CreateGameDto } from 'src/games/dto/create-game.dto';
-// import { UpdateGameDto } from 'src/games/dto/update-game.dto';
 
 import Queue from './class/Queue';
-import Room, { ConnectedUsers, GameState, User, userStatus } from './class/Room';
+import Room from './class/Room';
+import { ConnectedUsers, User } from './class/ConnectedUsers';
+import { GameState, userStatus } from './class/Constants';
 
-@WebSocketGateway({ cors: true })
+@WebSocketGateway({ cors: true, namespace: "game" })
 export class PongGateway implements OnGatewayInit, OnGatewayConnection, OnGatewayDisconnect {
 	constructor(private readonly gamesService: GamesService,
 				private readonly usersService: UsersService) {}
@@ -28,37 +26,37 @@ export class PongGateway implements OnGatewayInit, OnGatewayConnection, OnGatewa
 	@WebSocketServer()
 	server: Server;
 	private logger: Logger = new Logger('gameGateway');
+
     private readonly queue: Queue = new Queue();
     private readonly rooms: Map<string, Room> = new Map();
-
-	// see if it can be done another way
+	private readonly currentGames: Array<string> = new Array();
 	private readonly connectedUsers: ConnectedUsers = new ConnectedUsers();
 
-	async findMatches(server: Server, queue: Queue, rooms: Map<string, Room>) {
-		if (queue.size() > 1) {
-			let players: User[] = Array();
-			let roomId: string;
-            let room: Room;
-
-			players.push(queue.dequeue());
-			// Match players based on ratio, etc...
-			players.push(queue.dequeue());
-
-			// emit rooms change event for spectator or create a game in DB
-			// server.emit("updateCurrentGames", rooms);	
-
-			roomId = `${players[0].username}&${players[1].username}`;
-
-            room = new Room(roomId, players, {maxGoal: 1});
-
-			server.to(players[0].socketId).emit("newRoom", room);
-			server.to(players[1].socketId).emit("newRoom",  room);
-            rooms.set(roomId, room);
-        }
-    }
-
 	afterInit(server: Server) {
-		setInterval(this.findMatches, 5000, this.server, this.queue, this.rooms);
+		setInterval(() => {
+			if (this.queue.size() > 1) {
+				let players: User[] = Array();
+				let roomId: string;
+				let room: Room;
+
+				players.push(this.queue.dequeue());
+				// Match players based on ratio, etc...
+				players.push(this.queue.dequeue());
+
+				// emit rooms change event for spectator or create a game in DB
+				
+				roomId = `${players[0].username}&${players[1].username}`;
+				
+				room = new Room(roomId, players, {maxGoal: 1});
+				
+				this.server.to(players[0].socketId).emit("newRoom", room);
+				this.server.to(players[1].socketId).emit("newRoom",  room);
+				this.rooms.set(roomId, room);
+				this.currentGames.push(roomId);
+				this.server.emit("updateCurrentGames", this.currentGames);
+			}
+		}, 5000);
+		this.logger.log(`Init Pong Gateway`);
 	}
 
 	async handleConnection(@ConnectedSocket() client: Socket) {
@@ -66,7 +64,7 @@ export class PongGateway implements OnGatewayInit, OnGatewayConnection, OnGatewa
 	}
 
 	@SubscribeMessage('handleUserConnect')
-	handlUserConnect(@ConnectedSocket() client: Socket, @MessageBody() user: User) {
+	async handleUserConnect(@ConnectedSocket() client: Socket, @MessageBody() user: User) {
 		let newUser: User = new User(user.id, user.username, client.id);
 		newUser.setSocketId(client.id);
 		newUser.setUserStatus(userStatus.INHUB);
@@ -101,6 +99,11 @@ export class PongGateway implements OnGatewayInit, OnGatewayConnection, OnGatewa
 					{
 						this.logger.log("No player left in the room deleting it...");
 						this.rooms.delete(room.roomId);
+
+						let roomIndex: number = this.currentGames.findIndex(roomIdRm => roomIdRm === room.roomId);
+						if (roomIndex !== -1)
+							this.currentGames.splice(roomIndex, 1);
+						this.server.emit("updateCurrentGames", this.currentGames);
 					}
 					else if (room.gameState !== GameState.END) {
 						if (room.gameState === GameState.GOAL)
@@ -146,6 +149,17 @@ export class PongGateway implements OnGatewayInit, OnGatewayConnection, OnGatewa
 		}
 	}
 
+	@SubscribeMessage('spectateRoom')
+	handleSpectateRoom(@ConnectedSocket() client: Socket, @MessageBody() roomId: string) {
+		const room: Room = this.rooms.get(roomId);
+
+		if (room) {
+			let user = this.connectedUsers.getUser(client.id);
+			if (!room.isAPlayer(user))
+				this.server.to(client.id).emit("newRoom", room);
+		}
+	}
+
 	// Etape 2 : The player was assigned a Room and received the roomId we add him to the room
 	@SubscribeMessage('joinRoom')
 	handleJoinRoom(@ConnectedSocket() client: Socket, @MessageBody() roomId: string) {
@@ -154,11 +168,11 @@ export class PongGateway implements OnGatewayInit, OnGatewayConnection, OnGatewa
 		if (room) {
 			let user = this.connectedUsers.getUser(client.id);
 			client.join(roomId);
-			if (user.status === userStatus.INHUB)
+			if (user.status === userStatus.INHUB) {
 				this.connectedUsers.changeUserStatus(client.id, userStatus.SPECTATING);
+			}
 			else if (room.isAPlayer(user))
 				room.addUser(user);
-
 			this.server.to(client.id).emit("joinedRoom");
 			this.server.to(client.id).emit("updateRoom", room);
 		}
@@ -175,6 +189,11 @@ export class PongGateway implements OnGatewayInit, OnGatewayConnection, OnGatewa
 			if (room.players.length === 0) {
 				this.logger.log("No user left in the room deleting it...");
 				this.rooms.delete(room.roomId);
+
+				let roomIndex: number = this.currentGames.findIndex(roomIdRm => roomIdRm === room.roomId);
+				if (roomIndex !== -1)
+					this.currentGames.splice(roomIndex, 1);
+				this.server.emit("updateCurrentGames", this.currentGames);
 			}
 			if (room.isAPlayer(user) && room.gameState !== GameState.END)
 				room.pause();
@@ -202,7 +221,7 @@ export class PongGateway implements OnGatewayInit, OnGatewayConnection, OnGatewa
 				if (room.isGameEnd) {
 					let playerOne = await this.usersService.findOne(String(room.players[0].id));
 					let playerTwo = await this.usersService.findOne(String(room.players[1].id));
-					let game = await this.gamesService.create({
+					await this.gamesService.create({
 						players: [playerOne, playerTwo],
 						winnerId: room.winnerId,
 						loserId: room.loserId,
@@ -212,7 +231,11 @@ export class PongGateway implements OnGatewayInit, OnGatewayConnection, OnGatewa
 						winnerScore: room.winnerScore,
 						loserScore: room.loserScore
 					});
-					console.log(game);	
+
+					let roomIndex: number = this.currentGames.findIndex(roomIdRm => roomIdRm === room.roomId);
+					if (roomIndex !== -1)
+						this.currentGames.splice(roomIndex, 1);
+					this.server.emit("updateCurrentGames", this.currentGames);
 				}
 			}
 			else if (room.gameState === GameState.GOAL && (currentTimestamp - room.goalTimestamp) >= 3500) {
@@ -269,5 +292,12 @@ export class PongGateway implements OnGatewayInit, OnGatewayConnection, OnGatewa
 			if (data.key === 'ArrowDown')
 				room.playerTwo.down = false;
 		}
+	}
+
+
+	// Etape 1 : Player JoinQueue
+	@SubscribeMessage('getCurrentGames')
+	handleCurrentGames(@ConnectedSocket() client: Socket) {
+		this.server.to(client.id).emit("updateCurrentGames", (this.currentGames));
 	}
 }
