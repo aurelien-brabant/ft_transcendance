@@ -1,5 +1,5 @@
 import React, { Fragment, useContext, useEffect } from "react";
-import Draggable, { DraggableEvent } from 'react-draggable';
+import Draggable from 'react-draggable';
 import { useMediaQuery } from "react-responsive";
 import { AiOutlineClose } from "react-icons/ai";
 import { FaUserFriends, FaUser } from "react-icons/fa";
@@ -24,7 +24,7 @@ const Chat: React.FC<ChatProps> = ({ viewStack, onClose }) => {
 		setLastX,
 		setLastY
 	} = useContext(chatContext) as ChatContextType;
-	const { blocked, getData } = useContext(relationshipContext) as RelationshipContextType;
+	const { getData } = useContext(relationshipContext) as RelationshipContextType;
 	const { user } = useSession();
 	const currentView = viewStack[viewStack.length - 1];
 	const buttonTooltipClassName = "p-3 font-bold bg-gray-900";
@@ -42,8 +42,8 @@ const Chat: React.FC<ChatProps> = ({ viewStack, onClose }) => {
 			const res = await fetch(`/api/users/${user.id}/channels`);
 			const data = await res.json();
 
-			await getData();
 			loadChannelsOnMount(JSON.parse(JSON.stringify(data)), user.id);
+			await getData();
 		}
 		fetchUserChannels().catch(console.error);
 	}, [])
@@ -56,7 +56,6 @@ const Chat: React.FC<ChatProps> = ({ viewStack, onClose }) => {
 		nodeRef={nodeRef}
 		position={{x: lastX, y: lastY}}
 		onStop={(e, data) => {
-			console.log('hillan')
 			if (data.y > 0)
 				setLastY(0)
 			else if (-data.y > window.innerHeight - 670)
