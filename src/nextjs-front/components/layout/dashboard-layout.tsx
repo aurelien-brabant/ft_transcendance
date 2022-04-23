@@ -34,12 +34,117 @@ import {
 import { SearchIcon } from "@heroicons/react/solid";
 import { classNames } from "../../utils/class-names";
 import { useSession } from "../../hooks/use-session";
+import { CheckIcon, SelectorIcon } from "@heroicons/react/solid";
+import { Combobox } from "@headlessui/react";
+import { useRouter } from "next/router";
 
 const navigation = [
   { name: "My profile", href: "/welcome", icon: HomeIcon, current: true },
   { name: "Friends", href: "/friends", icon: UsersIcon, current: false },
   { name: "Play", href: "/hub", icon: FireIcon, current: false },
 ];
+
+const SearchBar = () => {
+  const fetchUsers = async (searchTerm: string) => {
+    const res = await fetch(`/api/users/search?v=${searchTerm}`);
+
+    if (res.status === 200) {
+      const matchingUsers = await res.json();
+      const uniqueMatchingUsers = matchingUsers.filter(
+        (matchingUser: any) =>
+          !users.find(({ username }) => username === matchingUser.username)
+      );
+
+      setUsers([...users, ...uniqueMatchingUsers]);
+    }
+  };
+
+  const [users, setUsers] = useState<any[]>([]);
+  const [query, setQuery] = useState("");
+  const [selectedPerson, setSelectedPerson] = useState();
+  const router = useRouter();
+
+  const filteredPeople =
+    query === ""
+      ? users
+      : users.filter((person) => {
+          return person.username.toLowerCase().includes(query.toLowerCase());
+        });
+
+  const handleSelect = async (user: any) => {
+    setSelectedPerson(user);
+    await router.push(`/users/${user.id}`);
+  };
+
+  const handleQueryChange = async ({
+    target: { value },
+  }: React.ChangeEvent<HTMLInputElement>) => {
+    setQuery(value);
+    fetchUsers(value);
+  };
+
+  return (
+    <Combobox as={Fragment} value={selectedPerson} onChange={handleSelect}>
+      <div className="relative mt-1 w-1/2">
+        <Combobox.Input
+          className="w-full rounded-md border border-white/10 bg-01dp py-2 pl-3 pr-10 text-white/80 shadow-sm focus:border-pink-500 focus:outline-none focus:ring-1 focus:ring-pink-500 sm:text-sm"
+          onChange={handleQueryChange}
+          displayValue={(person: any) => person.username}
+        />
+        <Combobox.Button className="absolute inset-y-0 right-0 flex items-center rounded-r-md px-2 focus:outline-none">
+          <SearchIcon className="h-5 w-5 text-gray-400" aria-hidden="true" />
+        </Combobox.Button>
+
+        {filteredPeople.length > 0 && (
+          <Combobox.Options className="absolute z-10 mt-1 max-h-60 w-full overflow-auto rounded-md bg-01dp text-white/80 py-1 text-base shadow-lg ring-1 ring-black ring-opacity-5 focus:outline-none sm:text-sm">
+            {filteredPeople.map((person) => (
+              <Combobox.Option
+                key={person.id}
+                value={person}
+                className={({ active }) =>
+                  classNames(
+                    "relative cursor-default select-none py-2 pl-3 pr-9",
+                    active ? "bg-04dp text-white" : "text-white/80"
+                  )
+                }
+              >
+                {({ active, selected }) => (
+                  <div className={"flex items-center gap-x-2"}>
+                    {/* eslint-disable-next-line */}
+                    <img
+                      src={`/api/users/${person.id}/photo`}
+                      alt={"photo"}
+                      className={"rounded-full w-7 h-7 object-cover"}
+                    />
+                    <span
+                      className={classNames(
+                        "block truncate",
+                        selected && "font-semibold"
+                      )}
+                    >
+                      {person.username}
+                    </span>
+
+                    {selected && (
+                      <span
+                        className={classNames(
+                          "absolute inset-y-0 right-0 flex items-center pr-4",
+                          active ? "text-white" : "text-pink-600"
+                        )}
+                      >
+                        <CheckIcon className="h-5 w-5" aria-hidden="true" />
+                      </span>
+                    )}
+                  </div>
+                )}
+              </Combobox.Option>
+            ))}
+          </Combobox.Options>
+        )}
+      </div>
+    </Combobox>
+  );
+};
 
 export const DashboardLayout: FunctionComponent = ({ children }) => {
   const [sidebarOpen, setSidebarOpen] = useState(false);
@@ -122,9 +227,8 @@ export const DashboardLayout: FunctionComponent = ({ children }) => {
                 <div className="mt-5 flex-1 h-0 overflow-y-auto">
                   <nav className="px-2 space-y-1">
                     {navigation.map((item) => (
-                      <Link href={item.href}>
+                      <Link href={item.href} key={item.name}>
                         <a
-                          key={item.name}
                           className={classNames(
                             item.current
                               ? "bg-gray-900 text-white"
@@ -165,9 +269,8 @@ export const DashboardLayout: FunctionComponent = ({ children }) => {
             <div className="flex-1 flex flex-col overflow-y-auto">
               <nav className="flex-1 px-2 py-4 space-y-1">
                 {navigation.map((item) => (
-                  <Link href={item.href}>
+                  <Link href={item.href} key={item.name}>
                     <a
-                      key={item.name}
                       className={classNames(
                         item.current
                           ? "bg-01dp text-white"
@@ -203,24 +306,8 @@ export const DashboardLayout: FunctionComponent = ({ children }) => {
               <MenuAlt2Icon className="h-6 w-6" aria-hidden="true" />
             </button>
             <div className="flex-1 px-4 flex justify-between">
-              <div className="flex-1 flex">
-                <form className="w-full flex md:ml-0" action="#" method="GET">
-                  <label htmlFor="search-field" className="sr-only">
-                    Search
-                  </label>
-                  <div className="relative w-full text-gray-400 focus-within:text-gray-600">
-                    <div className="absolute inset-y-0 left-0 flex items-center pointer-events-none">
-                      <SearchIcon className="h-5 w-5" aria-hidden="true" />
-                    </div>
-                    <input
-                      id="search-field"
-                      className="bg-01dp block w-full h-full pl-8 pr-3 py-2 border-transparent text-white/80 placeholder-gray-500 focus:outline-none focus:placeholder-gray-400 focus:ring-0 focus:border-transparent sm:text-sm"
-                      placeholder="Search"
-                      type="search"
-                      name="search"
-                    />
-                  </div>
-                </form>
+              <div className="flex-1 flex items-center">
+                <SearchBar />
               </div>
               <div className="ml-4 flex items-center md:ml-6">
                 {/* Profile dropdown */}
@@ -238,7 +325,7 @@ export const DashboardLayout: FunctionComponent = ({ children }) => {
                         <img
                           src={`/api/users/${user.id}/photo`}
                           alt=""
-                          className={'h-full w-full object-cover'}
+                          className={"h-full w-full object-cover"}
                         />
                       </div>
                     </Menu.Button>
