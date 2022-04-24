@@ -15,7 +15,7 @@ jobs:
               run: |
                   cat >> ./src/nextjs-front/.env << END
                   NEXT_PUBLIC_FT_CLIENT_ID=$NEXT_PUBLIC_FT_CLIENT_ID
-                  NEXT_PUBLIC_FT_REDIRECT_URI=$NEXT_PUBLIC_FT_REDIRECT_UI
+                  NEXT_PUBLIC_FT_REDIRECT_URI=$NEXT_PUBLIC_FT_REDIRECT_URI
                   END
               env:
                   NEXT_PUBLIC_FT_CLIENT_ID: ${{ secrets.NEXT_PUBLIC_FT_CLIENT_ID }}
