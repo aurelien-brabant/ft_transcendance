@@ -1,9 +1,9 @@
-import { userStatus } from "./Constants";
+import { UserStatus } from "./Constants";
 
 export class User {
 	id: number;
 	username: string;
-	status?: userStatus;
+	status?: UserStatus;
 	socketId?: string;
 	roomId?: string;
 
@@ -21,7 +21,7 @@ export class User {
 		this.username = username;
 	}
 
-	setUserStatus(status: userStatus) {
+	setUserStatus(status: UserStatus) {
 		this.status = status;
 	}
 
@@ -60,7 +60,7 @@ export class ConnectedUsers {
 		return this.users[userIndex];
 	}
 
-	changeUserStatus(socketId: string, status: userStatus) {
+	changeUserStatus(socketId: string, status: UserStatus) {
 		let user: User = this.getUser(socketId);
 		user.setUserStatus(status);
 	}
