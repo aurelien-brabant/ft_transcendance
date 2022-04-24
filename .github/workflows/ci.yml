@@ -8,7 +8,7 @@ jobs:
     build:
         runs-on: ubuntu-20.04
         steps:
-            - name: Clone app from main branch
+            - name: Clone app from master branch
               uses: actions/checkout@v2
 
             - name: Generate frontend .env
@@ -34,11 +34,11 @@ jobs:
                   echo ${{ secrets.DOCKER_HUB_PASSWORD }} | docker login --username ${{ secrets.DOCKER_HUB_LOGIN }} --password-stdin
                   docker push aurelienbrabant/transcendance-front
                   docker push aurelienbrabant/transcendance-back
-              if: ${{ github.ref == 'refs/heads/main' }}
+              if: ${{ github.ref == 'refs/heads/master' }}
 
     deploy:
         runs-on: ubuntu-20.04
-        if: ${{ github.ref == 'refs/heads/main' }}
+        if: ${{ github.ref == 'refs/heads/master' }}
         steps:
             - name: Configure SSH
               run: |
