@@ -14,7 +14,13 @@
   }
   ```
 */
-import { Fragment, FunctionComponent, useState } from "react";
+import {
+  ChangeEvent,
+  Fragment,
+  FunctionComponent,
+  useRef,
+  useState,
+} from "react";
 import Image from "next/image";
 import Link from "next/link";
 import { Dialog, Menu, Transition } from "@headlessui/react";
@@ -37,6 +43,7 @@ import { useSession } from "../../hooks/use-session";
 import { CheckIcon, SelectorIcon } from "@heroicons/react/solid";
 import { Combobox } from "@headlessui/react";
 import { useRouter } from "next/router";
+import { CircleLoader } from "react-spinners";
 
 const navigation = [
   { name: "My profile", href: "/welcome", icon: HomeIcon, current: true },
@@ -44,12 +51,18 @@ const navigation = [
   { name: "Play", href: "/hub", icon: FireIcon, current: false },
 ];
 
+/**
+ * Search bar used to search for users and go to their profile page.
+ * Implements a query caching system and make uses of the special
+ * /users/search API route.
+ */
 const SearchBar = () => {
   const fetchUsers = async (searchTerm: string) => {
     const res = await fetch(`/api/users/search?v=${searchTerm}`);
 
     if (res.status === 200) {
       const matchingUsers = await res.json();
+      /* don't add users that are already in */
       const uniqueMatchingUsers = matchingUsers.filter(
         (matchingUser: any) =>
           !users.find(({ username }) => username === matchingUser.username)
@@ -57,8 +70,12 @@ const SearchBar = () => {
 
       setUsers([...users, ...uniqueMatchingUsers]);
     }
+
+    return res.status;
   };
 
+  const queryCache = useRef<Set<string>>(new Set());
+  const [isFetching, setIsFetching] = useState(false);
   const [users, setUsers] = useState<any[]>([]);
   const [query, setQuery] = useState("");
   const [selectedPerson, setSelectedPerson] = useState();
@@ -67,8 +84,8 @@ const SearchBar = () => {
   const filteredPeople =
     query === ""
       ? users
-      : users.filter((person) => {
-          return person.username.toLowerCase().includes(query.toLowerCase());
+      : users.filter((user) => {
+          return user.username.toLowerCase().includes(query.toLowerCase());
         });
 
   const handleSelect = async (user: any) => {
@@ -78,9 +95,21 @@ const SearchBar = () => {
 
   const handleQueryChange = async ({
     target: { value },
-  }: React.ChangeEvent<HTMLInputElement>) => {
-    setQuery(value);
-    fetchUsers(value);
+  }: ChangeEvent<HTMLInputElement>) => {
+    const normalizedValue = value.toLowerCase();
+
+    setQuery(normalizedValue);
+    // cache hit
+    if (queryCache.current.has(normalizedValue)) {
+      return;
+    }
+    setIsFetching(true);
+    const httpStatus = await fetchUsers(value);
+    /* if request succeeded cache the query */
+    if (httpStatus === 200) {
+      queryCache.current.add(normalizedValue);
+    }
+    setIsFetching(false);
   };
 
   return (
@@ -89,18 +118,22 @@ const SearchBar = () => {
         <Combobox.Input
           className="w-full rounded-md border border-white/10 bg-01dp py-2 pl-3 pr-10 text-white/80 shadow-sm focus:border-pink-500 focus:outline-none focus:ring-1 focus:ring-pink-500 sm:text-sm"
           onChange={handleQueryChange}
-          displayValue={(person: any) => person.username}
+          displayValue={(user: any) => user.username}
         />
         <Combobox.Button className="absolute inset-y-0 right-0 flex items-center rounded-r-md px-2 focus:outline-none">
-          <SearchIcon className="h-5 w-5 text-gray-400" aria-hidden="true" />
+          {!isFetching ? (
+            <SearchIcon className="h-5 w-5 text-gray-400" aria-hidden="true" />
+          ) : (
+            <CircleLoader />
+          )}
         </Combobox.Button>
 
         {filteredPeople.length > 0 && (
           <Combobox.Options className="absolute z-10 mt-1 max-h-60 w-full overflow-auto rounded-md bg-01dp text-white/80 py-1 text-base shadow-lg ring-1 ring-black ring-opacity-5 focus:outline-none sm:text-sm">
-            {filteredPeople.map((person) => (
+            {filteredPeople.map((user) => (
               <Combobox.Option
-                key={person.id}
-                value={person}
+                key={user.id}
+                value={user}
                 className={({ active }) =>
                   classNames(
                     "relative cursor-default select-none py-2 pl-3 pr-9",
@@ -112,7 +145,7 @@ const SearchBar = () => {
                   <div className={"flex items-center gap-x-2"}>
                     {/* eslint-disable-next-line */}
                     <img
-                      src={`/api/users/${person.id}/photo`}
+                      src={`/api/users/${user.id}/photo`}
                       alt={"photo"}
                       className={"rounded-full w-7 h-7 object-cover"}
                     />
@@ -122,7 +155,7 @@ const SearchBar = () => {
                         selected && "font-semibold"
                       )}
                     >
-                      {person.username}
+                      {user.username}
                     </span>
 
                     {selected && (
