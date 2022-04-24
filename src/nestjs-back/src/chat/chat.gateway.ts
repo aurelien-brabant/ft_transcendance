@@ -11,7 +11,7 @@ import {
   WebSocketServer,
 } from '@nestjs/websockets';
 import { ChatService } from './chat.service';
-import { userStatus } from '../games/class/Constants';
+import { UserStatus } from '../games/class/Constants';
 import { ConnectedUsers, User } from '../games/class/ConnectedUsers';
 
 @WebSocketGateway(
@@ -52,7 +52,7 @@ export class ChatGateway implements OnGatewayInit, OnGatewayConnection, OnGatewa
     let user = this.chatUsers.getUserById(data.id);
     if (!user) {
       user = new User(data.id, data.username, client.id);
-      user.setUserStatus(userStatus.ONLINE);
+      user.setUserStatus(UserStatus.ONLINE);
       this.chatUsers.addUser(user);
     } else {
       user.setSocketId(client.id);

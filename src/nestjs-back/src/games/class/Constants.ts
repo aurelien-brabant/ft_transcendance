@@ -24,7 +24,7 @@ export enum GameState {
 	END
 }
 
-export enum userStatus {
+export enum UserStatus {
 	// DISCONNECTED,
 	ONLINE,
 	INHUB,
