@@ -1,0 +1,68 @@
+name: Project Deployment
+
+on:
+    push:
+    pull_request:
+
+jobs:
+    build:
+        runs-on: ubuntu-20.04
+        steps:
+            - name: Clone app from main branch
+              uses: actions/checkout@v2
+
+            - name: Generate frontend .env
+              run: |
+                  cat >> ./src/nextjs-front/.env << END
+                  NEXT_PUBLIC_FT_CLIENT_ID=$NEXT_PUBLIC_FT_CLIENT_ID
+                  NEXT_PUBLIC_FT_REDIRECT_URI=$NEXT_PUBLIC_FT_REDIRECT_UI
+                  END
+              env:
+                  NEXT_PUBLIC_FT_CLIENT_ID: ${{ secrets.NEXT_PUBLIC_FT_CLIENT_ID }}
+                  NEXT_PUBLIC_FT_REDIRECT_URI: ${{ secrets.NEXT_PUBLIC_FT_REDIRECT_URI }}
+
+            - name: Build nextjs-front
+              run: |
+                  docker build ./src/nextjs-front -t aurelienbrabant/transcendance-front
+
+            - name: Build nestjs-back
+              run: |
+                docker build ./src/nestjs-back -t aurelienbrabant/transcendance-back
+
+            - name: Push built images to Docker Hub
+              run: |
+                  echo ${{ secrets.DOCKER_HUB_PASSWORD }} | docker login --username ${{ secrets.DOCKER_HUB_LOGIN }} --password-stdin
+                  docker push aurelienbrabant/transcendance-front
+                  docker push aurelienbrabant/transcendance-back
+              if: ${{ github.ref == 'refs/heads/main' }}
+
+    deploy:
+        runs-on: ubuntu-20.04
+        if: ${{ github.ref == 'refs/heads/main' }}
+        steps:
+            - name: Configure SSH
+              run: |
+                  mkdir -p ~/.ssh
+                  echo "$SSH_KEY" > ~/.ssh/remote.key
+                  chmod 600 ~/.ssh/remote.key
+                  cat >> ~/.ssh/config << END
+                  Host remote
+                    HostName $SSH_HOST
+                    User $SSH_USER  
+                    IdentityFile ~/.ssh/remote.key
+                    StrictHostKeyChecking no
+                  END
+              env:
+                  SSH_KEY: ${{ secrets.REMOTE_PRIVATE_KEY }}
+                  SSH_USER: ${{ secrets.REMOTE_USER }}
+                  SSH_HOST: ${{ secrets.REMOTE_HOST }}
+
+            - name: Pull updated image
+              run: |
+                  ssh remote 'cd && docker-compose pull'
+
+            - name: Run containers
+              run: |
+                  ssh remote 'cd && docker-compose up -d --build'
+
+        needs: build
