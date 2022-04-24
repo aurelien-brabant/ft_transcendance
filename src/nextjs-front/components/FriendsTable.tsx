@@ -210,7 +210,7 @@ const FriendsTable: React.FC<{ type: string, list: User[], suggested: User[], se
       >
       {list.map(({ id, username, duoquadra_login, wins, losses }) => (
         <li
-          className="text-pink-600 justity-items-center px-5 pt-2 pb-7 bg-gray-800/70 border border-pink-600 rounded  hover:border-white hover:bg-pink-700 hover:text-inherit md:transition md:transform md:ease-in md:duration-500 md:hover:-translate-y-2"
+          className="text-pink-600 justity-items-center px-5 pt-2 pb-7 bg-01dp border border-pink-600 rounded  hover:bg-03dp hover:text-inherit md:transition md:transform md:ease-in md:hover:-translate-y-2"
           key={id}
         >
           { type === 'suggested' && 
