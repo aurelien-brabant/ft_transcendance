@@ -23,6 +23,7 @@ import Tooltip from "../../components/Tooltip";
 import { UserStatusItem } from "../../components/UserStatus";
 import withDashboardLayout from "../../components/hoc/withDashboardLayout";
 import { useSession } from "../../hooks/use-session";
+import { classNames } from "../../utils/class-names";
 
 export type GameSummary = {
   id: string;
@@ -263,6 +264,27 @@ const UserProfilePage: NextPageWithLayout = ({}) => {
     fetchData().catch(console.error);
   }, [userId, user]);
 
+  const Skeleton = () => (
+    <div style={{ maxWidth: "800px" }} className="px-2 py-16 mx-auto">
+      <div className="flex flex-col items-center gap-y-10">
+        <div className="relative w-48 h-48 rounded-full bg-04dp animate-pulse" />
+        <div className="flex flex-col items-center">
+          <div className={"bg-04dp w-48 h-6 rounded animate-pulse"} />
+          <div className={"flex items-center animate-pulse gap-x-2 mt-6"}>
+            <span className={"w-4 h-4 flex-shrink-0 rounded-full bg-04dp"} />
+            <div className={"bg-04dp w-24 h-4 rounded"} />
+          </div>
+        </div>
+        <div className="w-full h-32 bg-04dp animate-pulse rounded" />
+        <div className={"mt-8 w-full"}>
+          {Array.from({ length: 10 }, (_, index) => (
+            <div className={classNames("animate-pulse h-10 w-full", index % 2 ? 'bg-03dp' : 'bg-04dp')} />
+          ))}
+        </div>
+      </div>
+    </div>
+  );
+
   return (
     <div className="min-h-screen overflow-x-auto text-white bg-fixed bg-center bg-fill grow">
       {!isLoading ? (
@@ -387,12 +409,7 @@ const UserProfilePage: NextPageWithLayout = ({}) => {
           </div>
         </div>
       ) : (
-        <div className="relative flex flex-col items-center justify-center min-h-screen bg-gray-900 gap-y-4">
-          <div className="absolute inset-0 z-50 flex items-center justify-center">
-            <Image src="/logo.svg" height="200" width="200" />
-          </div>
-          <BounceLoader size={400} color="#db2777" />
-        </div>
+          <Skeleton />
       )}
     </div>
   );
