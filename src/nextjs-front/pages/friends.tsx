@@ -229,6 +229,6 @@ const FriendsPage: NextPageWithLayout = ({}) => {
 };
 
 FriendsPage.getLayout = withDashboardLayout;
-FriendsPage.isAuthRestricted = true;
+FriendsPage.authConfig = true;
 
 export default FriendsPage;
