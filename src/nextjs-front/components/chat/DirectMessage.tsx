@@ -132,10 +132,6 @@ const DirectMessage: React.FC<{ viewParams: { [key: string]: any } }> = ({
     return () => {
       socket.off("newDm", newDmListener);
     };
-
-    //socket.on('newDm', () => {
-    //	console.log("[Chat] newDm -> DIRECT MESSAGE");
-    //});
   }, []);
 
   return (
