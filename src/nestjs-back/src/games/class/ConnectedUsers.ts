@@ -54,10 +54,10 @@ export class ConnectedUsers {
 	}
 
 	getUserById(userId: number): User | undefined {
-		let userIndex: number = this.users.findIndex(user => user.id === userId);
-		if (userIndex === -1)
-			return undefined;
-		return this.users[userIndex];
+		const user: User = this.users.find(
+			(user) => user.id === userId
+		);
+		return user;
 	}
 
 	changeUserStatus(socketId: string, status: UserStatus) {

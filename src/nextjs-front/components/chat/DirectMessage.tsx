@@ -111,10 +111,8 @@ const DirectMessage: React.FC<{ viewParams: { [key: string]: any } }> = ({
   };
 
   useEffect(() => {
-    loadDmsOnMount();
-
-    /* Handle new message */
     const newDmListener = ({ message }) => {
+		console.log(message)
       console.log(`[Chat] Receive new DM from [${message.author.username}]`);
 
       messages.push({
@@ -124,13 +122,20 @@ const DirectMessage: React.FC<{ viewParams: { [key: string]: any } }> = ({
         isMe: message.author.id === user.id,
         isBlocked: false,
       });
+      setMessages(messages);
       return messages;
     };
+
+    loadDmsOnMount();
 
     socket.on("newDm", newDmListener);
     return () => {
       socket.off("newDm", newDmListener);
     };
+
+    //socket.on('newDm', () => {
+    //	console.log("[Chat] newDm -> DIRECT MESSAGE");
+    //});
   }, []);
 
   return (
