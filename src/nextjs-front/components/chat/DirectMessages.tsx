@@ -51,7 +51,7 @@ const DirectMessages: React.FC<{ viewParams: Object; }> = ({ viewParams }) => {
 
 	return (
 		<Fragment>
-			<div className="h-[15%] gap-x-2 flex items-center p-4 bg-gray-900/90 border-b-4 border-gray-800 justify-between">
+			<div className="h-[15%] gap-x-2 flex items-center p-4 bg-dark/90 border-b-4 border-04dp justify-between">
 				<input
 					ref={searchInputRef}
 					type="text"
@@ -74,7 +74,7 @@ const DirectMessages: React.FC<{ viewParams: Object; }> = ({ viewParams }) => {
 				{filteredDms.map((dm) => (
 					<div
 						key={dm.friendUsername}
-						className="relative items-center px-10 py-5 grid grid-cols-3 border-b border-gray-800 hover:bg-gray-800/90 transition"
+						className="relative items-center px-10 py-5 grid grid-cols-3 border-b border-04dp hover:bg-04dp/90 transition"
 						onClick={() => {
 							openChatView(
 								'dm', 'dm', {
