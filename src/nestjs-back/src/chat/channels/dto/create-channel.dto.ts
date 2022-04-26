@@ -9,11 +9,12 @@ import {
   MaxLength,
   MinLength,
 } from 'class-validator';
-import { Type } from 'class-transformer';
+import { Transform, Type } from 'class-transformer';
 import { Message } from 'src/chat/messages/entities/messages.entity';
 import { User } from 'src/users/entities/users.entity';
 
 export class CreateChannelDto {
+  @Transform(({ value }) => value.trim())
   @IsNotEmpty()
   @IsString()
   @MaxLength(50)
