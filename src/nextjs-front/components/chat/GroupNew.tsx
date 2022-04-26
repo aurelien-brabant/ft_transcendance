@@ -58,7 +58,6 @@ const GroupNew: React.FC = () => {
 		updateChatGroups,
 		setChatGroupData
 	} = useContext(chatContext) as ChatContextType;
-	const userId = getUserData().id;
 
 	const [formData, setFormData] = useState<NewGroupData>({
 		groupName: "",
@@ -84,6 +83,8 @@ const GroupNew: React.FC = () => {
 	const handleSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
 		e.preventDefault();
 		const errors: Partial<NewGroupData> = {};
+
+		formData.groupName = formData.groupName.trim();
 
 		if (formData.groupName.length < 3 || formData.groupName.length > 20) {
 			errors['groupName'] = 'Group name should be between 3 and 20 characters long';

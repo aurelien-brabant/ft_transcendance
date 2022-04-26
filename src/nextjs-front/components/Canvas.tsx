@@ -1,13 +1,9 @@
-import React, { useState, useContext } from "react";
-// import styles from '../styles/Canvas.module.css';
+import React, { useState } from "react";
 import { Socket } from 'socket.io-client';
 
 import { useRef, useEffect } from 'react';
 import styles from "../styles/Canvas.module.css";
 
-// import { animateNeon, drawGame } from "../lib/drawGame";
-// import { updateGame, resetGame } from "../lib/updateGame";
-// import { GameConstants, GameState, gameConstants } from "../constants/gameConstants"
 import { Draw } from "../gameObjects/Draw";
 import { canvasHeight, canvasWidth, countDown, GameState, IRoom } from "../gameObjects/GameObject";
 import { useSession } from "../hooks/use-session";
@@ -60,7 +56,7 @@ const Canvas: React.FC<{socketProps: Socket, roomProps: any}> = ({socketProps, r
 		const canvas = canvasRef.current;
 		if (!canvas)
 			return ;
-		const context = canvas.getContext('2d');
+		// const context = canvas.getContext('2d');
 		let animationFrameId: number;
 
 		canvas.width = canvasWidth;
@@ -110,7 +106,7 @@ const Canvas: React.FC<{socketProps: Socket, roomProps: any}> = ({socketProps, r
 
 		const gameLoop = (timestamp = 0) => {
 			if (room.gameState !== GameState.END && isAplayer) {
-					socket.emit("requestUpdate", room?.roomId);
+					socket.emit("requestUpdate", roomId);
 			}
 			secondElapsed = (timestamp - oldTimestamp) / 1000;
 			oldTimestamp = timestamp;
@@ -120,7 +116,6 @@ const Canvas: React.FC<{socketProps: Socket, roomProps: any}> = ({socketProps, r
 				let count: number = (Date.now() - room.timestampStart) / 1000;
 				draw.drawRectangle(0, 0, canvasWidth, canvasHeight, "rgba(0, 0, 0, 0.5)");
 				draw.drawCountDown(countDown[Math.floor(count)]);
-
 			}
 			if (room.gameState === GameState.PLAYING) {
 				draw.resetParticles();

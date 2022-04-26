@@ -1,4 +1,4 @@
-import { User } from "./Room";
+import { User } from "./ConnectedUsers";
 
 export default class Queue {
     private storage: User[] = [];
