@@ -4,7 +4,7 @@ import {
   ConnectedSocket,
   MessageBody,
   OnGatewayConnection,
-  OnGatewayDisconnect,
+  // OnGatewayDisconnect,
   OnGatewayInit,
   SubscribeMessage,
   WebSocketGateway,
@@ -17,7 +17,6 @@ import { ConnectedUsers, User } from '../games/class/ConnectedUsers';
 @WebSocketGateway(
   {
     cors: true,
-    allowEIO3: true,
     // namespace: '/chat'
   }
 )
@@ -40,7 +39,7 @@ export class ChatGateway implements OnGatewayInit, OnGatewayConnection {
   //   const user = this.chatUsers.getUser(client.id);
 
   //   if (user) {
-  //     this.logger.log(`Remove user: [${user.id}][${user.username}]`)
+  //     this.logger.log(`Remove user: [${user.id}][${user.username}]`);
   //     this.chatUsers.removeUser(user);
   //   }
   // }
@@ -49,10 +48,15 @@ export class ChatGateway implements OnGatewayInit, OnGatewayConnection {
   handleNewUser(@ConnectedSocket() client: Socket, @MessageBody() data: User) {
     if (!data.id || !data.username) return ;
 
-    const user = new User(data.id, data.username, client.id);
-    user.setUserStatus(UserStatus.ONLINE);
-    this.chatUsers.addUser(user);
-
+    let user = this.chatUsers.getUserById(data.id);
+    if (!user) {
+      user = new User(data.id, data.username, client.id);
+      user.setUserStatus(UserStatus.ONLINE);
+      this.chatUsers.addUser(user);
+    } else {
+      user.setSocketId(client.id);
+      user.setUsername(data.username);
+    }
     this.logger.log(`Add user: [${user.id}][${user.username}]`);
     console.log(this.chatUsers);
   }
