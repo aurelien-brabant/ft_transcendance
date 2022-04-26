@@ -16,7 +16,7 @@ import { UsersService } from 'src/users/users.service';
 import Queue from './class/Queue';
 import Room from './class/Room';
 import { ConnectedUsers, User } from './class/ConnectedUsers';
-import { GameState, userStatus } from './class/Constants';
+import { GameState, UserStatus } from './class/Constants';
 
 @WebSocketGateway({ cors: true, namespace: "game" })
 export class PongGateway implements OnGatewayInit, OnGatewayConnection, OnGatewayDisconnect {
@@ -67,13 +67,13 @@ export class PongGateway implements OnGatewayInit, OnGatewayConnection, OnGatewa
 	async handleUserConnect(@ConnectedSocket() client: Socket, @MessageBody() user: User) {
 		let newUser: User = new User(user.id, user.username, client.id);
 		newUser.setSocketId(client.id);
-		newUser.setUserStatus(userStatus.INHUB);
+		newUser.setUserStatus(UserStatus.INHUB);
 
 		// Verify that player is not already in a game
 		this.rooms.forEach((room: Room) => {
 			if (room.isAPlayer(newUser) && room.gameState !== GameState.END)
 			{
-				newUser.setUserStatus(userStatus.PLAYING);
+				newUser.setUserStatus(UserStatus.PLAYING);
 				newUser.setRoomId(room.roomId);
 				this.server.to(client.id).emit("newRoom", room);
 				if (room.gameState === GameState.PAUSED)
@@ -129,7 +129,7 @@ export class PongGateway implements OnGatewayInit, OnGatewayConnection, OnGatewa
 
 		if (user && !this.queue.isInQueue(user))
 		{
-			this.connectedUsers.changeUserStatus(client.id, userStatus.INQUEUE);
+			this.connectedUsers.changeUserStatus(client.id, UserStatus.INQUEUE);
 			this.queue.enqueue(user);
 			this.server.to(client.id).emit('joinedQueue');
 			this.logger.log(`Client ${user.username}: ${client.id} was added to queue !`);
@@ -168,8 +168,8 @@ export class PongGateway implements OnGatewayInit, OnGatewayConnection, OnGatewa
 		if (room) {
 			let user = this.connectedUsers.getUser(client.id);
 			client.join(roomId);
-			if (user.status === userStatus.INHUB) {
-				this.connectedUsers.changeUserStatus(client.id, userStatus.SPECTATING);
+			if (user.status === UserStatus.INHUB) {
+				this.connectedUsers.changeUserStatus(client.id, UserStatus.SPECTATING);
 			}
 			else if (room.isAPlayer(user))
 				room.addUser(user);
@@ -198,7 +198,7 @@ export class PongGateway implements OnGatewayInit, OnGatewayConnection, OnGatewa
 			if (room.isAPlayer(user) && room.gameState !== GameState.END)
 				room.pause();
 			client.leave(room.roomId);
-			this.connectedUsers.changeUserStatus(client.id, userStatus.INHUB);
+			this.connectedUsers.changeUserStatus(client.id, UserStatus.INHUB);
 		}
 		this.server.to(client.id).emit("leavedRoom");
 	}
