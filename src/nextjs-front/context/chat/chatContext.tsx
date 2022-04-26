@@ -49,7 +49,8 @@ export type ChatContextType = {
 
 	/* Chat state */
 	isChatOpened: boolean;
-	/* Chat messages */
+
+	/* Chat Messages */
 	chatGroups: ChatGroup[];
 	directMessages: DirectMessage[];
 

@@ -3,60 +3,71 @@ import { io } from "socket.io-client";
 import { useSession } from "../../hooks/use-session";
 import socketContext from "./socketContext";
 
-const socket = io("localhost:8080");
-
 export type ChatUser = {
-	id : string,
-	username: string,
-	socketId: string,
-}
+  id: string;
+  username: string;
+  socketId: string;
+};
 
 const SocketProvider: React.FC = ({ children }) => {
-	
-	const { user } = useSession();
-	const [chatRoom, setChatRoom] = useState<ChatUser[]>([]);
-  	const [chatRoomLen, setChatRoomLen] = useState(0);
-   
-	useEffect((): any => {
+  const session = useSession();
+  const user = session.user;
+  const [chatRoom, setChatRoom] = useState<ChatUser[]>([]);
+  const [chatRoomLen, setChatRoomLen] = useState(0);
+  const [socket, setSocket] = useState<any>(null);
 
-		if (!socket)
-			return;
+  useEffect((): any => {
+    const socketIo = io("localhost:8080");
 
-		const handleChat = () => {
-			socket.on("connect", () => {
-				socket.emit("handleChatConnect", user);
+    setSocket(socketIo);
 
-				socket.on("joinChat", (data: ChatUser[]) => {
-					setChatRoom(data);
-				});
+    if (!socket || session.state !== "authenticated") return;
 
-				socket.on("leaveChat", (data: ChatUser[]) => {
-					setChatRoom(data);
-				});
+    const handleChat = () => {
+      socket.on("connect", () => {
+        console.log("[Chat] Client connected");
 
-				socket.on('updateChatRoomLen', (len: number) => {
-					setChatRoomLen(len);
-				});
-			});
-		}
-		handleChat();
+        socket.on("connect_error", (err: Error) => {
+          console.log(`connect_error due to ${err.message}`);
+          socket.close();
+        });
 
-		return () => {
-			socket.disconnect();
-		}
-  	}, [user]);
+        socket.emit("newUser", {
+          id: user.id,
+          username: user.username,
+        });
 
-	return (
-		<socketContext.Provider
-			value={{
-				socket,
-				chatRoom,
-				chatRoomLen
-			}}
-		>
-			{children}
-		</socketContext.Provider>
-	);
+        // socket.on("joinChat", (data: ChatUser[]) => {
+        // 	setChatRoom(data);
+        // });
+
+        // socket.on("leaveChat", (data: ChatUser[]) => {
+        // 	setChatRoom(data);
+        // });
+
+        // socket.on('updateChatRoomLen', (len: number) => {
+        // 	setChatRoomLen(len);
+        // });
+      });
+    };
+    handleChat();
+
+    return () => {
+      socket.disconnect();
+    };
+  }, [user]);
+
+  return (
+    <socketContext.Provider
+      value={{
+        socket,
+        chatRoom,
+        chatRoomLen,
+      }}
+    >
+      {children}
+    </socketContext.Provider>
+  );
 };
 
 export default SocketProvider;

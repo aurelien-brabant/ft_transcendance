@@ -117,10 +117,10 @@ const GroupNew: React.FC = () => {
 			},
 			body: JSON.stringify({
 				name: formData.groupName,
-				owner: { "id": user.id },
+				owner: { id: user.id },
 				privacy: formData.privacy,
 				password: (formData.password.length !== 0) ? formData.password : undefined,
-				users: [ { "id": user.id } ]
+				users: [ { id: user.id } ],
 			}),
 		});
 
@@ -129,17 +129,23 @@ const GroupNew: React.FC = () => {
 			const gm = setChatGroupData(JSON.parse(JSON.stringify(data)), user.id);
 
 			updateChatGroups();
-			openChatView(gm.privacy === 'protected' ? 'password_protection' : 'group', gm.label, {
-				groupName: gm.label,
-				groupId: gm.id
-			});
+			openChatView(
+				gm.privacy === 'protected' ? 'password_protection' : 'group',
+				gm.label,
+				{
+					groupId: gm.id,
+					groupName: gm.label,
+					groupOwnerId: gm.ownerId,
+					peopleCount: gm.peopleCount,
+					groupPrivacy: gm.privacy
+				}
+			);
 		} else if (res.status === 401) {
 			setAlert({
 				type: "warning",
 				content: `Group '${formData.groupName}' already exists. Choose another name.`
 			});
 		} else {
-			console.log(res);
 			setAlert({
 				type: "error",
 				content: "Failed to create group"

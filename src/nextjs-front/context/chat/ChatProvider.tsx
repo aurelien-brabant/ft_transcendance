@@ -1,11 +1,12 @@
 import { useContext, useState } from "react";
 import { BsFillChatDotsFill } from "react-icons/bs";
+import { Bounce } from "react-awesome-reveal";
 import { BaseUserData } from 'transcendance-types';
+import { useSession } from "../../hooks/use-session";
 import alertContext, { AlertContextType } from "../alert/alertContext";
 import authContext, { AuthContextValue } from "../auth/authContext";
 import relationshipContext, { RelationshipContextType } from "../relationship/relationshipContext";
-import { Bounce } from "react-awesome-reveal";
-import { useSession } from "../../hooks/use-session";
+import socketContext, { SocketContextType } from "../../context/socket/socketContext";
 /* Chat */
 import Chat from "../../components/Chat";
 import ChatGroupsView from "../../components/chat/Groups";
@@ -19,7 +20,6 @@ import GroupNew, { GroupNewHeader } from "../../components/chat/GroupNew";
 import GroupSettings, { GroupSettingsHeader } from "../../components/chat/GroupSettings";
 import GroupUsers, { GroupUsersHeader } from "../../components/chat/GroupUsers";
 import PasswordProtection, { PasswordProtectionHeader } from "../../components/chat/PasswordProtection";
-import socketContext, { SocketContextType } from "../../context/socket/socketContext";
 
 export type ChatViewItem = {
 	label: string;
@@ -106,11 +106,12 @@ const ChatProvider: React.FC = ({ children }) => {
 	const [directMessages, setDirectMessages] = useState<DirectMessage[]>([]);
 	const [lastX, setLastX] = useState<number>(0);
 	const [lastY, setLastY] = useState<number>(0);
+	const { setAlert } = useContext(alertContext) as AlertContextType;
 	const session = useSession();
 	const { isChatOpened, setIsChatOpened } = useContext(authContext) as AuthContextValue;
 	const { blocked } = useContext(relationshipContext) as RelationshipContextType;
 	const { chatRoomLen } = useContext(socketContext) as SocketContextType;
-
+	
 	/* Chat manipulation */
 	const openChat = () => {
 		setIsChatOpened(true);
@@ -238,27 +239,31 @@ const ChatProvider: React.FC = ({ children }) => {
 	}
 
 	const createDirectMessage = async (userId: string, friendId: string) => {
-		const userData = await (await fetch(`/api/users/${userId}`)).json();
-		const friendData = await (await fetch(`/api/users/${friendId}`)).json();
-		const { setAlert } = useContext(alertContext) as AlertContextType;
-  
+		if (userId === friendId) return ;
+
+		const friendRes = await fetch(`/api/users/${friendId}`);
+		const friendData = await friendRes.json();
+
 		const res = await fetch("/api/channels", {
 			method: "POST",
 			headers: {
 				"Content-Type": "application/json",
 			},
 			body: JSON.stringify({
-				name: friendData.username,
-				owner: userData,
+				name: `${userId}_${friendId}`,
+				owner: { id: userId },
 				privacy: "dm",
-				users: [ userData, friendData ]
+				users: [ { id: userId }, { id: friendId } ],
 			}),
 		});
 
 		if (res.status === 201) {
 			const data = await res.json();
-			setDirectMessageData(JSON.parse(JSON.stringify(data)), friendData);
+			const channelData = JSON.parse(JSON.stringify(data));
+
+			setDirectMessageData(channelData, friendData);
 			updateDirectMessages();
+			return (channelData.id);
 		} else {
 			setAlert({
 				type: "error",
@@ -269,14 +274,19 @@ const ChatProvider: React.FC = ({ children }) => {
 
 	/* Find existing DM or create a new one */
 		const openDirectMessage = async (userId: string, friend: any) => {
+			if (userId === friend.id.toString()) return ;
+
 			const res = await fetch(`/api/users/${userId}/directmessages?friendId=${friend.id}`);
 			const data = await res.json();
+			let id: string;
 	
 			if (res.status !== 200) {
-				createDirectMessage(userId.toString(), friend.id.toString());
+				id = await createDirectMessage(userId.toString(), friend.id.toString());
+			} else {
+				id = JSON.parse(JSON.stringify(data)).id;
 			}
 			openChatView('dm', 'direct message', {
-				dmId: JSON.parse(JSON.stringify(data)).id,
+				dmId: id,
 				friendUsername: friend.username,
 				friendId: friend.id
 			});
@@ -302,7 +312,7 @@ const ChatProvider: React.FC = ({ children }) => {
 			if (channel.privacy === "dm") {
 				const friend = (channel.users[0].id === userId) ? channel.users[1] : channel.users[0];
 				/* Don't display DMs from blocked users */
-				const isBlocked = !!blocked.find(user => user.id == friend.id);
+				const isBlocked = !!blocked.find(user => user.id === friend.id);
 				if (!isBlocked) {
 					dms.push(setDirectMessageData(channel, friend));
 				}
@@ -322,7 +332,7 @@ const ChatProvider: React.FC = ({ children }) => {
 		setDirectMessages(dms);
 	}
 
-  return (
+	return (
 		<chatContext.Provider
 			value={{
 				openChat,

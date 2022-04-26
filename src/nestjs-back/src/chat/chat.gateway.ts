@@ -4,52 +4,96 @@ import {
   ConnectedSocket,
   MessageBody,
   OnGatewayConnection,
-  OnGatewayDisconnect,
+  // OnGatewayDisconnect,
   OnGatewayInit,
   SubscribeMessage,
   WebSocketGateway,
   WebSocketServer,
 } from '@nestjs/websockets';
 import { ChatService } from './chat.service';
-import { User, ChatRoom } from './class/ChatRoom';
+import { UserStatus } from '../games/class/Constants';
+import { ConnectedUsers, User } from '../games/class/ConnectedUsers';
 
-@WebSocketGateway({ cors: true })
-export class ChatGateway implements OnGatewayInit, OnGatewayConnection, OnGatewayDisconnect {
+@WebSocketGateway(
+  {
+    cors: true,
+    // namespace: '/chat'
+  }
+)
+export class ChatGateway implements OnGatewayInit, OnGatewayConnection {
   @WebSocketServer() server: Server;
-  private logger: Logger = new Logger('ChatGateway');
-  private readonly room: ChatRoom = new ChatRoom();
+  private logger: Logger = new Logger('Chat Gateway');
+  private readonly chatUsers: ConnectedUsers = new ConnectedUsers();
 
   constructor(private readonly chatService: ChatService) {}
-  handleConnection(client: Socket, ...args: any[]) {
-    this.logger.log(`client connected...`);
-  }
 
   afterInit(server: Server) {
     this.logger.log('[+] Init Chat Gateway');
   }
 
-  @SubscribeMessage('handleChatConnect')
-	handleChatConnect(@ConnectedSocket() client: Socket, @MessageBody() user: User) {
-	  let newUser: User;
-    if (user) {
-  	  newUser = new User(user.id, user.username, client.id);
-      newUser.setSocketId(client.id);
-	    this.room.addUser(newUser);
-      this.server.to(newUser.socketId).emit('joinChat', this.room);
-		  for (let i in this.room.users)
-		    this.server.to(this.room.users[i].socketId).emit('updateChatRoomLen', this.room.users.length)
-		  }
-	}
+  async handleConnection(@ConnectedSocket() client: Socket) {
+    // this.logger.log(`Client connected: ${client.id}`);
+  }
 
-	async handleDisconnect(@ConnectedSocket() client: Socket) {
-		const user = this.room.getUser(client.id);
+  // async handleDisconnect(@ConnectedSocket() client: Socket) {
+  //   const user = this.chatUsers.getUser(client.id);
 
-		if (user) {
-      this.logger.log(`Client ${user.username} disconnected: ${client.id}`);
-			this.room.removeUser(user);
-    	this.server.to(user.socketId).emit('leaveChat', this.room)
-			for (let i in this.room.users)
-			  this.server.to(this.room.users[i].socketId).emit('updateChatRoomLen', this.room.users.length)
-	  }
-	}
+  //   if (user) {
+  //     this.logger.log(`Remove user: [${user.id}][${user.username}]`);
+  //     this.chatUsers.removeUser(user);
+  //   }
+  // }
+
+  @SubscribeMessage('newUser')
+  handleNewUser(@ConnectedSocket() client: Socket, @MessageBody() data: User) {
+    if (!data.id || !data.username) return ;
+
+    let user = this.chatUsers.getUserById(data.id);
+    if (!user) {
+      user = new User(data.id, data.username, client.id);
+      user.setUserStatus(UserStatus.ONLINE);
+      this.chatUsers.addUser(user);
+    } else {
+      user.setSocketId(client.id);
+      user.setUsername(data.username);
+    }
+    this.logger.log(`Add user: [${user.id}][${user.username}]`);
+    console.log(this.chatUsers);
+  }
+
+  @SubscribeMessage('dmSubmit')
+  async handleDmSubmit(
+    @ConnectedSocket() client: Socket,
+    @MessageBody() data: { content: string, from: number, to: number, channelId: string }
+  ) {
+    const user = this.chatUsers.getUserById(data.from);
+    const recipient = this.chatUsers.getUserById(data.to);
+    const message = await this.chatService.saveMessage(data.content, data.from.toString(), data.channelId);
+
+    this.logger.log(`${user.username} sends DM "${data.content}" on channel ${data.channelId}`);
+    this.logger.log(`Emitting to ${user.username} -> socket id: [${user.socketId}]`);
+    this.server.to(user.socketId).emit('newDm', { message });
+    // TODO: If recipient is offline, message will be sent once connected
+    if (recipient) {
+      this.logger.log(`Emitting to ${recipient.username} -> socket id: [${recipient.socketId}]`);
+      this.server.to(recipient.socketId).emit('newDm', { message });
+    }
+  }
+
+  @SubscribeMessage('gmSubmit')
+  async handleGmSubmit(
+    @ConnectedSocket() client: Socket,
+    @MessageBody() data: { content: string, from: number, groupId: string }
+  ) {
+    const user = this.chatUsers.getUser(client.id);
+    // const channel = ;
+    const message = await this.chatService.saveMessage(data.content, data.from.toString(), data.groupId);
+
+    this.logger.log(`${user.username} sends message "${data.content}" on channel ${data.groupId}`);
+    this.server.to(client.id).emit('newGm', { message });
+    // TODO: send to room
+    // if (channel) {
+    //   this.server.to(recipient.socketId).emit('newGm', { message });
+    // }
+  }
 }
