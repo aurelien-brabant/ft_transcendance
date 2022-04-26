@@ -31,7 +31,9 @@ import { UsersModule } from './users/users.module';
       password: `${process.env.POSTGRES_PASSWORD}`,
       database: `${process.env.POSTGRES_HOST}`,
       autoLoadEntities: true,
-      synchronize: (process.env.NODE_ENV === 'development') ? true : false,         // true in Dev // false in production
+      synchronize:
+        !!process.env.SYNCHRONIZE_DATABASE ||
+        process.env.NODE_ENV === 'development', // true in Dev // false in production
       keepConnectionAlive: true,
     }),
   ],

@@ -77,6 +77,15 @@ export class UsersService {
     return user;
   }
 
+  async searchUsers(searchTerm: string) {
+    const users = await this.usersRepository
+      .createQueryBuilder('users')
+      .where('users.username ILIKE :search', { search: `%${searchTerm}%` })
+      .getMany();
+
+    return users;
+  }
+
   async getOwnedChannels(id: string) {
     const user = await this.usersRepository.findOne(id, {
       relations: ['ownedChannels'],
