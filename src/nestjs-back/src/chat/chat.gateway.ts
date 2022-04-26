@@ -67,7 +67,7 @@ export class ChatGateway implements OnGatewayInit, OnGatewayConnection, OnGatewa
     @MessageBody() data: { content: string, from: number, to: number, channelId: string }
   ) {
     const user = await this.chatUsers.getUserById(data.from);
-    const message = await this.chatService.saveMessage(data.content, user.id.toString(), data.channelId);
+    const message = await this.chatService.saveMessage(data.content, data.from.toString(), data.channelId);
 
     this.logger.log(`${user.username} sends DM "${data.content}" on channel ${data.channelId}`);
     this.logger.log(`Emitting to ${user.username} -> socket id: [${user.socketId}]`);
