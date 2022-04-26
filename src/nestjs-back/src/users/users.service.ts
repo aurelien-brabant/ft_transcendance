@@ -260,7 +260,7 @@ export class UsersService {
 
         user = await this.usersRepository.preload({
             id: +id,
-            ...{...updateUserDto, ...tmpDto}
+            ...{ ...updateUserDto, ...tmpDto }
         });
 
         if (!user)
