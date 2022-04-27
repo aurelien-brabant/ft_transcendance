@@ -32,24 +32,25 @@ export class ChatGateway implements OnGatewayInit, OnGatewayConnection {
   }
 
   async handleConnection(@ConnectedSocket() client: Socket) {
-    // this.logger.log(`Client connected: ${client.id}`);
+    this.logger.log(`Client connected: ${client.id}`);
   }
 
-  // async handleDisconnect(@ConnectedSocket() client: Socket) {
-  //   const user = this.chatUsers.getUser(client.id);
+  /* TODO: handle disconnection at logout
+  async handleDisconnect(@ConnectedSocket() client: Socket) {
+    const user = this.chatUsers.getUser(client.id);
 
-  //   if (user) {
-  //     this.logger.log(`Remove user: [${user.id}][${user.username}]`);
-  //     this.chatUsers.removeUser(user);
-  //   }
-  // }
+    if (user) {
+      this.logger.log(`Remove user: [${user.id}][${user.username}]`);
+      this.chatUsers.removeUser(user);
+    }
+  }
+  */
 
   /* Add new user to the list of connected users */
   @SubscribeMessage('newUser')
   handleNewUser(@ConnectedSocket() client: Socket, @MessageBody() data: User) {
-    if (!data.id || !data.username) return ;
-
     let user = this.chatUsers.getUserById(data.id);
+
     if (!user) {
       user = new User(data.id, data.username, client.id);
       user.setUserStatus(UserStatus.ONLINE);
@@ -58,8 +59,8 @@ export class ChatGateway implements OnGatewayInit, OnGatewayConnection {
       user.setSocketId(client.id);
       user.setUsername(data.username);
     }
-    this.logger.log(`Add user: [${user.id}][${user.username}]`);
-    console.log(this.chatUsers);
+    this.logger.log(`Add user[${user.id}][${user.username}]`);
+    console.log(this.chatUsers); // debug
   }
 
   /* Send all channels joined by user */

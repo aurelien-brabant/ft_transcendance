@@ -1,4 +1,4 @@
-import { useContext, useEffect, useState } from "react";
+import { useContext, useState } from "react";
 import { BsFillChatDotsFill } from "react-icons/bs";
 import { Bounce } from "react-awesome-reveal";
 import { BaseUserData } from 'transcendance-types';
@@ -108,7 +108,6 @@ const ChatProvider: React.FC = ({ children }) => {
 	const [lastY, setLastY] = useState<number>(0);
 	const { setAlert } = useContext(alertContext) as AlertContextType;
 	const session = useSession();
-	const user = session.user;
 	const { isChatOpened, setIsChatOpened } = useContext(authContext) as AuthContextValue;
 	const { blocked } = useContext(relationshipContext) as RelationshipContextType;
 	const { chatRoomLen } = useContext(socketContext) as SocketContextType;
@@ -321,6 +320,7 @@ const ChatProvider: React.FC = ({ children }) => {
 				groups.push(setChatGroupData(channel, userId));
 			}
 		}
+		/* Sorts from most recent */
 		groups.sort(
 			(a: ChatGroup, b: ChatGroup) =>
 			(b.updatedAt.valueOf() - a.updatedAt.valueOf())

@@ -41,9 +41,6 @@ const Chat: React.FC<ChatProps> = ({ viewStack, onClose }) => {
 
 	useEffect(() => {
 		const updateUserChannels = (channels: any) => {
-			console.log(`[Chat] Update user channels`);
-			console.log(channels);
-
 			loadUserChannels(channels, user.id);
 		};
 
