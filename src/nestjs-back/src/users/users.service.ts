@@ -128,7 +128,7 @@ export class UsersService {
         }),
       );
       if (result.length !== 0) {
-        return result[0]; // bof
+        return result[0]; // TODO: improve
       }
       return {};
     }

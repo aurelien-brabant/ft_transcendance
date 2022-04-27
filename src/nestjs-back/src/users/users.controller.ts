@@ -46,17 +46,21 @@ export class UsersController {
     return this.usersService.findOne(id);
   }
 
+  /* NOTE: unused
   @UseGuards(JwtAuthGuard, IsLoggedInUserGuard)
   @Get('/:userId/ownedChannels')
   getOwnedChannels(@Param('userId') id: string) {
     return this.usersService.getOwnedChannels(id);
   }
+  */
 
+  /* NOTE: replaced by websockets
   @UseGuards(JwtAuthGuard, IsLoggedInUserGuard)
   @Get('/:userId/channels')
   getJoinedChannels(@Param('userId') id: string) {
     return this.usersService.getJoinedChannels(id);
   }
+  */
 
   @UseGuards(JwtAuthGuard, IsLoggedInUserGuard)
   @Get('/:userId/directmessages')
