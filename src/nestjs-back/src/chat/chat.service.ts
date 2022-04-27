@@ -17,4 +17,8 @@ export class ChatService {
 
     return this.messagesService.create({ content, author, channel });
   }
+
+  async getUserChannels(id: string) {
+    return  await this.usersService.getJoinedChannels(id);
+  }
 }

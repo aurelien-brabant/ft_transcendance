@@ -302,8 +302,8 @@ const ChatProvider: React.FC = ({ children }) => {
 		return data;
 	}
 
-	/* Load all channels on mount */
-	const loadChannelsOnMount = (channels: any, userId: string) => {
+	/* Load all channels joined by user or visible */
+	const loadUserChannels = (channels: any, userId: string) => {
 		const groups: ChatGroup[] = [];
 		const dms: DirectMessage[] = [];
 
@@ -353,7 +353,7 @@ const ChatProvider: React.FC = ({ children }) => {
 				createDirectMessage,
 				openDirectMessage,
 				fetchChannelData,
-				loadChannelsOnMount,
+				loadUserChannels,
 				lastX,
 				lastY,
 				setLastX,

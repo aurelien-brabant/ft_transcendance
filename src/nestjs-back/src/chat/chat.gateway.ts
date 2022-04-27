@@ -11,8 +11,8 @@ import {
   WebSocketServer,
 } from '@nestjs/websockets';
 import { ChatService } from './chat.service';
-import { UserStatus } from '../games/class/Constants';
-import { ConnectedUsers, User } from '../games/class/ConnectedUsers';
+import { UserStatus } from 'src/games/class/Constants';
+import { ConnectedUsers, User } from 'src/games/class/ConnectedUsers';
 
 @WebSocketGateway(
   {
@@ -44,6 +44,7 @@ export class ChatGateway implements OnGatewayInit, OnGatewayConnection {
   //   }
   // }
 
+  /* Add new user to the list of connected users */
   @SubscribeMessage('newUser')
   handleNewUser(@ConnectedSocket() client: Socket, @MessageBody() data: User) {
     if (!data.id || !data.username) return ;
@@ -61,6 +62,18 @@ export class ChatGateway implements OnGatewayInit, OnGatewayConnection {
     console.log(this.chatUsers);
   }
 
+  /* Send all channels joined by user */
+  @SubscribeMessage('getUserChannels')
+  async handleUserChannels(
+    @ConnectedSocket() client: Socket,
+    @MessageBody() data: { userId: number }
+  ) {
+    const channels = await this.chatService.getUserChannels(data.userId.toString());
+
+    this.server.to(client.id).emit('updateUserChannels', (channels));
+  }
+
+  /* Save a new DM message */
   @SubscribeMessage('dmSubmit')
   async handleDmSubmit(
     @ConnectedSocket() client: Socket,
@@ -80,6 +93,7 @@ export class ChatGateway implements OnGatewayInit, OnGatewayConnection {
     }
   }
 
+  /* Save a new group message */
   @SubscribeMessage('gmSubmit')
   async handleGmSubmit(
     @ConnectedSocket() client: Socket,

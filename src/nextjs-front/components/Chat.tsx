@@ -8,6 +8,7 @@ import { useSession } from "../hooks/use-session";
 import { ChatViewItem } from "../context/chat/ChatProvider";
 import chatContext, { ChatContextType } from "../context/chat/chatContext";
 import relationshipContext, { RelationshipContextType } from "../context/relationship/relationshipContext";
+import socketContext, { SocketContextType } from "../context/socket/socketContext";
 
 type ChatProps = {
 	onClose: () => void;
@@ -18,13 +19,14 @@ const Chat: React.FC<ChatProps> = ({ viewStack, onClose }) => {
 	const {
 		setChatView,
 		closeRightmostView,
-		loadChannelsOnMount,
+		loadUserChannels,
 		lastX,
 		lastY,
 		setLastX,
 		setLastY
 	} = useContext(chatContext) as ChatContextType;
 	const { getData } = useContext(relationshipContext) as RelationshipContextType;
+	const { socket } = useContext(socketContext) as SocketContextType;
 	const { user } = useSession();
 	const currentView = viewStack[viewStack.length - 1];
 	const buttonTooltipClassName = "p-3 font-bold bg-dark";
@@ -38,21 +40,27 @@ const Chat: React.FC<ChatProps> = ({ viewStack, onClose }) => {
 	}
 
 	useEffect(() => {
-		const fetchUserChannels = async () => {
-			const res = await fetch(`/api/users/${user.id}/channels`);
-			const data = await res.json();
+		const updateUserChannels = (channels: any) => {
+			console.log(`[Chat] Update user channels`);
+			console.log(channels);
 
-			loadChannelsOnMount(JSON.parse(JSON.stringify(data)), user.id);
-			await getData();
-		}
-		fetchUserChannels().catch(console.error);
+			loadUserChannels(channels, user.id);
+		};
+
+		getData();
+		socket.emit("getUserChannels", { userId: user.id });
+		socket.on("updateUserChannels", updateUserChannels);
+
+		return () => {
+			socket.off("updateUserChannels", updateUserChannels);
+		};
 	}, [])
 
 	return (
 
 	<Draggable
 		enableUserSelectHack={true}
-		cancel={'.drag-cancellable'}
+		cancel={".drag-cancellable"}
 		nodeRef={nodeRef}
 		position={{x: lastX, y: lastY}}
 		onStop={(e, data) => {

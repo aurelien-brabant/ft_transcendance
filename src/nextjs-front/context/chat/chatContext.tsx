@@ -68,7 +68,7 @@ export type ChatContextType = {
 
 	/* Data fetching */
 	fetchChannelData: (id: string) => Promise<any>;
-	loadChannelsOnMount: (channels: any, userId: string) => any;
+	loadUserChannels: (channels: any, userId: string) => any;
 
 	/* Draggable */
 	lastX: number;
