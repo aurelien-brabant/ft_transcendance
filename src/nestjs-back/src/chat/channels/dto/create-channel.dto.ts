@@ -1,16 +1,20 @@
 import {
+  ArrayMinSize,
+  IsArray,
   IsIn,
   IsNotEmpty,
   IsNumber,
   IsOptional,
   IsString,
   MaxLength,
-  MinLength
+  MinLength,
 } from 'class-validator';
+import { Transform, Type } from 'class-transformer';
 import { Message } from 'src/chat/messages/entities/messages.entity';
 import { User } from 'src/users/entities/users.entity';
 
 export class CreateChannelDto {
+  @Transform(({ value }) => value.trim())
   @IsNotEmpty()
   @IsString()
   @MaxLength(50)
@@ -35,8 +39,13 @@ export class CreateChannelDto {
   readonly owner: User;
 
   @IsNotEmpty()
+  @IsArray()
+  @Type(() => User)
+  @ArrayMinSize(1)
   readonly users: User[];
 
   @IsOptional()
+  @IsArray()
+  @Type(() => Message)
   readonly messages: Message[];
 }

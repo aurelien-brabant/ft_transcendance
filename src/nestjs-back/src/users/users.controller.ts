@@ -1,20 +1,21 @@
 import {
-    Controller,
-    Get,
-    Param,
-    Post,
-    Patch,
-    Delete,
-    Body,
-    ConflictException,
-    NotFoundException,
-    Response,
-    Query,
-    Res,
-    HttpCode,
-    UnauthorizedException,
-    UseInterceptors,
-    UploadedFile, UseGuards,
+  Controller,
+  Get,
+  Param,
+  Post,
+  Patch,
+  Delete,
+  Body,
+  ConflictException,
+  NotFoundException,
+  Response,
+  Query,
+  Res,
+  HttpCode,
+  UnauthorizedException,
+  UseInterceptors,
+  UploadedFile,
+  UseGuards,
 } from '@nestjs/common';
 import { PaginationQueryDto } from 'src/common/dto/pagination-query.dto';
 import { UsersService } from './users.service';
@@ -33,7 +34,7 @@ import {JwtAuthGuard} from "../auth/guard/jwt-auth.guard";
 export class UsersController {
   constructor(private readonly usersService: UsersService) {}
 
-    @UseGuards(JwtAuthGuard)
+  @UseGuards(JwtAuthGuard)
   @Get()
   findAll(@Query() paginationQuery: PaginationQueryDto) {
     return this.usersService.findAll(paginationQuery);

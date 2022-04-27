@@ -1,4 +1,4 @@
-import { Injectable, NotFoundException, UnauthorizedException } from '@nestjs/common';
+import { Injectable, Logger, NotFoundException, UnauthorizedException } from '@nestjs/common';
 import { SchedulerRegistry } from '@nestjs/schedule';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Repository } from 'typeorm';
@@ -14,6 +14,8 @@ import { UsersService } from 'src/users/users.service';
 
 @Injectable()
 export class ChannelsService {
+  private logger: Logger = new Logger('Channels Service');
+
   constructor(
     @InjectRepository(Channel)
     private readonly channelsRepository: Repository<Channel>,
@@ -22,7 +24,7 @@ export class ChannelsService {
   ) {}
 
   /* A user is unban after a limited time */
-  scheduleUnban(channelId: string, bannedId: string, duration: number) {
+  scheduleUnban(channelId: string, userId: string, duration: number) {
     const unbanTime = new Date(Date.now() + duration * 60000);
 
     const job = new CronJob(unbanTime, async () => {
@@ -30,17 +32,18 @@ export class ChannelsService {
         relations: ['bannedUsers']
       });
       channel.bannedUsers = channel.bannedUsers.filter(
-        (user) => user.id.toString() !== bannedId
+        (user) => user.id.toString() !== userId
       );
       this.channelsRepository.save(channel);
+      this.logger.log(`Unban user [${userId}] on channel [${channel.id}][${channel.name}]`);
     });
 
-    this.schedulerRegistry.addCronJob(`unban_user${bannedId}_${unbanTime}_chan${channelId}`, job);
+    this.schedulerRegistry.addCronJob(`unban_user${userId}_${unbanTime}_chan${channelId}`, job);
     job.start();
   }
 
   /* A user is unmute after a limited time */
-  scheduleUnmute(channelId: string, mutedId: string, duration: number) {
+  scheduleUnmute(channelId: string, userId: string, duration: number) {
     const unmuteTime = new Date(Date.now() + duration * 60000);
 
     const job = new CronJob(unmuteTime, async () => {
@@ -48,12 +51,13 @@ export class ChannelsService {
         relations: ['mutedUsers']
       });
       channel.mutedUsers = channel.mutedUsers.filter(
-        (user) => user.id.toString() !== mutedId
+        (user) => user.id.toString() !== userId
       );
       this.channelsRepository.save(channel);
+      this.logger.log(`Unmute user [${userId}] on channel [${channel.id}][${channel.name}]`);
     });
 
-    this.schedulerRegistry.addCronJob(`unmute_user${mutedId}_${unmuteTime}_chan${channelId}`, job);
+    this.schedulerRegistry.addCronJob(`unmute_user${userId}_${unmuteTime}_chan${channelId}`, job);
     job.start();
   }
 
@@ -69,8 +73,10 @@ export class ChannelsService {
         'owner',
         'users',
         'admins',
-        'mutedUsers', 'bannedUsers',
-        'messages', 'messages.author'
+        'mutedUsers',
+        'bannedUsers',
+        'messages',
+        'messages.author'
       ]
     });
     if (!channel) {
@@ -82,7 +88,7 @@ export class ChannelsService {
   async create(createChannelDto: CreateChannelDto) {
     const ownedChannels = await this.usersService.getOwnedChannels(createChannelDto.owner.id.toString());
 
-    if (ownedChannels.length !== 0) {
+    if (ownedChannels && ownedChannels.length !== 0) {
       const chanExists = !!ownedChannels.find(channel => {
         return channel.name === createChannelDto.name;
       })
@@ -93,8 +99,10 @@ export class ChannelsService {
     const hashedPwd = (createChannelDto.password) ? await hashPassword(createChannelDto.password, 10) : "";
     const channel = this.channelsRepository.create({
       ...createChannelDto,
-      password: hashedPwd
+      password: hashedPwd,
+      users: [ { "id": createChannelDto.owner.id } ]
     });
+    this.logger.log(`Create new channel [${channel.name}]`);
     return this.channelsRepository.save(channel);
   }
 
@@ -111,13 +119,14 @@ export class ChannelsService {
       channel.password = hashedPwd;
     }
     if (updateChannelDto.bannedUsers) {
-      const bannedId = updateChannelDto.bannedUsers[updateChannelDto.bannedUsers.length -1].id.toString();
-      this.scheduleUnban(id, bannedId, channel.restrictionDuration);
+      const userId = updateChannelDto.bannedUsers[updateChannelDto.bannedUsers.length -1].id.toString();
+      this.scheduleUnban(id, userId, channel.restrictionDuration);
     }
     if (updateChannelDto.mutedUsers) {
-      const mutedId = updateChannelDto.mutedUsers[updateChannelDto.mutedUsers.length -1].id.toString();
-      this.scheduleUnmute(id, mutedId, channel.restrictionDuration);
+      const userId = updateChannelDto.mutedUsers[updateChannelDto.mutedUsers.length -1].id.toString();
+      this.scheduleUnmute(id, userId, channel.restrictionDuration);
     }
+    this.logger.log(`Update channel [${channel.id}][${channel.name}]`);
     return this.channelsRepository.save(channel);
   }
 
@@ -126,6 +135,7 @@ export class ChannelsService {
     if (!channel) {
       throw new NotFoundException(`Channel [${id}] not found`);
     }
+    this.logger.log(`Remove channel [${channel.id}][${channel.name}]`);
     return this.channelsRepository.remove(channel);
   }
 
@@ -161,6 +171,7 @@ export class ChannelsService {
       if (passIsValid) {
         channel = await this.getChannelUsers(id);
         channel.users.push(user);
+        this.logger.log(`User [${userId}] joined channel [${channel.id}][${channel.name}]`);
         return this.channelsRepository.save(channel);
       }
     }
