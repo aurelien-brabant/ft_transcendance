@@ -17,7 +17,7 @@ import { ConnectedUsers, User } from '../games/class/ConnectedUsers';
 @WebSocketGateway(
   {
     cors: true,
-    // namespace: '/chat'
+    namespace: '/chat'
   }
 )
 export class ChatGateway implements OnGatewayInit, OnGatewayConnection {

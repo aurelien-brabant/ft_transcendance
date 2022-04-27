@@ -17,7 +17,7 @@ const SocketProvider: React.FC = ({ children }) => {
   const [socket, setSocket] = useState<any>(null);
 
   useEffect((): any => {
-    const socketIo = io("localhost:8080");
+    const socketIo = io("localhost:8080/chat");
 
     setSocket(socketIo);
 
