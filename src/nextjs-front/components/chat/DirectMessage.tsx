@@ -14,7 +14,7 @@ export const DirectMessageHeader: React.FC<{ viewParams: any }> = ({
   viewParams,
 }) => {
   const { closeChat, setChatView } = useContext(chatContext) as ChatContextType;
-  const actionTooltipStyles = "font-bold bg-gray-900 text-neutral-200";
+  const actionTooltipStyles = "font-bold bg-dark text-neutral-200";
   const { user } = useSession();
 
   return (
@@ -151,7 +151,7 @@ const DirectMessage: React.FC<{ viewParams: { [key: string]: any } }> = ({
         ))}
         <div ref={chatBottom} />
       </div>
-      <div className="absolute inset-x-0 bottom-0 border-t-2 border-gray-800 min-h-[13%] flex gap-x-2 items-center px-8 py-2 bg-gray-900 drop-shadow-md">
+      <div className="absolute inset-x-0 bottom-0 border-t-2 border-04dp min-h-[13%] flex gap-x-2 items-center px-8 py-2 bg-dark drop-shadow-md">
         <textarea
           placeholder="Your message"
           className="p-2 bg-transparent border border-pink-600 resize-none grow outline-0"
