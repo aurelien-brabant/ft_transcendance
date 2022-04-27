@@ -105,7 +105,7 @@ const GroupAdd: React.FC<{ viewParams: any }> = ({ viewParams }) => {
 
 	return (
 		<Fragment>
-			<div className="h-[15%] gap-x-2 flex items-center p-4 bg-gray-900/90 border-gray-800 border-b-4">
+			<div className="h-[15%] gap-x-2 flex items-center p-4 bg-dark/90 border-04dp border-b-4">
 				<input
 						ref={searchInputRef}
 						type="text"
@@ -126,7 +126,7 @@ const GroupAdd: React.FC<{ viewParams: any }> = ({ viewParams }) => {
 				{filteredFriends.map((friend) => (
 					<div
 						key={friend.username}
-						className="flex items-center px-4 py-3 hover:bg-gray-800/90 transition gap-x-4"
+						className="flex items-center px-4 py-3 hover:bg-04dp/90 transition gap-x-4"
 						onClick={() => {
 							handleSelect(friend)
 						}}

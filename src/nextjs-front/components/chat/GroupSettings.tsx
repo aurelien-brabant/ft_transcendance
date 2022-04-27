@@ -228,7 +228,7 @@ const GroupSettings: React.FC<{ viewParams: any }> = ({ viewParams }) => {
 							group visiblity
 						</label>
 						<select
-							className="drag-cancellable px-2 py-2 bg-gray-900 border-b border-pink-600 outline-none"
+							className="drag-cancellable px-2 py-2 bg-dark border-b border-pink-600 outline-none"
 							name="privacy"
 							value={formData.privacy}
 							onChange={handleChange}
@@ -283,7 +283,7 @@ const GroupSettings: React.FC<{ viewParams: any }> = ({ viewParams }) => {
 					<small>Set the duration of mutation and banishment:</small>
 					<div className={inputGroupClassName}>
 						<select
-							className="drag-cancellable px-2 py-2 bg-gray-900 border-b border-pink-600 outline-none"
+							className="drag-cancellable px-2 py-2 bg-dark border-b border-pink-600 outline-none"
 							name="restrictionDuration"
 							value={formData.restrictionDuration}
 							onChange={handleChange}

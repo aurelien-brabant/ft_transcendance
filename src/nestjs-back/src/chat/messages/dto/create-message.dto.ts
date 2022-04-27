@@ -1,7 +1,5 @@
 import {
-  IsDate,
   IsNotEmpty,
-  IsOptional,
   IsString,
   MaxLength,
   MinLength
@@ -11,10 +9,6 @@ import { Channel } from "src/chat/channels/entities/channels.entity";
 import { User } from "src/users/entities/users.entity";
 
 export class CreateMessageDto {
-  @IsOptional()
-  @IsDate()
-  readonly createdAt?: Date;
-
   @Transform(({ value }) => value.trim())
   @IsNotEmpty()
   @IsString()
