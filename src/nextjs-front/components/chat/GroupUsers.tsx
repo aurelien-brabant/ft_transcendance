@@ -253,7 +253,7 @@ const GroupUsers: React.FC<{ viewParams: any }> = ({ viewParams }) => {
 		return (
 			<div className="flex flex-col h-full py-4 overflow-auto ">
 				{users.map((user) => (
-					<div key={user.username} className="flex items-center justify-between px-4 py-3 hover:bg-gray-800/90 transition">
+					<div key={user.username} className="flex items-center justify-between px-4 py-3 hover:bg-04dp/90 transition">
 						<div className="flex items-center gap-x-2 w-12 h-12">
 							<img
 								src={user.pic}
@@ -262,7 +262,7 @@ const GroupUsers: React.FC<{ viewParams: any }> = ({ viewParams }) => {
 										? "border-pink-600"
 										: user.isAdmin
 											? "border-blue-500"
-											: "border-gray-800"
+											: "border-04dp"
 								} object-fill w-full h-full rounded-full`}
 							/>
 							<Link href={`/users/${user.username}`}>
@@ -322,7 +322,7 @@ const GroupUsers: React.FC<{ viewParams: any }> = ({ viewParams }) => {
 		return (
 			<div className="flex flex-col h-full py-4 overflow-auto ">
 				{users.map((user) => (
-					<div key={user.username} className="flex items-center justify-between px-4 py-3 gap-x-2 hover:bg-gray-800/90 transition">
+					<div key={user.username} className="flex items-center justify-between px-4 py-3 gap-x-2 hover:bg-04dp/90 transition">
 						<div className="flex items-center gap-x-2 w-12 h-12">
 							<img
 								src={user.pic}
@@ -331,7 +331,7 @@ const GroupUsers: React.FC<{ viewParams: any }> = ({ viewParams }) => {
 										? "border-pink-600"
 										: user.isAdmin
 											? "border-blue-500"
-											: "border-gray-800"
+											: "border-04dp"
 								} object-fill w-full h-full rounded-full`}
 							/>
 							<Link href={`/users/${user.username}`}>
