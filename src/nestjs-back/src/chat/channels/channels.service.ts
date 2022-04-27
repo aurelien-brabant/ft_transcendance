@@ -157,6 +157,18 @@ export class ChannelsService {
     return channel;
   }
 
+  getPublicChannels() {
+    return this.channelsRepository.find({
+      where: { privacy: 'public' },
+      relations: [
+        'owner',
+        'users',
+        'messages',
+        'messages.author'
+      ]
+    });
+  }
+
   /* Join */
   async joinProtectedChan(id: string, userId: string, password: string) {
     let channel = await this.channelsRepository.findOne(id, {

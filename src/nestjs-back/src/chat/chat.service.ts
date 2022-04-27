@@ -19,6 +19,14 @@ export class ChatService {
   }
 
   async getUserChannels(id: string) {
-    return  await this.usersService.getJoinedChannels(id);
+    const publicChannels = await this.channelsService.getPublicChannels();
+    const userChannels = await this.usersService.getJoinedChannels(id);
+    const channels = publicChannels.concat(
+      userChannels.filter(
+        ({ id }) => !publicChannels.find(channel => channel.id === id)
+      )
+    );
+
+    return channels;
   }
 }
