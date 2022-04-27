@@ -111,19 +111,18 @@ const DirectMessage: React.FC<{ viewParams: { [key: string]: any } }> = ({
   };
 
   useEffect(() => {
-    const newDmListener = ({ message }) => {
-		console.log(message)
+    const newDmListener = ({ message }: any) => {
       console.log(`[Chat] Receive new DM from [${message.author.username}]`);
 
-      messages.push({
-        id: messages.length.toString(),
-        author: message.author.username,
-        content: message.content,
-        isMe: message.author.id === user.id,
-        isBlocked: false,
-      });
-      setMessages(messages);
-      return messages;
+      // messages.push({
+      //   id: messages.length.toString(),
+      //   author: message.author.username,
+      //   content: message.content,
+      //   isMe: message.author.id === user.id,
+      //   isBlocked: false,
+      // });
+      // setMessages(messages);
+      // return messages;
     };
 
     loadDmsOnMount();

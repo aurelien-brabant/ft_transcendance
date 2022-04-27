@@ -130,19 +130,19 @@ const Group: React.FC<{ viewParams: { [key: string]: any } }> = ({
 		getData();
 
 		/* Handle new message in group */
-		const newGmListener = ({ message }) => {
+		const newGmListener = ({ message }: any) => {
 			console.log(`[Chat] Receive new message in [${message.channel.name}]`);
 
-			const isBlocked = !!blocked.find(user => user.id == message.author.id);
+			// const isBlocked = !!blocked.find(user => user.id == message.author.id);
 
-			messages.push({
-				id: messages.length.toString(),
-				author: message.author.username,
-				content: message.content,
-				isMe: message.author.id === user.id,
-				isBlocked: isBlocked,
-			});
-			return messages;
+			// messages.push({
+			// 	id: messages.length.toString(),
+			// 	author: message.author.username,
+			// 	content: message.content,
+			// 	isMe: message.author.id === user.id,
+			// 	isBlocked: isBlocked,
+			// });
+			// return messages;
 		};
 
 		socket.on("newGm", newGmListener);
