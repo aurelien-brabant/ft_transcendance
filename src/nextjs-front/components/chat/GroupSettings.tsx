@@ -61,7 +61,7 @@ const GroupSettings: React.FC<{ viewParams: any }> = ({ viewParams }) => {
 		removeChatGroup,
 		fetchChannelData
 	} = useContext(chatContext) as ChatContextType;
-	const groupId = viewParams.groupId;
+	const channelId = viewParams.channelId;
 	const groupPrivacy = viewParams.groupPrivacy as ChatGroupPrivacy;
 	const inputGroupClassName = "flex flex-col gap-y-2";
 	const inputClassName = "px-2 py-1 border border-pink-600 bg-transparent outline-none";
@@ -121,7 +121,7 @@ const GroupSettings: React.FC<{ viewParams: any }> = ({ viewParams }) => {
 
 	/* Update the group name, visibility and password */
 	const updateGroup = async (formData: updateGroupData) => {
-		const res = await fetch(`/api/channels/${groupId}`, {
+		const res = await fetch(`/api/channels/${channelId}`, {
 			method: "PATCH",
 			headers: {
 				"Content-Type": "application/json",
@@ -151,7 +151,7 @@ const GroupSettings: React.FC<{ viewParams: any }> = ({ viewParams }) => {
 
 	/* If the owner leaves the group, it is deleted */
 	const disbandGroup = async () => {
-		const res = await fetch(`/api/channels/${groupId}`, {
+		const res = await fetch(`/api/channels/${channelId}`, {
 			method: "DELETE",
 			headers: {
 				"Content-Type": "application/json",
@@ -160,7 +160,7 @@ const GroupSettings: React.FC<{ viewParams: any }> = ({ viewParams }) => {
 
 		if (res.status === 200) {
 			closeRightmostView(2);
-			removeChatGroup(groupId);
+			removeChatGroup(channelId);
 			return;
 		} else {
 			setAlert({
@@ -174,13 +174,13 @@ const GroupSettings: React.FC<{ viewParams: any }> = ({ viewParams }) => {
 
 	/* User quits group */
 	const handleLeaveGroup = async () => {
-		const channelData = await fetchChannelData(groupId).catch(console.error);
+		const channelData = await fetchChannelData(channelId).catch(console.error);
 		const currentUsers = JSON.parse(JSON.stringify(channelData)).users;
 		const users = currentUsers.filter((user: BaseUserData) => {
 			return user.id != user.id
 		})
 
-		const res = await fetch(`/api/channels/${groupId}`, {
+		const res = await fetch(`/api/channels/${channelId}`, {
 			method: "PATCH",
 			headers: {
 				"Content-Type": "application/json",
@@ -192,7 +192,7 @@ const GroupSettings: React.FC<{ viewParams: any }> = ({ viewParams }) => {
 
 		if (res.status === 200) {
 			closeRightmostView(2);
-			removeChatGroup(groupId);
+			removeChatGroup(channelId);
 			return;
 		} else {
 			setAlert({

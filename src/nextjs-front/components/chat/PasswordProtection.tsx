@@ -37,7 +37,7 @@ const PasswordProtection: React.FC<{ viewParams: any }> = ({ viewParams }) => {
 	const handleSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
 		e.preventDefault();
 		const input = (e.currentTarget.elements[0] as HTMLInputElement).value;
-		const res = await fetch(`/api/channels/${viewParams.groupId}/join?userId=${user.id}&password=${input}`, {
+		const res = await fetch(`/api/channels/${viewParams.channelId}/join?userId=${user.id}&password=${input}`, {
 			method: "POST",
 			headers: {
 			"Content-Type": "application/json",

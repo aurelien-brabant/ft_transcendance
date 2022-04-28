@@ -70,7 +70,7 @@ const DirectMessage: React.FC<{ viewParams: { [key: string]: any } }> = ({
   const [messages, setMessages] = useState<ChatMessage[]>([]);
   const [currentMessage, setCurrentMessage] = useState("");
   const chatBottom = useRef<HTMLDivElement>(null);
-  const dmId = viewParams.dmId;
+  const channelId = viewParams.channelId;
 
   /* Send new message */
   const handleDmSubmit = async () => {
@@ -82,7 +82,7 @@ const DirectMessage: React.FC<{ viewParams: { [key: string]: any } }> = ({
       content: currentMessage,
       from: user.id,
       to: viewParams.friendId,
-      channelId: dmId,
+      channelId: channelId,
     });
     setCurrentMessage("");
   };
@@ -94,7 +94,7 @@ const DirectMessage: React.FC<{ viewParams: { [key: string]: any } }> = ({
 
   /* Load all messages on mount */
   const loadDmsOnMount = async () => {
-    const data = await fetchChannelData(dmId).catch(console.error);
+    const data = await fetchChannelData(channelId).catch(console.error);
     const dms = JSON.parse(JSON.stringify(data)).messages;
     const messages: ChatMessage[] = [];
 

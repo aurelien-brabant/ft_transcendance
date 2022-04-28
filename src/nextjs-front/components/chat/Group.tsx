@@ -31,7 +31,7 @@ export const GroupHeader: React.FC<{ viewParams: any }> = ({ viewParams }) => {
 					<Tooltip className={actionTooltipStyles} content="users">
 						<button onClick={() => {
 							openChatView('group_users', 'group users', {
-									groupId: viewParams.groupId,
+									channelId: viewParams.channelId,
 									groupName: viewParams.groupName,
 									peopleCount: viewParams.peopleCount,
 									ownerView: ownerView
@@ -44,7 +44,7 @@ export const GroupHeader: React.FC<{ viewParams: any }> = ({ viewParams }) => {
 					<Tooltip className={actionTooltipStyles} content="add user">
 						<button onClick={() => {
 							openChatView('group_add', 'Add a user to group', {
-									groupId: viewParams.groupId
+									channelId: viewParams.channelId
 								}
 							)}}
 						>
@@ -53,7 +53,7 @@ export const GroupHeader: React.FC<{ viewParams: any }> = ({ viewParams }) => {
 					</Tooltip>
 					<button onClick={() => {
 						openChatView('group_settings', 'group settings', {
-								groupId: viewParams.groupId,
+								channelId: viewParams.channelId,
 								groupName: viewParams.groupName,
 								groupPrivacy: viewParams.groupPrivacy,
 								peopleCount: viewParams.peopleCount,
@@ -85,7 +85,7 @@ const Group: React.FC<{ viewParams: { [key: string]: any } }> = ({
 	const [messages, setMessages] = useState<ChatMessage[]>([]);
 	const [currentMessage, setCurrentMessage] = useState("");
 	const chatBottom = useRef<HTMLDivElement>(null);
-	const groupId = viewParams.groupId;
+	const channelId = viewParams.channelId;
 
 	/* Send new message */
 	const handleGroupMessageSubmit = async () => {
@@ -95,7 +95,7 @@ const Group: React.FC<{ viewParams: { [key: string]: any } }> = ({
 
 		socket.emit('gmSubmit', {
 			content: currentMessage,
-			groupId
+			channelId
 		});
 		setCurrentMessage("");
 	};
@@ -107,7 +107,7 @@ const Group: React.FC<{ viewParams: { [key: string]: any } }> = ({
 
 	/* Load all messages on mount */
 	const loadGroupOnMount = async () => {
-		const data = await fetchChannelData(groupId).catch(console.error);
+		const data = await fetchChannelData(channelId).catch(console.error);
 		const gms = JSON.parse(JSON.stringify(data)).messages;
 		const messages: ChatMessage[] = [];
 

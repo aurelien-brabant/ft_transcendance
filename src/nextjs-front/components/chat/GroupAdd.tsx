@@ -37,15 +37,15 @@ const GroupAdd: React.FC<{ viewParams: any }> = ({ viewParams }) => {
 	const { setAlert } = useContext(alertContext) as AlertContextType;
 	const { closeRightmostView, fetchChannelData } = useContext(chatContext) as ChatContextType;
 	const { getData, friends } = useContext(relationshipContext) as RelationshipContextType;
-	const groupId = viewParams.groupId;
+	const channelId = viewParams.channelId;
 	const [filteredFriends, setFilteredFriends] = useState<User[]>([]);
 	const searchInputRef = useRef<HTMLInputElement>(null);
 
 	const addUserToGroup = async (id: string) => {
-		const channelData = await fetchChannelData(groupId).catch(console.error);
+		const channelData = await fetchChannelData(channelId).catch(console.error);
 		const users = JSON.parse(JSON.stringify(channelData)).users;
 
-		const res = await fetch(`/api/channels/${groupId}`, {
+		const res = await fetch(`/api/channels/${channelId}`, {
 			method: "PATCH",
 			headers: {
 				"Content-Type": "application/json",
@@ -86,7 +86,7 @@ const GroupAdd: React.FC<{ viewParams: any }> = ({ viewParams }) => {
 		getData();
 		/* Select friends that didn't already join the group */
 		const selectFriends = async () => {
-			const channelData = await fetchChannelData(groupId).catch(console.error);
+			const channelData = await fetchChannelData(channelId).catch(console.error);
 			const users = await JSON.parse(JSON.stringify(channelData)).users;
 			const selectedFriends: User[] = [];
 

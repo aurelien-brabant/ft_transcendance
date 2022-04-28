@@ -60,15 +60,15 @@ const GroupUsers: React.FC<{ viewParams: any }> = ({ viewParams }) => {
 	const { fetchChannelData } = useContext(chatContext) as ChatContextType;
 	const { blocked, getData } = useContext(relationshipContext) as RelationshipContextType;
 	const [users, setUsers] = useState<UserSummary[]>([]);
-	const groupId = viewParams.groupId;
+	const channelId = viewParams.channelId;
 	const actionTooltipStyles = "font-bold bg-gray-900 text-neutral-200";
 
 	/* Make user administrator */
 	const addAdmin = async (id: string) => {
-		const groupData = await fetchChannelData(groupId).catch(console.error);
+		const groupData = await fetchChannelData(channelId).catch(console.error);
 		const admins = JSON.parse(JSON.stringify(groupData)).admins;
 
-		const res = await fetch(`/api/channels/${groupId}`, {
+		const res = await fetch(`/api/channels/${channelId}`, {
 			method: "PATCH",
 			headers: {
 				"Content-Type": "application/json",
@@ -91,13 +91,13 @@ const GroupUsers: React.FC<{ viewParams: any }> = ({ viewParams }) => {
 
 	/* Remove administrator rights */
 	const removeAdmin = async (id: string) => {
-		const groupData = await fetchChannelData(groupId).catch(console.error);
+		const groupData = await fetchChannelData(channelId).catch(console.error);
 		const currentAdmins = JSON.parse(JSON.stringify(groupData)).admins;
 		const admins = currentAdmins.filter((admin: BaseUserData) => { 
 			return admin.id != id
 		})
 
-		const res = await fetch(`/api/channels/${groupId}`, {
+		const res = await fetch(`/api/channels/${channelId}`, {
 			method: "PATCH",
 			headers: {
 				"Content-Type": "application/json",
@@ -120,10 +120,10 @@ const GroupUsers: React.FC<{ viewParams: any }> = ({ viewParams }) => {
 
 	/* Ban user from group */
 	const banUser = async (id: string, username: string) => {
-		const groupData = await fetchChannelData(groupId).catch(console.error);
+		const groupData = await fetchChannelData(channelId).catch(console.error);
 		const users = JSON.parse(JSON.stringify(groupData)).bannedUsers;
 
-		const res = await fetch(`/api/channels/${groupId}`, {
+		const res = await fetch(`/api/channels/${channelId}`, {
 			method: "PATCH",
 			headers: {
 				"Content-Type": "application/json",
@@ -150,10 +150,10 @@ const GroupUsers: React.FC<{ viewParams: any }> = ({ viewParams }) => {
 
 	/* Mute user in group */
 	const muteUser = async (id: string, username: string) => {
-		const groupData = await fetchChannelData(groupId).catch(console.error);
+		const groupData = await fetchChannelData(channelId).catch(console.error);
 		const users = JSON.parse(JSON.stringify(groupData)).mutedUsers;
 
-		const res = await fetch(`/api/channels/${groupId}`, {
+		const res = await fetch(`/api/channels/${channelId}`, {
 			method: "PATCH",
 			headers: {
 				"Content-Type": "application/json",
@@ -180,13 +180,13 @@ const GroupUsers: React.FC<{ viewParams: any }> = ({ viewParams }) => {
 
 	/* Kick user from group */
 	const kickUser = async (id: string, username: string) => {
-		const groupData = await fetchChannelData(groupId).catch(console.error);
+		const groupData = await fetchChannelData(channelId).catch(console.error);
 		const currentUsers = JSON.parse(JSON.stringify(groupData)).users;
 		const users = currentUsers.filter((user: BaseUserData) => {
 			return user.id !=  id
 		})
 
-		const res = await fetch(`/api/channels/${groupId}`, {
+		const res = await fetch(`/api/channels/${channelId}`, {
 			method: "PATCH",
 			headers: {
 				"Content-Type": "application/json",
@@ -213,7 +213,7 @@ const GroupUsers: React.FC<{ viewParams: any }> = ({ viewParams }) => {
 
 	/* Update user list on mount */
 	const updateUsers = async () => {
-		const data = await fetchChannelData(groupId).catch(console.error);
+		const data = await fetchChannelData(channelId).catch(console.error);
 		const chanOwner = await JSON.parse(JSON.stringify(data)).owner;
 		const chanAdmins = await JSON.parse(JSON.stringify(data)).admins;
 		const chanUsers = await JSON.parse(JSON.stringify(data)).users;

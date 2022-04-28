@@ -59,7 +59,7 @@ export type ChatContextType = {
 	getLastMessage: (channel: any) => ChatMessagePreview;
 	/* Chat groups utils */
 	updateChatGroups: () => void;
-	removeChatGroup: (groupId: string) => void;
+	removeChatGroup: (channelId: string) => void;
 	setChatGroupData: (channel: any, userId: string) => ChatGroup;
 	/* Direct messages utils */
 	updateDirectMessages: () => void;

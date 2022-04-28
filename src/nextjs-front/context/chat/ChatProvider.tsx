@@ -6,7 +6,6 @@ import { useSession } from "../../hooks/use-session";
 import alertContext, { AlertContextType } from "../alert/alertContext";
 import authContext, { AuthContextValue } from "../auth/authContext";
 import relationshipContext, { RelationshipContextType } from "../relationship/relationshipContext";
-// import socketContext, { SocketContextType } from "../../context/socket/socketContext";
 import { io } from "socket.io-client";
 /* Chat */
 import Chat from "../../components/Chat";
@@ -118,7 +117,6 @@ const ChatProvider: React.FC = ({ children }) => {
 	const { user } = useSession();
 	const { isChatOpened, setIsChatOpened } = useContext(authContext) as AuthContextValue;
 	const { blocked } = useContext(relationshipContext) as RelationshipContextType;
-	// const { chatRoomLen } = useContext(socketContext) as SocketContextType;
 	const [chatRoom, setChatRoom] = useState<ChatUser[]>([]);
 	const [chatRoomLen, setChatRoomLen] = useState(0);
 	const [socket, setSocket] = useState<any>(null);
@@ -209,9 +207,9 @@ const ChatProvider: React.FC = ({ children }) => {
 		setChatGroups([...chatGroups]);
 	}
 
-	const removeChatGroup = (groupId: string) => {
+	const removeChatGroup = (channelId: string) => {
 		setChatGroups(chatGroups.filter((group: ChatGroup) => {
-			return group.id != groupId
+			return group.id != channelId
 		}));
 	}
 
@@ -291,24 +289,24 @@ const ChatProvider: React.FC = ({ children }) => {
 	}
 
 	/* Find existing DM or create a new one */
-		const openDirectMessage = async (userId: string, friend: any) => {
-			if (userId === friend.id.toString()) return ;
+	const openDirectMessage = async (userId: string, friend: any) => {
+		if (userId === friend.id.toString()) return ;
 
-			const res = await fetch(`/api/users/${userId}/directmessages?friendId=${friend.id}`);
-			const data = await res.json();
-			let id: string;
-	
-			if (res.status !== 200) {
-				id = await createDirectMessage(userId.toString(), friend.id.toString());
-			} else {
-				id = JSON.parse(JSON.stringify(data)).id;
-			}
-			openChatView('dm', 'direct message', {
-				dmId: id,
-				friendUsername: friend.username,
-				friendId: friend.id
-			});
+		const res = await fetch(`/api/users/${userId}/directmessages?friendId=${friend.id}`);
+		const data = await res.json();
+		let id: string;
+
+		if (res.status !== 200) {
+			id = await createDirectMessage(userId.toString(), friend.id.toString());
+		} else {
+			id = JSON.parse(JSON.stringify(data)).id;
 		}
+		openChatView('dm', 'direct message', {
+			channelId: id,
+			friendUsername: friend.username,
+			friendId: friend.id
+		});
+	}
 
 	/* Channels */
 
@@ -356,6 +354,9 @@ const ChatProvider: React.FC = ({ children }) => {
 	/* Websocket operations if view stack changes */
 	useEffect((): any => {
 		if (!user) return ;
+
+		if (viewStack.length > 0)
+			console.log(viewStack[viewStack.length - 1].params);
 
 		if (checkCurrentView("groups") || checkCurrentView("dms")) {
 			socket.emit("getUserChannels", { userId: user.id });

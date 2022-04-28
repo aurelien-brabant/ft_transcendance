@@ -117,7 +117,7 @@ const Groups: React.FC<{viewParams: Object;}> = ({ viewParams }) => {
 								gm.privacy === 'protected' ? 'password_protection' : 'group',
 								gm.label,
 								{
-									groupId: gm.id,
+									channelId: gm.id,
 									groupName: gm.label,
 									groupOwnerId: gm.ownerId,
 									peopleCount: gm.peopleCount,
