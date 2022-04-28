@@ -130,7 +130,7 @@ export class UsersService {
       if (result.length !== 0) {
         return result[0]; // TODO: improve
       }
-      return {};
+      // return {};
     }
     throw new NotFoundException(`User [${id}] sent no DM`);
   }

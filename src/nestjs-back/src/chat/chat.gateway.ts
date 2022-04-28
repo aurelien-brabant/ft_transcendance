@@ -72,6 +72,18 @@ export class ChatGateway implements OnGatewayInit, OnGatewayConnection {
     const channels = await this.chatService.getUserChannels(data.userId.toString());
 
     this.server.to(client.id).emit('updateUserChannels', (channels));
+    console.log(channels);
+  }
+
+  /* Send all mesages in channel */
+  @SubscribeMessage('getChannelData')
+  async handleChannelData(
+    @ConnectedSocket() client: Socket,
+    @MessageBody() data: { channelId: number }
+  ) {
+    const channel = await this.chatService.getChannelData(data.channelId.toString());
+
+    this.server.to(client.id).emit('updateChannel', (channel));
   }
 
   /* Save a new DM message */

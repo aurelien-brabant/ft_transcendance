@@ -7,7 +7,6 @@ import Tooltip from "../../components/Tooltip";
 import { useSession } from "../../hooks/use-session";
 import chatContext, { ChatContextType, ChatMessage } from "../../context/chat/chatContext";
 import relationshipContext, { RelationshipContextType } from "../../context/relationship/relationshipContext";
-import socketContext, { SocketContextType } from "../../context/socket/socketContext";
 
 /* Header */
 export const GroupHeader: React.FC<{ viewParams: any }> = ({ viewParams }) => {
@@ -79,13 +78,34 @@ const Group: React.FC<{ viewParams: { [key: string]: any } }> = ({
 	viewParams,
 }) => {
 	const { user } = useSession();
-	const { fetchChannelData } = useContext(chatContext) as ChatContextType;
 	const { blocked, getData } = useContext(relationshipContext) as RelationshipContextType;
-	const { socket } = useContext(socketContext) as SocketContextType;
+	const { socket } = useContext(chatContext) as ChatContextType;
 	const [messages, setMessages] = useState<ChatMessage[]>([]);
 	const [currentMessage, setCurrentMessage] = useState("");
 	const chatBottom = useRef<HTMLDivElement>(null);
 	const channelId = viewParams.channelId;
+
+	/* Load all messages in channel */
+	const loadMessages = async (channel: any) => {
+		if (channel.id !== channelId) {
+			return ;
+		}
+		const messages: ChatMessage[] = [];
+
+		for (var i in channel.messages) {
+			const message = channel.messages[i];
+			const isBlocked = !!blocked.find(user => user.id == message.author.id);
+
+			messages.push({
+				id: messages.length.toString(),
+				author: message.author.username,
+				content: message.content,
+				isMe: message.author.id === user.id,
+				isBlocked: isBlocked ? "Blocked message" : message.content,
+			});
+		}
+		setMessages(messages);
+	};
 
 	/* Send new message */
 	const handleGroupMessageSubmit = async () => {
@@ -105,72 +125,55 @@ const Group: React.FC<{ viewParams: { [key: string]: any } }> = ({
 		chatBottom.current?.scrollIntoView();
 	}, [messages]);
 
-	/* Load all messages on mount */
-	const loadGroupOnMount = async () => {
-		const data = await fetchChannelData(channelId).catch(console.error);
-		const gms = JSON.parse(JSON.stringify(data)).messages;
-		const messages: ChatMessage[] = [];
+	/* Receive new message */
+	const handleNewMessage = ({ message }: any) => {
+		console.log(`[Chat] Receive new message in [${message.channel.name}]`);
 
-		for (var i in gms) {
-			const isBlocked = !!blocked.find(user => user.id == gms[i].author.id);
+		// const isBlocked = !!blocked.find(user => user.id == message.author.id);
 
-			messages.push({
-				id: messages.length.toString(),
-				author: gms[i].author.username,
-				content: isBlocked ? "Blocked message" : gms[i].content,
-				isMe: (gms[i].author.id === user.id),
-				isBlocked: isBlocked,
-			});
-		}
-		setMessages(messages);
-	}
+		// messages.push({
+		// 	id: messages.length.toString(),
+		// 	author: message.author.username,
+		// 	content: message.content,
+		// 	isMe: message.author.id === user.id,
+		// 	isBlocked: isBlocked ? "Blocked message" : message.content,
+		// });
+		// return messages;
+	};
 
 	useEffect(() => {
-		loadGroupOnMount();
 		getData();
 
-		/* Handle new message in group */
-		const newGmListener = ({ message }: any) => {
-			console.log(`[Chat] Receive new message in [${message.channel.name}]`);
+		/* Listeners */
+		socket.on("updateChannel", loadMessages);
+		socket.on("newGm", handleNewMessage);
 
-			// const isBlocked = !!blocked.find(user => user.id == message.author.id);
-
-			// messages.push({
-			// 	id: messages.length.toString(),
-			// 	author: message.author.username,
-			// 	content: message.content,
-			// 	isMe: message.author.id === user.id,
-			// 	isBlocked: isBlocked,
-			// });
-			// return messages;
-		};
-
-		socket.on("newGm", newGmListener);
 		return () => {
-			socket.off("newGm", newGmListener);
+			socket.off("updateChannel", loadMessages);
+			socket.off("newGm", handleNewMessage);
 		};
 	}, []);
 
 	return (
 		<div className="h-full">
 			<div className="flex flex-col items-start max-h-[87%] h-auto px-5 pb-5 overflow-auto">
-				{messages.map((msg: ChatMessage) => (
+				{messages.map((message: ChatMessage) => (
 					<div
-						key={msg.id}
+						key={message.id}
 						className={`${
-							msg.isBlocked
+							message.isBlocked
 								? "self-start text-gray-900 bg-gray-600"
-								: msg.isMe
+								: message.isMe
 									? "self-end bg-green-600"
 									: "self-start text-gray-900 bg-gray-300"
 						} max-w-[80%] p-2 my-2 rounded whitespace-wrap break-all`}
 					>
-						{!msg.isMe && !msg.isBlocked && (
+						{!message.isMe && !message.isBlocked && (
 							<span className="text-xs text-gray-900 uppercase">
-								{msg.author}
+								{message.author}
 							</span>
 						)}
-						<p>{msg.content}</p>
+						<p>{message.content}</p>
 					</div>
 				))}
 				<div ref={chatBottom} />

@@ -351,22 +351,12 @@ const ChatProvider: React.FC = ({ children }) => {
 		setDirectMessages(dms);
 	}
 
-	/* Websocket operations if view stack changes */
+	/* Update channels if view stack changes */
 	useEffect((): any => {
 		if (!user) return ;
 
-		if (viewStack.length > 0)
-			console.log(viewStack[viewStack.length - 1]);
-
 		if (checkCurrentView("groups") || checkCurrentView("dms")) {
 			socket.emit("getUserChannels", { userId: user.id });
-		}
-
-		if (checkCurrentView("group") || checkCurrentView("dm")) {
-			const tmp = viewStack[viewStack.length - 1].params;
-			console.log(tmp.channelId);
-			console.log(viewStack[viewStack.length - 1].params);
-			// socket.emit("getChannelData", { channelId: params.channelId });
 		}
 
 		/* Listeners */
@@ -439,7 +429,6 @@ const ChatProvider: React.FC = ({ children }) => {
 				createDirectMessage,
 				openDirectMessage,
 				fetchChannelData,
-				loadUserChannels,
 				lastX,
 				lastY,
 				setLastX,

@@ -7,7 +7,6 @@ import { UserStatusItem } from "../UserStatus";
 import { useSession } from "../../hooks/use-session";
 import Tooltip from "../../components/Tooltip";
 import chatContext, { ChatContextType, ChatMessage } from "../../context/chat/chatContext";
-import socketContext, { SocketContextType } from "../../context/socket/socketContext";
 
 /* Header */
 export const DirectMessageHeader: React.FC<{ viewParams: any }> = ({
@@ -65,12 +64,30 @@ const DirectMessage: React.FC<{ viewParams: { [key: string]: any } }> = ({
   viewParams,
 }) => {
   const { user } = useSession();
-  const { fetchChannelData } = useContext(chatContext) as ChatContextType;
-  const { socket } = useContext(socketContext) as SocketContextType;
+  const { socket } = useContext(chatContext) as ChatContextType;
   const [messages, setMessages] = useState<ChatMessage[]>([]);
   const [currentMessage, setCurrentMessage] = useState("");
   const chatBottom = useRef<HTMLDivElement>(null);
-  const channelId = viewParams.channelId;
+  const channelId: string = viewParams.channelId;
+
+  /* Load all messages in channel */
+  const loadMessages = async (channel: any) => {
+    if (channel.id !== channelId) {
+      return ;
+    }
+    const messages: ChatMessage[] = [];
+
+    for (var i in channel.messages) {
+      messages.push({
+        id: messages.length.toString(),
+        author: channel.messages[i].author.username,
+        content: channel.messages[i].content,
+        isMe: channel.messages[i].author.id === user.id,
+        isBlocked: false,
+      });
+    }
+    setMessages(messages);
+  };
 
   /* Send new message */
   const handleDmSubmit = async () => {
@@ -92,44 +109,31 @@ const DirectMessage: React.FC<{ viewParams: { [key: string]: any } }> = ({
     chatBottom.current?.scrollIntoView();
   }, [messages]);
 
-  /* Load all messages on mount */
-  const loadDmsOnMount = async () => {
-    const data = await fetchChannelData(channelId).catch(console.error);
-    const dms = JSON.parse(JSON.stringify(data)).messages;
-    const messages: ChatMessage[] = [];
+  /* Receive new message */
+  const handleNewMessage = ({ message }: any) => {
+    console.log(`[Chat] Receive new DM from [${message.author.username}]`);
 
-    for (var i in dms) {
-      messages.push({
-        id: messages.length.toString(),
-        author: dms[i].author.username,
-        content: dms[i].content,
-        isMe: dms[i].author.id === user.id,
-        isBlocked: false,
-      });
-    }
-    setMessages(messages);
+    // messages.push({
+    //   id: messages.length.toString(),
+    //   author: message.author.username,
+    //   content: message.content,
+    //   isMe: message.author.id === user.id,
+    //   isBlocked: false,
+    // });
+    // setMessages(messages);
+    // return messages;
   };
 
   useEffect(() => {
-    const newDmListener = ({ message }: any) => {
-      console.log(`[Chat] Receive new DM from [${message.author.username}]`);
+    socket.emit("getChannelData", { channelId: channelId });
 
-      // messages.push({
-      //   id: messages.length.toString(),
-      //   author: message.author.username,
-      //   content: message.content,
-      //   isMe: message.author.id === user.id,
-      //   isBlocked: false,
-      // });
-      // setMessages(messages);
-      // return messages;
-    };
+    /* Listeners */
+    socket.on("updateChannel", loadMessages);
+    socket.on("newDm", handleNewMessage);
 
-    loadDmsOnMount();
-
-    socket.on("newDm", newDmListener);
     return () => {
-      socket.off("newDm", newDmListener);
+      socket.off("updateChannel", loadMessages);
+      socket.off("newDm", handleNewMessage);
     };
   }, []);
 

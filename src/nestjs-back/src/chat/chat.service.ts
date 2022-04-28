@@ -29,4 +29,8 @@ export class ChatService {
 
     return channels;
   }
+
+  async getChannelData(id: string) {
+    return await this.channelsService.findOne(id);
+  }
 }
