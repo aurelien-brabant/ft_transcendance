@@ -4,11 +4,9 @@ import { useMediaQuery } from "react-responsive";
 import { AiOutlineClose } from "react-icons/ai";
 import { FaUserFriends, FaUser } from "react-icons/fa";
 import Tooltip from "./Tooltip";
-import { useSession } from "../hooks/use-session";
 import { ChatViewItem } from "../context/chat/ChatProvider";
 import chatContext, { ChatContextType } from "../context/chat/chatContext";
 import relationshipContext, { RelationshipContextType } from "../context/relationship/relationshipContext";
-import socketContext, { SocketContextType } from "../context/socket/socketContext";
 
 type ChatProps = {
 	onClose: () => void;
@@ -19,15 +17,12 @@ const Chat: React.FC<ChatProps> = ({ viewStack, onClose }) => {
 	const {
 		setChatView,
 		closeRightmostView,
-		loadUserChannels,
 		lastX,
 		lastY,
 		setLastX,
 		setLastY
 	} = useContext(chatContext) as ChatContextType;
 	const { getData } = useContext(relationshipContext) as RelationshipContextType;
-	const { socket } = useContext(socketContext) as SocketContextType;
-	const { user } = useSession();
 	const currentView = viewStack[viewStack.length - 1];
 	const buttonTooltipClassName = "p-3 font-bold bg-dark";
 	const buttonClassName = "hover:scale-105 transition text-2xl";
@@ -40,17 +35,7 @@ const Chat: React.FC<ChatProps> = ({ viewStack, onClose }) => {
 	}
 
 	useEffect(() => {
-		const updateUserChannels = (channels: any) => {
-			loadUserChannels(channels, user.id);
-		};
-
 		getData();
-		socket.emit("getUserChannels", { userId: user.id });
-		socket.on("updateUserChannels", updateUserChannels);
-
-		return () => {
-			socket.off("updateUserChannels", updateUserChannels);
-		};
 	}, [])
 
 	return (

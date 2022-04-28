@@ -1,4 +1,4 @@
-import { useContext, useState } from "react";
+import { useContext, useEffect, useState } from "react";
 import { BsFillChatDotsFill } from "react-icons/bs";
 import { Bounce } from "react-awesome-reveal";
 import { BaseUserData } from 'transcendance-types';
@@ -6,7 +6,8 @@ import { useSession } from "../../hooks/use-session";
 import alertContext, { AlertContextType } from "../alert/alertContext";
 import authContext, { AuthContextValue } from "../auth/authContext";
 import relationshipContext, { RelationshipContextType } from "../relationship/relationshipContext";
-import socketContext, { SocketContextType } from "../../context/socket/socketContext";
+// import socketContext, { SocketContextType } from "../../context/socket/socketContext";
+import { io } from "socket.io-client";
 /* Chat */
 import Chat from "../../components/Chat";
 import ChatGroupsView from "../../components/chat/Groups";
@@ -20,6 +21,12 @@ import GroupNew, { GroupNewHeader } from "../../components/chat/GroupNew";
 import GroupSettings, { GroupSettingsHeader } from "../../components/chat/GroupSettings";
 import GroupUsers, { GroupUsersHeader } from "../../components/chat/GroupUsers";
 import PasswordProtection, { PasswordProtectionHeader } from "../../components/chat/PasswordProtection";
+
+export type ChatUser = {
+	id: string;
+	username: string;
+	socketId: string;
+};
 
 export type ChatViewItem = {
 	label: string;
@@ -108,10 +115,14 @@ const ChatProvider: React.FC = ({ children }) => {
 	const [lastY, setLastY] = useState<number>(0);
 	const { setAlert } = useContext(alertContext) as AlertContextType;
 	const session = useSession();
+	const { user } = useSession();
 	const { isChatOpened, setIsChatOpened } = useContext(authContext) as AuthContextValue;
 	const { blocked } = useContext(relationshipContext) as RelationshipContextType;
-	const { chatRoomLen } = useContext(socketContext) as SocketContextType;
-	
+	// const { chatRoomLen } = useContext(socketContext) as SocketContextType;
+	const [chatRoom, setChatRoom] = useState<ChatUser[]>([]);
+	const [chatRoomLen, setChatRoomLen] = useState(0);
+	const [socket, setSocket] = useState<any>(null);
+
 	/* Chat manipulation */
 	const openChat = () => {
 		setIsChatOpened(true);
@@ -154,6 +165,13 @@ const ChatProvider: React.FC = ({ children }) => {
 		if (viewStack.length === 0) return;
 
 		setViewStack(viewStack.slice(0, -n));
+	};
+
+	const checkCurrentView = (view: ChatView) => {
+		return (
+			viewStack.length > 0
+			&& (views[view].Component === viewStack[viewStack.length - 1].Component)
+			);
 	};
 
 	/* Message utils */
@@ -302,7 +320,9 @@ const ChatProvider: React.FC = ({ children }) => {
 	}
 
 	/* Load all channels joined by user or visible */
-	const loadUserChannels = (channels: any, userId: string) => {
+	const loadUserChannels = (channels: any) => {
+		console.log("[Chat] Update user channels");
+
 		const groups: ChatGroup[] = [];
 		const dms: DirectMessage[] = [];
 
@@ -310,14 +330,14 @@ const ChatProvider: React.FC = ({ children }) => {
 			const channel = channels[i];
 
 			if (channel.privacy === "dm") {
-				const friend = (channel.users[0].id === userId) ? channel.users[1] : channel.users[0];
+				const friend = (channel.users[0].id === user.id) ? channel.users[1] : channel.users[0];
 				/* Don't display DMs from blocked users */
 				const isBlocked = !!blocked.find(user => user.id === friend.id);
 				if (!isBlocked) {
 					dms.push(setDirectMessageData(channel, friend));
 				}
 			} else {
-				groups.push(setChatGroupData(channel, userId));
+				groups.push(setChatGroupData(channel, user.id));
 			}
 		}
 		/* Sorts from most recent */
@@ -332,6 +352,64 @@ const ChatProvider: React.FC = ({ children }) => {
 		setChatGroups(groups);
 		setDirectMessages(dms);
 	}
+
+	/* Websocket operations if view stack changes */
+	useEffect((): any => {
+		if (!user) return ;
+
+		if (checkCurrentView("groups") || checkCurrentView("dms")) {
+			socket.emit("getUserChannels", { userId: user.id });
+		}
+
+		/* Listeners */
+		socket.on("updateUserChannels", loadUserChannels);
+
+		return () => {
+			socket.off("updateUserChannels", loadUserChannels);
+		};
+	}, [viewStack]);
+
+	/* Create socket when user is logged in */
+	useEffect((): any => {
+		const socketIo = io("localhost:8080/chat");
+
+		setSocket(socketIo);
+
+		if (!socket || session.state !== "authenticated") return;
+
+		const handleChat = () => {
+			socket.on("connect", () => {
+				console.log("[Chat] Client connected");
+
+				socket.on("connect_error", (err: Error) => {
+					console.log(`connect_error due to ${err.message}`);
+					socket.close();
+				});
+
+				socket.emit("newUser", {
+					id: user.id,
+					username: user.username,
+				});
+
+				// socket.on("joinChat", (data: ChatUser[]) => {
+				// 	setChatRoom(data);
+				// });
+
+				// socket.on("leaveChat", (data: ChatUser[]) => {
+				// 	setChatRoom(data);
+				// });
+
+				// socket.on('updateChatRoomLen', (len: number) => {
+				// 	setChatRoomLen(len);
+				// });
+			});
+		};
+		handleChat();
+
+		return () => {
+			socket.disconnect();
+		};
+	}, [user]);
 
 	return (
 		<chatContext.Provider
@@ -358,6 +436,9 @@ const ChatProvider: React.FC = ({ children }) => {
 				lastY,
 				setLastX,
 				setLastY,
+				socket,
+				chatRoom,
+				chatRoomLen,
 			}}
 		>
 			{session.state === 'authenticated' ?
