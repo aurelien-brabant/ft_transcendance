@@ -13,7 +13,7 @@ import socketContext, { SocketContextType } from "../../context/socket/socketCon
 export const GroupHeader: React.FC<{ viewParams: any }> = ({ viewParams }) => {
 	const { user } = useSession();
 	const { closeChat, openChatView, setChatView } = useContext(chatContext) as ChatContextType;
-	const ownerView = (viewParams.groupOwnerId === user.id);
+	const ownerView = (viewParams.ownerId === user.id);
 	const actionTooltipStyles = "font-bold bg-dark text-neutral-200";
 
 	return (
@@ -32,7 +32,7 @@ export const GroupHeader: React.FC<{ viewParams: any }> = ({ viewParams }) => {
 						<button onClick={() => {
 							openChatView('group_users', 'group users', {
 									channelId: viewParams.channelId,
-									groupName: viewParams.groupName,
+									channelName: viewParams.channelName,
 									peopleCount: viewParams.peopleCount,
 									ownerView: ownerView
 								}
@@ -54,8 +54,8 @@ export const GroupHeader: React.FC<{ viewParams: any }> = ({ viewParams }) => {
 					<button onClick={() => {
 						openChatView('group_settings', 'group settings', {
 								channelId: viewParams.channelId,
-								groupName: viewParams.groupName,
-								groupPrivacy: viewParams.groupPrivacy,
+								channelName: viewParams.channelName,
+								privacy: viewParams.privacy,
 								peopleCount: viewParams.peopleCount,
 								ownerView: ownerView
 							}
@@ -67,7 +67,7 @@ export const GroupHeader: React.FC<{ viewParams: any }> = ({ viewParams }) => {
 			</div>
 			<div className="flex flex-col items-center justify-center">
 				<h6 className="text-lg font-bold text-pink-600">
-					{viewParams.groupName}
+					{viewParams.channelName}
 				</h6>
 			</div>
 		</Fragment>

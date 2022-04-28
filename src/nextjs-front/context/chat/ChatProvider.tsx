@@ -356,10 +356,17 @@ const ChatProvider: React.FC = ({ children }) => {
 		if (!user) return ;
 
 		if (viewStack.length > 0)
-			console.log(viewStack[viewStack.length - 1].params);
+			console.log(viewStack[viewStack.length - 1]);
 
 		if (checkCurrentView("groups") || checkCurrentView("dms")) {
 			socket.emit("getUserChannels", { userId: user.id });
+		}
+
+		if (checkCurrentView("group") || checkCurrentView("dm")) {
+			const tmp = viewStack[viewStack.length - 1].params;
+			console.log(tmp.channelId);
+			console.log(viewStack[viewStack.length - 1].params);
+			// socket.emit("getChannelData", { channelId: params.channelId });
 		}
 
 		/* Listeners */

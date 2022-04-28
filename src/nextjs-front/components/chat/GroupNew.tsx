@@ -5,7 +5,7 @@ import alertContext, { AlertContextType } from "../../context/alert/alertContext
 import chatContext, { ChatContextType, ChatGroupPrivacy } from "../../context/chat/chatContext";
 
 type NewGroupData = {
-	groupName: string;
+	channelName: string;
 	privacy: ChatGroupPrivacy;
 	password: string;
 	password2: string;
@@ -60,7 +60,7 @@ const GroupNew: React.FC = () => {
 	} = useContext(chatContext) as ChatContextType;
 
 	const [formData, setFormData] = useState<NewGroupData>({
-		groupName: "",
+		channelName: "",
 		privacy: "private",
 		password: "",
 		password2: "",
@@ -84,10 +84,10 @@ const GroupNew: React.FC = () => {
 		e.preventDefault();
 		const errors: Partial<NewGroupData> = {};
 
-		formData.groupName = formData.groupName.trim();
+		formData.channelName = formData.channelName.trim();
 
-		if (formData.groupName.length < 3 || formData.groupName.length > 20) {
-			errors['groupName'] = 'Group name should be between 3 and 20 characters long';
+		if (formData.channelName.length < 3 || formData.channelName.length > 20) {
+			errors['channelName'] = 'Group name should be between 3 and 20 characters long';
 		}
 
 		if (formData.privacy === 'protected') {
@@ -116,7 +116,7 @@ const GroupNew: React.FC = () => {
 				"Content-Type": "application/json",
 			},
 			body: JSON.stringify({
-				name: formData.groupName,
+				name: formData.channelName,
 				owner: { id: user.id },
 				privacy: formData.privacy,
 				password: (formData.password.length !== 0) ? formData.password : undefined,
@@ -134,16 +134,16 @@ const GroupNew: React.FC = () => {
 				gm.label,
 				{
 					channelId: gm.id,
-					groupName: gm.label,
-					groupOwnerId: gm.ownerId,
+					channelName: gm.label,
+					ownerId: gm.ownerId,
 					peopleCount: gm.peopleCount,
-					groupPrivacy: gm.privacy
+					privacy: gm.privacy
 				}
 			);
 		} else if (res.status === 401) {
 			setAlert({
 				type: "warning",
-				content: `Group '${formData.groupName}' already exists. Choose another name.`
+				content: `Group '${formData.channelName}' already exists. Choose another name.`
 			});
 		} else {
 			setAlert({
@@ -162,18 +162,18 @@ const GroupNew: React.FC = () => {
 			<h6 className="text-xl">New group settings</h6>
 			<form className="flex flex-col gap-y-4" onSubmit={handleSubmit}>
 				<div className={inputGroupClassName}>
-					<ErrorProvider error={fieldErrors['groupName']}>
-					<label htmlFor="groupName" className={labelClassName}>
+					<ErrorProvider error={fieldErrors['channelName']}>
+					<label htmlFor="channelName" className={labelClassName}>
 						group name
 					</label>
 					</ErrorProvider>
 					<input
 						className={inputClassName}
 						type="text"
-						name="groupName"
+						name="channelName"
 						autoComplete="off"
 						placeholder="The Dream Team"
-						value={formData.groupName}
+						value={formData.channelName}
 						onChange={handleChange}
 					/>
 				</div>

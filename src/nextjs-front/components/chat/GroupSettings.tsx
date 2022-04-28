@@ -6,7 +6,7 @@ import alertContext, { AlertContextType } from "../../context/alert/alertContext
 import chatContext, { ChatContextType, ChatGroupPrivacy } from "../../context/chat/chatContext";
 
 type updateGroupData = {
-	groupName: string;
+	channelName: string;
 	privacy: ChatGroupPrivacy;
 	password: string | undefined;
 	password2: string | undefined;
@@ -62,7 +62,7 @@ const GroupSettings: React.FC<{ viewParams: any }> = ({ viewParams }) => {
 		fetchChannelData
 	} = useContext(chatContext) as ChatContextType;
 	const channelId = viewParams.channelId;
-	const groupPrivacy = viewParams.groupPrivacy as ChatGroupPrivacy;
+	const privacy = viewParams.privacy as ChatGroupPrivacy;
 	const inputGroupClassName = "flex flex-col gap-y-2";
 	const inputClassName = "px-2 py-1 border border-pink-600 bg-transparent outline-none";
 	const labelClassName = "text-xs text-neutral-200 uppercase";
@@ -71,8 +71,8 @@ const GroupSettings: React.FC<{ viewParams: any }> = ({ viewParams }) => {
 
 	/* Form */
 	const [formData, setFormData] = useState<updateGroupData>({
-		groupName: `${viewParams.groupName}`,
-		privacy: groupPrivacy,
+		channelName: `${viewParams.channelName}`,
+		privacy: privacy,
 		password: undefined,
 		password2: undefined,
 		restrictionDuration: undefined
@@ -96,8 +96,8 @@ const GroupSettings: React.FC<{ viewParams: any }> = ({ viewParams }) => {
 		e.preventDefault();
 		const errors: Partial<updateGroupData> = {};
 
-		if (formData.groupName.length < 3 || formData.groupName.length > 20) {
-			errors['groupName'] = 'Group name should be between 3 and 20 characters long';
+		if (formData.channelName.length < 3 || formData.channelName.length > 20) {
+			errors['channelName'] = 'Group name should be between 3 and 20 characters long';
 		}
 
 		if (formData.privacy === 'protected') {
@@ -127,7 +127,7 @@ const GroupSettings: React.FC<{ viewParams: any }> = ({ viewParams }) => {
 				"Content-Type": "application/json",
 			},
 			body: JSON.stringify({
-				name: formData.groupName,
+				name: formData.channelName,
 				privacy: formData.privacy,
 				password: (formData.password && formData.password.length !== 0) ? formData.password : undefined,
 				restrictionDuration: formData.restrictionDuration
@@ -139,7 +139,7 @@ const GroupSettings: React.FC<{ viewParams: any }> = ({ viewParams }) => {
 		} else if (res.status === 401) {
 			setAlert({
 				type: "warning",
-				content: `Group '${formData.groupName}' already exists. Choose another name.`
+				content: `Group '${formData.channelName}' already exists. Choose another name.`
 			});
 		} else {
 			setAlert({
@@ -208,18 +208,18 @@ const GroupSettings: React.FC<{ viewParams: any }> = ({ viewParams }) => {
 				<h6 className="text-xl">Update group</h6>
 				<form className="flex flex-col gap-y-4" onSubmit={handleSubmit}>
 					<div className={inputGroupClassName}>
-						<ErrorProvider error={fieldErrors['groupName']}>
-						<label htmlFor="groupName" className={labelClassName}>
+						<ErrorProvider error={fieldErrors['channelName']}>
+						<label htmlFor="channelName" className={labelClassName}>
 							group name
 						</label>
 						</ErrorProvider>
 						<input
 							className={inputClassName}
 							type="text"
-							name="groupName"
+							name="channelName"
 							autoComplete="off"
 							placeholder={"new name"}
-							value={formData.groupName}
+							value={formData.channelName}
 							onChange={handleChange}
 						/>
 					</div>
@@ -247,7 +247,7 @@ const GroupSettings: React.FC<{ viewParams: any }> = ({ viewParams }) => {
 									htmlFor="password"
 									className={labelClassName}
 								>
-									{groupPrivacy === "protected" ? "new password": "password"}
+									{privacy === "protected" ? "new password": "password"}
 								</label>
 								</ErrorProvider>
 								<input
@@ -310,11 +310,11 @@ const GroupSettings: React.FC<{ viewParams: any }> = ({ viewParams }) => {
 				<div className="">
 					<div className="flex justify-between">
 						<span>Name</span>
-						<span>{viewParams.groupName}</span>
+						<span>{viewParams.channelName}</span>
 					</div>
 					<div className="flex justify-between">
 						<span>Visibility</span>
-						<span>{viewParams.groupPrivacy}</span>
+						<span>{viewParams.privacy}</span>
 					</div>
 					<div className="flex justify-between">
 						<span>Members</span>

@@ -118,10 +118,10 @@ const Groups: React.FC<{viewParams: Object;}> = ({ viewParams }) => {
 								gm.label,
 								{
 									channelId: gm.id,
-									groupName: gm.label,
-									groupOwnerId: gm.ownerId,
+									channelName: gm.label,
+									ownerId: gm.ownerId,
 									peopleCount: gm.peopleCount,
-									groupPrivacy: gm.privacy
+									privacy: gm.privacy
 								}
 							);
 						}}
