@@ -179,19 +179,16 @@ const ChatProvider: React.FC = ({ children }) => {
 			createdAt: new Date(Date.now())
 		};
 
-		if (channel.messages) {
-			const i = channel.messages.length - 1;
+		if (channel.messages && channel.messages.length > 0) {
+			const lastMessage = channel.messages[0];
 
-			if (i >= 0) {
-				const lastMessage = channel.messages[i];
-				message.createdAt = new Date(lastMessage.createdAt);
+			message.createdAt = new Date(lastMessage.createdAt);
 
-				if (channel.privacy !== "protected") {
-					if (!!blocked.find(user => user.id == lastMessage.author.id)) {
-						message.content = "Blocked message";
-					} else {
-						message.content = lastMessage.content;
-					}
+			if (channel.privacy !== "protected") {
+				if (!!blocked.find(user => user.id == lastMessage.author.id)) {
+					message.content = "Blocked message";
+				} else {
+					message.content = lastMessage.content;
 				}
 			}
 		}

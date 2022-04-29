@@ -15,7 +15,7 @@ export class ChatService {
     const channel = await this.channelsService.findOne(channelId);
     const author = await this.usersService.findOne(authorId);
 
-    return this.messagesService.create({ content, author, channel });
+    return await this.messagesService.create({ content, author, channel });
   }
 
   async getUserChannels(id: string) {
@@ -26,7 +26,6 @@ export class ChatService {
         ({ id }) => !publicChannels.find(channel => channel.id === id)
       )
     );
-
     return channels;
   }
 

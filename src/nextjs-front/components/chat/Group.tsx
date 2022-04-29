@@ -87,9 +87,11 @@ const Group: React.FC<{ viewParams: { [key: string]: any } }> = ({
 
 	/* Load all messages in channel */
 	const loadMessages = async (channel: any) => {
-		if (channel.id !== channelId) return ;
+		if ((channel.id !== channelId) || !channel.messages) return ;
 
 		const messages: ChatMessage[] = [];
+
+		channel.messages.sort((a: any, b: any) => (a.id - b.id));
 
 		for (var i in channel.messages) {
 			const message = channel.messages[i];
@@ -101,6 +103,7 @@ const Group: React.FC<{ viewParams: { [key: string]: any } }> = ({
 				content: message.content,
 				isMe: message.author.id === user.id,
 				isBlocked: isBlocked ? "Blocked message" : message.content,
+				createdAt: message.createdAt
 			});
 		}
 		setMessages(messages);
@@ -139,6 +142,7 @@ const Group: React.FC<{ viewParams: { [key: string]: any } }> = ({
 				content: message.content,
 				isMe: message.author.id === user.id,
 				isBlocked: isBlocked ? "Blocked message" : message.content,
+				createdAt: message.createdAt
 			});
 			return newMessages;
 		});

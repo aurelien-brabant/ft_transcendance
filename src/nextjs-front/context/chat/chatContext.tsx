@@ -4,17 +4,16 @@ import { Socket } from 'socket.io-client';
 
 export type ChatView = 'dms' | 'dm' | 'dm_new' | 'groups' | 'group' | 'group_new' | 'group_add' | 'group_users' | 'group_settings' |'password_protection'; // plural form denotes the list, singular the chat itself
 
-export type ChatMessage = {
-	id: string;
-	author: string;
-	content: string;
-	isMe: boolean;
-	isBlocked: boolean;
-};
-
 export type ChatMessagePreview = {
 	content: string;
 	createdAt: Date;
+};
+
+export type ChatMessage = ChatMessagePreview & {
+	id: string;
+	author: string;
+	isMe: boolean;
+	isBlocked: boolean;
 };
 
 export type ChatGroupPrivacy = 'public' | 'protected' | 'private';

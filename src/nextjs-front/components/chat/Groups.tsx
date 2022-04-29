@@ -62,23 +62,23 @@ const Groups: React.FC<{viewParams: Object;}> = ({ viewParams }) => {
 		handleSearch((searchInputRef.current as HTMLInputElement).value);
 	}, [visiblityFilter]);
 
-	// /* Update last message for all conversations */
-	// const updateLastMessage = async (channel: ChatGroup) => {
-	// 	const data = await fetchChannelData(channel.id).catch(console.error);
-	// 	const gm = await JSON.parse(JSON.stringify(data));
+	/* Update last message for all conversations */
+	const updateLastMessage = async (channel: ChatGroup) => {
+		const data = await fetchChannelData(channel.id).catch(console.error);
+		const gm = await JSON.parse(JSON.stringify(data));
 
-	// 	const message = getLastMessage(gm);
-	// 	channel.lastMessage = message.content;
-	// 	channel.updatedAt = message.createdAt;
-	// 	updateChatGroups();
-	// }
+		const message = getLastMessage(gm);
+		channel.lastMessage = message.content;
+		channel.updatedAt = message.createdAt;
+		updateChatGroups();
+	}
 
-	// useEffect(() => {
-	// 	const updatePreviews = async () => {
-	// 		await Promise.all(chatGroups.map((gm) => updateLastMessage(gm)));
-	// 	};
-	// 	updatePreviews();
-	// }, []);
+	useEffect(() => {
+		const updatePreviews = async () => {
+			await Promise.all(chatGroups.map((gm) => updateLastMessage(gm)));
+		};
+		updatePreviews();
+	}, []);
 
 	return (
 		<Fragment>
