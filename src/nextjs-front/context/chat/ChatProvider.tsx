@@ -383,11 +383,6 @@ const ChatProvider: React.FC = ({ children }) => {
 				socket.close();
 			});
 
-			socket.emit("newChatUser", {
-				id: user.id,
-				username: user.username,
-			});
-
 			// socket.on("joinChat", (data: ChatUser[]) => {
 			// 	setChatRoom(data);
 			// });
@@ -410,7 +405,7 @@ const ChatProvider: React.FC = ({ children }) => {
 	useEffect((): any => {
 		if (!socket || session.state !== "authenticated") return;
 
-		socket.emit("newChatUser", {
+		socket.emit("updateChatUser", {
 			id: user.id,
 			username: user.username,
 		});

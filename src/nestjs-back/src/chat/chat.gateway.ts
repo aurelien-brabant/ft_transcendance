@@ -46,8 +46,8 @@ export class ChatGateway implements OnGatewayInit, OnGatewayConnection {
   }
   */
 
-  /* Add new user to the list of connected users */
-  @SubscribeMessage('newChatUser')
+  /* Update connected user */
+  @SubscribeMessage('updateChatUser')
   handleNewUser(@ConnectedSocket() client: Socket, @MessageBody() data: User) {
     let user = this.chatUsers.getUserById(data.id);
 
