@@ -405,7 +405,7 @@ const ChatProvider: React.FC = ({ children }) => {
 		handleChat();
 
 		return () => {
-			socket.disconnect();
+			socketIo.disconnect();
 		};
 	}, [user]);
 

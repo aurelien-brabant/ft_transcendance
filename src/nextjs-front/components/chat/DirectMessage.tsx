@@ -111,17 +111,18 @@ const DirectMessage: React.FC<{ viewParams: { [key: string]: any } }> = ({
 
   /* Receive new message */
   const handleNewMessage = ({ message }: any) => {
-    console.log(`[Chat] Receive new DM from [${message.author.username}]`);
+    setMessages((prevMessages) => {
+      const newMessages: ChatMessage[] = [...prevMessages];
 
-    // messages.push({
-    //   id: messages.length.toString(),
-    //   author: message.author.username,
-    //   content: message.content,
-    //   isMe: message.author.id === user.id,
-    //   isBlocked: false,
-    // });
-    // setMessages(messages);
-    // return messages;
+      newMessages.push({
+        id: prevMessages.length.toString(),
+        author: message.author.username,
+        content: message.content,
+        isMe: message.author.id === user.id,
+        isBlocked: false,
+      });
+      return newMessages;
+    });
   };
 
   useEffect(() => {
