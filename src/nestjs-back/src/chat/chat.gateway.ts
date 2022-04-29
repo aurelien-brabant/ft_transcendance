@@ -47,7 +47,7 @@ export class ChatGateway implements OnGatewayInit, OnGatewayConnection {
   */
 
   /* Add new user to the list of connected users */
-  @SubscribeMessage('newUser')
+  @SubscribeMessage('newChatUser')
   handleNewUser(@ConnectedSocket() client: Socket, @MessageBody() data: User) {
     let user = this.chatUsers.getUserById(data.id);
 
@@ -91,34 +91,33 @@ export class ChatGateway implements OnGatewayInit, OnGatewayConnection {
     @ConnectedSocket() client: Socket,
     @MessageBody() data: { content: string, from: number, to: number, channelId: string }
   ) {
-    const user = this.chatUsers.getUserById(data.from);
-    const recipient = this.chatUsers.getUserById(data.to);
     const message = await this.chatService.saveMessage(data.content, data.from.toString(), data.channelId);
+    const recipient = this.chatUsers.getUserById(data.to);;
 
-    this.logger.log(`${user.username} sends DM "${data.content}" on channel ${data.channelId}`);
     this.server.to(client.id).emit('newDm', { message });
-    // TODO: If recipient is offline, message will be sent once connected
+    /* If recipient is offline, message must be sent once connected */
     if (recipient) {
-      this.logger.log(`Emitting to ${recipient.username} -> socket id: [${recipient.socketId}]`);
       this.server.to(recipient.socketId).emit('newDm', { message });
     }
+    this.logger.log(`New message in DM [${data.channelId}]`);
   }
 
   /* Save a new group message */
   @SubscribeMessage('gmSubmit')
   async handleGmSubmit(
     @ConnectedSocket() client: Socket,
-    @MessageBody() data: { content: string, from: number, groupId: string }
+    @MessageBody() data: { content: string, from: number, channelId: string }
   ) {
     const user = this.chatUsers.getUser(client.id);
     // const channel = ;
-    const message = await this.chatService.saveMessage(data.content, data.from.toString(), data.groupId);
+    const message = await this.chatService.saveMessage(data.content, data.from.toString(), data.channelId);
 
-    this.logger.log(`${user.username} sends message "${data.content}" on channel ${data.groupId}`);
+    this.logger.log(`[${user.username}] sends message "${data.content}" on channel [${data.channelId}]`);
     this.server.to(client.id).emit('newGm', { message });
     // TODO: send to room
     // if (channel) {
     //   this.server.to(recipient.socketId).emit('newGm', { message });
     // }
+    this.logger.log(`New message in group chat [${data.channelId}]`);
   }
 }

@@ -87,9 +87,8 @@ const Group: React.FC<{ viewParams: { [key: string]: any } }> = ({
 
 	/* Load all messages in channel */
 	const loadMessages = async (channel: any) => {
-		if (channel.id !== channelId) {
-			return ;
-		}
+		if (channel.id !== channelId) return ;
+
 		const messages: ChatMessage[] = [];
 
 		for (var i in channel.messages) {
@@ -129,20 +128,25 @@ const Group: React.FC<{ viewParams: { [key: string]: any } }> = ({
 	const handleNewMessage = ({ message }: any) => {
 		console.log(`[Chat] Receive new message in [${message.channel.name}]`);
 
-		// const isBlocked = !!blocked.find(user => user.id == message.author.id);
+		setMessages((prevMessages) => {
+			const newMessages: ChatMessage[] = [...prevMessages];
 
-		// messages.push({
-		// 	id: messages.length.toString(),
-		// 	author: message.author.username,
-		// 	content: message.content,
-		// 	isMe: message.author.id === user.id,
-		// 	isBlocked: isBlocked ? "Blocked message" : message.content,
-		// });
-		// return messages;
+			const isBlocked = !!blocked.find(user => user.id == message.author.id);
+
+			newMessages.push({
+				id: prevMessages.length.toString(),
+				author: message.author.username,
+				content: message.content,
+				isMe: message.author.id === user.id,
+				isBlocked: isBlocked ? "Blocked message" : message.content,
+			});
+			return newMessages;
+		});
 	};
 
 	useEffect(() => {
 		getData();
+		socket.emit("getChannelData", { channelId: channelId });
 
 		/* Listeners */
 		socket.on("updateChannel", loadMessages);

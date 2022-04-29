@@ -375,39 +375,46 @@ const ChatProvider: React.FC = ({ children }) => {
 
 		if (!socket || session.state !== "authenticated") return;
 
-		const handleChat = () => {
-			socket.on("connect", () => {
-				console.log("[Chat] Client connected");
+		socket.on("connect", () => {
+			console.log("[Chat] Client connected");
 
-				socket.on("connect_error", (err: Error) => {
-					console.log(`connect_error due to ${err.message}`);
-					socket.close();
-				});
-
-				socket.emit("newUser", {
-					id: user.id,
-					username: user.username,
-				});
-
-				// socket.on("joinChat", (data: ChatUser[]) => {
-				// 	setChatRoom(data);
-				// });
-
-				// socket.on("leaveChat", (data: ChatUser[]) => {
-				// 	setChatRoom(data);
-				// });
-
-				// socket.on('updateChatRoomLen', (len: number) => {
-				// 	setChatRoomLen(len);
-				// });
+			socket.on("connect_error", (err: Error) => {
+				console.log(`connect_error due to ${err.message}`);
+				socket.close();
 			});
-		};
-		handleChat();
+
+			socket.emit("newChatUser", {
+				id: user.id,
+				username: user.username,
+			});
+
+			// socket.on("joinChat", (data: ChatUser[]) => {
+			// 	setChatRoom(data);
+			// });
+
+			// socket.on("leaveChat", (data: ChatUser[]) => {
+			// 	setChatRoom(data);
+			// });
+
+			// socket.on('updateChatRoomLen', (len: number) => {
+			// 	setChatRoomLen(len);
+			// });
+		});
 
 		return () => {
 			socketIo.disconnect();
 		};
-	}, [user]);
+	}, [user, setSocket]);
+
+	/* Update the socket Id */
+	useEffect((): any => {
+		if (!socket || session.state !== "authenticated") return;
+
+		socket.emit("newUser", {
+			id: user.id,
+			username: user.username,
+		});
+	}, [socket]);
 
 	return (
 		<chatContext.Provider
