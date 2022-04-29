@@ -410,7 +410,7 @@ const ChatProvider: React.FC = ({ children }) => {
 	useEffect((): any => {
 		if (!socket || session.state !== "authenticated") return;
 
-		socket.emit("newUser", {
+		socket.emit("newChatUser", {
 			id: user.id,
 			username: user.username,
 		});
