@@ -124,8 +124,9 @@ const GroupNew: React.FC = () => {
 			}),
 		});
 
+		const data = await res.json();
+
 		if (res.status === 201) {
-			const data = await res.json();
 			const gm = setChatGroupData(JSON.parse(JSON.stringify(data)), user.id);
 
 			updateChatGroups();
@@ -140,10 +141,10 @@ const GroupNew: React.FC = () => {
 					groupPrivacy: gm.privacy
 				}
 			);
-		} else if (res.status === 401) {
+		} else if ((res.status === 400) || (res.status === 401)) {
 			setAlert({
 				type: "warning",
-				content: `Group '${formData.groupName}' already exists. Choose another name.`
+				content: `${data.message}`
 			});
 		} else {
 			setAlert({
@@ -204,6 +205,7 @@ const GroupNew: React.FC = () => {
 								password
 							</label>
 							</ErrorProvider>
+							<small>A 8 to 30 characters password that contains at least one letter, one number, and one special character (@$!%#?&).</small>
 							<input
 								className={inputClassName}
 								type="password"

@@ -6,7 +6,7 @@ import alertContext, { AlertContextType } from "../../context/alert/alertContext
 import chatContext, { ChatContextType, ChatGroupPrivacy } from "../../context/chat/chatContext";
 
 type updateGroupData = {
-	groupName: string;
+	groupName: string | undefined;
 	privacy: ChatGroupPrivacy;
 	password: string | undefined;
 	password2: string | undefined;
@@ -71,7 +71,7 @@ const GroupSettings: React.FC<{ viewParams: any }> = ({ viewParams }) => {
 
 	/* Form */
 	const [formData, setFormData] = useState<updateGroupData>({
-		groupName: `${viewParams.groupName}`,
+		groupName: undefined,
 		privacy: groupPrivacy,
 		password: undefined,
 		password2: undefined,
@@ -96,7 +96,7 @@ const GroupSettings: React.FC<{ viewParams: any }> = ({ viewParams }) => {
 		e.preventDefault();
 		const errors: Partial<updateGroupData> = {};
 
-		if (formData.groupName.length < 3 || formData.groupName.length > 20) {
+		if (formData.groupName && (formData.groupName.length < 3 || formData.groupName.length > 20)) {
 			errors['groupName'] = 'Group name should be between 3 and 20 characters long';
 		}
 
@@ -136,11 +136,13 @@ const GroupSettings: React.FC<{ viewParams: any }> = ({ viewParams }) => {
 
 		if (res.status === 200) {
 			closeRightmostView();
-		} else if (res.status === 401) {
+		} else if (res.status === 400) {
+			const data = await res.json();
+
 			setAlert({
 				type: "warning",
-				content: `Group '${formData.groupName}' already exists. Choose another name.`
-			});
+				content: `${data.message}`
+			}); // TODO: replace alert by error['password']
 		} else {
 			setAlert({
 				type: "error",
@@ -250,6 +252,7 @@ const GroupSettings: React.FC<{ viewParams: any }> = ({ viewParams }) => {
 									{groupPrivacy === "protected" ? "new password": "password"}
 								</label>
 								</ErrorProvider>
+								<small>A 8 to 30 characters password that contains at least one letter, one number, and one special character (@$!%#?&).</small>
 								<input
 									className={inputClassName}
 									type="password"
