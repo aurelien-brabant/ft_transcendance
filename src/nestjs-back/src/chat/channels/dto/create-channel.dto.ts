@@ -22,7 +22,7 @@ export class CreateChannelDto {
     message:
       'The channel name must contain alphanumeric characters, underscores and spaces only.',
   })
-  @MaxLength(50)
+  @MaxLength(20)
   @MinLength(2)
   readonly name: string;
 
@@ -31,11 +31,9 @@ export class CreateChannelDto {
   readonly privacy: string;
 
   @IsOptional()
-  @Transform(({ value }) => value.trim())
   @IsNotEmpty()
   @IsString()
-  @MinLength(8)
-  readonly password?: string;
+  password?: string;
 
   @IsOptional()
   @IsNumber()

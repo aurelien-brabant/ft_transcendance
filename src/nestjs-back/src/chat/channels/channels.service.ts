@@ -11,6 +11,7 @@ import { Channel } from './entities/channels.entity';
 import { CreateChannelDto } from './dto/create-channel.dto';
 import { UpdateChannelDto } from './dto/update-channel.dto';
 import { UsersService } from 'src/users/users.service';
+import { checkPasswordPattern } from 'src/utils/checkPattern';
 
 @Injectable()
 export class ChannelsService {
@@ -107,16 +108,16 @@ export class ChannelsService {
   }
 
   async update(id: string, updateChannelDto: UpdateChannelDto) {
-    let channel = await this.channelsRepository.preload({
+    if (updateChannelDto.password) {
+      checkPasswordPattern(updateChannelDto.password);
+      updateChannelDto.password = await hashPassword(updateChannelDto.password, 10);
+    }
+    const channel = await this.channelsRepository.preload({
       id: +id,
       ...updateChannelDto
     });
     if (!channel) {
       throw new NotFoundException(`Cannot update Channel [${id}]: Not found`);
-    }
-    if (updateChannelDto.password) {
-      const hashedPwd = await hashPassword(updateChannelDto.password, 10);
-      channel.password = hashedPwd;
     }
     if (updateChannelDto.bannedUsers) {
       const userId = updateChannelDto.bannedUsers[updateChannelDto.bannedUsers.length -1].id.toString();
