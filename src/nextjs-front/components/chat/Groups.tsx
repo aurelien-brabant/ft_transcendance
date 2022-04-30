@@ -12,13 +12,7 @@ import chatContext, { ChatContextType, ChatGroup, ChatGroupPrivacy } from "../..
 
 /* All group conversations tab */
 const Groups: React.FC<{viewParams: Object;}> = ({ viewParams }) => {
-	const {
-		openChatView,
-		chatGroups,
-		fetchChannelData,
-		getLastMessage,
-		updateChatGroups
-	} = useContext(chatContext) as ChatContextType;
+	const { openChatView, chatGroups } = useContext(chatContext) as ChatContextType;
 
 	const baseChatGroups = useMemo(() =>
 		chatGroups
@@ -62,23 +56,10 @@ const Groups: React.FC<{viewParams: Object;}> = ({ viewParams }) => {
 		handleSearch((searchInputRef.current as HTMLInputElement).value);
 	}, [visiblityFilter]);
 
-	/* Update last message for all conversations */
-	const updateLastMessage = async (channel: ChatGroup) => {
-		const data = await fetchChannelData(channel.id).catch(console.error);
-		const gm = await JSON.parse(JSON.stringify(data));
-
-		const message = getLastMessage(gm);
-		channel.lastMessage = message.content;
-		channel.updatedAt = message.createdAt;
-		updateChatGroups();
-	}
-
+	/* Update filtered groups */
 	useEffect(() => {
-		const updatePreviews = async () => {
-			await Promise.all(chatGroups.map((gm) => updateLastMessage(gm)));
-		};
-		updatePreviews();
-	}, []);
+		setFilteredGroups(baseChatGroups);
+	}, [baseChatGroups]);
 
 	return (
 		<Fragment>

@@ -315,26 +315,25 @@ const ChatProvider: React.FC = ({ children }) => {
 	}
 
 	/* Load all channels joined by user or visible */
-	const loadUserChannels = (channels: any) => {
-		console.log("[Chat] Update user channels");
-
+	const loadUserChannels = async (channels: any) => {
 		const groups: ChatGroup[] = [];
 		const dms: DirectMessage[] = [];
 
-		for (var i in channels) {
-			const channel = channels[i];
-
-			if (channel.privacy === "dm") {
-				const friend = (channel.users[0].id === user.id) ? channel.users[1] : channel.users[0];
-				/* Don't display DMs from blocked users */
-				const isBlocked = !!blocked.find(user => user.id === friend.id);
-				if (!isBlocked) {
-					dms.push(setDirectMessageData(channel, friend));
+		await Promise.all(
+			channels.map((channel: any) => {
+				if (channel.privacy === "dm") {
+					const friend = (channel.users[0].id === user.id) ? channel.users[1] : channel.users[0];
+					/* Don't display DMs from blocked users */
+					const isBlocked = !!blocked.find(user => user.id === friend.id);
+					if (!isBlocked) {
+						dms.push(setDirectMessageData(channel, friend));
+					}
+				} else {
+					groups.push(setChatGroupData(channel, user.id));
 				}
-			} else {
-				groups.push(setChatGroupData(channel, user.id));
-			}
-		}
+			})
+		);
+
 		/* Sorts from most recent */
 		groups.sort(
 			(a: ChatGroup, b: ChatGroup) =>
