@@ -6,8 +6,8 @@ import alertContext, { AlertContextType } from "../../context/alert/alertContext
 import chatContext, { ChatContextType, ChatGroupPrivacy } from "../../context/chat/chatContext";
 
 type updateGroupData = {
-	channelName: string;
-	privacy: ChatGroupPrivacy;
+	groupName: string | undefined;
+	groupPrivacy: ChatGroupPrivacy;
 	password: string | undefined;
 	password2: string | undefined;
 	restrictionDuration: string | undefined;
@@ -62,7 +62,6 @@ const GroupSettings: React.FC<{ viewParams: any }> = ({ viewParams }) => {
 		fetchChannelData
 	} = useContext(chatContext) as ChatContextType;
 	const channelId = viewParams.channelId;
-	const privacy = viewParams.privacy as ChatGroupPrivacy;
 	const inputGroupClassName = "flex flex-col gap-y-2";
 	const inputClassName = "px-2 py-1 border border-pink-600 bg-transparent outline-none";
 	const labelClassName = "text-xs text-neutral-200 uppercase";
@@ -71,8 +70,8 @@ const GroupSettings: React.FC<{ viewParams: any }> = ({ viewParams }) => {
 
 	/* Form */
 	const [formData, setFormData] = useState<updateGroupData>({
-		channelName: `${viewParams.channelName}`,
-		privacy: privacy,
+		groupName: undefined,
+		groupPrivacy: viewParams.privacy,
 		password: undefined,
 		password2: undefined,
 		restrictionDuration: undefined
@@ -96,11 +95,11 @@ const GroupSettings: React.FC<{ viewParams: any }> = ({ viewParams }) => {
 		e.preventDefault();
 		const errors: Partial<updateGroupData> = {};
 
-		if (formData.channelName.length < 3 || formData.channelName.length > 20) {
-			errors['channelName'] = 'Group name should be between 3 and 20 characters long';
+		if (formData.groupName && (formData.groupName.length < 3 || formData.groupName.length > 20)) {
+			errors['groupName'] = 'Group name should be between 3 and 20 characters long';
 		}
 
-		if (formData.privacy === 'protected') {
+		if (formData.groupPrivacy === 'protected') {
 			if (formData.password) {
 				if (formData.password.length == 0) {
 					errors['password'] = 'Password can\'t be empty';
@@ -127,8 +126,8 @@ const GroupSettings: React.FC<{ viewParams: any }> = ({ viewParams }) => {
 				"Content-Type": "application/json",
 			},
 			body: JSON.stringify({
-				name: formData.channelName,
-				privacy: formData.privacy,
+				name: formData.groupName,
+				privacy: formData.groupPrivacy,
 				password: (formData.password && formData.password.length !== 0) ? formData.password : undefined,
 				restrictionDuration: formData.restrictionDuration
 			}),
@@ -136,11 +135,13 @@ const GroupSettings: React.FC<{ viewParams: any }> = ({ viewParams }) => {
 
 		if (res.status === 200) {
 			closeRightmostView();
-		} else if (res.status === 401) {
+		} else if (res.status === 400) {
+			const data = await res.json();
+
 			setAlert({
 				type: "warning",
-				content: `Group '${formData.channelName}' already exists. Choose another name.`
-			});
+				content: `${data.message}`
+			}); // TODO: replace alert by error['password']
 		} else {
 			setAlert({
 				type: "error",
@@ -208,18 +209,18 @@ const GroupSettings: React.FC<{ viewParams: any }> = ({ viewParams }) => {
 				<h6 className="text-xl">Update group</h6>
 				<form className="flex flex-col gap-y-4" onSubmit={handleSubmit}>
 					<div className={inputGroupClassName}>
-						<ErrorProvider error={fieldErrors['channelName']}>
-						<label htmlFor="channelName" className={labelClassName}>
+						<ErrorProvider error={fieldErrors['groupName']}>
+						<label htmlFor="groupName" className={labelClassName}>
 							group name
 						</label>
 						</ErrorProvider>
 						<input
 							className={inputClassName}
 							type="text"
-							name="channelName"
+							name="groupName"
 							autoComplete="off"
 							placeholder={"new name"}
-							value={formData.channelName}
+							value={formData.groupName}
 							onChange={handleChange}
 						/>
 					</div>
@@ -230,16 +231,16 @@ const GroupSettings: React.FC<{ viewParams: any }> = ({ viewParams }) => {
 						<select
 							className="drag-cancellable px-2 py-2 bg-dark border-b border-pink-600 outline-none"
 							name="privacy"
-							value={formData.privacy}
+							value={formData.groupPrivacy}
 							onChange={handleChange}
 						>
 							<option value="private">private</option>
 							<option value="protected">password protected</option>
 							<option value="public">public</option>
 						</select>
-						<small>{privacyTips[formData.privacy]}</small>
+						<small>{privacyTips[formData.groupPrivacy]}</small>
 					</div>
-					{formData.privacy === "protected" && (
+					{formData.groupPrivacy === "protected" && (
 						<Fragment>
 							<div className={inputGroupClassName}>
 								<ErrorProvider error={fieldErrors['password']}>
@@ -247,9 +248,10 @@ const GroupSettings: React.FC<{ viewParams: any }> = ({ viewParams }) => {
 									htmlFor="password"
 									className={labelClassName}
 								>
-									{privacy === "protected" ? "new password": "password"}
+									{viewParams.privacy === "protected" ? "new password": "password"}
 								</label>
 								</ErrorProvider>
+								<small>A 8 to 30 characters password that contains at least one letter, one number, and one special character (@$!%#?&).</small>
 								<input
 									className={inputClassName}
 									type="password"
@@ -310,7 +312,7 @@ const GroupSettings: React.FC<{ viewParams: any }> = ({ viewParams }) => {
 				<div className="">
 					<div className="flex justify-between">
 						<span>Name</span>
-						<span>{viewParams.channelName}</span>
+						<span>{viewParams.groupName}</span>
 					</div>
 					<div className="flex justify-between">
 						<span>Visibility</span>

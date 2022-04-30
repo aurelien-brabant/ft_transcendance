@@ -93,29 +93,28 @@ export class ChannelsService {
         return channel.name === createChannelDto.name;
       })
       if (chanExists) {
-        throw new UnauthorizedException(`Channel with name '${createChannelDto.name}' already exist`);
+        throw new UnauthorizedException(`Group '${createChannelDto.name}' already exists. Choose another name.`);
       }
     }
-    const hashedPwd = (createChannelDto.password) ? await hashPassword(createChannelDto.password, 10) : "";
-    const channel = this.channelsRepository.create({
-      ...createChannelDto,
-      password: hashedPwd
-    });
+    if (createChannelDto.password) {
+      createChannelDto.password = await hashPassword(createChannelDto.password, 10);
+    }
+    const channel = this.channelsRepository.create(createChannelDto);
+
     this.logger.log(`Create new channel [${channel.name}]`);
     return this.channelsRepository.save(channel);
   }
 
   async update(id: string, updateChannelDto: UpdateChannelDto) {
-    let channel = await this.channelsRepository.preload({
+    if (updateChannelDto.password) {
+      updateChannelDto.password = await hashPassword(updateChannelDto.password, 10);
+    }
+    const channel = await this.channelsRepository.preload({
       id: +id,
       ...updateChannelDto
     });
     if (!channel) {
       throw new NotFoundException(`Cannot update Channel [${id}]: Not found`);
-    }
-    if (updateChannelDto.password) {
-      const hashedPwd = await hashPassword(updateChannelDto.password, 10);
-      channel.password = hashedPwd;
     }
     if (updateChannelDto.bannedUsers) {
       const userId = updateChannelDto.bannedUsers[updateChannelDto.bannedUsers.length -1].id.toString();

@@ -5,8 +5,8 @@ import alertContext, { AlertContextType } from "../../context/alert/alertContext
 import chatContext, { ChatContextType, ChatGroupPrivacy } from "../../context/chat/chatContext";
 
 type NewGroupData = {
-	channelName: string;
-	privacy: ChatGroupPrivacy;
+	groupName: string;
+	groupPrivacy: ChatGroupPrivacy;
 	password: string;
 	password2: string;
 };
@@ -60,8 +60,8 @@ const GroupNew: React.FC = () => {
 	} = useContext(chatContext) as ChatContextType;
 
 	const [formData, setFormData] = useState<NewGroupData>({
-		channelName: "",
-		privacy: "private",
+		groupName: "",
+		groupPrivacy: "private",
 		password: "",
 		password2: "",
 	});
@@ -84,13 +84,13 @@ const GroupNew: React.FC = () => {
 		e.preventDefault();
 		const errors: Partial<NewGroupData> = {};
 
-		formData.channelName = formData.channelName.trim();
+		formData.groupName = formData.groupName.trim();
 
-		if (formData.channelName.length < 3 || formData.channelName.length > 20) {
-			errors['channelName'] = 'Group name should be between 3 and 20 characters long';
+		if (formData.groupName.length < 3 || formData.groupName.length > 20) {
+			errors['groupName'] = 'Group name should be between 3 and 20 characters long';
 		}
 
-		if (formData.privacy === 'protected') {
+		if (formData.groupPrivacy === 'protected') {
 			if (formData.password) {
 				if (formData.password.length == 0) {
 					errors['password'] = 'Password can\'t be empty';
@@ -116,16 +116,17 @@ const GroupNew: React.FC = () => {
 				"Content-Type": "application/json",
 			},
 			body: JSON.stringify({
-				name: formData.channelName,
+				name: formData.groupName,
 				owner: { id: user.id },
-				privacy: formData.privacy,
+				privacy: formData.groupPrivacy,
 				password: (formData.password.length !== 0) ? formData.password : undefined,
 				users: [ { id: user.id } ],
 			}),
 		});
 
+		const data = await res.json();
+
 		if (res.status === 201) {
-			const data = await res.json();
 			const gm = setChatGroupData(JSON.parse(JSON.stringify(data)), user.id);
 
 			updateChatGroups();
@@ -134,16 +135,16 @@ const GroupNew: React.FC = () => {
 				gm.label,
 				{
 					channelId: gm.id,
-					channelName: gm.label,
+					groupName: gm.label,
 					ownerId: gm.ownerId,
 					peopleCount: gm.peopleCount,
 					privacy: gm.privacy
 				}
 			);
-		} else if (res.status === 401) {
+		} else if ((res.status === 400) || (res.status === 401)) {
 			setAlert({
 				type: "warning",
-				content: `Group '${formData.channelName}' already exists. Choose another name.`
+				content: `${data.message}`
 			});
 		} else {
 			setAlert({
@@ -162,18 +163,18 @@ const GroupNew: React.FC = () => {
 			<h6 className="text-xl">New group settings</h6>
 			<form className="flex flex-col gap-y-4" onSubmit={handleSubmit}>
 				<div className={inputGroupClassName}>
-					<ErrorProvider error={fieldErrors['channelName']}>
-					<label htmlFor="channelName" className={labelClassName}>
+					<ErrorProvider error={fieldErrors['groupName']}>
+					<label htmlFor="groupName" className={labelClassName}>
 						group name
 					</label>
 					</ErrorProvider>
 					<input
 						className={inputClassName}
 						type="text"
-						name="channelName"
+						name="groupName"
 						autoComplete="off"
 						placeholder="The Dream Team"
-						value={formData.channelName}
+						value={formData.groupName}
 						onChange={handleChange}
 					/>
 				</div>
@@ -184,16 +185,16 @@ const GroupNew: React.FC = () => {
 					<select
 						className="drag-cancellable px-2 py-2 bg-dark border-b border-pink-600 outline-none"
 						name="privacy"
-						value={formData.privacy}
+						value={formData.groupPrivacy}
 						onChange={handleChange}
 					>
 						<option value="private">private</option>
 						<option value="protected">password protected</option>
 						<option value="public">public</option>
 					</select>
-					<small>{privacyTips[formData.privacy]}</small>
+					<small>{privacyTips[formData.groupPrivacy]}</small>
 				</div>
-				{formData.privacy === "protected" && (
+				{formData.groupPrivacy === "protected" && (
 					<Fragment>
 						<div className={inputGroupClassName}>
 							<ErrorProvider error={fieldErrors['password']}>
@@ -204,6 +205,7 @@ const GroupNew: React.FC = () => {
 								password
 							</label>
 							</ErrorProvider>
+							<small>A 8 to 30 characters password that contains at least one letter, one number, and one special character (@$!%#?&).</small>
 							<input
 								className={inputClassName}
 								type="password"
