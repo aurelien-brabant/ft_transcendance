@@ -221,23 +221,23 @@ const GroupUsers: React.FC<{ viewParams: any }> = ({ viewParams }) => {
 		const bannedUsers = await JSON.parse(JSON.stringify(data)).bannedUsers;
 		const users: UserSummary[] = [];
 
-		for (var i in chanUsers) {
+		for (var chanUser of chanUsers) {
 			users.push({
-				id: chanUsers[i].id,
-				username: chanUsers[i].username,
-				pic: `/api/users/${chanUsers[i].id}/photo`,
-				isMe: (chanUsers[i].id === user.id),
-				isOwner: (chanUsers[i].id === chanOwner.id),
-				isAdmin: (chanUsers[i].id === chanOwner.id) || !!chanAdmins.find((admin: BaseUserData) => {
-					return admin.id === chanUsers[i].id;
+				id: chanUser.id,
+				username: chanUser.username,
+				pic: `/api/users/${chanUser.id}/photo`,
+				isMe: (chanUser.id === user.id),
+				isOwner: (chanUser.id === chanOwner.id),
+				isAdmin: (chanUser.id === chanOwner.id) || !!chanAdmins.find((admin: BaseUserData) => {
+					return admin.id === chanUser.id;
 				}),
 				isMuted: !!mutedUsers.find((user: BaseUserData) => {
-					return user.id === chanUsers[i].id;
+					return user.id === chanUser.id;
 				}),
 				isBanned: !!bannedUsers.find((user: BaseUserData) => {
-					return user.id === chanUsers[i].id;
+					return user.id === chanUser.id;
 				}),
-				isBlocked: !!blocked.find(user => user.id === chanUsers[i].id)
+				isBlocked: !!blocked.find(user => user.id === chanUser.id)
 			});
 		}
 		users.sort((a, b) => (a.isBlocked ? 1 : -1)).sort((a, b) => (a.isAdmin ? -1 : 1)).sort((a, b) => (a.isOwner ? -1 : 1));

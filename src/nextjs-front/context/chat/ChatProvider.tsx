@@ -307,7 +307,9 @@ const ChatProvider: React.FC = ({ children }) => {
 
 	/* Channels */
 
-	/* Fetch the data of a specific channel */
+	/* Fetch the data of a specific channel
+	 * NOTE: to be removed
+	 */
 	const fetchChannelData = async (id: string) => {
 		const res = await fetch(`/api/channels/${id}`);
 		const data = await res.json();
@@ -319,20 +321,18 @@ const ChatProvider: React.FC = ({ children }) => {
 		const groups: ChatGroup[] = [];
 		const dms: DirectMessage[] = [];
 
-		await Promise.all(
-			channels.map((channel: any) => {
-				if (channel.privacy === "dm") {
-					const friend = (channel.users[0].id === user.id) ? channel.users[1] : channel.users[0];
-					/* Don't display DMs from blocked users */
-					const isBlocked = !!blocked.find(user => user.id === friend.id);
-					if (!isBlocked) {
-						dms.push(setDirectMessageData(channel, friend));
-					}
-				} else {
-					groups.push(setChatGroupData(channel, user.id));
+		for (var channel of channels) {
+			if (channel.privacy === "dm") {
+				const friend = (channel.users[0].id === user.id) ? channel.users[1] : channel.users[0];
+				/* Don't display DMs from blocked users */
+				const isBlocked = !!blocked.find(user => user.id === friend.id);
+				if (!isBlocked) {
+					dms.push(setDirectMessageData(channel, friend));
 				}
-			})
-		);
+			} else {
+				groups.push(setChatGroupData(channel, user.id));
+			}
+		}
 
 		/* Sorts from most recent */
 		groups.sort(

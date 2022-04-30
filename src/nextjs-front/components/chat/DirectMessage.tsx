@@ -78,9 +78,7 @@ const DirectMessage: React.FC<{ viewParams: { [key: string]: any } }> = ({
 
 		channel.messages.sort((a: any, b: any) => (a.id - b.id));
 
-		for (var i in channel.messages) {
-			const message = channel.messages[i];
-
+		for (var message of channel.messages) {
 			messages.push({
 				id: messages.length.toString(),
 				author: message.author.username,

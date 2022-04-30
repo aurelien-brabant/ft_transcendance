@@ -90,12 +90,12 @@ const GroupAdd: React.FC<{ viewParams: any }> = ({ viewParams }) => {
 			const users = await JSON.parse(JSON.stringify(channelData)).users;
 			const selectedFriends: User[] = [];
 
-			for (var i in friends) {
+			for (var friend of friends) {
 				const isInChan = !!users.find((user: BaseUserData) => {
-					return user.id === friends[i].id;
+					return user.id === friend.id;
 				})
 				if (!isInChan) {
-					selectedFriends.push(friends[i]);
+					selectedFriends.push(friend);
 				}
 			}
 			setFilteredFriends(selectedFriends);
