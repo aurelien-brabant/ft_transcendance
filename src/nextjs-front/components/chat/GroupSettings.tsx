@@ -136,7 +136,7 @@ const GroupSettings: React.FC<{ viewParams: any }> = ({ viewParams }) => {
 
 		if (res.status === 200) {
 			closeRightmostView();
-		} else if (res.status === 401) {
+		} else if (res.status === 400) {
 			const data = await res.json();
 
 			setAlert({
@@ -252,6 +252,7 @@ const GroupSettings: React.FC<{ viewParams: any }> = ({ viewParams }) => {
 									{groupPrivacy === "protected" ? "new password": "password"}
 								</label>
 								</ErrorProvider>
+								<small>A 8 to 30 characters password that contains at least one letter, one number, and one special character (@$!%#?&).</small>
 								<input
 									className={inputClassName}
 									type="password"

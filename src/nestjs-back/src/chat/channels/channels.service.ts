@@ -11,7 +11,6 @@ import { Channel } from './entities/channels.entity';
 import { CreateChannelDto } from './dto/create-channel.dto';
 import { UpdateChannelDto } from './dto/update-channel.dto';
 import { UsersService } from 'src/users/users.service';
-import { checkPasswordPattern } from 'src/utils/checkPattern';
 
 @Injectable()
 export class ChannelsService {
@@ -94,22 +93,20 @@ export class ChannelsService {
         return channel.name === createChannelDto.name;
       })
       if (chanExists) {
-        throw new UnauthorizedException(`Channel with name '${createChannelDto.name}' already exist`);
+        throw new UnauthorizedException(`Group '${createChannelDto.name}' already exists. Choose another name.`);
       }
     }
-    const hashedPwd = (createChannelDto.password) ? await hashPassword(createChannelDto.password, 10) : "";
-    const channel = this.channelsRepository.create({
-      ...createChannelDto,
-      password: hashedPwd,
-      users: [ { "id": createChannelDto.owner.id } ]
-    });
+    if (createChannelDto.password) {
+      createChannelDto.password = await hashPassword(createChannelDto.password, 10);
+    }
+    const channel = this.channelsRepository.create(createChannelDto);
+
     this.logger.log(`Create new channel [${channel.name}]`);
     return this.channelsRepository.save(channel);
   }
 
   async update(id: string, updateChannelDto: UpdateChannelDto) {
     if (updateChannelDto.password) {
-      checkPasswordPattern(updateChannelDto.password);
       updateChannelDto.password = await hashPassword(updateChannelDto.password, 10);
     }
     const channel = await this.channelsRepository.preload({

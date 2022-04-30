@@ -10,6 +10,7 @@ import {
   MaxLength,
   MinLength,
 } from 'class-validator';
+import { PasswordValidator } from 'src/utils/patternValidator';
 import { Transform, Type } from 'class-transformer';
 import { Message } from 'src/chat/messages/entities/messages.entity';
 import { User } from 'src/users/entities/users.entity';
@@ -33,6 +34,7 @@ export class CreateChannelDto {
   @IsOptional()
   @IsNotEmpty()
   @IsString()
+  @PasswordValidator()
   password?: string;
 
   @IsOptional()
