@@ -3,15 +3,24 @@ import {
   IsBoolean,
   IsDecimal,
   IsOptional,
+  IsNotEmpty,
   IsPhoneNumber,
-  IsString
+  IsString,
+  Matches,
 } from 'class-validator';
+import { Transform } from 'class-transformer';
 import { Achievement } from 'src/achievements/entities/achievements.entity';
 import { CreateUserDto } from './create-user.dto';
 
 export class UpdateUserDto extends PartialType(CreateUserDto) {
     @IsOptional()
+    @Transform(({ value }) => value.trim())
+    @IsNotEmpty()
     @IsString()
+    @Matches(/^[^0-9][a-zA-Z0-9_]+$/, {
+      message:
+        'The username must not start with a number and contain alphanumeric characters and underscores only.',
+    })
     readonly username: string;
 
     @IsOptional()

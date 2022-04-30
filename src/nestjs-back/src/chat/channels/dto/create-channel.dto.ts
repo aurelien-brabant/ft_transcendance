@@ -6,6 +6,7 @@ import {
   IsNumber,
   IsOptional,
   IsString,
+  Matches,
   MaxLength,
   MinLength,
 } from 'class-validator';
@@ -17,6 +18,10 @@ export class CreateChannelDto {
   @Transform(({ value }) => value.trim())
   @IsNotEmpty()
   @IsString()
+  @Matches(/^[a-zA-Z0-9_ ]+$/, {
+    message:
+      'The channel name must contain alphanumeric characters, underscores and spaces only.',
+  })
   @MaxLength(50)
   @MinLength(2)
   readonly name: string;
@@ -26,6 +31,8 @@ export class CreateChannelDto {
   readonly privacy: string;
 
   @IsOptional()
+  @Transform(({ value }) => value.trim())
+  @IsNotEmpty()
   @IsString()
   @MinLength(8)
   readonly password?: string;
