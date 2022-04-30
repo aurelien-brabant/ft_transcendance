@@ -42,7 +42,7 @@ const GroupAdd: React.FC<{ viewParams: any }> = ({ viewParams }) => {
 	const searchInputRef = useRef<HTMLInputElement>(null);
 
 	const addUserToGroup = async (id: string) => {
-		const channelData = await fetchChannelData(channelId).catch(console.error);
+		const channelData = await fetchChannelData(channelId).catch(console.error); /* NOTE: fetch will be removed */
 		const users = JSON.parse(JSON.stringify(channelData)).users;
 
 		const res = await fetch(`/api/channels/${channelId}`, {
@@ -86,7 +86,7 @@ const GroupAdd: React.FC<{ viewParams: any }> = ({ viewParams }) => {
 		getData();
 		/* Select friends that didn't already join the group */
 		const selectFriends = async () => {
-			const channelData = await fetchChannelData(channelId).catch(console.error);
+			const channelData = await fetchChannelData(channelId).catch(console.error); /* NOTE: fetch will be removed */
 			const users = await JSON.parse(JSON.stringify(channelData)).users;
 			const selectedFriends: User[] = [];
 

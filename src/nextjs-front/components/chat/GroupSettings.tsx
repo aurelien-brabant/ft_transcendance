@@ -175,6 +175,7 @@ const GroupSettings: React.FC<{ viewParams: any }> = ({ viewParams }) => {
 
 	/* User quits group */
 	const handleLeaveGroup = async () => {
+		/* NOTE: fetch will be removed */
 		const channelData = await fetchChannelData(channelId).catch(console.error);
 		const currentUsers = JSON.parse(JSON.stringify(channelData)).users;
 		const users = currentUsers.filter((user: BaseUserData) => {
