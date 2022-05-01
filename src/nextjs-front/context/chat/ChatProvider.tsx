@@ -117,8 +117,6 @@ const ChatProvider: React.FC = ({ children }) => {
 	const { user } = useSession();
 	const { isChatOpened, setIsChatOpened } = useContext(authContext) as AuthContextValue;
 	const { blocked } = useContext(relationshipContext) as RelationshipContextType;
-	const [chatRoom, setChatRoom] = useState<ChatUser[]>([]);
-	const [chatRoomLen, setChatRoomLen] = useState(0);
 	const [socket, setSocket] = useState<any>(null);
 
 	/* Chat manipulation */
@@ -369,7 +367,7 @@ const ChatProvider: React.FC = ({ children }) => {
 
 		setSocket(socketIo);
 
-		if (!socket || session.state !== "authenticated") return;
+		if (!socket || (session.state !== "authenticated")) return;
 
 		socket.on("connect", () => {
 			console.log("[Chat] Client connected");
@@ -378,18 +376,6 @@ const ChatProvider: React.FC = ({ children }) => {
 				console.log(`connect_error due to ${err.message}`);
 				socket.close();
 			});
-
-			// socket.on("joinChat", (data: ChatUser[]) => {
-			// 	setChatRoom(data);
-			// });
-
-			// socket.on("leaveChat", (data: ChatUser[]) => {
-			// 	setChatRoom(data);
-			// });
-
-			// socket.on('updateChatRoomLen', (len: number) => {
-			// 	setChatRoomLen(len);
-			// });
 		});
 
 		return () => {
@@ -399,7 +385,7 @@ const ChatProvider: React.FC = ({ children }) => {
 
 	/* Update the socket Id */
 	useEffect((): any => {
-		if (!socket || session.state !== "authenticated") return;
+		if (!socket || (session.state !== "authenticated")) return;
 
 		socket.emit("updateChatUser", {
 			id: user.id,
@@ -432,8 +418,6 @@ const ChatProvider: React.FC = ({ children }) => {
 				setLastX,
 				setLastY,
 				socket,
-				chatRoom,
-				chatRoomLen,
 			}}
 		>
 			{session.state === 'authenticated' ?
@@ -457,9 +441,6 @@ const ChatProvider: React.FC = ({ children }) => {
 				>
 					<div>
 						{/*TO BE REMOVED AFTER TESTING INSTANT CHAT...*/}
-						<div>
-							{chatRoomLen}
-						</div>
 						<Bounce duration={2000} triggerOnce>
 							<BsFillChatDotsFill />
 						</Bounce>

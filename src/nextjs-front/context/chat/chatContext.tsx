@@ -77,8 +77,6 @@ export type ChatContextType = {
 
 	/* Websocket */
 	socket: Socket;
-	chatRoom: any;
-	chatRoomLen: number;
 };
 
 const chatContext = createContext<ChatContextType | null>(null);
