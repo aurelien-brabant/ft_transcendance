@@ -346,7 +346,7 @@ const ChatProvider: React.FC = ({ children }) => {
 	}
 
 	/* Update channels if view stack changes */
-	useEffect((): any => {
+	useEffect(() => {
 		if (!user) return ;
 
 		if (checkCurrentView("groups") || checkCurrentView("dms")) {
@@ -362,7 +362,7 @@ const ChatProvider: React.FC = ({ children }) => {
 	}, [viewStack]);
 
 	/* Create socket when user is logged in */
-	useEffect((): any => {
+	useEffect(() => {
 		const socketIo = io("localhost:8080/chat");
 
 		setSocket(socketIo);
