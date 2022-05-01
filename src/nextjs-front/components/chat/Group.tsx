@@ -94,14 +94,14 @@ const Group: React.FC<{ viewParams: { [key: string]: any } }> = ({
 		channel.messages.sort((a: any, b: any) => (a.id - b.id));
 
 		for (var message of channel.messages) {
-			const isBlocked = !!blocked.find(user => user.id == message.author.id);
+			const isBlocked = !!blocked.find(blockedUser => blockedUser.id === message.author.id);
 
 			messages.push({
 				id: messages.length.toString(),
 				author: message.author.username,
-				content: message.content,
+				content: isBlocked ? "Blocked message" : message.content,
 				isMe: message.author.id === user.id,
-				isBlocked: isBlocked ? "Blocked message" : message.content,
+				isBlocked: isBlocked,
 				createdAt: message.createdAt
 			});
 		}
@@ -133,14 +133,14 @@ const Group: React.FC<{ viewParams: { [key: string]: any } }> = ({
 		setMessages((prevMessages) => {
 			const newMessages: ChatMessage[] = [...prevMessages];
 
-			const isBlocked = !!blocked.find(user => user.id == message.author.id);
+			const isBlocked = !!blocked.find(blockedUser => blockedUser.id === message.author.id);
 
 			newMessages.push({
 				id: prevMessages.length.toString(),
 				author: message.author.username,
-				content: message.content,
+				content: isBlocked ? "Blocked message" : message.content,
 				isMe: message.author.id === user.id,
-				isBlocked: isBlocked ? "Blocked message" : message.content,
+				isBlocked: isBlocked,
 				createdAt: message.createdAt
 			});
 			return newMessages;

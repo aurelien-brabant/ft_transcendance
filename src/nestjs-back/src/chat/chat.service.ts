@@ -2,6 +2,7 @@ import { Injectable } from '@nestjs/common';
 import { UsersService } from 'src/users/users.service';
 import { ChannelsService } from './channels/channels.service';
 import { MessagesService } from './messages/messages.service';
+import { CreateChannelDto } from './channels/dto/create-channel.dto';
 
 @Injectable()
 export class ChatService {
@@ -10,6 +11,10 @@ export class ChatService {
     private readonly messagesService: MessagesService,
     private readonly usersService: UsersService,
   ) {}
+
+  async createChannel(createChannelDto: CreateChannelDto) {
+    return await this.channelsService.create(createChannelDto);
+  }
 
   async saveMessage(content: string, authorId: string, channelId: string) {
     const channel = await this.channelsService.findOne(channelId);

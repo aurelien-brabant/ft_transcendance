@@ -63,6 +63,18 @@ export class ChatGateway implements OnGatewayInit, OnGatewayConnection {
     console.log(this.chatUsers); // debug
   }
 
+  /* User creates a new channel */
+  @SubscribeMessage('createChannel')
+  async handleCreateChannel(
+    @ConnectedSocket() client: Socket,
+    @MessageBody() data
+  ) {
+    const channel = await this.chatService.createChannel(data);
+
+    client.join(`channel_${channel.id}`);
+    this.server.to(`channel_${channel.id}`).emit('channelCreated', (channel));
+  }
+
   /* Send all channels data joined by user */
   @SubscribeMessage('getUserChannels')
   async handleUserChannels(
@@ -109,15 +121,9 @@ export class ChatGateway implements OnGatewayInit, OnGatewayConnection {
     @MessageBody() data: { content: string, from: number, channelId: string }
   ) {
     const user = this.chatUsers.getUser(client.id);
-    // const channel = ;
     const message = await this.chatService.saveMessage(data.content, data.from.toString(), data.channelId);
 
     this.logger.log(`[${user.username}] sends message "${data.content}" on channel [${data.channelId}]`);
-    this.server.to(client.id).emit('newGm', { message });
-    // TODO: send to room
-    // if (channel) {
-    //   this.server.to(recipient.socketId).emit('newGm', { message });
-    // }
-    this.logger.log(`New message in group chat [${data.channelId}]`);
+    this.server.to(`channel_${data.channelId}`).emit('newGm', { message });
   }
 }

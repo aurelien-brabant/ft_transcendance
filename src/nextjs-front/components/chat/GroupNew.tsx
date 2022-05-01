@@ -1,4 +1,4 @@
-import { Fragment, useContext, useState } from "react";
+import { Fragment, useContext, useEffect, useState } from "react";
 import { AiOutlineArrowLeft, AiOutlineClose } from "react-icons/ai";
 import { useSession } from "../../hooks/use-session";
 import alertContext, { AlertContextType } from "../../context/alert/alertContext";
@@ -52,11 +52,12 @@ export const GroupNewHeader: React.FC = () => {
 
 const GroupNew: React.FC = () => {
 	const { user } = useSession();
-	const { setAlert } = useContext(alertContext) as AlertContextType;
+	// const { setAlert } = useContext(alertContext) as AlertContextType;
 	const {
 		openChatView,
 		updateChatGroups,
-		setChatGroupData
+		setChatGroupData,
+		socket,
 	} = useContext(chatContext) as ChatContextType;
 
 	const [formData, setFormData] = useState<NewGroupData>({
@@ -109,50 +110,84 @@ const GroupNew: React.FC = () => {
 		setFieldErrors(errors);
 	};
 
+	// const createGroup = async (formData: NewGroupData) => {
+	// 	const res = await fetch("/api/channels", {
+	// 		method: "POST",
+	// 		headers: {
+	// 			"Content-Type": "application/json",
+	// 		},
+	// 		body: JSON.stringify({
+	// 			name: formData.groupName,
+	// 			owner: { id: user.id },
+	// 			privacy: formData.groupPrivacy,
+	// 			password: (formData.password.length !== 0) ? formData.password : undefined,
+	// 			users: [ { id: user.id } ],
+	// 		}),
+	// 	});
+
+	// 	const data = await res.json();
+
+	// 	if (res.status === 201) {
+	// 		const gm = setChatGroupData(JSON.parse(JSON.stringify(data)), user.id);
+
+	// 		updateChatGroups();
+	// 		openChatView(
+	// 			gm.privacy === 'protected' ? 'password_protection' : 'group',
+	// 			gm.label,
+	// 			{
+	// 				channelId: gm.id,
+	// 				groupName: gm.label,
+	// 				ownerId: gm.ownerId,
+	// 				peopleCount: gm.peopleCount,
+	// 				privacy: gm.privacy
+	// 			}
+	// 		);
+	// 	} else if ((res.status === 400) || (res.status === 401)) {
+	// 		setAlert({
+	// 			type: "warning",
+	// 			content: `${data.message}`
+	// 		});
+	// 	} else {
+	// 		setAlert({
+	// 			type: "error",
+	// 			content: "Failed to create group"
+	// 		});
+	// 	}
+	// }
+
 	const createGroup = async (formData: NewGroupData) => {
-		const res = await fetch("/api/channels", {
-			method: "POST",
-			headers: {
-				"Content-Type": "application/json",
-			},
-			body: JSON.stringify({
-				name: formData.groupName,
-				owner: { id: user.id },
-				privacy: formData.groupPrivacy,
-				password: (formData.password.length !== 0) ? formData.password : undefined,
-				users: [ { id: user.id } ],
-			}),
-		});
+		const data = {
+			name: formData.groupName,
+			owner: { id: user.id },
+			privacy: formData.groupPrivacy,
+			password: (formData.password.length !== 0) ? formData.password : undefined,
+			users: [ { id: user.id } ],
+		};
 
-		const data = await res.json();
+		socket.emit("createChannel", data);
 
-		if (res.status === 201) {
-			const gm = setChatGroupData(JSON.parse(JSON.stringify(data)), user.id);
+		console.log("[Chat] Create group");
+		console.log(data);
+	}
 
-			updateChatGroups();
+	useEffect(() => {
+		/* Listeners */
+		socket.on("channelCreated", (data: any) => {
+			console.log("channel created");
+
 			openChatView(
-				gm.privacy === 'protected' ? 'password_protection' : 'group',
-				gm.label,
+				data.privacy === 'protected' ? 'password_protection' : 'group',
+				data.name,
 				{
-					channelId: gm.id,
-					groupName: gm.label,
-					ownerId: gm.ownerId,
-					peopleCount: gm.peopleCount,
-					privacy: gm.privacy
+					channelId: data.id,
+					groupName: data.name,
+					ownerId: data.owner.id,
+					peopleCount: data.users.length,
+					privacy: data.privacy
 				}
 			);
-		} else if ((res.status === 400) || (res.status === 401)) {
-			setAlert({
-				type: "warning",
-				content: `${data.message}`
-			});
-		} else {
-			setAlert({
-				type: "error",
-				content: "Failed to create group"
-			});
-		}
-	}
+		});
+	}, []);
 
 	const inputGroupClassName = "flex flex-col gap-y-2";
 	const inputClassName = "px-2 py-1 border border-pink-600 bg-transparent outline-none";
