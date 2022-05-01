@@ -63,7 +63,7 @@ export class ChatGateway implements OnGatewayInit, OnGatewayConnection {
     console.log(this.chatUsers); // debug
   }
 
-  /* Send all channels joined by user */
+  /* Send all channels data joined by user */
   @SubscribeMessage('getUserChannels')
   async handleUserChannels(
     @ConnectedSocket() client: Socket,
@@ -74,7 +74,7 @@ export class ChatGateway implements OnGatewayInit, OnGatewayConnection {
     this.server.to(client.id).emit('updateUserChannels', (channels));
   }
 
-  /* Send all mesages in channel */
+  /* Send a specific channel data */
   @SubscribeMessage('getChannelData')
   async handleChannelData(
     @ConnectedSocket() client: Socket,
