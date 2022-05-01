@@ -116,6 +116,7 @@ const Group: React.FC<{ viewParams: { [key: string]: any } }> = ({
 
 		socket.emit('gmSubmit', {
 			content: currentMessage,
+			from: user.id,
 			channelId
 		});
 		setCurrentMessage("");
