@@ -58,8 +58,8 @@ const Groups: React.FC<{viewParams: Object;}> = ({ viewParams }) => {
 
 	/* Update filtered groups */
 	useEffect(() => {
-		setFilteredGroups(baseChatGroups);
-	}, [baseChatGroups]);
+		setFilteredGroups(chatGroups);
+	}, [chatGroups]);
 
 	return (
 		<Fragment>
