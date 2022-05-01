@@ -26,6 +26,7 @@ const ErrorProvider: React.FC<{ error?: string }> = ({ children, error }) => (
 	</div>
 );
 
+/* Header */
 export const GroupNewHeader: React.FC = () => {
 	const { closeChat, closeRightmostView } = useContext(chatContext) as ChatContextType;
 
@@ -50,16 +51,13 @@ export const GroupNewHeader: React.FC = () => {
 	);
 };
 
+/* Form area */
 const GroupNew: React.FC = () => {
 	const { user } = useSession();
-	// const { setAlert } = useContext(alertContext) as AlertContextType;
-	const {
-		openChatView,
-		updateChatGroups,
-		setChatGroupData,
-		socket,
-	} = useContext(chatContext) as ChatContextType;
+	const { setAlert } = useContext(alertContext) as AlertContextType;
+	const { openChatView, socket } = useContext(chatContext) as ChatContextType;
 
+	/* Form */
 	const [formData, setFormData] = useState<NewGroupData>({
 		groupName: "",
 		groupPrivacy: "private",
@@ -88,19 +86,19 @@ const GroupNew: React.FC = () => {
 		formData.groupName = formData.groupName.trim();
 
 		if (formData.groupName.length < 3 || formData.groupName.length > 20) {
-			errors['groupName'] = 'Group name should be between 3 and 20 characters long';
+			errors["groupName"] = "Group name should be between 3 and 20 characters long";
 		}
 
-		if (formData.groupPrivacy === 'protected') {
+		if (formData.groupPrivacy === "protected") {
 			if (formData.password) {
 				if (formData.password.length == 0) {
-					errors['password'] = 'Password can\'t be empty';
+					errors["password"] = "Password can\"t be empty";
 				}
 				if (formData.password.length < 8) {
-					errors['password'] = 'Password must contain at least 8 characters';
+					errors["password"] = "Password must contain at least 8 characters";
 				}
 			} else if (formData.password !== formData.password2) {
-				errors['password2'] = 'Passwords do not match';
+				errors["password2"] = "Passwords do not match";
 			}
 		}
 
@@ -110,51 +108,7 @@ const GroupNew: React.FC = () => {
 		setFieldErrors(errors);
 	};
 
-	// const createGroup = async (formData: NewGroupData) => {
-	// 	const res = await fetch("/api/channels", {
-	// 		method: "POST",
-	// 		headers: {
-	// 			"Content-Type": "application/json",
-	// 		},
-	// 		body: JSON.stringify({
-	// 			name: formData.groupName,
-	// 			owner: { id: user.id },
-	// 			privacy: formData.groupPrivacy,
-	// 			password: (formData.password.length !== 0) ? formData.password : undefined,
-	// 			users: [ { id: user.id } ],
-	// 		}),
-	// 	});
-
-	// 	const data = await res.json();
-
-	// 	if (res.status === 201) {
-	// 		const gm = setChatGroupData(JSON.parse(JSON.stringify(data)), user.id);
-
-	// 		updateChatGroups();
-	// 		openChatView(
-	// 			gm.privacy === 'protected' ? 'password_protection' : 'group',
-	// 			gm.label,
-	// 			{
-	// 				channelId: gm.id,
-	// 				groupName: gm.label,
-	// 				ownerId: gm.ownerId,
-	// 				peopleCount: gm.peopleCount,
-	// 				privacy: gm.privacy
-	// 			}
-	// 		);
-	// 	} else if ((res.status === 400) || (res.status === 401)) {
-	// 		setAlert({
-	// 			type: "warning",
-	// 			content: `${data.message}`
-	// 		});
-	// 	} else {
-	// 		setAlert({
-	// 			type: "error",
-	// 			content: "Failed to create group"
-	// 		});
-	// 	}
-	// }
-
+	/* Channel creation */
 	const createGroup = async (formData: NewGroupData) => {
 		const data = {
 			name: formData.groupName,
@@ -165,28 +119,40 @@ const GroupNew: React.FC = () => {
 		};
 
 		socket.emit("createChannel", data);
-
-		console.log("[Chat] Create group");
-		console.log(data);
 	}
+
+	const handleChannelCreation = (newChannel: any) => {
+		console.log("channel created");
+
+		openChatView(
+			newChannel.privacy === "protected" ? "password_protection" : "group",
+			newChannel.name,
+			{
+				channelId: newChannel.id,
+				groupName: newChannel.name,
+				ownerId: newChannel.owner.id,
+				peopleCount: newChannel.users.length,
+				privacy: newChannel.privacy
+			}
+		);
+	};
+
+	const handleChannelCreationError = (errMessage: string) => {
+		setAlert({
+			type: "warning",
+			content: errMessage
+		});
+	};
 
 	useEffect(() => {
 		/* Listeners */
-		socket.on("channelCreated", (data: any) => {
-			console.log("channel created");
+		socket.on("channelCreated", handleChannelCreation);
+		socket.on("createChannelError", handleChannelCreationError);
 
-			openChatView(
-				data.privacy === 'protected' ? 'password_protection' : 'group',
-				data.name,
-				{
-					channelId: data.id,
-					groupName: data.name,
-					ownerId: data.owner.id,
-					peopleCount: data.users.length,
-					privacy: data.privacy
-				}
-			);
-		});
+		return () => {
+			socket.off("channelCreated", handleChannelCreation);
+			socket.off("createChannelError", handleChannelCreationError);
+		};
 	}, []);
 
 	const inputGroupClassName = "flex flex-col gap-y-2";
@@ -198,7 +164,7 @@ const GroupNew: React.FC = () => {
 			<h6 className="text-xl">New group settings</h6>
 			<form className="flex flex-col gap-y-4" onSubmit={handleSubmit}>
 				<div className={inputGroupClassName}>
-					<ErrorProvider error={fieldErrors['groupName']}>
+					<ErrorProvider error={fieldErrors["groupName"]}>
 					<label htmlFor="groupName" className={labelClassName}>
 						group name
 					</label>
@@ -232,7 +198,7 @@ const GroupNew: React.FC = () => {
 				{formData.groupPrivacy === "protected" && (
 					<Fragment>
 						<div className={inputGroupClassName}>
-							<ErrorProvider error={fieldErrors['password']}>
+							<ErrorProvider error={fieldErrors["password"]}>
 							<label
 								htmlFor="password"
 								className={labelClassName}
@@ -251,7 +217,7 @@ const GroupNew: React.FC = () => {
 							/>
 						</div>
 						<div className={inputGroupClassName}>
-							<ErrorProvider error={fieldErrors['password2']}>
+							<ErrorProvider error={fieldErrors["password2"]}>
 							<label
 								htmlFor="password2"
 								className={labelClassName}

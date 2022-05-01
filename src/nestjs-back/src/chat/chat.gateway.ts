@@ -11,6 +11,7 @@ import {
   WebSocketServer,
 } from '@nestjs/websockets';
 import { ChatService } from './chat.service';
+import { Channel } from './channels/entities/channels.entity';
 import { UserStatus } from 'src/games/class/Constants';
 import { ConnectedUsers, User } from 'src/games/class/ConnectedUsers';
 
@@ -69,7 +70,14 @@ export class ChatGateway implements OnGatewayInit, OnGatewayConnection {
     @ConnectedSocket() client: Socket,
     @MessageBody() data
   ) {
-    const channel = await this.chatService.createChannel(data);
+    let channel: Channel;
+
+    try {
+      channel = await this.chatService.createChannel(data);
+    } catch (e) {
+      this.server.to(client.id).emit('createChannelError', e.message);
+      return ;
+    }
 
     client.join(`channel_${channel.id}`);
     this.server.to(`channel_${channel.id}`).emit('channelCreated', (channel));

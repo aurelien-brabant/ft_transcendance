@@ -384,7 +384,7 @@ const ChatProvider: React.FC = ({ children }) => {
 	}, [user, setSocket]);
 
 	/* Update the socket Id */
-	useEffect((): any => {
+	useEffect(() => {
 		if (!socket || (session.state !== "authenticated")) return;
 
 		socket.emit("updateChatUser", {
