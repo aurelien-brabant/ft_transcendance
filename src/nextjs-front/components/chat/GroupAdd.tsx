@@ -1,6 +1,6 @@
 import { Fragment, useContext, useEffect, useRef, useState } from "react";
 import { AiOutlineArrowLeft, AiOutlineClose } from "react-icons/ai";
-import { BaseUserData, User } from "transcendance-types";
+import { BaseUserData, Channel, User } from "transcendance-types";
 import { UserStatusItem } from "../UserStatus";
 import { useSession } from "../../hooks/use-session";
 import alertContext, { AlertContextType } from "../../context/alert/alertContext";
@@ -35,8 +35,8 @@ export const GroupAddHeader: React.FC<{ viewParams: any }> = ({ viewParams }) =>
 const GroupAdd: React.FC<{ viewParams: any }> = ({ viewParams }) => {
 	const { user } = useSession();
 	const { setAlert } = useContext(alertContext) as AlertContextType;
-	const { closeRightmostView, fetchChannelData } = useContext(chatContext) as ChatContextType;
-	const { getData, friends } = useContext(relationshipContext) as RelationshipContextType;
+	const { closeRightmostView, fetchChannelData, socket } = useContext(chatContext) as ChatContextType;
+	const { friends } = useContext(relationshipContext) as RelationshipContextType;
 	const channelId = viewParams.channelId;
 	const [filteredFriends, setFilteredFriends] = useState<User[]>([]);
 	const searchInputRef = useRef<HTMLInputElement>(null);
@@ -82,26 +82,31 @@ const GroupAdd: React.FC<{ viewParams: any }> = ({ viewParams }) => {
 		await addUserToGroup(friend.id);
 	}
 
-	useEffect(() => {
-		getData();
-		/* Select friends that didn't already join the group */
-		const selectFriends = async () => {
-			const channelData = await fetchChannelData(channelId).catch(console.error); /* NOTE: fetch will be removed */
-			const users = await JSON.parse(JSON.stringify(channelData)).users;
-			const selectedFriends: User[] = [];
+	/* Select friends that didn't already join the group */
+	const selectFriends = async (channel: Channel) => {
+		const selectedFriends: User[] = [];
 
-			for (var friend of friends) {
-				const isInChan = !!users.find((user: BaseUserData) => {
-					return user.id === friend.id;
-				})
-				if (!isInChan) {
-					selectedFriends.push(friend);
-				}
+		for (var friend of friends) {
+			const isInChan = !!channel.users.find((user: BaseUserData) => {
+				return user.id === friend.id;
+			})
+			if (!isInChan) {
+				selectedFriends.push(friend);
 			}
-			setFilteredFriends(selectedFriends);
+		}
+		setFilteredFriends(selectedFriends);
+	};
+
+	useEffect(() => {
+		socket.emit("getChannelData", { channelId });
+
+		/* Listeners */
+		socket.on("updateChannel", selectFriends);
+
+		return () => {
+			socket.off("updateChannel", selectFriends);
 		};
-		selectFriends();
-	}, []);
+	}, [friends]);
 
 	return (
 		<Fragment>

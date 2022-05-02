@@ -13,9 +13,9 @@ import chatContext, { ChatContextType, ChatMessage } from "../../context/chat/ch
 export const DirectMessageHeader: React.FC<{ viewParams: any }> = ({
 	viewParams,
 }) => {
+	const { user } = useSession();
 	const { closeChat, setChatView } = useContext(chatContext) as ChatContextType;
 	const actionTooltipStyles = "font-bold bg-dark text-neutral-200";
-	const { user } = useSession();
 
 	return (
 		<Fragment>

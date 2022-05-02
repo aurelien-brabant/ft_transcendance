@@ -35,7 +35,7 @@ export const DirectMessageNewHeader: React.FC = () => {
 const DirectMessageNew: React.FC = () => {
 	const { user } = useSession();
 	const { openDirectMessage } = useContext(chatContext) as ChatContextType;
-	const { getData, friends } = useContext(relationshipContext) as RelationshipContextType;
+	const { friends } = useContext(relationshipContext) as RelationshipContextType;
 	const [filteredFriends, setFilteredFriends] = useState<User[]>([]);
 	const searchInputRef = useRef<HTMLInputElement>(null);
 
@@ -56,9 +56,8 @@ const DirectMessageNew: React.FC = () => {
 	}
 
 	useEffect(() => {
-		getData();
 		setFilteredFriends(friends);
-	}, []);
+	}, [friends]);
 
 	return (
 		<Fragment>
