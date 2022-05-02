@@ -64,12 +64,12 @@ export const DirectMessageHeader: React.FC<{ viewParams: any }> = ({
 const DirectMessage: React.FC<{ viewParams: { [key: string]: any } }> = ({
 	viewParams,
 }) => {
+	const channelId: string = viewParams.channelId;
 	const { user } = useSession();
 	const { socket } = useContext(chatContext) as ChatContextType;
 	const [messages, setMessages] = useState<ChatMessage[]>([]);
 	const [currentMessage, setCurrentMessage] = useState("");
 	const chatBottom = useRef<HTMLDivElement>(null);
-	const channelId: string = viewParams.channelId;
 
 	/* Load all messages in channel */
 	const loadMessages = async (channel: Channel) => {

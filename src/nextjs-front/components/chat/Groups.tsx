@@ -16,7 +16,7 @@ const Groups: React.FC<{viewParams: Object;}> = ({ viewParams }) => {
 			)
 			.sort(
 				(a: ChatGroup, b: ChatGroup) =>
-				(b.updatedAt.valueOf() - a.updatedAt.valueOf()
+					(b.updatedAt.valueOf() - a.updatedAt.valueOf()
 			)
 	), []);
 
@@ -36,6 +36,7 @@ const Groups: React.FC<{viewParams: Object;}> = ({ viewParams }) => {
 	/* Search a group */
 	const handleSearch = (term: string) => {
 		const searchTerm = term.toLowerCase();
+
 		setFilteredGroups(
 			baseChatGroups.filter(
 				(grp) =>

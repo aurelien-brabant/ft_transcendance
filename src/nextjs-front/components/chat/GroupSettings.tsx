@@ -54,15 +54,14 @@ export const GroupSettingsHeader: React.FC<{ viewParams: any }> = ({ viewParams 
 };
 
 const GroupSettings: React.FC<{ viewParams: any }> = ({ viewParams }) => {
+	const channelId: string = viewParams.channelId;
 	const { user } = useSession();
 	const { setAlert } = useContext(alertContext) as AlertContextType;
 	const {
 		closeRightmostView,
-		removeChatGroup,
 		fetchChannelData,
 		socket
 	} = useContext(chatContext) as ChatContextType;
-	const channelId = viewParams.channelId;
 	const [ownerView, setOwnerView] = useState(false);
 	const [userInChan, setUserInChan] = useState(false);
 	const [peopleCount, setPeopleCount] = useState(0);
@@ -165,7 +164,6 @@ const GroupSettings: React.FC<{ viewParams: any }> = ({ viewParams }) => {
 
 		if (res.status === 200) {
 			closeRightmostView(2);
-			removeChatGroup(channelId);
 			return;
 		} else {
 			setAlert({
@@ -198,7 +196,6 @@ const GroupSettings: React.FC<{ viewParams: any }> = ({ viewParams }) => {
 
 		if (res.status === 200) {
 			closeRightmostView(2);
-			removeChatGroup(channelId);
 			return;
 		} else {
 			setAlert({

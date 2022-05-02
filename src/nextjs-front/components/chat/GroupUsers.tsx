@@ -71,12 +71,12 @@ export const GroupUsersHeader: React.FC<{ viewParams: any }> = ({ viewParams }) 
 };
 
 const GroupUsers: React.FC<{ viewParams: any }> = ({ viewParams }) => {
+	const channelId: string = viewParams.channelId;
 	const { user } = useSession();
 	const { setAlert } = useContext(alertContext) as AlertContextType;
 	const { fetchChannelData, socket } = useContext(chatContext) as ChatContextType; /* NOTE: fetch will be removed */
 	const { blocked } = useContext(relationshipContext) as RelationshipContextType;
 	const [users, setUsers] = useState<UserSummary[]>([]);
-	const channelId = viewParams.channelId;
 	const [ownerView, setOwnerView] = useState(false);
 	const actionTooltipStyles = "font-bold bg-gray-900 text-neutral-200";
 
@@ -225,10 +225,6 @@ const GroupUsers: React.FC<{ viewParams: any }> = ({ viewParams }) => {
 
 	/* Update user list on mount */
 	const defineUserList = async (channel: Channel) => {
-		const chanOwner = channel.owner;
-		const chanAdmins = channel.admins;
-		const mutedUsers = channel.mutedUsers;
-		const bannedUsers = channel.bannedUsers;
 		const users: UserSummary[] = [];
 
 		setOwnerView(channel.owner.id === user.id);
@@ -239,14 +235,14 @@ const GroupUsers: React.FC<{ viewParams: any }> = ({ viewParams }) => {
 				username: chanUser.username,
 				pic: `/api/users/${chanUser.id}/photo`,
 				isMe: (chanUser.id === user.id),
-				isOwner: (chanUser.id === chanOwner.id),
-				isAdmin: (chanUser.id === chanOwner.id) || !!chanAdmins.find((admin: BaseUserData) => {
+				isOwner: (chanUser.id === channel.owner.id),
+				isAdmin: (chanUser.id === channel.owner.id) || !!channel.admins.find((admin: BaseUserData) => {
 					return admin.id === chanUser.id;
 				}),
-				isMuted: !!mutedUsers.find((user: BaseUserData) => {
+				isMuted: !!channel.mutedUsers.find((user: BaseUserData) => {
 					return user.id === chanUser.id;
 				}),
-				isBanned: !!bannedUsers.find((user: BaseUserData) => {
+				isBanned: !!channel.bannedUsers.find((user: BaseUserData) => {
 					return user.id === chanUser.id;
 				}),
 				isBlocked: !!blocked.find(user => user.id === chanUser.id)

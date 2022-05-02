@@ -1,7 +1,7 @@
 import { useContext, useEffect, useState } from "react";
 import { BsFillChatDotsFill } from "react-icons/bs";
 import { Bounce } from "react-awesome-reveal";
-import { BaseUserData, Channel } from 'transcendance-types';
+import { BaseUserData, Channel, Message } from 'transcendance-types';
 import { useSession } from "../../hooks/use-session";
 import alertContext, { AlertContextType } from "../alert/alertContext";
 import authContext, { AuthContextValue } from "../auth/authContext";
@@ -178,7 +178,9 @@ const ChatProvider: React.FC = ({ children }) => {
 		};
 
 		if (channel.messages && channel.messages.length > 0) {
-			const lastMessage = channel.messages[0];
+			const lastMessage = channel.messages.reduce(function(prev, current) {
+				return (prev.id > current.id) ? prev : current;
+			})
 
 			message.createdAt = new Date(lastMessage.createdAt);
 
@@ -194,20 +196,6 @@ const ChatProvider: React.FC = ({ children }) => {
 	}
 
 	/* Chat groups utils */
-	const updateChatGroups = () => {
-		chatGroups.sort(
-			(a: ChatGroup, b: ChatGroup) =>
-			(b.updatedAt.valueOf() - a.updatedAt.valueOf())
-		);
-		setChatGroups([...chatGroups]);
-	}
-
-	const removeChatGroup = (channelId: string) => {
-		setChatGroups(chatGroups.filter((group: ChatGroup) => {
-			return group.id != channelId
-		}));
-	}
-
 	const setChatGroupData = (channel: Channel, userId: string) => {
 		const lastMessage: ChatMessagePreview = getLastMessage(channel);
 
@@ -226,14 +214,6 @@ const ChatProvider: React.FC = ({ children }) => {
 	}
 
 	/* Direct messages utils */
-	const updateDirectMessages = () => {
-		directMessages.sort(
-			(a: DirectMessage, b: DirectMessage) =>
-			(b.updatedAt.valueOf() - a.updatedAt.valueOf())
-		);
-		setDirectMessages([...directMessages]);
-	}
-
 	const setDirectMessageData = (channel: Channel, friend: BaseUserData) => {
 		const lastMessage: ChatMessagePreview = getLastMessage(channel);
 
@@ -272,7 +252,6 @@ const ChatProvider: React.FC = ({ children }) => {
 			const channelData = JSON.parse(JSON.stringify(data));
 
 			setDirectMessageData(channelData, friendData);
-			updateDirectMessages();
 			return (channelData.id);
 		} else {
 			setAlert({
@@ -395,19 +374,17 @@ const ChatProvider: React.FC = ({ children }) => {
 	return (
 		<chatContext.Provider
 			value={{
+				isChatOpened,
+				chatGroups,
+				directMessages,
+				socket,
 				openChat,
 				closeChat,
-				isChatOpened,
 				openChatView,
 				setChatView,
 				closeRightmostView,
-				chatGroups,
-				directMessages,
 				getLastMessage,
-				updateChatGroups,
-				removeChatGroup,
 				setChatGroupData,
-				updateDirectMessages,
 				setDirectMessageData,
 				createDirectMessage,
 				openDirectMessage,
@@ -416,7 +393,6 @@ const ChatProvider: React.FC = ({ children }) => {
 				lastY,
 				setLastX,
 				setLastY,
-				socket,
 			}}
 		>
 			{session.state === 'authenticated' ?

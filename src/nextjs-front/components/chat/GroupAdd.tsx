@@ -33,17 +33,18 @@ export const GroupAddHeader: React.FC<{ viewParams: any }> = ({ viewParams }) =>
 };
 
 const GroupAdd: React.FC<{ viewParams: any }> = ({ viewParams }) => {
+	const channelId: string = viewParams.channelId;
 	const { user } = useSession();
 	const { setAlert } = useContext(alertContext) as AlertContextType;
 	const { closeRightmostView, socket } = useContext(chatContext) as ChatContextType;
 	const { friends } = useContext(relationshipContext) as RelationshipContextType;
-	const channelId = viewParams.channelId;
 	const [filteredFriends, setFilteredFriends] = useState<User[]>([]);
 	const searchInputRef = useRef<HTMLInputElement>(null);
 
 	/* Search a friend */
 	const handleSearch = (term: string) => {
 		const searchTerm = term.toLowerCase();
+
 		setFilteredFriends(
 			filteredFriends.filter(
 				(friend) =>
@@ -91,6 +92,7 @@ const GroupAdd: React.FC<{ viewParams: any }> = ({ viewParams }) => {
 		/* Listeners */
 		socket.on("updateChannel", selectFriends);
 		socket.on("joinChannelError", handleChannelJoinError);
+
 		return () => {
 			socket.off("updateChannel", selectFriends);
 			socket.off("joinChannelError", handleChannelJoinError);
