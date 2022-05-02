@@ -77,6 +77,9 @@ export class ChatGateway implements OnGatewayInit, OnGatewayConnection {
   ) {
     const channels = await this.chatService.getUserChannels(data.userId);
 
+    for (var channel of channels) {
+      client.join(`channel_${channel.id}`);
+    }
     this.server.to(client.id).emit('updateUserChannels', (channels));
   }
 
@@ -87,6 +90,7 @@ export class ChatGateway implements OnGatewayInit, OnGatewayConnection {
   ) {
     const channel = await this.chatService.getChannelData(data.channelId);
 
+    client.join(`channel_${channel.id}`);
     this.server.to(client.id).emit('updateChannel', (channel));
   }
 
@@ -133,7 +137,7 @@ export class ChatGateway implements OnGatewayInit, OnGatewayConnection {
 
       socket.join(`channel_${data.channelId}`);
     }
-    this.server.to(`channel_${data.channelId}`).emit('joinedChannel', `${user.username} joined the channel.`);
+    this.server.to(`channel_${data.channelId}`).emit('joinedChannel', `${user.username} joined group.`);
   }
 
   /* Save a new DM message */

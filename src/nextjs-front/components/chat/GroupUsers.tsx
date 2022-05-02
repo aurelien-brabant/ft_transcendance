@@ -42,6 +42,7 @@ export const GroupUsersHeader: React.FC<{ viewParams: any }> = ({ viewParams }) 
 				</div>
 				<div className="flex items-center gap-x-1 px-2">
 					<FaUserFriends />
+					{/* NOTE: need real time update */}
 					{viewParams.peopleCount}
 				</div>
 			</div>
@@ -60,6 +61,7 @@ const GroupUsers: React.FC<{ viewParams: any }> = ({ viewParams }) => {
 	const { fetchChannelData } = useContext(chatContext) as ChatContextType; /* NOTE: fetch will be removed */
 	const { blocked, getData } = useContext(relationshipContext) as RelationshipContextType;
 	const [users, setUsers] = useState<UserSummary[]>([]);
+	const [peopleCount, setPeopleCount] = useState(0);
 	const channelId = viewParams.channelId;
 	const actionTooltipStyles = "font-bold bg-gray-900 text-neutral-200";
 

@@ -35,7 +35,7 @@ export const GroupAddHeader: React.FC<{ viewParams: any }> = ({ viewParams }) =>
 const GroupAdd: React.FC<{ viewParams: any }> = ({ viewParams }) => {
 	const { user } = useSession();
 	const { setAlert } = useContext(alertContext) as AlertContextType;
-	const { socket } = useContext(chatContext) as ChatContextType;
+	const { closeRightmostView, socket } = useContext(chatContext) as ChatContextType;
 	const { friends } = useContext(relationshipContext) as RelationshipContextType;
 	const channelId = viewParams.channelId;
 	const [filteredFriends, setFilteredFriends] = useState<User[]>([]);
@@ -75,6 +75,7 @@ const GroupAdd: React.FC<{ viewParams: any }> = ({ viewParams }) => {
 	/* Add a friend to group */
 	const addUserToGroup = async (id: string) => {
 		socket.emit("joinChannel", { userId: id, channelId });
+		closeRightmostView();
 	};
 
 	const handleChannelJoinError = (errMessage: string) => {
@@ -90,7 +91,6 @@ const GroupAdd: React.FC<{ viewParams: any }> = ({ viewParams }) => {
 		/* Listeners */
 		socket.on("updateChannel", selectFriends);
 		socket.on("joinChannelError", handleChannelJoinError);
-
 		return () => {
 			socket.off("updateChannel", selectFriends);
 			socket.off("joinChannelError", handleChannelJoinError);
