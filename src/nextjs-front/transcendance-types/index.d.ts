@@ -62,7 +62,7 @@ export type Achievement = {
  * GET /api/messages/:id
  */
 export type Message = {
-	id: number;
+	id: string;
 	createdAt: Date;
 	content: string;
 	author: User;
@@ -73,7 +73,7 @@ export type Message = {
  * GET /api/channels/:id
  */
 export type Channel = {
-	id: number;
+	id: string;
 	name: string;
 	privacy: string;
 	restrictionDuration: number;
