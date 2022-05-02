@@ -2,7 +2,7 @@ import { Fragment, useContext, useEffect, useRef, useState } from "react";
 import { AiOutlineArrowLeft, AiOutlineClose } from "react-icons/ai";
 import { FaUserFriends, FaUserPlus } from "react-icons/fa";
 import { FiSend } from 'react-icons/fi';
-import { RiSettings5Line } from "react-icons/ri";
+import { RiSettings5Line, RiChatNewLine } from "react-icons/ri";
 import { Channel, Message } from 'transcendance-types';
 import Tooltip from "../../components/Tooltip";
 import { useSession } from "../../hooks/use-session";
@@ -12,9 +12,34 @@ import relationshipContext, { RelationshipContextType } from "../../context/rela
 /* Header */
 export const GroupHeader: React.FC<{ viewParams: any }> = ({ viewParams }) => {
 	const { user } = useSession();
-	const { closeChat, openChatView, setChatView } = useContext(chatContext) as ChatContextType;
-	const ownerView = (viewParams.ownerId === user.id);
+	const { closeChat, openChatView, setChatView, socket } = useContext(chatContext) as ChatContextType;
+	const channelId = viewParams.channelId;
+	const [userInChan, setUserInChan] = useState(false);
 	const actionTooltipStyles = "font-bold bg-dark text-neutral-200";
+
+	const joinGroup = async () => {
+		socket.emit("joinChannel", {
+			userId: user.id,
+			channelId: viewParams.channelId
+		});
+	};
+
+	const defineOptions = async (channel: Channel) => {
+		setUserInChan(!!channel.users.find(
+			(chanUser) => { return chanUser.id === user.id;}
+		));
+	};
+
+	useEffect(() => {
+		socket.emit("getChannelData", { channelId });
+
+		/* Listeners */
+		socket.on("updateChannel", defineOptions);
+
+		return () => {
+			socket.off("updateChannel", defineOptions);
+		};
+	}, []);
 
 	return (
 		<Fragment>
@@ -28,27 +53,32 @@ export const GroupHeader: React.FC<{ viewParams: any }> = ({ viewParams }) => {
 					</button>
 				</div>
 				<div className="flex items-right gap-x-3">
+					{userInChan
+						? <Tooltip className={actionTooltipStyles} content="add user">
+							<button onClick={() => {
+								openChatView('group_add', 'Add a user to group', {
+										channelId: viewParams.channelId
+									}
+								)}}
+							>
+								<FaUserPlus className="text-lg" />
+							</button>
+						</Tooltip>
+						: <Tooltip className={actionTooltipStyles} content="join group">
+							<button onClick={() => { joinGroup()}} >
+								<RiChatNewLine className="text-lg" />
+							</button>
+						</Tooltip>
+					}
 					<Tooltip className={actionTooltipStyles} content="users">
 						<button onClick={() => {
 							openChatView('group_users', 'group users', {
 									channelId: viewParams.channelId,
 									channelName: viewParams.channelName,
-									peopleCount: viewParams.peopleCount,
-									ownerView: ownerView
 								}
 							)}}
 						>
 							<FaUserFriends />
-						</button>
-					</Tooltip>
-					<Tooltip className={actionTooltipStyles} content="add user">
-						<button onClick={() => {
-							openChatView('group_add', 'Add a user to group', {
-									channelId: viewParams.channelId
-								}
-							)}}
-						>
-							<FaUserPlus className="text-lg" />
 						</button>
 					</Tooltip>
 					<button onClick={() => {
@@ -56,8 +86,6 @@ export const GroupHeader: React.FC<{ viewParams: any }> = ({ viewParams }) => {
 								channelId: viewParams.channelId,
 								channelName: viewParams.channelName,
 								privacy: viewParams.privacy,
-								peopleCount: viewParams.peopleCount,
-								ownerView: ownerView
 							}
 						)}}
 						>

@@ -14,6 +14,7 @@ import { ChatService } from './chat.service';
 import { Channel } from './channels/entities/channels.entity';
 import { UserStatus } from 'src/games/class/Constants';
 import { ConnectedUsers, User } from 'src/games/class/ConnectedUsers';
+import { CLIENT_RENEG_WINDOW } from 'tls';
 
 @WebSocketGateway(
   {
@@ -133,9 +134,9 @@ export class ChatGateway implements OnGatewayInit, OnGatewayConnection {
     const chatUser = this.chatUsers.getUserById(parseInt(data.userId));
 
     if (chatUser) {
-      const socket = this.server.sockets.sockets.get(chatUser.socketId);
+      const socket: Socket = this.server.sockets.sockets.get(chatUser.socketId);
 
-      socket.join(`channel_${data.channelId}`);
+      if (socket) socket.join(`channel_${data.channelId}`);
     }
     this.server.to(`channel_${data.channelId}`).emit('joinedChannel', `${user.username} joined group.`);
   }

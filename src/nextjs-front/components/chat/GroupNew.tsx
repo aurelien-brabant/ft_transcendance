@@ -128,8 +128,6 @@ const GroupNew: React.FC = () => {
 			newChannel.name, {
 				channelId: newChannel.id,
 				groupName: newChannel.name,
-				ownerId: newChannel.owner.id,
-				peopleCount: newChannel.users.length,
 				privacy: newChannel.privacy
 			}
 		);

@@ -218,7 +218,6 @@ const ChatProvider: React.FC = ({ children }) => {
 			in: !!channel.users.find((user: BaseUserData) => {
 				return user.id === userId;
 			}),
-			ownerId: channel.owner.id,
 			peopleCount: channel.users.length,
 			privacy: channel.privacy as ChatGroupPrivacy,
 			updatedAt: lastMessage.createdAt

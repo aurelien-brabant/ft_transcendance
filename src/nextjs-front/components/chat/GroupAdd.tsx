@@ -65,7 +65,7 @@ const GroupAdd: React.FC<{ viewParams: any }> = ({ viewParams }) => {
 			const isInChan = !!channel.users.find((user: BaseUserData) => {
 				return user.id === friend.id;
 			})
-			if (!isInChan) {
+			if (!isInChan && (friend.id !== user.id)) {
 				selectedFriends.push(friend);
 			}
 		}
@@ -99,7 +99,7 @@ const GroupAdd: React.FC<{ viewParams: any }> = ({ viewParams }) => {
 
 	return (
 		<Fragment>
-			<div className="h-[15%] gap-x-2 flex items-center p-4 bg-dark/90 border-04dp border-b-4">
+			<div className="h-[15%] gap-x-2 flex items-center p-4 bg-dark/90 border-04dp border-b-4 justify-between">
 				<input
 						ref={searchInputRef}
 						type="text"

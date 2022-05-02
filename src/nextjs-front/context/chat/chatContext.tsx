@@ -23,7 +23,6 @@ export type ChatGroup = {
 	label: string;
 	lastMessage: string;
 	in: boolean;
-	ownerId: string;
 	peopleCount: number;
 	privacy: ChatGroupPrivacy;
 	updatedAt: Date;

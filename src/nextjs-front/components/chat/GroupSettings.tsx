@@ -1,6 +1,6 @@
-import { Fragment, useContext, useState } from "react";
+import { Fragment, useContext, useEffect, useState } from "react";
 import { AiOutlineArrowLeft, AiOutlineClose } from "react-icons/ai";
-import { BaseUserData } from "transcendance-types";
+import { BaseUserData, Channel } from "transcendance-types";
 import { useSession } from "../../hooks/use-session";
 import alertContext, { AlertContextType } from "../../context/alert/alertContext";
 import chatContext, { ChatContextType, ChatGroupPrivacy } from "../../context/chat/chatContext";
@@ -59,9 +59,13 @@ const GroupSettings: React.FC<{ viewParams: any }> = ({ viewParams }) => {
 	const {
 		closeRightmostView,
 		removeChatGroup,
-		fetchChannelData
+		fetchChannelData,
+		socket
 	} = useContext(chatContext) as ChatContextType;
 	const channelId = viewParams.channelId;
+	const [ownerView, setOwnerView] = useState(false);
+	const [userInChan, setUserInChan] = useState(false);
+	const [peopleCount, setPeopleCount] = useState(0);
 	const inputGroupClassName = "flex flex-col gap-y-2";
 	const inputClassName = "px-2 py-1 border border-pink-600 bg-transparent outline-none";
 	const labelClassName = "text-xs text-neutral-200 uppercase";
@@ -204,7 +208,26 @@ const GroupSettings: React.FC<{ viewParams: any }> = ({ viewParams }) => {
 		}
 	};
 
-	if (viewParams.ownerView) {
+	const updateChannelData = (channel: Channel) => {
+		setOwnerView(channel.owner.id === user.id);
+		setPeopleCount(channel.users.length);
+		setUserInChan(!!channel.users.find(
+			(chanUser) => { return chanUser.id === user.id;}
+		));
+	};
+
+	useEffect(() => {
+		socket.emit("getChannelData", { channelId });
+
+		/* Listeners */
+		socket.on("updateChannel", updateChannelData);
+
+		return () => {
+			socket.off("updateChannel", updateChannelData);
+		};
+	}, []);
+
+	if (ownerView) { // tmp
 		return (
 			<div className="flex flex-col h-full px-5 py-5 overflow-y-auto gap-y-4">
 				<h6 className="text-xl">Update group</h6>
@@ -313,7 +336,7 @@ const GroupSettings: React.FC<{ viewParams: any }> = ({ viewParams }) => {
 				<div className="">
 					<div className="flex justify-between">
 						<span>Name</span>
-						<span>{viewParams.groupName}</span>
+						<span>{viewParams.channelName}</span>
 					</div>
 					<div className="flex justify-between">
 						<span>Visibility</span>
@@ -321,17 +344,19 @@ const GroupSettings: React.FC<{ viewParams: any }> = ({ viewParams }) => {
 					</div>
 					<div className="flex justify-between">
 						<span>Members</span>
-						<span>{viewParams.peopleCount}</span>
+						<span>{peopleCount}</span>
 					</div>
 				</div>
-				<div className="flex flex-col gap-y-4">
-				<h6 className="text-xl">Leave group</h6>
-				<button
-					onClick={() => { handleLeaveGroup() }}
-					className="px-3 py-2 uppercase bg-red-600">
-						Leave group
-				</button>
-				</div>
+				{userInChan &&
+					<div className="flex flex-col gap-y-4">
+					<h6 className="text-xl">Leave group</h6>
+					<button
+						onClick={() => { handleLeaveGroup() }}
+						className="px-3 py-2 uppercase bg-red-600">
+							Leave group
+					</button>
+					</div>
+				}
 			</div>
 		);
 	}
