@@ -37,4 +37,14 @@ export class ChatService {
   async getChannelData(id: string) {
     return await this.channelsService.findOne(id);
   }
+
+  async addUserToChannel(userId: string, channelId: string) {
+    const user = await this.usersService.findOne(userId);
+    const channel = await this.channelsService.findOne(channelId);
+
+    await this.channelsService.update(channelId, {
+      users: [ ...channel.users, user]
+    });
+    return user;
+  }
 }

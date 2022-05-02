@@ -49,7 +49,10 @@ export class ChatGateway implements OnGatewayInit, OnGatewayConnection {
 
   /* Update connected user */
   @SubscribeMessage('updateChatUser')
-  handleNewUser(@ConnectedSocket() client: Socket, @MessageBody() data: User) {
+  handleNewUser(
+    @ConnectedSocket() client: Socket,
+    @MessageBody() data: User
+  ) {
     let user = this.chatUsers.getUserById(data.id);
 
     if (!user) {
@@ -64,7 +67,32 @@ export class ChatGateway implements OnGatewayInit, OnGatewayConnection {
     console.log(this.chatUsers); // debug
   }
 
-  /* User creates a new channel */
+  /**
+   * Getters
+   */
+  @SubscribeMessage('getUserChannels')
+  async handleUserChannels(
+    @ConnectedSocket() client: Socket,
+    @MessageBody() data: { userId: string }
+  ) {
+    const channels = await this.chatService.getUserChannels(data.userId);
+
+    this.server.to(client.id).emit('updateUserChannels', (channels));
+  }
+
+  @SubscribeMessage('getChannelData')
+  async handleChannelData(
+    @ConnectedSocket() client: Socket,
+    @MessageBody() data: { channelId: string }
+  ) {
+    const channel = await this.chatService.getChannelData(data.channelId);
+
+    this.server.to(client.id).emit('updateChannel', (channel));
+  }
+
+  /**
+   * Creation
+   */
   @SubscribeMessage('createChannel')
   async handleCreateChannel(
     @ConnectedSocket() client: Socket,
@@ -78,31 +106,34 @@ export class ChatGateway implements OnGatewayInit, OnGatewayConnection {
       this.server.to(client.id).emit('createChannelError', e.message);
       return ;
     }
-
     client.join(`channel_${channel.id}`);
     this.server.to(`channel_${channel.id}`).emit('channelCreated', (channel));
   }
 
-  /* Send all channels data joined by user */
-  @SubscribeMessage('getUserChannels')
-  async handleUserChannels(
+  /**
+   * User joins/quits channel
+   */
+  @SubscribeMessage('joinChannel')
+  async handleJoinChannel(
     @ConnectedSocket() client: Socket,
-    @MessageBody() data: { userId: number }
+    @MessageBody() data: { userId: string, channelId: string }
   ) {
-    const channels = await this.chatService.getUserChannels(data.userId.toString());
+    let user: any;
 
-    this.server.to(client.id).emit('updateUserChannels', (channels));
-  }
+    try {
+      user = await this.chatService.addUserToChannel(data.userId, data.channelId);
+    } catch (e) {
+      this.server.to(client.id).emit('joinChannelError', e.message);
+      return ;
+    }
+    const chatUser = this.chatUsers.getUserById(parseInt(data.userId));
 
-  /* Send a specific channel data */
-  @SubscribeMessage('getChannelData')
-  async handleChannelData(
-    @ConnectedSocket() client: Socket,
-    @MessageBody() data: { channelId: number }
-  ) {
-    const channel = await this.chatService.getChannelData(data.channelId.toString());
+    if (chatUser) {
+      const socket = this.server.sockets.sockets.get(chatUser.socketId);
 
-    this.server.to(client.id).emit('updateChannel', (channel));
+      socket.join(`channel_${data.channelId}`);
+    }
+    this.server.to(`channel_${data.channelId}`).emit('joinedChannel', `${user.username} joined the channel.`);
   }
 
   /* Save a new DM message */

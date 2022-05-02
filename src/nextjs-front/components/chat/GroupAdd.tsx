@@ -35,36 +35,11 @@ export const GroupAddHeader: React.FC<{ viewParams: any }> = ({ viewParams }) =>
 const GroupAdd: React.FC<{ viewParams: any }> = ({ viewParams }) => {
 	const { user } = useSession();
 	const { setAlert } = useContext(alertContext) as AlertContextType;
-	const { closeRightmostView, fetchChannelData, socket } = useContext(chatContext) as ChatContextType;
+	const { socket } = useContext(chatContext) as ChatContextType;
 	const { friends } = useContext(relationshipContext) as RelationshipContextType;
 	const channelId = viewParams.channelId;
 	const [filteredFriends, setFilteredFriends] = useState<User[]>([]);
 	const searchInputRef = useRef<HTMLInputElement>(null);
-
-	const addUserToGroup = async (id: string) => {
-		const channelData = await fetchChannelData(channelId).catch(console.error); /* NOTE: fetch will be removed */
-		const users = JSON.parse(JSON.stringify(channelData)).users;
-
-		const res = await fetch(`/api/channels/${channelId}`, {
-			method: "PATCH",
-			headers: {
-				"Content-Type": "application/json",
-			},
-			body: JSON.stringify({
-				users: [ ...users, { "id": id } ]
-			}),
-		});
-
-		if (res.status === 200) {
-			closeRightmostView();
-			return;
-		} else {
-			setAlert({
-				type: "error",
-				content: "Failed to add user to group"
-			});
-		}
-	};
 
 	/* Search a friend */
 	const handleSearch = (term: string) => {
@@ -97,14 +72,28 @@ const GroupAdd: React.FC<{ viewParams: any }> = ({ viewParams }) => {
 		setFilteredFriends(selectedFriends);
 	};
 
+	/* Add a friend to group */
+	const addUserToGroup = async (id: string) => {
+		socket.emit("joinChannel", { userId: id, channelId });
+	};
+
+	const handleChannelJoinError = (errMessage: string) => {
+		setAlert({
+			type: "warning",
+			content: errMessage
+		});
+	};
+
 	useEffect(() => {
 		socket.emit("getChannelData", { channelId });
 
 		/* Listeners */
 		socket.on("updateChannel", selectFriends);
+		socket.on("joinChannelError", handleChannelJoinError);
 
 		return () => {
 			socket.off("updateChannel", selectFriends);
+			socket.off("joinChannelError", handleChannelJoinError);
 		};
 	}, [friends]);
 

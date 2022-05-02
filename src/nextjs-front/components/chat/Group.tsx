@@ -151,16 +151,23 @@ const Group: React.FC<{ viewParams: { [key: string]: any } }> = ({
 		});
 	};
 
+	const handleNewUser = (message: string) => {
+		console.log(`[Chat] ${message}`);
+		// TODO: display in chat
+	};
+
 	useEffect(() => {
 		socket.emit("getChannelData", { channelId });
 
 		/* Listeners */
 		socket.on("updateChannel", loadMessages);
 		socket.on("newGm", handleNewMessage);
+		socket.on("joinedChannel", handleNewUser);
 
 		return () => {
 			socket.off("updateChannel", loadMessages);
 			socket.off("newGm", handleNewMessage);
+			socket.off("joinedChannel", handleNewUser);
 		};
 	}, []);
 

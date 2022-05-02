@@ -183,7 +183,7 @@ const GroupNew: React.FC = () => {
 					</label>
 					<select
 						className="drag-cancellable px-2 py-2 bg-dark border-b border-pink-600 outline-none"
-						name="privacy"
+						name="groupPrivacy"
 						value={formData.groupPrivacy}
 						onChange={handleChange}
 					>
