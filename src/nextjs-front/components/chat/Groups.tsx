@@ -1,11 +1,4 @@
-import {
-	Fragment,
-	useContext,
-	useEffect,
-	useMemo,
-	useRef,
-	useState,
-} from "react";
+import { Fragment, useContext, useEffect, useMemo, useRef, useState } from "react";
 import { AiFillLock, AiFillUnlock, AiOutlineEyeInvisible } from "react-icons/ai";
 import { FaUserFriends } from "react-icons/fa";
 import chatContext, { ChatContextType, ChatGroup, ChatGroupPrivacy } from "../../context/chat/chatContext";
@@ -96,8 +89,7 @@ const Groups: React.FC<{viewParams: Object;}> = ({ viewParams }) => {
 						onClick={() => {
 							openChatView(
 								gm.privacy === 'protected' ? 'password_protection' : 'group',
-								gm.label,
-								{
+								gm.label, {
 									channelId: gm.id,
 									channelName: gm.label,
 									ownerId: gm.ownerId,

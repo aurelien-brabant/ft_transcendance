@@ -1,7 +1,7 @@
 import { useContext, useEffect, useState } from "react";
 import { BsFillChatDotsFill } from "react-icons/bs";
 import { Bounce } from "react-awesome-reveal";
-import { BaseUserData } from 'transcendance-types';
+import { BaseUserData, Channel } from 'transcendance-types';
 import { useSession } from "../../hooks/use-session";
 import alertContext, { AlertContextType } from "../alert/alertContext";
 import authContext, { AuthContextValue } from "../auth/authContext";
@@ -13,7 +13,7 @@ import ChatGroupsView from "../../components/chat/Groups";
 import ChatGroupView, { GroupHeader } from "../../components/chat/Group";
 import ChatDirectMessagesView from "../../components/chat/DirectMessages";
 import ChatDirectMessageView, { DirectMessageHeader } from "../../components/chat/DirectMessage";
-import chatContext, { ChatGroup, ChatMessagePreview, ChatView, DirectMessage } from "./chatContext";
+import chatContext, { ChatGroup, ChatGroupPrivacy, ChatMessagePreview, ChatView, DirectMessage } from "./chatContext";
 import DirectMessageNew, { DirectMessageNewHeader } from "../../components/chat/DirectMessageNew";
 import GroupAdd, { GroupAddHeader } from "../../components/chat/GroupAdd";
 import GroupNew, { GroupNewHeader } from "../../components/chat/GroupNew";
@@ -171,7 +171,7 @@ const ChatProvider: React.FC = ({ children }) => {
 	};
 
 	/* Message utils */
-	const getLastMessage = (channel: any) => {
+	const getLastMessage = (channel: Channel) => {
 		let message: ChatMessagePreview = {
 			content: "",
 			createdAt: new Date(Date.now())
@@ -208,7 +208,7 @@ const ChatProvider: React.FC = ({ children }) => {
 		}));
 	}
 
-	const setChatGroupData = (channel: any, userId: string) => {
+	const setChatGroupData = (channel: Channel, userId: string) => {
 		const lastMessage: ChatMessagePreview = getLastMessage(channel);
 
 		const group: ChatGroup = {
@@ -220,7 +220,7 @@ const ChatProvider: React.FC = ({ children }) => {
 			}),
 			ownerId: channel.owner.id,
 			peopleCount: channel.users.length,
-			privacy: channel.privacy,
+			privacy: channel.privacy as ChatGroupPrivacy,
 			updatedAt: lastMessage.createdAt
 		}
 		return group;
@@ -235,7 +235,7 @@ const ChatProvider: React.FC = ({ children }) => {
 		setDirectMessages([...directMessages]);
 	}
 
-	const setDirectMessageData = (channel: any, friend: BaseUserData) => {
+	const setDirectMessageData = (channel: Channel, friend: BaseUserData) => {
 		const lastMessage: ChatMessagePreview = getLastMessage(channel);
 
 		const dm: DirectMessage = {
@@ -315,7 +315,7 @@ const ChatProvider: React.FC = ({ children }) => {
 	}
 
 	/* Load all channels joined by user or visible */
-	const loadUserChannels = async (channels: any) => {
+	const loadUserChannels = async (channels: Channel[]) => {
 		const groups: ChatGroup[] = [];
 		const dms: DirectMessage[] = [];
 

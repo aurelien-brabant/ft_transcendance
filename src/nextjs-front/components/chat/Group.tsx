@@ -3,6 +3,7 @@ import { AiOutlineArrowLeft, AiOutlineClose } from "react-icons/ai";
 import { FaUserFriends, FaUserPlus } from "react-icons/fa";
 import { FiSend } from 'react-icons/fi';
 import { RiSettings5Line } from "react-icons/ri";
+import { Channel, Message } from 'transcendance-types';
 import Tooltip from "../../components/Tooltip";
 import { useSession } from "../../hooks/use-session";
 import chatContext, { ChatContextType, ChatMessage } from "../../context/chat/chatContext";
@@ -86,12 +87,14 @@ const Group: React.FC<{ viewParams: { [key: string]: any } }> = ({
 	const channelId = viewParams.channelId;
 
 	/* Load all messages in channel */
-	const loadMessages = async (channel: any) => {
+	const loadMessages = async (channel: Channel) => {
 		if ((channel.id !== channelId) || !channel.messages) return ;
 
 		const messages: ChatMessage[] = [];
 
-		channel.messages.sort((a: any, b: any) => (a.id - b.id));
+		channel.messages.sort(
+			(a: Message, b: Message) => (parseInt(a.id) - parseInt(b.id))
+		);
 
 		for (var message of channel.messages) {
 			const isBlocked = !!blocked.find(blockedUser => blockedUser.id === message.author.id);
@@ -128,7 +131,7 @@ const Group: React.FC<{ viewParams: { [key: string]: any } }> = ({
 	}, [messages]);
 
 	/* Receive new message */
-	const handleNewMessage = ({ message }: any) => {
+	const handleNewMessage = ({ message }: { message: Message }) => {
 		console.log(`[Chat] Receive new message in [${message.channel.name}]`);
 
 		setMessages((prevMessages) => {
@@ -150,7 +153,7 @@ const Group: React.FC<{ viewParams: { [key: string]: any } }> = ({
 
 	useEffect(() => {
 		getData();
-		socket.emit("getChannelData", { channelId: channelId });
+		socket.emit("getChannelData", { channelId });
 
 		/* Listeners */
 		socket.on("updateChannel", loadMessages);

@@ -1,5 +1,6 @@
 import { Fragment, useContext, useEffect, useState } from "react";
 import { AiOutlineArrowLeft, AiOutlineClose } from "react-icons/ai";
+import { Channel } from 'transcendance-types';
 import { useSession } from "../../hooks/use-session";
 import alertContext, { AlertContextType } from "../../context/alert/alertContext";
 import chatContext, { ChatContextType, ChatGroupPrivacy } from "../../context/chat/chatContext";
@@ -121,13 +122,10 @@ const GroupNew: React.FC = () => {
 		socket.emit("createChannel", data);
 	}
 
-	const handleChannelCreation = (newChannel: any) => {
-		console.log("channel created");
-
+	const handleChannelCreation = (newChannel: Channel) => {
 		openChatView(
 			newChannel.privacy === "protected" ? "password_protection" : "group",
-			newChannel.name,
-			{
+			newChannel.name, {
 				channelId: newChannel.id,
 				groupName: newChannel.name,
 				ownerId: newChannel.owner.id,
