@@ -5,7 +5,7 @@ import {
   OneToMany,
   PrimaryGeneratedColumn
 } from "typeorm";
-import { Message } from 'src/chat/messages/entities/messages.entity';
+import { DmMessage } from 'src/chat/direct-messages/messages/entities/dm-messages.entity';
 import { User } from "src/users/entities/users.entity";
 
 @Entity()
@@ -17,8 +17,8 @@ export class DirectMessage {
   @JoinTable()
   users: User[];
 
-  @OneToMany(() => Message, message => message.channel, {
+  @OneToMany(() => DmMessage, message => message.dm, {
     cascade: true
   })
-  messages: Message[];
+  messages: DmMessage[];
 }

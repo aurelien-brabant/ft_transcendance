@@ -5,12 +5,11 @@ import {
   ManyToOne,
   PrimaryGeneratedColumn
 } from "typeorm";
-import { Channel } from "src/chat/channels/entities/channels.entity";
 import { DirectMessage } from "src/chat/direct-messages/entities/direct-messages";
 import { User } from "src/users/entities/users.entity";
 
 @Entity()
-export class Message {
+export class DmMessage {
   @PrimaryGeneratedColumn()
   id: number;
 
@@ -26,8 +25,8 @@ export class Message {
   @ManyToOne(() => User)
   author: User;
 
-  @ManyToOne(() => Channel || DirectMessage, channel => channel.messages, {
+  @ManyToOne(() => DirectMessage, dm => dm.messages, {
     onDelete: "CASCADE"
   })
-  channel: Channel | DirectMessage;
+  dm: DirectMessage;
 }

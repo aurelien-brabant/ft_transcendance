@@ -64,7 +64,7 @@ export const DirectMessageHeader: React.FC<{ viewParams: any }> = ({
 const DirectMessage: React.FC<{ viewParams: { [key: string]: any } }> = ({
 	viewParams,
 }) => {
-	const channelId: string = viewParams.channelId;
+	const dmId: string = viewParams.channelId;
 	const { user } = useSession();
 	const { socket } = useContext(chatContext) as ChatContextType;
 	const [messages, setMessages] = useState<ChatMessage[]>([]);
@@ -72,16 +72,16 @@ const DirectMessage: React.FC<{ viewParams: { [key: string]: any } }> = ({
 	const chatBottom = useRef<HTMLDivElement>(null);
 
 	/* Load all messages in channel */
-	const loadMessages = async (channel: DmChannel) => {
-		if ((channel.id !== channelId) || !channel.messages) return ;
+	const loadMessages = async (dm: DmChannel) => {
+		if ((dm.id !== dmId) || !dm.messages) return ;
 
 		const messages: ChatMessage[] = [];
 
-		channel.messages.sort(
+		dm.messages.sort(
 			(a: Message, b: Message) => (parseInt(a.id) - parseInt(b.id))
 		);
 
-		for (var message of channel.messages) {
+		for (var message of dm.messages) {
 			messages.push({
 				id: messages.length.toString(),
 				author: message.author.username,
@@ -101,7 +101,7 @@ const DirectMessage: React.FC<{ viewParams: { [key: string]: any } }> = ({
 		socket.emit("dmSubmit", {
 			content: currentMessage,
 			from: user.id,
-			channelId: channelId,
+			dmId: dmId,
 		});
 		setCurrentMessage("");
 	};
@@ -131,7 +131,7 @@ const DirectMessage: React.FC<{ viewParams: { [key: string]: any } }> = ({
 	};
 
 	useEffect(() => {
-		socket.emit("getDmData", { dmId: channelId });
+		socket.emit("getDmData", { dmId });
 
 		/* Listeners */
 		socket.on("updateDm", loadMessages);

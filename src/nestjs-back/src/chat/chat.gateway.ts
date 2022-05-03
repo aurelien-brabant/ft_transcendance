@@ -120,7 +120,7 @@ export class ChatGateway implements OnGatewayInit, OnGatewayConnection {
     const user = this.chatUsers.getUser(client.id);
     const message = await this.chatService.addMessageToChannel(data.content, data.from.toString(), data.channelId);
 
-    this.logger.log(`[${user.username}] sends message "${data.content}" on channel [${data.channelId}]`);
+    this.logger.log(`user [${data.from}] sends message "${data.content}" on channel [${data.channelId}]`);
     this.server.to(`channel_${data.channelId}`).emit('newGm', { message });
   }
 
@@ -158,6 +158,9 @@ export class ChatGateway implements OnGatewayInit, OnGatewayConnection {
   ) {
     const dms = await this.chatService.getUserDms(data.userId);
 
+    for (var dm of dms) {
+      client.join(`dm_${dm.id}`);
+    }
     this.server.to(client.id).emit('updateUserDms', (dms));
   }
 
@@ -168,6 +171,7 @@ export class ChatGateway implements OnGatewayInit, OnGatewayConnection {
   ) {
     const dm = await this.chatService.getDmData(data.dmId);
 
+    client.join(`dm_${dm.id}`);
     this.server.to(client.id).emit('updateDm', (dm));
   }
 
@@ -195,13 +199,8 @@ export class ChatGateway implements OnGatewayInit, OnGatewayConnection {
   ) {
     const message = await this.chatService.addMessageToDm(data.content, data.from.toString(), data.dmId);
     const friend = await this.chatService.getFriendFromDm(data.dmId, data.from);
-    const recipient = this.chatUsers.getUserById(friend.id);
 
-    this.server.to(client.id).emit('newDm', { message });
-    /* If recipient is offline, message must be sent once connected */
-    if (recipient) {
-      this.server.to(recipient.socketId).emit('newDm', { message });
-    }
+    this.server.to(`dm_${data.dmId}`).emit('newDm', { message });
     this.logger.log(`New message in DM [${data.dmId}]`);
   }
 }

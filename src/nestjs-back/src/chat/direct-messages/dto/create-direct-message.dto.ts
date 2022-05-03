@@ -6,7 +6,7 @@ import {
   IsOptional,
 } from 'class-validator';
 import { Type } from 'class-transformer';
-import { Message } from 'src/chat/messages/entities/messages.entity';
+import { DmMessage } from 'src/chat/direct-messages/messages/entities/dm-messages.entity';
 import { User } from 'src/users/entities/users.entity';
 
 export class CreateDirectMessageDto {
@@ -19,6 +19,6 @@ export class CreateDirectMessageDto {
 
   @IsOptional()
   @IsArray()
-  @Type(() => Message)
-  readonly messages: Message[];
+  @Type(() => DmMessage)
+  readonly messages: DmMessage[];
 }

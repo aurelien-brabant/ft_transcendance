@@ -8,7 +8,7 @@ import {
   PrimaryGeneratedColumn
 } from "typeorm";
 import { IsOptional } from "class-validator";
-import { Message } from 'src/chat/messages/entities/messages.entity';
+import { ChanMessage } from 'src/chat/channels/messages/entities/chan-messages.entity';
 import { User } from "src/users/entities/users.entity";
 
 @Entity()
@@ -52,8 +52,8 @@ export class Channel {
   @JoinTable()
   bannedUsers: User[];
 
-  @OneToMany(() => Message, message => message.channel, {
+  @OneToMany(() => ChanMessage, message => message.channel, {
     cascade: true
   })
-  messages: Message[];
+  messages: ChanMessage[];
 }

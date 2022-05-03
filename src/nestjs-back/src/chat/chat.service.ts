@@ -2,7 +2,6 @@ import { Injectable, NotFoundException } from '@nestjs/common';
 import { UsersService } from 'src/users/users.service';
 import { ChannelsService } from './channels/channels.service';
 import { DirectMessagesService } from './direct-messages/direct-messages.service';
-import { MessagesService } from './messages/messages.service';
 import { CreateChannelDto } from './channels/dto/create-channel.dto';
 import { CreateDirectMessageDto } from './direct-messages/dto/create-direct-message.dto';
 
@@ -11,7 +10,6 @@ export class ChatService {
   constructor(
     private readonly channelsService: ChannelsService,
     private readonly directMessagesService: DirectMessagesService,
-    private readonly messagesService: MessagesService,
     private readonly usersService: UsersService,
   ) {}
 
@@ -51,10 +49,7 @@ export class ChatService {
   }
 
   async addMessageToChannel(content: string, authorId: string, channelId: string) {
-    const channel = await this.channelsService.findOne(channelId);
-    const author = await this.usersService.findOne(authorId);
-
-    return await this.messagesService.create({ content, author, channel });
+    return await this.channelsService.addMessage(content, authorId, channelId);
   }
 
   /* Direct Messages */
@@ -62,11 +57,10 @@ export class ChatService {
     return await this.directMessagesService.findOne(id);
   }
 
-  async getFriendFromDm(id: string, userId: string) {
-    const dm = await this.directMessagesService.findOne(id);
+  async getFriendFromDm(dmId: string, userId: string) {
+    const dm = await this.directMessagesService.findOne(dmId);
 
-    const friend = dm.users[0].id.toString() === userId ? dm.users[1] : dm.users[0];
-    return friend;
+    return (dm.users[0].id.toString() === userId) ? dm.users[1] : dm.users[0];
   }
 
   async getUserDms(userId: string) {
@@ -90,9 +84,6 @@ export class ChatService {
   }
 
   async addMessageToDm(content: string, authorId: string, dmId: string) {
-    const channel = await this.directMessagesService.findOne(dmId);
-    const author = await this.usersService.findOne(authorId);
-
-    return await this.messagesService.create({ content, author, channel });
+    return await this.directMessagesService.addMessage(content, authorId, dmId);
   }
 }

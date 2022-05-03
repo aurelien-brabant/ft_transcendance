@@ -4,6 +4,7 @@ import { Repository } from 'typeorm';
 import { DirectMessage } from './entities/direct-messages';
 import { CreateDirectMessageDto } from './dto/create-direct-message.dto';
 import { UpdateDirectMessageDto } from './dto/update-direct-message.dto';
+import { DmMessagesService } from 'src/chat/direct-messages/messages/dm-messages.service';
 import { UsersService } from 'src/users/users.service';
 
 @Injectable()
@@ -13,6 +14,7 @@ export class DirectMessagesService {
   constructor(
     @InjectRepository(DirectMessage)
     private readonly directMessagesRepository: Repository<DirectMessage>,
+    private readonly messagesService: DmMessagesService,
     private readonly usersService: UsersService,
   ) {}
 
@@ -79,5 +81,12 @@ export class DirectMessagesService {
     }
     this.logger.log(`Remove Direct Message [${dm.id}]`);
     return this.directMessagesRepository.remove(dm);
+  }
+
+  async addMessage(content: string, authorId: string, dmId: string) {
+    const dm = await this.directMessagesRepository.findOne(dmId);
+    const author = await this.usersService.findOne(authorId);
+
+    return await this.messagesService.create({ content, author, dm });
   }
 }
