@@ -292,7 +292,7 @@ const ChatProvider: React.FC = ({ children }) => {
 	const loadUserChannels = async (channels: Channel[]) => {
 		const groups: ChatGroup[] = [];
 
-		for (var channel of channels) {
+		for (var channel of Array.from(channels)) {
 			groups.push(setChatGroupData(channel, user.id));
 		}
 		/* Sorts from most recent */
@@ -306,7 +306,7 @@ const ChatProvider: React.FC = ({ children }) => {
 	const loadUserDms = async (channels: DmChannel[]) => {
 		const dms: DirectMessage[] = [];
 
-		for (var channel of channels) {
+		for (var channel of Array.from(channels)) {
 			const friend = (channel.users[0].id === user.id) ? channel.users[1] : channel.users[0];
 			const isBlocked = !!blocked.find(user => user.id === friend.id);
 
@@ -336,10 +336,12 @@ const ChatProvider: React.FC = ({ children }) => {
 		/* Listeners */
 		socket.on("updateUserChannels", loadUserChannels);
 		socket.on("updateUserDms", loadUserDms);
+		socket.on("dmCreated", loadUserDms);
 
 		return () => {
 			socket.off("updateUserChannels", loadUserChannels);
 			socket.off("updateUserDms", loadUserDms);
+			socket.off("dmCreated", loadUserDms);
 		};
 	}, [viewStack]);
 

@@ -111,6 +111,19 @@ export class ChatGateway implements OnGatewayInit, OnGatewayConnection {
     this.server.to(`channel_${channel.id}`).emit('channelCreated', (channel));
   }
 
+  /* Save a new group message */
+  @SubscribeMessage('gmSubmit')
+  async handleGmSubmit(
+    @ConnectedSocket() client: Socket,
+    @MessageBody() data: { content: string, from: number, channelId: string }
+  ) {
+    const user = this.chatUsers.getUser(client.id);
+    const message = await this.chatService.addMessageToChannel(data.content, data.from.toString(), data.channelId);
+
+    this.logger.log(`[${user.username}] sends message "${data.content}" on channel [${data.channelId}]`);
+    this.server.to(`channel_${data.channelId}`).emit('newGm', { message });
+  }
+
   /* User joins/quits channel */
   @SubscribeMessage('joinChannel')
   async handleJoinChannel(
@@ -133,19 +146,6 @@ export class ChatGateway implements OnGatewayInit, OnGatewayConnection {
       if (socket) socket.join(`channel_${data.channelId}`);
     }
     this.server.to(`channel_${data.channelId}`).emit('joinedChannel', `${user.username} joined group.`);
-  }
-
-  /* Save a new group message */
-  @SubscribeMessage('gmSubmit')
-  async handleGmSubmit(
-    @ConnectedSocket() client: Socket,
-    @MessageBody() data: { content: string, from: number, channelId: string }
-  ) {
-    const user = this.chatUsers.getUser(client.id);
-    const message = await this.chatService.addMessageToChannel(data.content, data.from.toString(), data.channelId);
-
-    this.logger.log(`[${user.username}] sends message "${data.content}" on channel [${data.channelId}]`);
-    this.server.to(`channel_${data.channelId}`).emit('newGm', { message });
   }
 
   /**

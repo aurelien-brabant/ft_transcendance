@@ -27,7 +27,7 @@ export class ChatService {
       throw new NotFoundException('No channel found.');
     }
     const userChannels = channels.filter(
-      (channel) => channel.users.find(
+      (channel) => channel.users.filter(
         (user) => user.id.toString() === userId
       )
     );
@@ -35,7 +35,9 @@ export class ChatService {
   }
 
   async createChannel(createChannelDto: CreateChannelDto) {
-    return await this.channelsService.create(createChannelDto);
+    const res = await this.channelsService.create(createChannelDto);
+
+    return await this.channelsService.findOne(res.id.toString());
   }
 
   async addUserToChannel(userId: string, channelId: string) {
@@ -74,7 +76,7 @@ export class ChatService {
       throw new NotFoundException('No DM found.');
     }
     const userDms = dms.filter(
-      (dm) => dm.users.find(
+      (dm) => dm.users.filter(
         (user) => user.id.toString() === userId
       )
     );
@@ -82,7 +84,9 @@ export class ChatService {
   }
 
   async createDm(createDirectMessageDto: CreateDirectMessageDto) {
-    return await this.directMessagesService.create(createDirectMessageDto);
+    const res = await this.directMessagesService.create(createDirectMessageDto);
+
+    return await this.directMessagesService.findOne(res.id.toString());
   }
 
   async addMessageToDm(content: string, authorId: string, dmId: string) {

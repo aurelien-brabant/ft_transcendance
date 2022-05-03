@@ -1,6 +1,6 @@
 import { Injectable, NotFoundException } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
-import { Repository } from 'typeorm';
+import { MissingPrimaryColumnError, Repository } from 'typeorm';
 import { User } from './entities/users.entity';
 import { CreateDuoQuadraDto } from './dto/create-duoquadra.dto';
 import { CreateUserDto } from './dto/create-user.dto';
@@ -503,12 +503,14 @@ export class UsersService {
   }
 
   async getDirectMessage(id: string, friendId: string) {
-    const user = await this.usersRepository
-      .createQueryBuilder('user')
-      .innerJoinAndSelect('user.directMessages', 'dm')
-      .innerJoinAndSelect('dm.users', 'users')
-      .where('user.id = :id', { id })
-      .getOne();
+    const user = await this.usersRepository.findOne(id, {
+      relations: [
+        'directMessages',
+        'directMessages.users',
+        'directMessages.messages',
+        'directMessages.messages.author',
+      ],
+    });
 
     if (user) {
       const dm = user.directMessages.find(

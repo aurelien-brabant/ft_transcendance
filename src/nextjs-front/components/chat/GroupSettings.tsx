@@ -58,6 +58,7 @@ const GroupSettings: React.FC<{ viewParams: any }> = ({ viewParams }) => {
 	const { user } = useSession();
 	const { setAlert } = useContext(alertContext) as AlertContextType;
 	const {
+		setChatView,
 		closeRightmostView,
 		fetchChannelData,
 		socket
@@ -163,8 +164,7 @@ const GroupSettings: React.FC<{ viewParams: any }> = ({ viewParams }) => {
 		});
 
 		if (res.status === 200) {
-			closeRightmostView(2);
-			return;
+			setChatView("groups", "Group chats", {});
 		} else {
 			setAlert({
 				type: "error",

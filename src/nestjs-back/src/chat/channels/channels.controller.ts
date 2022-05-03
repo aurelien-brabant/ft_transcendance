@@ -18,7 +18,8 @@ import { UpdateChannelDto } from './dto/update-channel.dto';
 export class ChannelsController {
   constructor(private readonly channelsService: ChannelsService) {}
 
-  @UseGuards(JwtAuthGuard)
+  // commented for debugging
+  // @UseGuards(JwtAuthGuard)
   @Get()
   findAll() {
     return this.channelsService.findAll();
@@ -44,7 +45,8 @@ export class ChannelsController {
   }
 
   /* TODO: only for chat owner */
-  @UseGuards(JwtAuthGuard)
+  // commented for debugging
+  // @UseGuards(JwtAuthGuard)
   @Delete(':id')
   remove(@Param('id') id: string) {
     return this.channelsService.remove(id);

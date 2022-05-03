@@ -127,7 +127,7 @@ const GroupNew: React.FC = () => {
 			newChannel.privacy === "protected" ? "password_protection" : "group",
 			newChannel.name, {
 				channelId: newChannel.id,
-				groupName: newChannel.name,
+				channelName: newChannel.name,
 				privacy: newChannel.privacy
 			}
 		);
