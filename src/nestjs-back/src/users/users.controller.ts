@@ -66,7 +66,7 @@ export class UsersController {
   @Get('/:userId/directmessages')
   getDirectMessages(@Param('userId') id: string, @Query() friendDmQuery) {
     const { friendId } = friendDmQuery;
-    return this.usersService.getDirectMessages(id, friendId);
+    return this.usersService.getDirectMessage(id, friendId);
   }
 
   /* anyone can create a new user to begin the authentication process */
@@ -116,7 +116,7 @@ export class UsersController {
     @Param('userId') id: string,
     @Query() paginationQuery: PaginationQueryDto,
   ) {
-    return this.usersService.findRrank(id, paginationQuery);
+    return this.usersService.findRank(id, paginationQuery);
   }
 
   @UseGuards(JwtAuthGuard, IsLoggedInUserGuard)

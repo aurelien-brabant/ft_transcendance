@@ -6,11 +6,13 @@ import { AppService } from './app.service';
 import { AchievementsModule } from './achievements/achievements.module';
 import { AuthModule } from './auth/auth.module';
 import { ChannelsModule } from './chat/channels/channels.module';
+import { DirectMessagesModule } from './chat/direct-messages/direct-messages.module';
 import { ChatModule } from './chat/chat.module';
 import { GamesModule } from './games/games.module';
 import { MessagesModule } from './chat/messages/messages.module';
 import { SeederModule } from './seeder/seeder.module';
 import { UsersModule } from './users/users.module';
+
 
 @Module({
   imports: [
@@ -18,6 +20,7 @@ import { UsersModule } from './users/users.module';
     AuthModule,
     ChannelsModule,
     ChatModule,
+    // DirectMessagesModule,
     GamesModule,
     MessagesModule,
     SeederModule,

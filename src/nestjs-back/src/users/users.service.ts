@@ -23,6 +23,7 @@ export class UsersService {
     private readonly achievementsService: AchievementsService,
   ) {}
 
+  /* Search */
   findAll(paginationQuery: PaginationQueryDto) {
     const { offset, limit } = paginationQuery;
     return this.usersRepository.find({
@@ -41,27 +42,6 @@ export class UsersService {
     });
   }
 
-  async findUserPassword(email: string): Promise<User> | null {
-    const user = await this.usersRepository
-      .createQueryBuilder('user')
-      .select('user.password')
-      .where('user.email = :email', { email })
-      .getOne();
-
-    return user;
-  }
-
-  async findOneByEmail(email: string): Promise<User> | null {
-    const user = await this.usersRepository.findOne({ email });
-    return user;
-  }
-
-  async findOneByDuoQuadraLogin(login: string): Promise<User> | null {
-    return this.usersRepository.findOne({
-      duoquadra_login: login,
-    });
-  }
-
   async findOne(id: string) {
     const user = await this.usersRepository.findOne(id, {
       relations: [
@@ -77,6 +57,37 @@ export class UsersService {
     return user;
   }
 
+  async findOneByEmail(email: string): Promise<User> | null {
+    const user = await this.usersRepository.findOne({ email });
+    return user;
+  }
+
+  async findOneByDuoQuadraLogin(login: string): Promise<User> | null {
+    return this.usersRepository.findOne({
+      duoquadra_login: login,
+    });
+  }
+
+  async findUserPassword(email: string): Promise<User> | null {
+    const user = await this.usersRepository
+      .createQueryBuilder('user')
+      .select('user.password')
+      .where('user.email = :email', { email })
+      .getOne();
+
+    return user;
+  }
+
+  async findRank(id: string, paginationQuery: PaginationQueryDto) {
+    const users = await this.findAll(paginationQuery);
+    let rank: string;
+
+    for (let i = 0; i < users.length; i++) {
+      if (String(users[i].id) === id) rank = String(i + 1);
+    }
+    return rank;
+  }
+
   async searchUsers(searchTerm: string) {
     const users = await this.usersRepository
       .createQueryBuilder('users')
@@ -86,55 +97,7 @@ export class UsersService {
     return users;
   }
 
-  async getOwnedChannels(id: string) {
-    const user = await this.usersRepository.findOne(id, {
-      relations: ['ownedChannels'],
-    });
-    if (!user) throw new NotFoundException(`User [${id}] not found`);
-    return user.ownedChannels;
-  }
-
-  async getJoinedChannels(id: string) {
-    const user = await this.usersRepository.findOne(id, {
-      relations: [
-        'joinedChannels',
-        'joinedChannels.owner',
-        'joinedChannels.users',
-        'joinedChannels.messages',
-        'joinedChannels.messages.author',
-      ],
-    });
-    if (!user) throw new NotFoundException(`User [${id}] joined no channels`);
-    return user.joinedChannels;
-  }
-
-  async getDirectMessages(id: string, friendId: string) {
-    const user = await this.usersRepository
-      .createQueryBuilder('user')
-      .innerJoinAndSelect('user.joinedChannels', 'channel')
-      .innerJoinAndSelect('channel.users', 'users')
-      .where('user.id = :id', { id })
-      .andWhere('channel.privacy = :privacy', { privacy: 'dm' })
-      .getOne();
-
-    if (user) {
-      const dms = user.joinedChannels;
-      if (!friendId) {
-        return dms;
-      }
-      var result = dms.filter((dm) =>
-        dm.users.find((user) => {
-          return user.id.toString() === friendId;
-        }),
-      );
-      if (result.length !== 0) {
-        return result[0]; // TODO: improve
-      }
-      // return {};
-    }
-    throw new NotFoundException(`User [${id}] sent no DM`);
-  }
-
+  /* Create */
   async createDuoQuadra(
     { email, phone, login }: CreateDuoQuadraDto,
     ftBearer: string,
@@ -208,6 +171,7 @@ export class UsersService {
     return this.usersRepository.save(user);
   }
 
+  /* Update */
   async update(id: string, updateUserDto: UpdateUserDto) {
     let user: User | null = null;
     let tmpDto = {};
@@ -297,58 +261,6 @@ export class UsersService {
     return this.usersRepository.save(user);
   }
 
-  async remove(id: string) {
-    const user = await this.findOne(id);
-    return this.usersRepository.remove(user);
-  }
-
-  async findRrank(id: string, paginationQuery: PaginationQueryDto) {
-    const users = await this.findAll(paginationQuery);
-    let rank: string;
-
-    for (let i = 0; i < users.length; i++) {
-      if (String(users[i].id) === id) rank = String(i + 1);
-    }
-    return rank;
-  }
-
-  async setTfaSecret(secret: string, id: string) {
-    return this.usersRepository.update(id, {
-      tfaSecret: secret,
-    });
-  }
-
-  async enableTfa(id: string) {
-    return this.usersRepository.update(id, {
-      tfa: true,
-    });
-  }
-
-  async generateTfaSecret(user: User) {
-    const secret = authenticator.generateSecret();
-    const tfaAppName = 'ft_transcendance';
-
-    const otpauthUrl = authenticator.keyuri(user.email, tfaAppName, secret);
-
-    await this.setTfaSecret(secret, String(user.id));
-
-    return {
-      secret,
-      otpauthUrl,
-    };
-  }
-
-  async pipeQrCodeStream(stream: any, otpauthUrl: string) {
-    return toFileStream(stream, otpauthUrl);
-  }
-
-  async isTfaCodeValid(tfaCode: string, user: User) {
-    return authenticator.verify({
-      token: tfaCode,
-      secret: user.tfaSecret,
-    });
-  }
-
   async uploadAvatar(id: string, filename: string) {
     await this.usersRepository.update(id, {
       pic: filename,
@@ -380,52 +292,104 @@ export class UsersService {
     return { upload: 'success' };
   }
 
-  async removeRelation(id: string, userToUpdate: string, action: string) {
-    let user = await this.findOne(id);
-    if (!user)
-      throw new NotFoundException(`Cannot update user[${id}]: Not found`);
-
-    let oldList: any;
-    if (action === 'friend') oldList = user.friends;
-    else if (action === 'unblock') oldList = user.blockedUsers;
-    else if (action === 'removeFriendsSent') oldList = user.pendingFriendsSent;
-    else if (action === 'removeFriendsReceived')
-      oldList = user.pendingFriendsReceived;
-    let updated = [];
-    for (let i in oldList) {
-      if (String(oldList[i].id) !== userToUpdate)
-        updated.push({ id: oldList[i].id });
-    }
-    if (updated.length !== oldList.length && action === 'friend') {
-      user = await this.usersRepository.preload({
-        id: +id,
-        friends: updated,
-      });
-    } else if (updated.length !== oldList.length && action === 'unblock') {
-      user = await this.usersRepository.preload({
-        id: +id,
-        blockedUsers: updated,
-      });
-    } else if (
-      updated.length !== oldList.length &&
-      action === 'removeFriendsSent'
-    ) {
-      user = await this.usersRepository.preload({
-        id: +id,
-        pendingFriendsSent: updated,
-      });
-    } else if (
-      updated.length !== oldList.length &&
-      action === 'removeFriendsReceived'
-    ) {
-      user = await this.usersRepository.preload({
-        id: +id,
-        pendingFriendsReceived: updated,
-      });
-    }
-    return this.usersRepository.save(user);
+  /* Remove */
+  async remove(id: string) {
+    const user = await this.findOne(id);
+    return this.usersRepository.remove(user);
   }
 
+  /* Security */
+  async pipeQrCodeStream(stream: any, otpauthUrl: string) {
+    return toFileStream(stream, otpauthUrl);
+  }
+
+  /* TFA */
+  async setTfaSecret(secret: string, id: string) {
+    return this.usersRepository.update(id, {
+      tfaSecret: secret,
+    });
+  }
+
+  async enableTfa(id: string) {
+    return this.usersRepository.update(id, {
+      tfa: true,
+    });
+  }
+
+  async generateTfaSecret(user: User) {
+    const secret = authenticator.generateSecret();
+    const tfaAppName = 'ft_transcendance';
+
+    const otpauthUrl = authenticator.keyuri(user.email, tfaAppName, secret);
+
+    await this.setTfaSecret(secret, String(user.id));
+
+    return {
+      secret,
+      otpauthUrl,
+    };
+  }
+
+  async generateTfaRequestForNow(userId: string) {
+    const user = await this.findOne(userId);
+    const tfaRequestNow = new Date(
+      Date.now() + 5000,
+    ); /* 5 seconds offset to anticipate request time */
+
+    if (user) {
+      await this.usersRepository.save({
+        ...user,
+        lastTfaRequestTimestamp: tfaRequestNow,
+      });
+    }
+  }
+
+  async isTfaCodeValid(tfaCode: string, user: User) {
+    return authenticator.verify({
+      token: tfaCode,
+      secret: user.tfaSecret,
+    });
+  }
+
+  async validateTfaRequest(userId: string) {
+    const user = await this.findOne(userId);
+
+    if (!user) {
+      return;
+    }
+
+    await this.usersRepository.save({
+      ...user,
+      hasTfaBeenValidated: true,
+    });
+  }
+
+  async invalidateTfaRequest(userId: string) {
+    const user = await this.findOne(userId);
+
+    user.lastTfaRequestTimestamp = null;
+    user.hasTfaBeenValidated = false;
+    await this.usersRepository.save(user);
+  }
+
+  async hasOnGoingTfaRequest(userId: string) {
+    const user = await this.findOne(userId);
+
+    if (!user) {
+      return false;
+    }
+
+    const tfaRequestExpirationTime = process.env.TFA_REQUEST_EXPIRES_IN
+      ? Number(process.env.TFA_REQUEST_EXPIRES_IN) * 60 * 1000
+      : 5 * 60 * 1000;
+    const tfaRequestExpirationEpoch =
+      new Date(user.lastTfaRequestTimestamp).getTime() +
+      tfaRequestExpirationTime;
+
+    return tfaRequestExpirationEpoch >= Date.now();
+  }
+
+  /* Games */
   async updateStats(id: string, action: string) {
     let user = await this.findOne(id);
     if (!user)
@@ -482,55 +446,90 @@ export class UsersService {
     return this.usersRepository.save(user);
   }
 
-  async generateTfaRequestForNow(userId: string) {
-    const user = await this.findOne(userId);
-    const tfaRequestNow = new Date(
-      Date.now() + 5000,
-    ); /* 5 seconds offset to anticipate request time */
+  /* Relationships */
+  async removeRelation(id: string, userToUpdate: string, action: string) {
+    let user = await this.findOne(id);
+    if (!user)
+      throw new NotFoundException(`Cannot update user[${id}]: Not found`);
 
-    if (user) {
-      await this.usersRepository.save({
-        ...user,
-        lastTfaRequestTimestamp: tfaRequestNow,
+    let oldList: any;
+    if (action === 'friend') oldList = user.friends;
+    else if (action === 'unblock') oldList = user.blockedUsers;
+    else if (action === 'removeFriendsSent') oldList = user.pendingFriendsSent;
+    else if (action === 'removeFriendsReceived')
+      oldList = user.pendingFriendsReceived;
+    let updated = [];
+    for (let i in oldList) {
+      if (String(oldList[i].id) !== userToUpdate)
+        updated.push({ id: oldList[i].id });
+    }
+    if (updated.length !== oldList.length && action === 'friend') {
+      user = await this.usersRepository.preload({
+        id: +id,
+        friends: updated,
+      });
+    } else if (updated.length !== oldList.length && action === 'unblock') {
+      user = await this.usersRepository.preload({
+        id: +id,
+        blockedUsers: updated,
+      });
+    } else if (
+      updated.length !== oldList.length &&
+      action === 'removeFriendsSent'
+    ) {
+      user = await this.usersRepository.preload({
+        id: +id,
+        pendingFriendsSent: updated,
+      });
+    } else if (
+      updated.length !== oldList.length &&
+      action === 'removeFriendsReceived'
+    ) {
+      user = await this.usersRepository.preload({
+        id: +id,
+        pendingFriendsReceived: updated,
       });
     }
+    return this.usersRepository.save(user);
   }
 
-  async validateTfaRequest(userId: string) {
-    const user = await this.findOne(userId);
-
-    if (!user) {
-      return;
-    }
-
-    await this.usersRepository.save({
-      ...user,
-      hasTfaBeenValidated: true,
+  /* Chat */
+  async getOwnedChannels(id: string) {
+    const user = await this.usersRepository.findOne(id, {
+      relations: ['ownedChannels'],
     });
+    if (!user) throw new NotFoundException(`User [${id}] not found`);
+    return user.ownedChannels;
   }
 
-  async invalidateTfaRequest(userId: string) {
-    const user = await this.findOne(userId);
-
-    user.lastTfaRequestTimestamp = null;
-    user.hasTfaBeenValidated = false;
-    await this.usersRepository.save(user);
+  async getJoinedChannels(id: string) {
+    const user = await this.usersRepository.findOne(id, {
+      relations: [
+        'joinedChannels',
+        'joinedChannels.owner',
+        'joinedChannels.users',
+        'joinedChannels.messages',
+        'joinedChannels.messages.author',
+      ],
+    });
+    if (!user) throw new NotFoundException(`User [${id}] joined no channels`);
+    return user.joinedChannels;
   }
 
-  async hasOnGoingTfaRequest(userId: string) {
-    const user = await this.findOne(userId);
+  async getDirectMessage(id: string, friendId: string) {
+    const user = await this.usersRepository
+      .createQueryBuilder('user')
+      .innerJoinAndSelect('user.directMessages', 'dm')
+      .innerJoinAndSelect('dm.users', 'users')
+      .where('user.id = :id', { id })
+      .getOne();
 
-    if (!user) {
-      return false;
+    if (user) {
+      const dm = user.directMessages.find(
+        (dm) => dm.users.find((user) => user.id.toString() === friendId)
+      );
+      if (dm) return dm;
     }
-
-    const tfaRequestExpirationTime = process.env.TFA_REQUEST_EXPIRES_IN
-      ? Number(process.env.TFA_REQUEST_EXPIRES_IN) * 60 * 1000
-      : 5 * 60 * 1000;
-    const tfaRequestExpirationEpoch =
-      new Date(user.lastTfaRequestTimestamp).getTime() +
-      tfaRequestExpirationTime;
-
-    return tfaRequestExpirationEpoch >= Date.now();
+    throw new NotFoundException(`User [${id}] sent no DM`);
   }
 }
