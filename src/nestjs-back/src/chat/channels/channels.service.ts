@@ -23,7 +23,10 @@ export class ChannelsService {
     private schedulerRegistry: SchedulerRegistry
   ) {}
 
-  /* A user is unban after a limited time */
+  /**
+   * NOTE: to be updated
+   * A user is unban after a limited time
+   */
   scheduleUnban(channelId: string, userId: string, duration: number) {
     const unbanTime = new Date(Date.now() + duration * 60000);
 
@@ -42,7 +45,10 @@ export class ChannelsService {
     job.start();
   }
 
-  /* A user is unmute after a limited time */
+  /**
+   * NOTE: to be updated
+   * A user is unmute after a limited time
+   */
   scheduleUnmute(channelId: string, userId: string, duration: number) {
     const unmuteTime = new Date(Date.now() + duration * 60000);
 
@@ -61,10 +67,60 @@ export class ChannelsService {
     job.start();
   }
 
-  findAll() {
+  /* Helpers */
+  async getChannelPassword(id: string) {
+    const channel = await this.channelsRepository
+      .createQueryBuilder('channel')
+      .select('channel.password')
+      .where('channel.id = :id', { id })
+      .getOne();
+    return channel.password;
+  }
+
+  async getChannelUsers(id: string) {
+    const channel = await this.channelsRepository
+      .createQueryBuilder('channel')
+      .innerJoinAndSelect('channel.users', 'users')
+      .where('channel.id = :id', { id })
+      .getOne();
+    return channel;
+  }
+
+  getPublicChannels() {
     return this.channelsRepository.find({
-      relations: ['owner']
+      where: { privacy: 'public' },
+      relations: [
+        'owner',
+        'users',
+        'messages',
+        'messages.author'
+      ]
     });
+  }
+
+  /* NOTE: to be removed */
+  async joinProtectedChan(id: string, userId: string, password: string) {
+    let channel = await this.channelsRepository.findOne(id, {
+      where: { privacy: 'protected' }
+    });
+    const user = await this.usersService.findOne(userId);
+
+    if (channel) {
+      const chanPassword = await this.getChannelPassword(id);
+      const passIsValid = await comparePassword(password, chanPassword);
+
+      if (passIsValid) {
+        channel = await this.getChannelUsers(id);
+        channel.users.push(user);
+        this.logger.log(`User [${userId}] joined channel [${channel.id}][${channel.name}]`);
+        return this.channelsRepository.save(channel);
+      }
+    }
+    throw new UnauthorizedException();
+  }
+
+  findAll() {
+    return this.channelsRepository.find({ relations: ['owner'] });
   }
 
   async findOne(id: string) {
@@ -135,56 +191,5 @@ export class ChannelsService {
     }
     this.logger.log(`Remove channel [${channel.id}][${channel.name}]`);
     return this.channelsRepository.remove(channel);
-  }
-
-  /* Getters */
-  async getChannelPassword(id: string) {
-    const channel = await this.channelsRepository
-      .createQueryBuilder('channel')
-      .select('channel.password')
-      .where('channel.id = :id', { id })
-      .getOne();
-    return channel.password;
-  }
-
-  async getChannelUsers(id: string) {
-    const channel = await this.channelsRepository
-      .createQueryBuilder('channel')
-      .innerJoinAndSelect('channel.users', 'users')
-      .where('channel.id = :id', { id })
-      .getOne();
-    return channel;
-  }
-
-  getPublicChannels() {
-    return this.channelsRepository.find({
-      where: { privacy: 'public' },
-      relations: [
-        'owner',
-        'users',
-        'messages',
-        'messages.author'
-      ]
-    });
-  }
-
-  /* Join */
-  async joinProtectedChan(id: string, userId: string, password: string) {
-    let channel = await this.channelsRepository.findOne(id, {
-      where: { privacy: 'protected' }
-    });
-    const user = await this.usersService.findOne(userId);
-
-    if (channel) {
-      const chanPassword = await this.getChannelPassword(id);
-      const passIsValid = await comparePassword(password, chanPassword);
-      if (passIsValid) {
-        channel = await this.getChannelUsers(id);
-        channel.users.push(user);
-        this.logger.log(`User [${userId}] joined channel [${channel.id}][${channel.name}]`);
-        return this.channelsRepository.save(channel);
-      }
-    }
-    throw new UnauthorizedException();
   }
 }

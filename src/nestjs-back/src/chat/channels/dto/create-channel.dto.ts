@@ -28,7 +28,7 @@ export class CreateChannelDto {
   readonly name: string;
 
   @IsString()
-  @IsIn(["public", "private", "protected", "dm"])
+  @IsIn(["public", "private", "protected"])
   readonly privacy: string;
 
   @IsOptional()
