@@ -1,8 +1,6 @@
 import { Fragment, useContext, useEffect, useState } from "react";
 import { AiOutlineArrowLeft, AiOutlineClose } from "react-icons/ai";
-import { Channel } from 'transcendance-types';
 import { useSession } from "../../hooks/use-session";
-import alertContext, { AlertContextType } from "../../context/alert/alertContext";
 import chatContext, { ChatContextType, ChatGroupPrivacy } from "../../context/chat/chatContext";
 
 type NewGroupData = {
@@ -55,8 +53,7 @@ export const GroupNewHeader: React.FC = () => {
 /* Form area */
 const GroupNew: React.FC = () => {
 	const { user } = useSession();
-	const { setAlert } = useContext(alertContext) as AlertContextType;
-	const { openChatView, socket } = useContext(chatContext) as ChatContextType;
+	const { handleChannelCreation, handleChatError, socket } = useContext(chatContext) as ChatContextType;
 
 	/* Form */
 	const [formData, setFormData] = useState<NewGroupData>({
@@ -122,32 +119,14 @@ const GroupNew: React.FC = () => {
 		socket.emit("createChannel", data);
 	}
 
-	const handleChannelCreation = (newChannel: Channel) => {
-		openChatView(
-			newChannel.privacy === "protected" ? "password_protection" : "group",
-			newChannel.name, {
-				channelId: newChannel.id,
-				channelName: newChannel.name,
-				privacy: newChannel.privacy
-			}
-		);
-	};
-
-	const handleChannelCreationError = (errMessage: string) => {
-		setAlert({
-			type: "warning",
-			content: errMessage
-		});
-	};
-
 	useEffect(() => {
 		/* Listeners */
 		socket.on("channelCreated", handleChannelCreation);
-		socket.on("createChannelError", handleChannelCreationError);
+		socket.on("createChannelError", handleChatError);
 
 		return () => {
 			socket.off("channelCreated", handleChannelCreation);
-			socket.off("createChannelError", handleChannelCreationError);
+			socket.off("createChannelError", handleChatError);
 		};
 	}, []);
 

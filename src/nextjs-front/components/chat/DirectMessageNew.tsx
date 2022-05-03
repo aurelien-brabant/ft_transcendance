@@ -1,9 +1,8 @@
 import { Fragment, useContext, useEffect, useRef, useState } from "react";
 import { AiOutlineArrowLeft, AiOutlineClose } from "react-icons/ai";
-import { DmChannel, User } from "transcendance-types";
+import { User } from "transcendance-types";
 import { UserStatusItem } from "../UserStatus";
 import { useSession } from "../../hooks/use-session";
-import alertContext, { AlertContextType } from "../../context/alert/alertContext";
 import chatContext, { ChatContextType } from "../../context/chat/chatContext";
 import relationshipContext, { RelationshipContextType } from "../../context/relationship/relationshipContext";
 
@@ -35,8 +34,7 @@ export const DirectMessageNewHeader: React.FC = () => {
 /* Search bar and friend list */
 const DirectMessageNew: React.FC = () => {
 	const { user } = useSession();
-	const { setAlert } = useContext(alertContext) as AlertContextType;
-	const { openChatView, socket } = useContext(chatContext) as ChatContextType;
+	const { createDirectMessage } = useContext(chatContext) as ChatContextType;
 	const { friends } = useContext(relationshipContext) as RelationshipContextType;
 	const [filteredFriends, setFilteredFriends] = useState<User[]>([]);
 	const searchInputRef = useRef<HTMLInputElement>(null);
@@ -58,43 +56,8 @@ const DirectMessageNew: React.FC = () => {
 
 	/* Find existing DM or create a new one */
 	const handleSelect = async (friend: User) => {
-		const data = {
-			users: [
-				{ id: user.id },
-				{ id: friend.id }
-			],
-		};
-
-		socket.emit("createDm", data);
+		createDirectMessage(user.id, friend.id);
 	}
-
-	const handleDmCreation = (newDm: DmChannel) => {
-		const friend = (newDm.users[0].id === user.id) ? newDm.users[1] : newDm.users[0];
-
-		openChatView('dm', 'direct message', {
-			channelId: newDm.id,
-			friendUsername: friend.username,
-			friendId: friend.id
-		});
-	};
-
-	const handleDmCreationError = (errMessage: string) => {
-		setAlert({
-			type: "warning",
-			content: errMessage
-		});
-	};
-
-	useEffect(() => {
-		/* Listeners */
-		socket.on("dmCreated", handleDmCreation);
-		socket.on("createDmError", handleDmCreationError);
-
-		return () => {
-			socket.off("dmCreated", handleDmCreation);
-			socket.off("createDmError", handleDmCreationError);
-		};
-	}, []);
 
 	return (
 		<Fragment>
