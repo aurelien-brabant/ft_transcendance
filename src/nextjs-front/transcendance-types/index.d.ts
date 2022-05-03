@@ -69,18 +69,21 @@ export type Message = {
 	channel: Channel;
 };
 
+export type DmChannel = {
+	id: string;
+	users: User[];
+	messages: Message[];
+}
+
 /**
  * GET /api/channels/:id
  */
-export type Channel = {
-	id: string;
+export type Channel = DmChannel & {
 	name: string;
 	privacy: string;
 	restrictionDuration: number;
 	owner: User;
-	users: User[];
 	admins: User[];
 	mutedUsers: User[];
 	bannedUsers: User[];
-	messages: Message[];
 }

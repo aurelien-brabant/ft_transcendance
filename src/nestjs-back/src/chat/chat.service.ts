@@ -12,15 +12,13 @@ export class ChatService {
     private readonly usersService: UsersService,
   ) {}
 
+  /* Channels */
   async createChannel(createChannelDto: CreateChannelDto) {
     return await this.channelsService.create(createChannelDto);
   }
 
-  async saveMessage(content: string, authorId: string, channelId: string) {
-    const channel = await this.channelsService.findOne(channelId);
-    const author = await this.usersService.findOne(authorId);
-
-    return await this.messagesService.create({ content, author, channel });
+  async getChannelData(id: string) {
+    return await this.channelsService.findOne(id);
   }
 
   async getUserChannels(id: string) {
@@ -34,10 +32,6 @@ export class ChatService {
     return channels;
   }
 
-  async getChannelData(id: string) {
-    return await this.channelsService.findOne(id);
-  }
-
   async addUserToChannel(userId: string, channelId: string) {
     const user = await this.usersService.findOne(userId);
     const channel = await this.channelsService.findOne(channelId);
@@ -46,5 +40,13 @@ export class ChatService {
       users: [ ...channel.users, user]
     });
     return user;
+  }
+
+  /* Messages */
+  async saveMessage(content: string, authorId: string, channelId: string) {
+    const channel = await this.channelsService.findOne(channelId);
+    const author = await this.usersService.findOne(authorId);
+
+    return await this.messagesService.create({ content, author, channel });
   }
 }

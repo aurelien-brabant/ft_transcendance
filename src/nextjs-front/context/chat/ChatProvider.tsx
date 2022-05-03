@@ -1,7 +1,7 @@
 import { useContext, useEffect, useState } from "react";
 import { BsFillChatDotsFill } from "react-icons/bs";
 import { Bounce } from "react-awesome-reveal";
-import { BaseUserData, Channel, Message } from 'transcendance-types';
+import { BaseUserData, Channel, DmChannel } from 'transcendance-types';
 import { useSession } from "../../hooks/use-session";
 import alertContext, { AlertContextType } from "../alert/alertContext";
 import authContext, { AuthContextValue } from "../auth/authContext";
@@ -171,7 +171,7 @@ const ChatProvider: React.FC = ({ children }) => {
 	};
 
 	/* Message utils */
-	const getLastMessage = (channel: Channel) => {
+	const getLastMessage = (channel: Channel | DmChannel, isProtected: boolean) => {
 		let message: ChatMessagePreview = {
 			content: "",
 			createdAt: new Date(Date.now())
@@ -184,7 +184,7 @@ const ChatProvider: React.FC = ({ children }) => {
 
 			message.createdAt = new Date(lastMessage.createdAt);
 
-			if (channel.privacy !== "protected") {
+			if (!isProtected) {
 				if (!!blocked.find(user => user.id == lastMessage.author.id)) {
 					message.content = "Blocked message";
 				} else {
@@ -195,9 +195,9 @@ const ChatProvider: React.FC = ({ children }) => {
 		return message;
 	}
 
-	/* Chat groups utils */
+	/* Setters */
 	const setChatGroupData = (channel: Channel, userId: string) => {
-		const lastMessage: ChatMessagePreview = getLastMessage(channel);
+		const lastMessage: ChatMessagePreview = getLastMessage(channel, channel.privacy === "protected");
 
 		const group: ChatGroup = {
 			id: channel.id,
@@ -213,9 +213,8 @@ const ChatProvider: React.FC = ({ children }) => {
 		return group;
 	}
 
-	/* Direct messages utils */
-	const setDirectMessageData = (channel: Channel, friend: BaseUserData) => {
-		const lastMessage: ChatMessagePreview = getLastMessage(channel);
+	const setDirectMessageData = (channel: DmChannel, friend: BaseUserData) => {
+		const lastMessage: ChatMessagePreview = getLastMessage(channel, false);
 
 		const dm: DirectMessage = {
 			id: channel.id,
@@ -228,6 +227,7 @@ const ChatProvider: React.FC = ({ children }) => {
 		return dm;
 	}
 
+	/* NOTE: to be removed */
 	const createDirectMessage = async (userId: string, friendId: string) => {
 		if (userId === friendId) return ;
 
@@ -261,7 +261,7 @@ const ChatProvider: React.FC = ({ children }) => {
 		}
 	}
 
-	/* Find existing DM or create a new one */
+	/* NOTE: to be removed */
 	const openDirectMessage = async (userId: string, friend: any) => {
 		if (userId === friend.id.toString()) return ;
 
@@ -281,45 +281,45 @@ const ChatProvider: React.FC = ({ children }) => {
 		});
 	}
 
-	/* Channels */
-
-	/* Fetch the data of a specific channel
-	 * NOTE: to be removed
-	 */
+	/* NOTE: to be removed */
 	const fetchChannelData = async (id: string) => {
 		const res = await fetch(`/api/channels/${id}`);
 		const data = await res.json();
 		return data;
 	}
 
-	/* Load all channels joined by user or visible */
+	/* Load data */
 	const loadUserChannels = async (channels: Channel[]) => {
 		const groups: ChatGroup[] = [];
-		const dms: DirectMessage[] = [];
 
 		for (var channel of channels) {
-			if (channel.privacy === "dm") {
-				const friend = (channel.users[0].id === user.id) ? channel.users[1] : channel.users[0];
-				/* Don't display DMs from blocked users */
-				const isBlocked = !!blocked.find(user => user.id === friend.id);
-				if (!isBlocked) {
-					dms.push(setDirectMessageData(channel, friend));
-				}
-			} else {
-				groups.push(setChatGroupData(channel, user.id));
-			}
+			groups.push(setChatGroupData(channel, user.id));
 		}
-
 		/* Sorts from most recent */
 		groups.sort(
 			(a: ChatGroup, b: ChatGroup) =>
 			(b.updatedAt.valueOf() - a.updatedAt.valueOf())
 		);
+		setChatGroups(groups);
+	}
+
+	const loadUserDms = async (channels: DmChannel[]) => {
+		const dms: DirectMessage[] = [];
+
+		for (var channel of channels) {
+			const friend = (channel.users[0].id === user.id) ? channel.users[1] : channel.users[0];
+			const isBlocked = !!blocked.find(user => user.id === friend.id);
+
+			/* Don't display DMs from blocked users */
+			if (!isBlocked) {
+				dms.push(setDirectMessageData(channel, friend));
+			}
+		}
+		/* Sorts from most recent */
 		dms.sort(
 			(a: DirectMessage, b: DirectMessage) =>
 			(b.updatedAt.valueOf() - a.updatedAt.valueOf())
 		);
-		setChatGroups(groups);
 		setDirectMessages(dms);
 	}
 
@@ -327,15 +327,19 @@ const ChatProvider: React.FC = ({ children }) => {
 	useEffect(() => {
 		if (!user) return ;
 
-		if (checkCurrentView("groups") || checkCurrentView("dms")) {
+		if (checkCurrentView("groups")) {
 			socket.emit("getUserChannels", { userId: user.id });
+		} else if (checkCurrentView("dms")) {
+			socket.emit("getUserDms", { userId: user.id });
 		}
 
 		/* Listeners */
 		socket.on("updateUserChannels", loadUserChannels);
+		socket.on("updateUserDms", loadUserDms);
 
 		return () => {
 			socket.off("updateUserChannels", loadUserChannels);
+			socket.off("updateUserDms", loadUserDms);
 		};
 	}, [viewStack]);
 

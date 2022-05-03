@@ -1,5 +1,6 @@
 import { PartialType } from '@nestjs/mapped-types';
 import {
+  IsArray,
   IsBoolean,
   IsDecimal,
   IsOptional,
@@ -10,11 +11,12 @@ import {
   MaxLength,
   MinLength,
 } from 'class-validator';
-import { Transform } from 'class-transformer';
+import { Transform, Type } from 'class-transformer';
 import { Achievement } from 'src/achievements/entities/achievements.entity';
 import { CreateUserDto } from './create-user.dto';
 
 export class UpdateUserDto extends PartialType(CreateUserDto) {
+    /* Informations */
     @IsOptional()
     @Transform(({ value }) => value.trim())
     @IsNotEmpty()
@@ -28,9 +30,16 @@ export class UpdateUserDto extends PartialType(CreateUserDto) {
     readonly username: string;
 
     @IsOptional()
+    @Transform(({ value }) => value.trim())
+    @IsNotEmpty()
+    @IsString()
+    readonly duoquadra_login: string;
+
+    @IsOptional()
     @IsPhoneNumber()
     readonly phone: string;
 
+    /* Security */
     @IsOptional()
     @IsBoolean()
     readonly tfa: boolean;
@@ -39,16 +48,13 @@ export class UpdateUserDto extends PartialType(CreateUserDto) {
     @IsString()
     readonly tfaSecret: string;
 
-    @IsOptional()
-    @Transform(({ value }) => value.trim())
-    @IsNotEmpty()
-    @IsString()
-    readonly duoquadra_login: string;
-
+    /* Games */
     @IsOptional()
     @IsDecimal()
     readonly ratio: number;
 
     @IsOptional()
+    @IsArray()
+    @Type(() => Achievement)
     readonly achievements: Achievement[];
 }

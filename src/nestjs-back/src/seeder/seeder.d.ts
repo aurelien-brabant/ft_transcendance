@@ -58,6 +58,12 @@ export type SeedChannel = {
   messages: SeedMessage[];
 };
 
+export type SeedDirectMessage = {
+  id: number;
+  users: SeedUser[];
+  messages: SeedMessage[];
+};
+
 /* MESSAGES */
 
 export type SeedMessage = {
@@ -65,5 +71,5 @@ export type SeedMessage = {
   createdAt: Date;
   content: string;
   author: SeedUser;
-  channel: SeedChannel;
+  channel: SeedChannel | SeedDirectMessage;
 };

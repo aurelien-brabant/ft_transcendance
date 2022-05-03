@@ -1,6 +1,5 @@
 import {
   Column,
-  CreateDateColumn,
   Entity,
   JoinTable,
   ManyToMany,
@@ -17,10 +16,10 @@ export class Channel {
   @PrimaryGeneratedColumn()
   id: number;
 
-  @Column({ length: 50 })
+  @Column()
   name: string;
 
-  /* public, private, protected, dm */
+  /* public, private, protected */
   @Column({ default: "private" })
   privacy: string
 

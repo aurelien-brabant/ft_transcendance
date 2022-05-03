@@ -4,6 +4,7 @@ import {SeedChannel, SeedGame, SeedMessage, SeedUser} from './seeder';
 import {UsersService} from '../users/users.service';
 import {GamesService} from '../games/games.service';
 import {ChannelsService} from '../chat/channels/channels.service';
+import {DirectMessagesService} from '../chat/direct-messages/direct-messages.service';
 import {MessagesService} from '../chat/messages/messages.service';
 import {faker} from '@faker-js/faker';
 import {AchievementsService} from 'src/achievements/achievements.service';
@@ -16,6 +17,7 @@ export class SeederService {
          private readonly gamesService: GamesService,
          private readonly channelsService: ChannelsService,
          private readonly messagesService: MessagesService,
+         private readonly directMessagesService: DirectMessagesService,
          private readonly achievementsService: AchievementsService,
       ) {}
     
@@ -90,8 +92,6 @@ export class SeederService {
          await this.seedFakeGames();
          console.log('[+] Seeding fake chat groups..');
          await this.seedFakeGroups();
-         console.log('[+] Seeding fake DMs...');
-         await this.seedFakeDMs();
      }
     
      async seedFakeUsers() {
@@ -191,24 +191,6 @@ export class SeederService {
              await this.seedFakeMessages(channel, fakeOwner, fakeFriend);
          }
          await this.seedBlockedUserGroup();
-     }
-    
-     async seedFakeDMs() {
-         const fakeOwner = await this.usersService.findOne('1');
-    
-         for (let i = 2; i < 11; ++i) {
-             const fakeFriend = await this.usersService.findOne(i.toString())
-             let channel = await this.channelsService.create({
-                 name: 'fakeDM_' + i,
-                 privacy: 'dm',
-                 owner: fakeOwner,
-                 users: [fakeOwner, fakeFriend],
-                 messages: []
-             } as SeedChannel);
-    
-             console.log('[+] Seeding fake messages in channel [%s]...', channel.id);
-             await this.seedFakeMessages(channel, fakeOwner, fakeFriend);
-         }
      }
 }
 */
