@@ -12,9 +12,9 @@ import {
 } from '@nestjs/websockets';
 import { ChatService } from './chat.service';
 import { Channel } from './channels/entities/channels.entity';
+import { DirectMessage } from './direct-messages/entities/direct-messages';
 import { UserStatus } from 'src/games/class/Constants';
 import { ConnectedUsers, User } from 'src/games/class/ConnectedUsers';
-import { CLIENT_RENEG_WINDOW } from 'tls';
 
 @WebSocketGateway(
   {
@@ -48,7 +48,6 @@ export class ChatGateway implements OnGatewayInit, OnGatewayConnection {
   }
   */
 
-  /* Update connected user */
   @SubscribeMessage('updateChatUser')
   handleNewUser(
     @ConnectedSocket() client: Socket,
@@ -69,7 +68,7 @@ export class ChatGateway implements OnGatewayInit, OnGatewayConnection {
   }
 
   /**
-   * Getters
+   * Channels
    */
   @SubscribeMessage('getUserChannels')
   async handleUserChannels(
@@ -95,9 +94,6 @@ export class ChatGateway implements OnGatewayInit, OnGatewayConnection {
     this.server.to(client.id).emit('updateChannel', (channel));
   }
 
-  /**
-   * Creation
-   */
   @SubscribeMessage('createChannel')
   async handleCreateChannel(
     @ConnectedSocket() client: Socket,
@@ -115,9 +111,7 @@ export class ChatGateway implements OnGatewayInit, OnGatewayConnection {
     this.server.to(`channel_${channel.id}`).emit('channelCreated', (channel));
   }
 
-  /**
-   * User joins/quits channel
-   */
+  /* User joins/quits channel */
   @SubscribeMessage('joinChannel')
   async handleJoinChannel(
     @ConnectedSocket() client: Socket,
@@ -141,23 +135,6 @@ export class ChatGateway implements OnGatewayInit, OnGatewayConnection {
     this.server.to(`channel_${data.channelId}`).emit('joinedChannel', `${user.username} joined group.`);
   }
 
-  /* Save a new DM message */
-  @SubscribeMessage('dmSubmit')
-  async handleDmSubmit(
-    @ConnectedSocket() client: Socket,
-    @MessageBody() data: { content: string, from: number, to: number, channelId: string }
-  ) {
-    const message = await this.chatService.saveMessage(data.content, data.from.toString(), data.channelId);
-    const recipient = this.chatUsers.getUserById(data.to);
-
-    this.server.to(client.id).emit('newDm', { message });
-    /* If recipient is offline, message must be sent once connected */
-    if (recipient) {
-      this.server.to(recipient.socketId).emit('newDm', { message });
-    }
-    this.logger.log(`New message in DM [${data.channelId}]`);
-  }
-
   /* Save a new group message */
   @SubscribeMessage('gmSubmit')
   async handleGmSubmit(
@@ -165,9 +142,66 @@ export class ChatGateway implements OnGatewayInit, OnGatewayConnection {
     @MessageBody() data: { content: string, from: number, channelId: string }
   ) {
     const user = this.chatUsers.getUser(client.id);
-    const message = await this.chatService.saveMessage(data.content, data.from.toString(), data.channelId);
+    const message = await this.chatService.addMessageToChannel(data.content, data.from.toString(), data.channelId);
 
     this.logger.log(`[${user.username}] sends message "${data.content}" on channel [${data.channelId}]`);
     this.server.to(`channel_${data.channelId}`).emit('newGm', { message });
+  }
+
+  /**
+   * Direct Messages
+   */
+  @SubscribeMessage('getUserDms')
+  async handleUserDms(
+    @ConnectedSocket() client: Socket,
+    @MessageBody() data: { userId: string }
+  ) {
+    const dms = await this.chatService.getUserDms(data.userId);
+
+    this.server.to(client.id).emit('updateUserDms', (dms));
+  }
+
+  @SubscribeMessage('getDmData')
+  async handleDmData(
+    @ConnectedSocket() client: Socket,
+    @MessageBody() data: { dmId: string }
+  ) {
+    const dm = await this.chatService.getDmData(data.dmId);
+
+    this.server.to(client.id).emit('updateDm', (dm));
+  }
+
+  @SubscribeMessage('createDm')
+  async handleCreateDm(
+    @ConnectedSocket() client: Socket,
+    @MessageBody() data
+  ) {
+    let dm: DirectMessage;
+
+    try {
+      dm = await this.chatService.createDm(data);
+    } catch (e) {
+      this.server.to(client.id).emit('createDmError', e.message);
+      return ;
+    }
+    this.server.to(client.id).emit('dmCreated', (dm));
+  }
+
+  /* Save a new DM message */
+  @SubscribeMessage('dmSubmit')
+  async handleDmSubmit(
+    @ConnectedSocket() client: Socket,
+    @MessageBody() data: { content: string, from: string, dmId: string }
+  ) {
+    const message = await this.chatService.addMessageToDm(data.content, data.from.toString(), data.dmId);
+    const friend = await this.chatService.getFriendFromDm(data.dmId, data.from);
+    const recipient = this.chatUsers.getUserById(friend.id);
+
+    this.server.to(client.id).emit('newDm', { message });
+    /* If recipient is offline, message must be sent once connected */
+    if (recipient) {
+      this.server.to(recipient.socketId).emit('newDm', { message });
+    }
+    this.logger.log(`New message in DM [${data.dmId}]`);
   }
 }

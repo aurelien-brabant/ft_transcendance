@@ -77,6 +77,7 @@ export class ChannelsService {
     return channel.password;
   }
 
+  /* NOTE: to be removed */
   async getChannelUsers(id: string) {
     const channel = await this.channelsRepository
       .createQueryBuilder('channel')
@@ -84,18 +85,6 @@ export class ChannelsService {
       .where('channel.id = :id', { id })
       .getOne();
     return channel;
-  }
-
-  getPublicChannels() {
-    return this.channelsRepository.find({
-      where: { privacy: 'public' },
-      relations: [
-        'owner',
-        'users',
-        'messages',
-        'messages.author'
-      ]
-    });
   }
 
   /* NOTE: to be removed */
@@ -120,7 +109,14 @@ export class ChannelsService {
   }
 
   findAll() {
-    return this.channelsRepository.find({ relations: ['owner'] });
+    return this.channelsRepository.find({
+      relations: [
+        'owner',
+        'users',
+        'messages',
+        'messages.author'
+      ]
+    });
   }
 
   async findOne(id: string) {

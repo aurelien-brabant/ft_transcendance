@@ -34,7 +34,7 @@ export class MessagesService {
   create(createMessageDto: CreateMessageDto) {
     const message = this.messagesRepository.create(createMessageDto);
 
-    this.logger.log(`Create new message in channel [${createMessageDto.channel.id}][${createMessageDto.channel.name}]`);
+    this.logger.log(`Create new message in channel [${createMessageDto.channel.id}]`);
     return this.messagesRepository.save(message);
   }
 

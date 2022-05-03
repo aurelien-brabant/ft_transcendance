@@ -5,6 +5,7 @@ import {
 } from 'class-validator';
 import { Transform } from 'class-transformer';
 import { Channel } from "src/chat/channels/entities/channels.entity";
+import { DirectMessage } from "src/chat/direct-messages/entities/direct-messages";
 import { User } from "src/users/entities/users.entity";
 
 export class CreateMessageDto {
@@ -18,5 +19,5 @@ export class CreateMessageDto {
   readonly author: User;
 
   @IsNotEmpty()
-  readonly channel: Channel;
+  readonly channel: Channel | DirectMessage;
 }

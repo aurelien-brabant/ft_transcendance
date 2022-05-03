@@ -502,20 +502,6 @@ export class UsersService {
     return user.ownedChannels;
   }
 
-  async getJoinedChannels(id: string) {
-    const user = await this.usersRepository.findOne(id, {
-      relations: [
-        'joinedChannels',
-        'joinedChannels.owner',
-        'joinedChannels.users',
-        'joinedChannels.messages',
-        'joinedChannels.messages.author',
-      ],
-    });
-    if (!user) throw new NotFoundException(`User [${id}] joined no channels`);
-    return user.joinedChannels;
-  }
-
   async getDirectMessage(id: string, friendId: string) {
     const user = await this.usersRepository
       .createQueryBuilder('user')

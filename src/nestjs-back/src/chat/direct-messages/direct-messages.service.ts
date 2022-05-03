@@ -18,7 +18,11 @@ export class DirectMessagesService {
 
   findAll() {
     return this.directMessagesRepository.find({
-      relations: ['users']
+      relations: [
+        'users',
+        'messages',
+        'messages.author'
+      ]
     });
   }
 

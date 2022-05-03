@@ -3,7 +3,7 @@ import { AiOutlineArrowLeft, AiOutlineClose } from "react-icons/ai";
 import { FiSend } from "react-icons/fi";
 import { RiPingPongLine } from "react-icons/ri";
 import Link from "next/link";
-import { Channel, Message } from 'transcendance-types';
+import { DmChannel, Message } from 'transcendance-types';
 import { UserStatusItem } from "../UserStatus";
 import { useSession } from "../../hooks/use-session";
 import Tooltip from "../../components/Tooltip";
@@ -72,7 +72,7 @@ const DirectMessage: React.FC<{ viewParams: { [key: string]: any } }> = ({
 	const chatBottom = useRef<HTMLDivElement>(null);
 
 	/* Load all messages in channel */
-	const loadMessages = async (channel: Channel) => {
+	const loadMessages = async (channel: DmChannel) => {
 		if ((channel.id !== channelId) || !channel.messages) return ;
 
 		const messages: ChatMessage[] = [];
@@ -101,7 +101,6 @@ const DirectMessage: React.FC<{ viewParams: { [key: string]: any } }> = ({
 		socket.emit("dmSubmit", {
 			content: currentMessage,
 			from: user.id,
-			to: viewParams.friendId,
 			channelId: channelId,
 		});
 		setCurrentMessage("");
@@ -132,14 +131,14 @@ const DirectMessage: React.FC<{ viewParams: { [key: string]: any } }> = ({
 	};
 
 	useEffect(() => {
-		socket.emit("getChannelData", { channelId });
+		socket.emit("getDmData", { dmId: channelId });
 
 		/* Listeners */
-		socket.on("updateChannel", loadMessages);
+		socket.on("updateDm", loadMessages);
 		socket.on("newDm", handleNewMessage);
 
 		return () => {
-			socket.off("updateChannel", loadMessages);
+			socket.off("updateDm", loadMessages);
 			socket.off("newDm", handleNewMessage);
 		};
 	}, []);
