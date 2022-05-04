@@ -66,7 +66,7 @@ const DirectMessage: React.FC<{ viewParams: { [key: string]: any } }> = ({
 }) => {
 	const dmId: string = viewParams.channelId;
 	const { user } = useSession();
-	const { socket } = useContext(chatContext) as ChatContextType;
+	const { socket, getMessageStyle } = useContext(chatContext) as ChatContextType;
 	const [messages, setMessages] = useState<ChatMessage[]>([]);
 	const [currentMessage, setCurrentMessage] = useState("");
 	const chatBottom = useRef<HTMLDivElement>(null);
@@ -84,11 +84,11 @@ const DirectMessage: React.FC<{ viewParams: { [key: string]: any } }> = ({
 		for (var message of dm.messages) {
 			messages.push({
 				id: messages.length.toString(),
-				author: message.author.username,
+				createdAt: message.createdAt,
 				content: message.content,
-				isMe: message.author.id === user.id,
-				isBlocked: false,
-				createdAt: message.createdAt
+				author: message.author.username,
+				displayAuthor: !(message.author.id === user.id),
+				displayStyle: getMessageStyle(message.author.id),
 			});
 		}
 		setMessages(messages);
@@ -120,11 +120,11 @@ const DirectMessage: React.FC<{ viewParams: { [key: string]: any } }> = ({
 
 			newMessages.push({
 				id: prevMessages.length.toString(),
-				author: message.author.username,
+				createdAt: message.createdAt,
 				content: message.content,
-				isMe: message.author.id === user.id,
-				isBlocked: false,
-				createdAt: message.createdAt
+				author: message.author.username,
+				displayAuthor: !(message.author.id === user.id),
+				displayStyle: getMessageStyle(message.author.id),
 			});
 			return newMessages;
 		});
@@ -149,11 +149,10 @@ const DirectMessage: React.FC<{ viewParams: { [key: string]: any } }> = ({
 				{messages.map((msg: ChatMessage) => (
 					<div
 						key={msg.id}
-						className={`${
-							msg.isMe
-								? "self-end bg-green-600"
-								: "self-start text-gray-900 bg-gray-300"
-						} max-w-[80%] p-2 my-2 rounded whitespace-wrap break-all`}
+						className={`
+							${msg.displayStyle}
+							max-w-[80%] p-2 my-2 rounded whitespace-wrap break-all`
+						}
 					>
 						<p>{msg.content}</p>
 					</div>

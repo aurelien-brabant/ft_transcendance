@@ -83,10 +83,10 @@ export class DirectMessagesService {
     return this.directMessagesRepository.remove(dm);
   }
 
-  async addMessage(content: string, authorId: string, dmId: string) {
+  async addMessage(content: string, dmId: string, authorId: string) {
     const dm = await this.directMessagesRepository.findOne(dmId);
     const author = await this.usersService.findOne(authorId);
 
-    return await this.messagesService.create({ content, author, dm });
+    return await this.messagesService.create({ content, dm, author });
   }
 }

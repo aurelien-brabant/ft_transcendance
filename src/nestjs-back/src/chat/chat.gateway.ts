@@ -117,8 +117,7 @@ export class ChatGateway implements OnGatewayInit, OnGatewayConnection {
     @ConnectedSocket() client: Socket,
     @MessageBody() data: { content: string, from: number, channelId: string }
   ) {
-    const user = this.chatUsers.getUser(client.id);
-    const message = await this.chatService.addMessageToChannel(data.content, data.from.toString(), data.channelId);
+    const message = await this.chatService.addMessageToChannel(data.content, data.channelId, data.from.toString());
 
     this.logger.log(`user [${data.from}] sends message "${data.content}" on channel [${data.channelId}]`);
     this.server.to(`channel_${data.channelId}`).emit('newGm', { message });
@@ -141,11 +140,11 @@ export class ChatGateway implements OnGatewayInit, OnGatewayConnection {
     const chatUser = this.chatUsers.getUserById(parseInt(data.userId));
 
     if (chatUser) {
-      const socket: Socket = this.server.sockets.sockets.get(chatUser.socketId);
+      const userSocket = (await this.server.fetchSockets()).find(socket => socket.id === chatUser.socketId);
 
-      if (socket) socket.join(`channel_${data.channelId}`);
+      if (userSocket) userSocket.join(`channel_${data.channelId}`);
     }
-    this.server.to(`channel_${data.channelId}`).emit('joinedChannel', `${user.username} joined group.`);
+    this.server.to(`channel_${data.channelId}`).emit('joinedChannel', `${user.username} joined group`);
   }
 
   /**
@@ -197,8 +196,7 @@ export class ChatGateway implements OnGatewayInit, OnGatewayConnection {
     @ConnectedSocket() client: Socket,
     @MessageBody() data: { content: string, from: string, dmId: string }
   ) {
-    const message = await this.chatService.addMessageToDm(data.content, data.from.toString(), data.dmId);
-    const friend = await this.chatService.getFriendFromDm(data.dmId, data.from);
+    const message = await this.chatService.addMessageToDm(data.content, data.dmId, data.from.toString());
 
     this.server.to(`dm_${data.dmId}`).emit('newDm', { message });
     this.logger.log(`New message in DM [${data.dmId}]`);

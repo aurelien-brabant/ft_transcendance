@@ -48,8 +48,8 @@ export class ChatService {
     return user;
   }
 
-  async addMessageToChannel(content: string, authorId: string, channelId: string) {
-    return await this.channelsService.addMessage(content, authorId, channelId);
+  async addMessageToChannel(content: string, channelId: string, authorId: string) {
+    return await this.channelsService.addMessage(content, channelId, authorId);
   }
 
   /* Direct Messages */
@@ -83,7 +83,7 @@ export class ChatService {
     return await this.directMessagesService.findOne(res.id.toString());
   }
 
-  async addMessageToDm(content: string, authorId: string, dmId: string) {
-    return await this.directMessagesService.addMessage(content, authorId, dmId);
+  async addMessageToDm(content: string, dmId: string, authorId: string) {
+    return await this.directMessagesService.addMessage(content, dmId, authorId);
   }
 }

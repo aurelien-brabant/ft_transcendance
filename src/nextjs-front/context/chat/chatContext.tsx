@@ -5,15 +5,15 @@ import { Socket } from 'socket.io-client';
 export type ChatView = 'dms' | 'dm' | 'dm_new' | 'groups' | 'group' | 'group_new' | 'group_add' | 'group_users' | 'group_settings' |'password_protection'; // plural form denotes the list, singular the chat itself
 
 export type ChatMessagePreview = {
-	content: string;
 	createdAt: Date;
+	content: string;
 };
 
 export type ChatMessage = ChatMessagePreview & {
 	id: string;
 	author: string;
-	isMe: boolean;
-	isBlocked: boolean;
+	displayAuthor: boolean;
+	displayStyle: string;
 };
 
 export type ChatGroupPrivacy = 'public' | 'protected' | 'private';
@@ -54,6 +54,7 @@ export type ChatContextType = {
 	handleDmCreation: (newDm: DmChannel) => void;
 	handleChatError: (errMessage: string) => void;
 	createDirectMessage: (userId: string, friendId: string) => void;
+	getMessageStyle: (authorId: string) => string;
 
 	/* Data fetching */
 	fetchChannelData: (id: string) => Promise<any>; // to be removed

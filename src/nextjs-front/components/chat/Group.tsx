@@ -13,7 +13,7 @@ import relationshipContext, { RelationshipContextType } from "../../context/rela
 export const GroupHeader: React.FC<{ viewParams: any }> = ({ viewParams }) => {
 	const channelId: string = viewParams.channelId;
 	const { user } = useSession();
-	const { closeChat, openChatView, setChatView, socket } = useContext(chatContext) as ChatContextType;
+	const { socket, closeChat, openChatView, setChatView } = useContext(chatContext) as ChatContextType;
 	const [userInChan, setUserInChan] = useState(false);
 	const actionTooltipStyles = "font-bold bg-dark text-neutral-200";
 
@@ -107,7 +107,7 @@ const Group: React.FC<{ viewParams: { [key: string]: any } }> = ({
 	viewParams,
 }) => {
 	const { user } = useSession();
-	const { socket } = useContext(chatContext) as ChatContextType;
+	const { socket, getMessageStyle } = useContext(chatContext) as ChatContextType;
 	const { blocked } = useContext(relationshipContext) as RelationshipContextType;
 	const [messages, setMessages] = useState<ChatMessage[]>([]);
 	const [currentMessage, setCurrentMessage] = useState("");
@@ -126,14 +126,15 @@ const Group: React.FC<{ viewParams: { [key: string]: any } }> = ({
 
 		for (var message of channel.messages) {
 			const isBlocked = !!blocked.find(blockedUser => blockedUser.id === message.author.id);
+			const isMe = (message.author.id === user.id);
 
 			messages.push({
 				id: messages.length.toString(),
-				author: message.author.username,
+				createdAt: message.createdAt,
 				content: isBlocked ? "Blocked message" : message.content,
-				isMe: message.author.id === user.id,
-				isBlocked: isBlocked,
-				createdAt: message.createdAt
+				author: message.author.username,
+				displayAuthor: (!isMe && !isBlocked),
+				displayStyle: getMessageStyle(message.author.id),
 			});
 		}
 		setMessages(messages);
@@ -166,22 +167,35 @@ const Group: React.FC<{ viewParams: { [key: string]: any } }> = ({
 			const newMessages: ChatMessage[] = [...prevMessages];
 
 			const isBlocked = !!blocked.find(blockedUser => blockedUser.id === message.author.id);
+			const isMe = (message.author.id === user.id);
 
 			newMessages.push({
 				id: prevMessages.length.toString(),
-				author: message.author.username,
+				createdAt: message.createdAt,
 				content: isBlocked ? "Blocked message" : message.content,
-				isMe: message.author.id === user.id,
-				isBlocked: isBlocked,
-				createdAt: message.createdAt
+				author: message.author.username,
+				displayAuthor: (!isMe && !isBlocked),
+				displayStyle: getMessageStyle(message.author.id),
+				
 			});
 			return newMessages;
 		});
 	};
 
 	const handleNewUser = (message: string) => {
-		console.log(`[Chat] ${message}`);
-		// TODO: display in chat
+		setMessages((prevMessages) => {
+			const newMessages: ChatMessage[] = [...prevMessages];
+
+			newMessages.push({
+				id: prevMessages.length.toString(),
+				createdAt: new Date(Date.now()),
+				content: message,
+				author: "bot",
+				displayAuthor: false,
+				displayStyle: "self-center text-gray-500",
+			});
+			return newMessages;
+		});
 	};
 
 	useEffect(() => {
@@ -205,15 +219,12 @@ const Group: React.FC<{ viewParams: { [key: string]: any } }> = ({
 				{messages.map((message: ChatMessage) => (
 					<div
 						key={message.id}
-						className={`${
-							message.isBlocked
-								? "self-start text-gray-900 bg-gray-600"
-								: message.isMe
-									? "self-end bg-green-600"
-									: "self-start text-gray-900 bg-gray-300"
-						} max-w-[80%] p-2 my-2 rounded whitespace-wrap break-all`}
+						className={`
+							${message.displayStyle} 
+							max-w-[80%] p-2 my-2 rounded whitespace-wrap break-all`
+						}
 					>
-						{!message.isMe && !message.isBlocked && (
+						{message.displayAuthor && (
 							<span className="text-xs text-gray-900 uppercase">
 								{message.author}
 							</span>

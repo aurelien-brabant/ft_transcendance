@@ -191,10 +191,10 @@ export class ChannelsService {
     return this.channelsRepository.remove(channel);
   }
 
-  async addMessage(content: string, authorId: string, channelId: string) {
+  async addMessage(content: string, channelId: string, authorId: string) {
     const channel = await this.channelsRepository.findOne(channelId);
     const author = await this.usersService.findOne(authorId);
 
-    return await this.messagesService.create({ content, author, channel });
+    return await this.messagesService.create({ content, channel, author });
   }
 }

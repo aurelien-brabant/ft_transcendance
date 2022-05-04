@@ -13,7 +13,13 @@ import ChatGroupsView from "../../components/chat/Groups";
 import ChatGroupView, { GroupHeader } from "../../components/chat/Group";
 import ChatDirectMessagesView from "../../components/chat/DirectMessages";
 import ChatDirectMessageView, { DirectMessageHeader } from "../../components/chat/DirectMessage";
-import chatContext, { ChatGroup, ChatGroupPrivacy, ChatMessagePreview, ChatView, DirectMessage } from "./chatContext";
+import chatContext, {
+	ChatGroup,
+	ChatGroupPrivacy,
+	ChatMessagePreview,
+	ChatView,
+	DirectMessage
+} from "./chatContext";
 import DirectMessageNew, { DirectMessageNewHeader } from "../../components/chat/DirectMessageNew";
 import GroupAdd, { GroupAddHeader } from "../../components/chat/GroupAdd";
 import GroupNew, { GroupNewHeader } from "../../components/chat/GroupNew";
@@ -107,17 +113,17 @@ const views: { [key: string]: ChatViewItem } = {
 };
 
 const ChatProvider: React.FC = ({ children }) => {
+	const session = useSession();
+	const { user } = useSession();
+	const { setAlert } = useContext(alertContext) as AlertContextType;
+	const { isChatOpened, setIsChatOpened } = useContext(authContext) as AuthContextValue;
+	const { blocked } = useContext(relationshipContext) as RelationshipContextType;
+	const [socket, setSocket] = useState<any>(null);
 	const [viewStack, setViewStack] = useState<ChatViewItem[]>([]);
 	const [chatGroups, setChatGroups] = useState<ChatGroup[]>([]);
 	const [directMessages, setDirectMessages] = useState<DirectMessage[]>([]);
 	const [lastX, setLastX] = useState<number>(0);
 	const [lastY, setLastY] = useState<number>(0);
-	const { setAlert } = useContext(alertContext) as AlertContextType;
-	const session = useSession();
-	const { user } = useSession();
-	const { isChatOpened, setIsChatOpened } = useContext(authContext) as AuthContextValue;
-	const { blocked } = useContext(relationshipContext) as RelationshipContextType;
-	const [socket, setSocket] = useState<any>(null);
 
 	/* Chat manipulation */
 	const openChat = () => {
@@ -221,10 +227,22 @@ const ChatProvider: React.FC = ({ children }) => {
 		return data;
 	}
 
+	const getMessageStyle = (authorId: string) => {
+		if (authorId === user.id) return "self-end bg-green-600";
+
+		const isBlocked = !!blocked.find(
+			blockedUser => blockedUser.id === authorId
+		);
+		if (isBlocked) {
+			return "self-start text-gray-900 bg-gray-600";
+		}
+		return "self-start text-gray-900 bg-gray-300";
+	}
+
 	const getLastMessage = (channel: Channel | DmChannel, isProtected: boolean) => {
 		let message: ChatMessagePreview = {
+			createdAt: new Date(Date.now()),
 			content: "",
-			createdAt: new Date(Date.now())
 		};
 
 		if (channel.messages && channel.messages.length > 0) {
@@ -373,6 +391,7 @@ const ChatProvider: React.FC = ({ children }) => {
 				handleDmCreation,
 				handleChatError,
 				createDirectMessage,
+				getMessageStyle,
 				fetchChannelData,
 				lastX,
 				lastY,
