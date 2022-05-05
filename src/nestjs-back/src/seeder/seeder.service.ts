@@ -1,4 +1,4 @@
-import { Injectable } from '@nestjs/common';
+/*import { Injectable } from '@nestjs/common';
 import { getConnection } from 'typeorm';
 import { SeedUser } from './seeder';
 import { UsersService } from '../users/users.service';
@@ -19,13 +19,12 @@ export class SeederService {
         await getConnection().synchronize(true);
         console.log('[+] Creating achievements database...');
         await this.createAchievements();
-        // console.log('[+] Seeding fake users...');
-        // await this.seedFakeUsers();
-        // console.log('[+] Seeding fake games...');
-        // await this.seedFakeGames();
+        console.log('[+] Seeding fake users...');
+        await this.seedFakeUsers();
+        console.log('[+] Seeding fake games...');
+        await this.seedFakeGames();
     }
 
-    /* Achievements */
     async createAchievements() {
         const list = achievementList;
 
@@ -35,7 +34,6 @@ export class SeederService {
         }
     }
 
-    /* User */
     async createFakeUser(username: string, i: number) {
         let user = await this.usersService.create({
             email: "test" + String(i) + "@gmail.com",
@@ -65,7 +63,6 @@ export class SeederService {
     }
 
     async updateFakeUser(i: number) {
-        /* Add friends and blocked users */
         let user = await this.usersService.update(String(i + 1), {
             friends: [
                 {
@@ -103,7 +100,6 @@ export class SeederService {
         }
     }
 
-    /* Games */
     async seedFakeGames() {
         for (let i = 0; i < 10; ++i) {
             const winner = await this.usersService.findOne(String(i + 1));
@@ -123,4 +119,6 @@ export class SeederService {
             console.log('Game [%s] created', game.id);
         }
     }
-}
+}*/
+
+export default null
