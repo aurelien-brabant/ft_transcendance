@@ -111,15 +111,15 @@ const Hub: NextPageWithLayout = () => {
 							
 					:
 					(
-						<div className="flex flex-col items-center gap-y-10">
+						<div className="flex flex-col items-center">
 							<OngoingGames currentGamesProps={currentGames} socketProps={socket}></OngoingGames>
 							{
 								inQueue ? 
-								<button onClick={leaveQueue} className="px-6 py-2 mx-auto mt-60 text-xl uppercase bg-gray-600 drop-shadow-md text-bold text-neutral-200">
+								<button onClick={leaveQueue} className="px-6 py-2 mx-auto text-xl uppercase bg-gray-600 drop-shadow-md text-bold text-neutral-200">
 									Cancel
 								</button>
 								:
-								<button onClick={joinQueue} className="px-6 py-2 mx-auto mt-60 text-xl uppercase bg-pink-600 drop-shadow-md text-bold text-neutral-200">
+								<button onClick={joinQueue} className="px-6 py-2 mx-auto text-xl uppercase bg-pink-600 drop-shadow-md text-bold text-neutral-200">
 									Find a match
 								</button>
 							}
