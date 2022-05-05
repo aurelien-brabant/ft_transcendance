@@ -107,21 +107,21 @@ const HomePage: NextPageWithLayout = () => {
     <Fragment>
 
       <Head>
-        <title>The ultimate pong reboot | ft_transcendance</title>
+        <title>The ultimate Pong reboot | ft_transcendance</title>
         <meta
           name="description"
-          content="The ultimate pong reboot, designed for tryharders by tryharders. Let's show the world you are the best pong player!"
+          content="The ultimate Pong reboot, designed for tryharders by tryharders. Let's show the world you are the best Pong player!"
         />
 
         <meta property="og:url" content="" />
         <meta property="og:type" content="website" />
         <meta
           property="og:title"
-          content="The ultimate pong reboot | ft_transcendance"
+          content="The ultimate Pong reboot | ft_transcendance"
         />
         <meta
           property="og:description"
-          content="The ultimate pong reboot, designed for tryharders by tryharders. Let's show the world you are the best pong player!"
+          content="The ultimate Pong reboot, designed for tryharders by tryharders. Let's show the world you are the best Pong player!"
         />
         <meta property="og:image" content="/og-landing.webp" />
 
@@ -136,11 +136,11 @@ const HomePage: NextPageWithLayout = () => {
         />
         <meta
           name="twitter:title"
-          content="The ultimate pong reboot | ft_transcendance"
+          content="The ultimate Pong reboot | ft_transcendance"
         />
         <meta
           name="twitter:description"
-          content="The ultimate pong reboot, designed for tryharders by tryharders. Let's show the world you are the best pong player!"
+          content="The ultimate Pong reboot, designed for tryharders by tryharders. Let's show the world you are the best Pong player!"
         />
         <meta name="twitter:image" content="/og-landing.webp" />
       </Head>
@@ -182,7 +182,7 @@ const HomePage: NextPageWithLayout = () => {
               <br /> <b>self-transcendance</b>
             </h1>
             <h3 className="text-2xl lg:text-3xl text-neutral-200">
-              Let’s have the most entertaining pong game of your life.
+              Let’s have the most entertaining Pong game of your life.
             </h3>
             <Link href="/signin">
               <a className="px-6 py-2 text-xl uppercase bg-pink-600 drop-shadow-md text-bold text-neutral-200">
@@ -210,25 +210,24 @@ const HomePage: NextPageWithLayout = () => {
                 >
                   <div>
                     <h2 className="pb-4 text-4xl text-center lg:text-left">
-                      The pong reboot 2022 needs
+                      The Pong reboot 2022 needs
                     </h2>
                     <p className="py-4 text-xl">
-                      Lorem ipsum dolor sit amet, consectetur adipiscing elit.
-                      Vestibulum non pellentesque elit. Nam non eros sed elit
-                      consequat efficitur. Suspendisse efficitur libero eget
-                      diam semper, et eleifend nisl vulputate.
+                      Have you ever played Pong? If not, it is the perfect 
+                      time to start playing one of the earliest, and popular, video 
+                      games!
                     </p>
                     <p className="py-4 text-xl">
-                      Lorem ipsum dolor sit amet, consectetur adipiscing elit.
-                      In luctus, lorem non efficitur laoreet, ante arcu vehicula
-                      eros, quis rutrum ligula ligula eu purus. Vestibulum
-                      tempus orci ipsum, eu condimentum neque egestas non.
+                      Pong is a table tennis-themed game released in 1972 by Atari. 
+                      This 1v1 game consists of two paddles used by players to hit 
+                      the ball back and forth. The goal for each player is to reach 
+                      the maximum number of points before their opponent.
                     </p>
                     <p className="py-4 text-xl">
-                      Nulla pulvinar luctus orci, facilisis faucibus urna tempus
-                      volutpat. Sed tempor tortor orci, sit amet consequat
-                      tellus mattis quis. Mauris vitae consequat mauris, non
-                      pretium velit.
+                      Today, Pong is back like you’ve never thought it could be! 
+                    </p>
+                    <p className="py-4 text-xl">
+                      Meet Pong-enthusiasts, make new friends and hit the leaderboard!
                     </p>
                   </div>
                 </ResponsiveFade>
@@ -246,7 +245,7 @@ const HomePage: NextPageWithLayout = () => {
                 <div>
                   <Image
                     src="/pong_mac.webp"
-                    alt="pong overview"
+                    alt="Pong overview"
                     width={1300}
                     height={1096}
                   />
