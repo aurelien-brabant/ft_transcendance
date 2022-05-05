@@ -231,7 +231,7 @@ const HomePage: NextPageWithLayout = () => {
                     </p>
                   </div>
                 </ResponsiveFade>
-                <Link href="/">
+                <Link href="/signin">
                   <a className="px-10 py-2 mx-auto mt-4 text-xl font-bold uppercase bg-pink-600 lg:mx-0 drop-shadow-md text-bold text-neutral-200">
                     Try it
                   </a>
@@ -263,7 +263,7 @@ const HomePage: NextPageWithLayout = () => {
                 <FeatureItem key={feature.label} {...feature} />
               ))}
             </div>
-            <Link href="/">
+            <Link href="/signin">
               <a className="px-10 py-2 mx-auto mt-4 text-xl font-bold uppercase bg-pink-600 drop-shadow-md text-bold text-neutral-200">
                 Enter the fight
               </a>
