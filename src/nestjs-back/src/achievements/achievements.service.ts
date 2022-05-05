@@ -1,69 +1,79 @@
-import { Injectable, NotFoundException } from '@nestjs/common';
+import { Injectable, NotFoundException, OnModuleInit } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Repository } from 'typeorm';
 import { CreateAchievementDto } from './dto/create-achievement.dto';
 import { UpdateAchievementDto } from './dto/update-achievement.dto';
 import { Achievement } from './entities/achievements.entity';
+import achievementsList from '../constants/achievementsList';
 
 @Injectable()
-export class AchievementsService {
-    constructor(
-        @InjectRepository(Achievement)
-        private readonly achievementsRepository: Repository<Achievement>,
-    ) {}
+export class AchievementsService implements OnModuleInit {
+  constructor(
+    @InjectRepository(Achievement)
+    private readonly achievementsRepository: Repository<Achievement>,
+  ) {}
 
-    findAll() {
-        return this.achievementsRepository.find({
-            relations: ['users'],
-            order: {
-                levelToReach: 'ASC',
-            }
-        });
+  async onModuleInit() {
+    console.log('Populating achievements...');
+    for (const achievement of achievementsList) {
+      await this.achievementsRepository.preload(achievement);
     }
+  }
 
-    findAchievements() {
-        return this.achievementsRepository.find();
-    }
+  findAll() {
+    return this.achievementsRepository.find({
+      relations: ['users'],
+      order: {
+        levelToReach: 'ASC',
+      },
+    });
+  }
 
-    async findOne(id: string) { 
-        const achievement =  await this.achievementsRepository.findOne(id, {
-            relations: ['users']
-        });
-        if (!achievement)
-            throw new NotFoundException(`Achievement [${id}] not found`);
-        return achievement;
-    }
+  findAchievements() {
+    return this.achievementsRepository.find();
+  }
 
-    create(createAchievementDto: CreateAchievementDto) {
-        const achievement = this.achievementsRepository.create(createAchievementDto);
-        return this.achievementsRepository.save(achievement);
-    }
+  async findOne(id: string) {
+    const achievement = await this.achievementsRepository.findOne(id, {
+      relations: ['users'],
+    });
+    if (!achievement)
+      throw new NotFoundException(`Achievement [${id}] not found`);
+    return achievement;
+  }
 
-    async update(id: string, updateAchievementDto: UpdateAchievementDto) { 
-        let achievement: Achievement | null = null;
+  create(createAchievementDto: CreateAchievementDto) {
+    const achievement =
+      this.achievementsRepository.create(createAchievementDto);
+    return this.achievementsRepository.save(achievement);
+  }
 
-        achievement = await this.findOne(id);
-        if (!achievement)
-            throw new NotFoundException(`Cannot update achievement[${id}]: Not found`);
+  async update(id: string, updateAchievementDto: UpdateAchievementDto) {
+    let achievement: Achievement | null = null;
 
-        const oldUsers = achievement.users;
+    achievement = await this.findOne(id);
+    if (!achievement)
+      throw new NotFoundException(
+        `Cannot update achievement[${id}]: Not found`,
+      );
 
-        let updated = [];
-        for (let i in oldUsers)
-            updated.push({id: oldUsers[i].id})
-        for (let i in updateAchievementDto.users)
-            updated.push({id: updateAchievementDto.users[i].id})
+    const oldUsers = achievement.users;
 
-        achievement = await this.achievementsRepository.preload({
-            id: +id,
-            users: updated
-        });
+    let updated = [];
+    for (let i in oldUsers) updated.push({ id: oldUsers[i].id });
+    for (let i in updateAchievementDto.users)
+      updated.push({ id: updateAchievementDto.users[i].id });
 
-        return this.achievementsRepository.save(achievement);
-    }
+    achievement = await this.achievementsRepository.preload({
+      id: +id,
+      users: updated,
+    });
 
-    async remove(id: string) { 
-        const game = await this.findOne(id);
-        return this.achievementsRepository.remove(game);
-    }
+    return this.achievementsRepository.save(achievement);
+  }
+
+  async remove(id: string) {
+    const game = await this.findOne(id);
+    return this.achievementsRepository.remove(game);
+  }
 }
