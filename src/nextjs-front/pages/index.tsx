@@ -224,7 +224,7 @@ const HomePage: NextPageWithLayout = () => {
                       the maximum number of points before their opponent.
                     </p>
                     <p className="py-4 text-xl">
-                      Today, Pong is back like you've never thought it could be! 
+                      Today, Pong is back like you’ve never thought it could be! 
                     </p>
                     <p className="py-4 text-xl">
                       Meet Pong-enthusiasts, make new friends and hit the leaderboard!
