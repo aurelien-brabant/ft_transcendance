@@ -7,26 +7,29 @@ import { Timestamp } from "typeorm";
 export type SeedUser = {
     id: number;
     username: string;
-    password: string;
+    duoquadra_login: string;
     email: string;
     phone: string;
+    pic: string;
+    password: string;
     tfa: boolean;
     tfaSecret: string;
-    pic: string;
-    duoquadra_login: string;
+    hasTfaBeenValidated: boolean;
+    lastTfaRequestTimestamp: string | number | Date;
     accountDeactivated: boolean;
-    games: SeedGame[];
+    games: Game[];
     wins: number;
     losses: number;
     draws: number;
     ratio: number;
     achievements: Achievement[];
     friends: User[];
-    blockedUsers: User[];
     pendingFriendsSent: User[];
     pendingFriendsReceived: User[];
-    ownedChannels: SeedChannel[];
-    joinedChannels: SeedChannel[];
+    blockedUsers: User[];
+    ownedChannels: Channel[];
+    joinedChannels: Channel[];
+    directMessages: DirectMessage[];
 };
 
 /* GAMES */
@@ -42,34 +45,39 @@ export type SeedGame = {
   gameDuration: number;
 };
 
-/* CHANNELS */
+/* NOTE: don't need chat seeding anymore
+export type SeedChanMessage = {
+  id: number;
+  createdAt: Date;
+  content: string;
+  author: SeedUser;
+  channel: SeedChannel;
+};
+
+export type SeedDmMessage = {
+  id: number;
+  createdAt: Date;
+  content: string;
+  author: SeedUser;
+  channel: SeedDirectMessage;
+};
 
 export type SeedChannel = {
   id: number;
   name: string;
   privacy: string;
-  password: string;
+  password?: string;
   restrictionDuration: number;
   owner: SeedUser;
   users: SeedUser[];
   admins: SeedUser[];
   mutedUsers: SeedUser[];
   bannedUsers: SeedUser[];
-  messages: SeedMessage[];
+  messages: SeedChanMessage[];
 };
 
 export type SeedDirectMessage = {
   id: number;
   users: SeedUser[];
-  messages: SeedMessage[];
-};
-
-/* MESSAGES */
-
-export type SeedMessage = {
-  id: number;
-  createdAt: Date;
-  content: string;
-  author: SeedUser;
-  channel: SeedChannel | SeedDirectMessage;
-};
+  messages: SeedChanMessage[];
+};*/
