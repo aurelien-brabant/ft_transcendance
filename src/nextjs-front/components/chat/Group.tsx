@@ -17,14 +17,7 @@ export const GroupHeader: React.FC<{ viewParams: any }> = ({ viewParams }) => {
 	const [userInChan, setUserInChan] = useState(false);
 	const actionTooltipStyles = "font-bold bg-dark text-neutral-200";
 
-	const joinGroup = async () => {
-		socket.emit("joinChannel", {
-			userId: user.id,
-			channelId: viewParams.channelId
-		});
-	};
-
-	const defineOptions = async (channel: Channel) => {
+	const defineOptions = (channel: Channel) => {
 		setUserInChan(!!channel.users.find(
 			(chanUser) => { return chanUser.id === user.id;}
 		));
@@ -52,24 +45,17 @@ export const GroupHeader: React.FC<{ viewParams: any }> = ({ viewParams }) => {
 						<AiOutlineArrowLeft />
 					</button>
 				</div>
-				<div className="flex items-right gap-x-3">
-					{userInChan
-						? <Tooltip className={actionTooltipStyles} content="add user">
-							<button onClick={() => {
-								openChatView('group_add', 'Add a user to group', {
-										channelId: viewParams.channelId
-									}
-								)}}
-							>
-								<FaUserPlus className="text-lg" />
-							</button>
-						</Tooltip>
-						: <Tooltip className={actionTooltipStyles} content="join group">
-							<button onClick={() => { joinGroup()}} >
-								<RiChatNewLine className="text-lg" />
-							</button>
-						</Tooltip>
-					}
+				{userInChan && <div className="flex items-right gap-x-3">
+					<Tooltip className={actionTooltipStyles} content="add user">
+						<button onClick={() => {
+							openChatView('group_add', 'Add a user to group', {
+									channelId: viewParams.channelId
+								}
+							)}}
+						>
+							<FaUserPlus className="text-lg" />
+						</button>
+					</Tooltip>
 					<Tooltip className={actionTooltipStyles} content="users">
 						<button onClick={() => {
 							openChatView('group_users', 'group users', {
@@ -92,6 +78,7 @@ export const GroupHeader: React.FC<{ viewParams: any }> = ({ viewParams }) => {
 						<RiSettings5Line />
 					</button>
 				</div>
+			}
 			</div>
 			<div className="flex flex-col items-center justify-center">
 				<h6 className="text-lg font-bold text-pink-600">
@@ -106,17 +93,26 @@ export const GroupHeader: React.FC<{ viewParams: any }> = ({ viewParams }) => {
 const Group: React.FC<{ viewParams: { [key: string]: any } }> = ({
 	viewParams,
 }) => {
+	const channelId = viewParams.channelId;
 	const { user } = useSession();
 	const { socket, getMessageStyle } = useContext(chatContext) as ChatContextType;
 	const { blocked } = useContext(relationshipContext) as RelationshipContextType;
 	const [messages, setMessages] = useState<ChatMessage[]>([]);
 	const [currentMessage, setCurrentMessage] = useState("");
+	const [userInChan, setUserInChan] = useState(false);
 	const chatBottom = useRef<HTMLDivElement>(null);
-	const channelId = viewParams.channelId;
+
+	const defineOptions = (channel: Channel) => {
+		setUserInChan(!!channel.users.find(
+			(chanUser) => { return chanUser.id === user.id;}
+		));
+	};
 
 	/* Load all messages in channel */
-	const loadMessages = async (channel: Channel) => {
+	const updateGroupView = async (channel: Channel) => {
 		if ((channel.id !== channelId) || !channel.messages) return ;
+
+		defineOptions(channel);
 
 		const messages: ChatMessage[] = [];
 
@@ -198,16 +194,23 @@ const Group: React.FC<{ viewParams: { [key: string]: any } }> = ({
 		});
 	};
 
+	const joinGroup = async () => {
+		socket.emit("joinChannel", {
+			userId: user.id,
+			channelId: viewParams.channelId
+		});
+	};
+
 	useEffect(() => {
 		socket.emit("getChannelData", { channelId });
 
 		/* Listeners */
-		socket.on("updateChannel", loadMessages);
+		socket.on("updateChannel", updateGroupView);
 		socket.on("newGm", handleNewMessage);
 		socket.on("joinedChannel", handleNewUser);
 
 		return () => {
-			socket.off("updateChannel", loadMessages);
+			socket.off("updateChannel", updateGroupView);
 			socket.off("newGm", handleNewMessage);
 			socket.off("joinedChannel", handleNewUser);
 		};
@@ -234,19 +237,26 @@ const Group: React.FC<{ viewParams: { [key: string]: any } }> = ({
 				))}
 				<div ref={chatBottom} />
 			</div>
-			<div className="absolute inset-x-0 bottom-0 border-t-2 border-gray-800 min-h-[13%] flex gap-x-2 items-center px-8 py-2 bg-dark drop-shadow-md">
-				<textarea
-					placeholder="Your message"
-					className="p-2 bg-transparent border border-pink-600 resize-none grow outline-0"
-					value={currentMessage}
-					onChange={(e) => {
-						setCurrentMessage(e.target.value);
-					}}
-				/>
-				<button onClick={handleGroupMessageSubmit} className="self-stretch px-3 py-2 text-lg text-white uppercase bg-pink-600 rounded">
-					<FiSend />
-				</button>
-			</div>
+				{userInChan
+					? <div className="absolute inset-x-0 bottom-0 border-t-2 border-gray-800 min-h-[13%] flex gap-x-2 items-center px-8 py-2 bg-dark drop-shadow-md">
+							<textarea
+								placeholder="Your message"
+								className="p-2 bg-transparent border border-pink-600 resize-none grow outline-0"
+								value={currentMessage}
+								onChange={(e) => {
+									setCurrentMessage(e.target.value);
+								}}
+							/>
+							<button onClick={handleGroupMessageSubmit} className="self-stretch px-3 py-2 text-lg text-white uppercase bg-pink-600 rounded">
+								<FiSend />
+							</button>
+						</div>
+					: <div className="absolute inset-x-0 bottom-0 border-t-2 border-gray-800 min-h-[13%] flex gap-x-2 items-center justify-center px-8 py-2 bg-dark drop-shadow-md">
+							<button className="px-2 py-1 text-sm font-bold uppercase bg-pink-600 rounded" onClick={() => { joinGroup(); }}>
+								Join Group
+							</button>
+						</div>
+				}
 		</div>
 	);
 };
