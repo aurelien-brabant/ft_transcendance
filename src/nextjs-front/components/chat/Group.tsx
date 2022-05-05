@@ -2,7 +2,7 @@ import { Fragment, useContext, useEffect, useRef, useState } from "react";
 import { AiOutlineArrowLeft, AiOutlineClose } from "react-icons/ai";
 import { FaUserFriends, FaUserPlus } from "react-icons/fa";
 import { FiSend } from 'react-icons/fi';
-import { RiSettings5Line, RiChatNewLine } from "react-icons/ri";
+import { RiSettings5Line } from "react-icons/ri";
 import { Channel, Message } from 'transcendance-types';
 import Tooltip from "../../components/Tooltip";
 import { useSession } from "../../hooks/use-session";
@@ -23,14 +23,22 @@ export const GroupHeader: React.FC<{ viewParams: any }> = ({ viewParams }) => {
 		));
 	};
 
+	const handleNewUser = (res: { message: string, userId: string }) => {
+		if (res.userId === user.id) {
+			setUserInChan(true);
+		}
+	};
+
 	useEffect(() => {
 		socket.emit("getChannelData", { channelId });
 
 		/* Listeners */
 		socket.on("updateChannel", defineOptions);
+		socket.on("joinedChannel", handleNewUser);
 
 		return () => {
 			socket.off("updateChannel", defineOptions);
+			socket.off("joinedChannel", handleNewUser);
 		};
 	}, []);
 
@@ -102,17 +110,13 @@ const Group: React.FC<{ viewParams: { [key: string]: any } }> = ({
 	const [userInChan, setUserInChan] = useState(false);
 	const chatBottom = useRef<HTMLDivElement>(null);
 
-	const defineOptions = (channel: Channel) => {
-		setUserInChan(!!channel.users.find(
-			(chanUser) => { return chanUser.id === user.id;}
-		));
-	};
-
 	/* Load all messages in channel */
 	const updateGroupView = async (channel: Channel) => {
 		if ((channel.id !== channelId) || !channel.messages) return ;
 
-		defineOptions(channel);
+		setUserInChan(!!channel.users.find(
+			(chanUser) => { return chanUser.id === user.id;}
+		));
 
 		const messages: ChatMessage[] = [];
 
@@ -178,20 +182,23 @@ const Group: React.FC<{ viewParams: { [key: string]: any } }> = ({
 		});
 	};
 
-	const handleNewUser = (message: string) => {
+	const handleNewUser = (res: { message: string, userId: string }) => {
 		setMessages((prevMessages) => {
 			const newMessages: ChatMessage[] = [...prevMessages];
 
 			newMessages.push({
 				id: prevMessages.length.toString(),
 				createdAt: new Date(Date.now()),
-				content: message,
+				content: res.message,
 				author: "bot",
 				displayAuthor: false,
 				displayStyle: "self-center text-gray-500",
 			});
 			return newMessages;
 		});
+		if (res.userId === user.id) {
+			setUserInChan(true);
+		}
 	};
 
 	const joinGroup = async () => {

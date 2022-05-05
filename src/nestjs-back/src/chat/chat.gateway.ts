@@ -144,7 +144,11 @@ export class ChatGateway implements OnGatewayInit, OnGatewayConnection {
 
       if (userSocket) userSocket.join(`channel_${data.channelId}`);
     }
-    this.server.to(`channel_${data.channelId}`).emit('joinedChannel', `${user.username} joined group`);
+    const res = {
+      message: `${user.username} joined group`,
+      userId: data.userId,
+    };
+    this.server.to(`channel_${data.channelId}`).emit('joinedChannel', res);
   }
 
   /**
