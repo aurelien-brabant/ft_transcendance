@@ -1,5 +1,5 @@
 import React, { Fragment, useContext, useEffect } from "react";
-import Draggable, { DraggableEvent } from 'react-draggable';
+import Draggable from 'react-draggable';
 import { useMediaQuery } from "react-responsive";
 import { AiOutlineClose } from "react-icons/ai";
 import { FaUserFriends, FaUser } from "react-icons/fa";
@@ -24,10 +24,10 @@ const Chat: React.FC<ChatProps> = ({ viewStack, onClose }) => {
 		setLastX,
 		setLastY
 	} = useContext(chatContext) as ChatContextType;
-	const { blocked, getData } = useContext(relationshipContext) as RelationshipContextType;
+	const { getData } = useContext(relationshipContext) as RelationshipContextType;
 	const { user } = useSession();
 	const currentView = viewStack[viewStack.length - 1];
-	const buttonTooltipClassName = "p-3 font-bold bg-gray-900";
+	const buttonTooltipClassName = "p-3 font-bold bg-dark";
 	const buttonClassName = "hover:scale-105 transition text-2xl";
 	const nodeRef = React.useRef(null);
 
@@ -42,8 +42,8 @@ const Chat: React.FC<ChatProps> = ({ viewStack, onClose }) => {
 			const res = await fetch(`/api/users/${user.id}/channels`);
 			const data = await res.json();
 
-			await getData();
 			loadChannelsOnMount(JSON.parse(JSON.stringify(data)), user.id);
+			await getData();
 		}
 		fetchUserChannels().catch(console.error);
 	}, [])
@@ -56,7 +56,6 @@ const Chat: React.FC<ChatProps> = ({ viewStack, onClose }) => {
 		nodeRef={nodeRef}
 		position={{x: lastX, y: lastY}}
 		onStop={(e, data) => {
-			console.log('hillan')
 			if (data.y > 0)
 				setLastY(0)
 			else if (-data.y > window.innerHeight - 670)
@@ -76,9 +75,9 @@ const Chat: React.FC<ChatProps> = ({ viewStack, onClose }) => {
 		<div
 			ref={nodeRef}
 			className="fixed z-50 top-0 bottom-0 left-0 right-0 md:top-auto md:left-auto md:bottom-10 md:right-10
-			drop-shadow-lg flex flex-col overflow-hidden md:w-[25rem] md:h-[35em] text-white rounded border-gray-800 border-2"
+			drop-shadow-lg flex flex-col overflow-hidden md:w-[25rem] md:h-[35em] text-white rounded border-04dp border-2"
 		>
-				<header className="flex flex-col justify-end py-2 border-b-2 border-gray-800 cursor-move bg-gray-900/90 gap-y-4 drop-shadow-md text-neutral-200">
+				<header className="flex flex-col justify-end py-2 border-b-2 border-04dp cursor-move bg-dark/90 gap-y-4 drop-shadow-md text-neutral-200">
 
 				{/* Provide a default header, or use the custom one instead if any */}
 
@@ -159,7 +158,7 @@ const Chat: React.FC<ChatProps> = ({ viewStack, onClose }) => {
 			</header>
 
 			{/* active chat view */}
-			<div className="h-full overflow-hidden bg-gray-900/90">
+			<div className="h-full overflow-hidden bg-dark/90">
 				{viewStack.length > 0 && (
 					<currentView.Component
 						viewParams={currentView.params}

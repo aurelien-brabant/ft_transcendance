@@ -16,7 +16,7 @@ import { useSession } from "../hooks/use-session";
 
 const labelClassName = "grow uppercase text-neutral-400";
 const inputClassName =
-  "transition col-span-2 grow bg-transparent outline-0 border-gray-800 pb-1 border-b-2 focus:border-pink-600";
+  "transition col-span-2 grow bg-transparent outline-0 border-04dp pb-1 border-b-2 focus:border-pink-600";
 const inputGroupClassName = "grid md:grid-cols-4 grid-cols-1 items-center gap-x-8 gap-y-2";
 
 type FormData = {
@@ -405,10 +405,10 @@ const Welcome: NextPageWithLayout = () => {
   }, [currentStep, pendingQR]);
   
   return (
-    <div className="min-h-screen text-white bg-gray-900 grow" id="main-content">
+    <div className="min-h-screen text-white grow" id="main-content">
       <div 
-        style={{ minHeight: "300vh", maxWidth: "800px" }}
-        className="px-2 py-16 mx-auto"
+        style={{ maxWidth: "800px" }}
+        className="px-2 mx-auto"
       >
       
       {(user.duoquadra_login) ?

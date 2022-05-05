@@ -1,5 +1,5 @@
 import { ReactElement } from "react";
-import DashboardLayout from "../DashboardLayout";
+import { DashboardLayout } from "../layout/dashboard-layout";
 
 const withDashboardLayout = (page: ReactElement) => (
 	<DashboardLayout>{page}</DashboardLayout>
