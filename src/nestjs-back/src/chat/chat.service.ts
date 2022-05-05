@@ -25,9 +25,10 @@ export class ChatService {
       throw new NotFoundException('No channel found.');
     }
     const userChannels = channels.filter(
-      (channel) => channel.users.filter(
-        (user) => user.id.toString() === userId
-      )
+      (channel) =>
+        channel.users.filter((user) => user.id.toString() === userId)
+        || (channel.privacy === 'public')
+        || (channel.privacy === 'protected')
     );
     return userChannels;
   }
