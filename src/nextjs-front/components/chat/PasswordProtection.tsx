@@ -1,4 +1,4 @@
-import { Fragment, useContext } from "react";
+import { Fragment, useContext, useEffect } from "react";
 import { AiFillLock, AiOutlineArrowLeft, AiOutlineClose } from "react-icons/ai";
 import { useSession } from "../../hooks/use-session";
 import alertContext, { AlertContextType } from "../../context/alert/alertContext";
@@ -30,29 +30,33 @@ export const PasswordProtectionHeader: React.FC<{ viewParams: any }> = ({ viewPa
 
 const PasswordProtection: React.FC<{ viewParams: any }> = ({ viewParams }) => {
 	const { user } = useSession();
-	const { setChatView } = useContext(chatContext) as ChatContextType;
+	const { socket, setChatView } = useContext(chatContext) as ChatContextType;
 	const { setAlert } = useContext(alertContext) as AlertContextType;
 
 	/* Check password is correct */
-	const handleSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
+	const handleSubmit = (e: React.FormEvent<HTMLFormElement>) => {
 		e.preventDefault();
 		const input = (e.currentTarget.elements[0] as HTMLInputElement).value;
-		const res = await fetch(`/api/channels/${viewParams.channelId}/join?userId=${user.id}&password=${input}`, {
-			method: "POST",
-			headers: {
-			"Content-Type": "application/json",
-			},
-		});
 
-		if (res.status === 201) {
-			setChatView('group', viewParams.groupName, { ...viewParams });
-		} else {
-			setAlert({
-				type: "error",
-				content: "Invalid password"
-			});
-		}
+		socket.emit("joinProtected", {
+			userId: user.id,
+			channelId: viewParams.channelId,
+			password: input
+		});
 	};
+
+	const joinedProtectedListener = () => {
+		setChatView('group', viewParams.groupName, { ...viewParams });
+	};
+
+	useEffect(() => {
+		/* Listeners */
+		socket.on("joinedProtected", joinedProtectedListener);
+
+		return () => {
+			socket.off("joinedProtected", joinedProtectedListener);
+		};
+	}, []);
 
 	return <div className = "flex flex-col items-center justify-center p-5 gap-y-4">
 		<AiFillLock className="text-8xl" />

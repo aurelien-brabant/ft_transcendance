@@ -1,4 +1,5 @@
-import { Injectable, NotFoundException } from '@nestjs/common';
+import { Injectable, NotFoundException, UnauthorizedException } from '@nestjs/common';
+import { compare as comparePassword } from 'bcryptjs';
 import { UsersService } from 'src/users/users.service';
 import { ChannelsService } from './channels/channels.service';
 import { DirectMessagesService } from './direct-messages/direct-messages.service';
@@ -13,7 +14,37 @@ export class ChatService {
 		private readonly usersService: UsersService,
 	) {}
 
-	/* Channels */
+	/**
+	 * Channels
+	 */
+
+	/* Helpers */
+	async userIsInChannel(userId: string, channelId: string) {
+		const channel = await this.channelsService.findOne(channelId);
+
+		if (!channel) {
+			throw new NotFoundException('No channel found.');
+		}
+		const isInChan = !!channel.users.find(
+			(user) => { return user.id === parseInt(userId); }
+		);
+		return isInChan;
+	}
+
+	async checkChannelPassword(channelId: string, password: string) {
+		const channel = await this.channelsService.findOne(channelId);
+
+		if (channel && channel.privacy === 'protected') {
+			const chanPassword = await this.channelsService.getChannelPassword(channelId);
+			const passIsValid = await comparePassword(password, chanPassword);
+
+			if (passIsValid) return ;
+			throw new UnauthorizedException('Invalid password');
+		}
+		throw new UnauthorizedException('Invalid operation');
+	}
+
+	/* Getters */
 	async getChannelData(id: string) {
 		return await this.channelsService.findOne(id);
 	}
@@ -32,10 +63,15 @@ export class ChatService {
 		return userChannels;
 	}
 
+	/* Create/delete/update */
 	async createChannel(createChannelDto: CreateChannelDto) {
 		const res = await this.channelsService.create(createChannelDto);
 
 		return await this.channelsService.findOne(res.id.toString());
+	}
+
+	async addMessageToChannel(content: string, channelId: string, authorId: string) {
+		return await this.channelsService.addMessage(content, channelId, authorId);
 	}
 
 	async addUserToChannel(userId: string, channelId: string) {
@@ -58,14 +94,14 @@ export class ChatService {
 		await this.channelsService.update(channelId, {
 			users: filteredUsers
 		});
-    return user;
+		return user;
 	}
 
-	async addMessageToChannel(content: string, channelId: string, authorId: string) {
-		return await this.channelsService.addMessage(content, channelId, authorId);
-	}
+	/**
+	 * Direct Messages
+	 */
 
-	/* Direct Messages */
+	/* Getters */
 	async getDmData(id: string) {
 		return await this.directMessagesService.findOne(id);
 	}
@@ -90,6 +126,7 @@ export class ChatService {
 		return userDms;
 	}
 
+	/* Create/delete/update */
 	async createDm(createDirectMessageDto: CreateDirectMessageDto) {
 		const res = await this.directMessagesService.create(createDirectMessageDto);
 

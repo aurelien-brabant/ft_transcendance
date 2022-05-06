@@ -51,11 +51,4 @@ export class ChannelsController {
   remove(@Param('id') id: string) {
     return this.channelsService.remove(id);
   }
-
-  @UseGuards(JwtAuthGuard)
-  @Post(':id/join')
-  joinProtectedChan(@Param('id') id: string, @Query() joinQuery) {
-    const { userId, password } = joinQuery;
-    return this.channelsService.joinProtectedChan(id, userId, password);
-  }
 }

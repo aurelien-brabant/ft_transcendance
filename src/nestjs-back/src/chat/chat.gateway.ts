@@ -15,6 +15,7 @@ import { Channel } from './channels/entities/channels.entity';
 import { DirectMessage } from './direct-messages/entities/direct-messages';
 import { UserStatus } from 'src/games/class/Constants';
 import { ChatUser, ChatUsers } from './class/ChatUsers';
+import { User } from 'src/users/entities/users.entity';
 
 @WebSocketGateway(
 	{
@@ -75,9 +76,9 @@ export class ChatGateway implements OnGatewayInit, OnGatewayConnection {
 	@SubscribeMessage('getUserChannels')
 	async handleUserChannels(
 		@ConnectedSocket() client: Socket,
-		@MessageBody() data: { userId: string }
+		@MessageBody() { userId }: { userId: string }
 	) {
-		const channels = await this.chatService.getUserChannels(data.userId);
+		const channels = await this.chatService.getUserChannels(userId);
 
 		for (var channel of channels) {
 			this.chatUsers.userJoinRoom(client, `channel_${channel.id}`);
@@ -88,9 +89,9 @@ export class ChatGateway implements OnGatewayInit, OnGatewayConnection {
 	@SubscribeMessage('getChannelData')
 	async handleChannelData(
 		@ConnectedSocket() client: Socket,
-		@MessageBody() data: { channelId: string }
+		@MessageBody() { channelId }: { channelId: string }
 	) {
-		const channel = await this.chatService.getChannelData(data.channelId);
+		const channel = await this.chatService.getChannelData(channelId);
 
 		this.chatUsers.userJoinRoom(client, `channel_${channel.id}`);
 		this.server.to(client.id).emit('updateChannel', (channel));
@@ -102,7 +103,6 @@ export class ChatGateway implements OnGatewayInit, OnGatewayConnection {
 		@MessageBody() data
 	) {
 		let channel: Channel;
-		const roomId = `channel_${channel.id}`;
 
 		try {
 			channel = await this.chatService.createChannel(data);
@@ -110,6 +110,8 @@ export class ChatGateway implements OnGatewayInit, OnGatewayConnection {
 			this.server.to(client.id).emit('chatError', e.message);
 			return ;
 		}
+		const roomId = `channel_${channel.id}`;
+
 		this.chatUsers.userJoinRoom(client, roomId);
 		this.server.to(roomId).emit('channelCreated', (channel));
 	}
@@ -118,33 +120,37 @@ export class ChatGateway implements OnGatewayInit, OnGatewayConnection {
 	@SubscribeMessage('gmSubmit')
 	async handleGmSubmit(
 		@ConnectedSocket() client: Socket,
-		@MessageBody() data: { content: string, from: number, channelId: string }
+		@MessageBody() { content, from, channelId }: {
+			content: string, from: number, channelId: string
+		}
 	) {
-		const message = await this.chatService.addMessageToChannel(data.content, data.channelId, data.from.toString());
+		const message = await this.chatService.addMessageToChannel(content, channelId, from.toString());
 
-		this.logger.log(`user [${data.from}] sends message "${data.content}" on channel [${data.channelId}]`);
-		this.server.to(`channel_${data.channelId}`).emit('newGm', { message });
+		this.logger.log(`user [${from}] sends message "${content}" on channel [${channelId}]`);
+		this.server.to(`channel_${channelId}`).emit('newGm', { message });
 	}
 
 	/* User joins/quits channel */
 	@SubscribeMessage('joinChannel')
 	async handleJoinChannel(
 		@ConnectedSocket() client: Socket,
-		@MessageBody() data: { userId: string, channelId: string }
+		@MessageBody() { userId, channelId }: {
+			userId: string, channelId: string
+		}
 	) {
-		let user: any;
+		let user: User;
 
 		try {
-			user = await this.chatService.addUserToChannel(data.userId, data.channelId);
+			user = await this.chatService.addUserToChannel(userId, channelId);
 		} catch (e) {
 			this.server.to(client.id).emit('chatError', e.message);
 			return ;
 		}
 
-		const roomId = `channel_${data.channelId}`;
+		const roomId = `channel_${channelId}`;
 		const res = {
 			message: `${user.username} joined group`,
-			userId: data.userId,
+			userId: userId,
 		};
 
 		this.chatUsers.userJoinRoom(client, roomId);
@@ -154,18 +160,20 @@ export class ChatGateway implements OnGatewayInit, OnGatewayConnection {
 	@SubscribeMessage('leaveChannel')
 	async handleLeaveChannel(
 		@ConnectedSocket() client: Socket,
-		@MessageBody() data: { userId: string, channelId: string }
+		@MessageBody() { userId, channelId }: {
+			userId: string, channelId: string
+		}
 	) {
-		let user;
+		let user: User;
 
 		try {
-			user = await this.chatService.removeUserFromChannel(data.userId, data.channelId);
+			user = await this.chatService.removeUserFromChannel(userId, channelId);
 		} catch (e) {
 			this.server.to(client.id).emit('chatError', e.message);
 			return ;
 		}
 
-		const roomId = `channel_${data.channelId}`;
+		const roomId = `channel_${channelId}`;
 		const res = {
 			message: `${user.username} left group`,
 		};
@@ -174,15 +182,46 @@ export class ChatGateway implements OnGatewayInit, OnGatewayConnection {
 		this.server.to(roomId).emit('leftChannel', res);
 	}
 
+	@SubscribeMessage('joinProtected')
+	async handleJoinProtectedChannel(
+		@ConnectedSocket() client: Socket,
+		@MessageBody() { userId, channelId, password }: { 
+			userId: string, channelId: string, password: string
+		}
+	) {
+		let user: User;
+		const roomId = `channel_${channelId}`;
+
+		try {
+			await this.chatService.checkChannelPassword(channelId, password);
+
+			const isInChan = await this.chatService.userIsInChannel(userId, channelId);
+
+			if (!isInChan) {
+				user = await this.chatService.addUserToChannel(userId, channelId);
+				const res = {
+					message: `${user.username} joined group`,
+					userId: userId,
+				};
+				this.server.to(roomId).emit('joinedChannel', res);
+			}
+		} catch (e) {
+			this.server.to(client.id).emit('chatError', e.message);
+			return ;
+		}
+		this.server.to(client.id).emit('joinedProtected');
+		this.chatUsers.userJoinRoom(client, roomId);
+	}
+
 	/**
 	 * Direct Messages
 	 */
 	@SubscribeMessage('getUserDms')
 	async handleUserDms(
 		@ConnectedSocket() client: Socket,
-		@MessageBody() data: { userId: string }
+		@MessageBody() { userId }: { userId: string }
 	) {
-		const dms = await this.chatService.getUserDms(data.userId);
+		const dms = await this.chatService.getUserDms(userId);
 
 		for (var dm of dms) {
 			this.chatUsers.userJoinRoom(client, `dm_${dm.id}`);
@@ -193,9 +232,9 @@ export class ChatGateway implements OnGatewayInit, OnGatewayConnection {
 	@SubscribeMessage('getDmData')
 	async handleDmData(
 		@ConnectedSocket() client: Socket,
-		@MessageBody() data: { dmId: string }
+		@MessageBody() { dmId }: { dmId: string }
 	) {
-		const dm = await this.chatService.getDmData(data.dmId);
+		const dm = await this.chatService.getDmData(dmId);
 		const roomId = `dm_${dm.id}`;
 
 		this.chatUsers.userJoinRoom(client, roomId);
@@ -222,11 +261,13 @@ export class ChatGateway implements OnGatewayInit, OnGatewayConnection {
 	@SubscribeMessage('dmSubmit')
 	async handleDmSubmit(
 		@ConnectedSocket() client: Socket,
-		@MessageBody() data: { content: string, from: string, dmId: string }
+		@MessageBody() { content, from, dmId }: {
+			content: string, from: string, dmId: string
+		}
 	) {
-		const message = await this.chatService.addMessageToDm(data.content, data.dmId, data.from.toString());
+		const message = await this.chatService.addMessageToDm(content, dmId, from.toString());
 
-		this.server.to(`dm_${data.dmId}`).emit('newDm', { message });
-		this.logger.log(`New message in DM [${data.dmId}]`);
+		this.server.to(`dm_${dmId}`).emit('newDm', { message });
+		this.logger.log(`New message in DM [${dmId}]`);
 	}
 }

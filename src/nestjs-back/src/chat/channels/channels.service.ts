@@ -3,10 +3,7 @@ import { SchedulerRegistry } from '@nestjs/schedule';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Repository } from 'typeorm';
 import { CronJob } from 'cron';
-import {
-  hash as hashPassword,
-  compare as comparePassword
-} from 'bcryptjs';
+import { hash as hashPassword } from 'bcryptjs';
 import { Channel } from './entities/channels.entity';
 import { CreateChannelDto } from './dto/create-channel.dto';
 import { UpdateChannelDto } from './dto/update-channel.dto';
@@ -77,37 +74,6 @@ export class ChannelsService {
       .where('channel.id = :id', { id })
       .getOne();
     return channel.password;
-  }
-
-  /* NOTE: to be removed */
-  async getChannelUsers(id: string) {
-    const channel = await this.channelsRepository
-      .createQueryBuilder('channel')
-      .innerJoinAndSelect('channel.users', 'users')
-      .where('channel.id = :id', { id })
-      .getOne();
-    return channel;
-  }
-
-  /* NOTE: to be removed */
-  async joinProtectedChan(id: string, userId: string, password: string) {
-    let channel = await this.channelsRepository.findOne(id, {
-      where: { privacy: 'protected' }
-    });
-    const user = await this.usersService.findOne(userId);
-
-    if (channel) {
-      const chanPassword = await this.getChannelPassword(id);
-      const passIsValid = await comparePassword(password, chanPassword);
-
-      if (passIsValid) {
-        channel = await this.getChannelUsers(id);
-        channel.users.push(user);
-        this.logger.log(`User [${userId}] joined channel [${channel.id}][${channel.name}]`);
-        return this.channelsRepository.save(channel);
-      }
-    }
-    throw new UnauthorizedException();
   }
 
   findAll() {
