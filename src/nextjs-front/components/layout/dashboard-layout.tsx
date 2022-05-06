@@ -181,12 +181,16 @@ const SearchBar = () => {
 
 export const DashboardLayout: FunctionComponent = ({ children }) => {
   const [sidebarOpen, setSidebarOpen] = useState(false);
-  const { user } = useSession();
+  const { user, logout } = useSession();
 
   const userNavigation = [
     { name: "Settings", href: "/welcome" },
     { name: "My profile", href: `/users/${user.id}` },
   ];
+
+  const handleLogout = async () => {
+    await logout();
+  };
 
   return (
     <>
@@ -389,6 +393,12 @@ export const DashboardLayout: FunctionComponent = ({ children }) => {
                           )}
                         </Menu.Item>
                       ))}
+                      <button
+                        className="block px-4 py-2 text-sm text-pink-600"
+                        onClick={handleLogout}
+                      >
+                        Logout
+                      </button>
                     </Menu.Items>
                   </Transition>
                 </Menu>
