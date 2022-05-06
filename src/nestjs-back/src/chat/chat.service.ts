@@ -27,8 +27,7 @@ export class ChatService {
     const userChannels = channels.filter(
       (channel) =>
         !!channel.users.find((user) => { return user.id === parseInt(userId); })
-        || (channel.privacy === 'public')
-        || (channel.privacy === 'protected')
+        || (channel.privacy !== 'private')
     );
     return userChannels;
   }

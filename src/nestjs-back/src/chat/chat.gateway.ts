@@ -14,7 +14,7 @@ import { ChatService } from './chat.service';
 import { Channel } from './channels/entities/channels.entity';
 import { DirectMessage } from './direct-messages/entities/direct-messages';
 import { UserStatus } from 'src/games/class/Constants';
-import { ConnectedUsers, User } from 'src/games/class/ConnectedUsers';
+import { ChatUser, ChatUsers } from './class/ChatUsers';
 
 @WebSocketGateway(
   {
@@ -25,7 +25,7 @@ import { ConnectedUsers, User } from 'src/games/class/ConnectedUsers';
 export class ChatGateway implements OnGatewayInit, OnGatewayConnection {
   @WebSocketServer() server: Server;
   private logger: Logger = new Logger('Chat Gateway');
-  private readonly chatUsers: ConnectedUsers = new ConnectedUsers();
+  private readonly chatUsers: ChatUsers = new ChatUsers();
 
   constructor(private readonly chatService: ChatService) {}
 
@@ -51,12 +51,12 @@ export class ChatGateway implements OnGatewayInit, OnGatewayConnection {
   @SubscribeMessage('updateChatUser')
   handleNewUser(
     @ConnectedSocket() client: Socket,
-    @MessageBody() data: User
+    @MessageBody() data: ChatUser
   ) {
     let user = this.chatUsers.getUserById(data.id);
 
     if (!user) {
-      user = new User(data.id, data.username, client.id);
+      user = new ChatUser(data.id, data.username, client.id);
       user.setUserStatus(UserStatus.ONLINE);
       this.chatUsers.addUser(user);
     } else {

@@ -13,10 +13,6 @@ export class User {
 		this.socketId = socketId
 	}
 
-	setSocketId(socketId: string) {
-		this.socketId = socketId;
-	}
-
 	setUsername(username: string) {
 		this.username = username;
 	}
@@ -25,10 +21,13 @@ export class User {
 		this.status = status;
 	}
 
+	setSocketId(socketId: string) {
+		this.socketId = socketId;
+	}
+
 	setRoomId(roomId: string | undefined) {
 		this.roomId = roomId;
 	}
-
 }
 
 export class ConnectedUsers {
@@ -51,13 +50,6 @@ export class ConnectedUsers {
 		if (userIndex === -1)
 			return undefined;
 		return this.users[userIndex];
-	}
-
-	getUserById(userId: number): User | undefined {
-		const user: User = this.users.find(
-			(user) => user.id === userId
-		);
-		return user;
 	}
 
 	changeUserStatus(socketId: string, status: UserStatus) {
