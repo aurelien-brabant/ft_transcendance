@@ -107,7 +107,7 @@ export class ChatGateway implements OnGatewayInit, OnGatewayConnection {
 		try {
 			channel = await this.chatService.createChannel(data);
 		} catch (e) {
-			this.server.to(client.id).emit('createChannelError', e.message);
+			this.server.to(client.id).emit('chatError', e.message);
 			return ;
 		}
 		this.chatUsers.userJoinRoom(client, roomId);
@@ -137,7 +137,7 @@ export class ChatGateway implements OnGatewayInit, OnGatewayConnection {
 		try {
 			user = await this.chatService.addUserToChannel(data.userId, data.channelId);
 		} catch (e) {
-			this.server.to(client.id).emit('joinChannelError', e.message);
+			this.server.to(client.id).emit('chatError', e.message);
 			return ;
 		}
 
@@ -151,8 +151,8 @@ export class ChatGateway implements OnGatewayInit, OnGatewayConnection {
 		this.server.to(roomId).emit('joinedChannel', res);
 	}
 
-	@SubscribeMessage('quitChannel')
-	async handleQuitChannel(
+	@SubscribeMessage('leaveChannel')
+	async handleLeaveChannel(
 		@ConnectedSocket() client: Socket,
 		@MessageBody() data: { userId: string, channelId: string }
 	) {
@@ -161,18 +161,17 @@ export class ChatGateway implements OnGatewayInit, OnGatewayConnection {
 		try {
 			user = await this.chatService.removeUserFromChannel(data.userId, data.channelId);
 		} catch (e) {
-			this.server.to(client.id).emit('quitChannelError', e.message);
+			this.server.to(client.id).emit('chatError', e.message);
 			return ;
 		}
 
 		const roomId = `channel_${data.channelId}`;
 		const res = {
 			message: `${user.username} left group`,
-			userId: data.userId,
 		};
 
 		this.chatUsers.userLeaveRoom(client, roomId);
-		this.server.to(roomId).emit('quittedChannel', res);
+		this.server.to(roomId).emit('leftChannel', res);
 	}
 
 	/**
@@ -213,7 +212,7 @@ export class ChatGateway implements OnGatewayInit, OnGatewayConnection {
 		try {
 			dm = await this.chatService.createDm(data);
 		} catch (e) {
-			this.server.to(client.id).emit('createDmError', e.message);
+			this.server.to(client.id).emit('chatError', e.message);
 			return ;
 		}
 		this.server.to(client.id).emit('dmCreated', (dm));

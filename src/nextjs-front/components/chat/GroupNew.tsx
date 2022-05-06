@@ -53,7 +53,7 @@ export const GroupNewHeader: React.FC = () => {
 /* Form area */
 const GroupNew: React.FC = () => {
 	const { user } = useSession();
-	const { handleChannelCreation, handleChatError, socket } = useContext(chatContext) as ChatContextType;
+	const { socket, channelCreatedListener } = useContext(chatContext) as ChatContextType;
 
 	/* Form */
 	const [formData, setFormData] = useState<NewGroupData>({
@@ -121,12 +121,10 @@ const GroupNew: React.FC = () => {
 
 	useEffect(() => {
 		/* Listeners */
-		socket.on("channelCreated", handleChannelCreation);
-		socket.on("createChannelError", handleChatError);
+		socket.on("channelCreated", channelCreatedListener);
 
 		return () => {
-			socket.off("channelCreated", handleChannelCreation);
-			socket.off("createChannelError", handleChatError);
+			socket.off("channelCreated", channelCreatedListener);
 		};
 	}, []);
 

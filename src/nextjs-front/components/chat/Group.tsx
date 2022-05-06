@@ -110,6 +110,32 @@ const Group: React.FC<{ viewParams: { [key: string]: any } }> = ({
 	const [userInChan, setUserInChan] = useState(false);
 	const chatBottom = useRef<HTMLDivElement>(null);
 
+	const joinGroup = async () => {
+		socket.emit("joinChannel", {
+			userId: user.id,
+			channelId: viewParams.channelId
+		});
+	};
+
+	/* Send new message */
+	const handleGroupMessageSubmit = async () => {
+		if (currentMessage.trim().length === 0) return;
+
+		console.log('[Chat] Submit group message');
+
+		socket.emit('gmSubmit', {
+			content: currentMessage,
+			from: user.id,
+			channelId
+		});
+		setCurrentMessage("");
+	};
+
+	/* Scroll to bottom if new message is sent */
+	useEffect(() => {
+		chatBottom.current?.scrollIntoView();
+	}, [messages]);
+
 	/* Load all messages in channel */
 	const updateGroupView = async (channel: Channel) => {
 		if ((channel.id !== channelId) || !channel.messages) return ;
@@ -139,25 +165,6 @@ const Group: React.FC<{ viewParams: { [key: string]: any } }> = ({
 		}
 		setMessages(messages);
 	};
-
-	/* Send new message */
-	const handleGroupMessageSubmit = async () => {
-		if (currentMessage.trim().length === 0) return;
-
-		console.log('[Chat] Submit group message');
-
-		socket.emit('gmSubmit', {
-			content: currentMessage,
-			from: user.id,
-			channelId
-		});
-		setCurrentMessage("");
-	};
-
-	/* Scroll to bottom if new message is sent */
-	useEffect(() => {
-		chatBottom.current?.scrollIntoView();
-	}, [messages]);
 
 	/* Receive new message */
 	const handleNewMessage = ({ message }: { message: Message }) => {
@@ -201,10 +208,19 @@ const Group: React.FC<{ viewParams: { [key: string]: any } }> = ({
 		}
 	};
 
-	const joinGroup = async () => {
-		socket.emit("joinChannel", {
-			userId: user.id,
-			channelId: viewParams.channelId
+	const handleUserLeaving = (res: { message: string }) => {
+		setMessages((prevMessages) => {
+			const newMessages: ChatMessage[] = [...prevMessages];
+
+			newMessages.push({
+				id: prevMessages.length.toString(),
+				createdAt: new Date(Date.now()),
+				content: res.message,
+				author: "bot",
+				displayAuthor: false,
+				displayStyle: "self-center text-gray-500",
+			});
+			return newMessages;
 		});
 	};
 
@@ -215,11 +231,13 @@ const Group: React.FC<{ viewParams: { [key: string]: any } }> = ({
 		socket.on("updateChannel", updateGroupView);
 		socket.on("newGm", handleNewMessage);
 		socket.on("joinedChannel", handleNewUser);
+		socket.on("leftChannel", handleUserLeaving);
 
 		return () => {
 			socket.off("updateChannel", updateGroupView);
 			socket.off("newGm", handleNewMessage);
 			socket.off("joinedChannel", handleNewUser);
+			socket.off("leftChannel", handleUserLeaving);
 		};
 	}, []);
 

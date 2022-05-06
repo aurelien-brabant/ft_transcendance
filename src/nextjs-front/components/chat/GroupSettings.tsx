@@ -1,6 +1,6 @@
 import { Fragment, useContext, useEffect, useState } from "react";
 import { AiOutlineArrowLeft, AiOutlineClose } from "react-icons/ai";
-import { BaseUserData, Channel } from "transcendance-types";
+import { Channel } from "transcendance-types";
 import { useSession } from "../../hooks/use-session";
 import alertContext, { AlertContextType } from "../../context/alert/alertContext";
 import chatContext, { ChatContextType, ChatGroupPrivacy } from "../../context/chat/chatContext";
@@ -57,12 +57,7 @@ const GroupSettings: React.FC<{ viewParams: any }> = ({ viewParams }) => {
 	const channelId: string = viewParams.channelId;
 	const { user } = useSession();
 	const { setAlert } = useContext(alertContext) as AlertContextType;
-	const {
-		setChatView,
-		closeRightmostView,
-		fetchChannelData,
-		socket
-	} = useContext(chatContext) as ChatContextType;
+	const { socket, setChatView, closeRightmostView } = useContext(chatContext) as ChatContextType;
 	const [ownerView, setOwnerView] = useState(false);
 	const [userInChan, setUserInChan] = useState(false);
 	const [peopleCount, setPeopleCount] = useState(0);
@@ -176,40 +171,19 @@ const GroupSettings: React.FC<{ viewParams: any }> = ({ viewParams }) => {
 	/* USER */
 
 	/* User quits group */
-	const handleLeaveGroup = async () => {
-		/* NOTE: fetch will be removed */
-		const channelData = await fetchChannelData(channelId).catch(console.error);
-		const currentUsers = JSON.parse(JSON.stringify(channelData)).users;
-		const users = currentUsers.filter((user: BaseUserData) => {
-			return user.id != user.id
-		})
-
-		const res = await fetch(`/api/channels/${channelId}`, {
-			method: "PATCH",
-			headers: {
-				"Content-Type": "application/json",
-			},
-			body: JSON.stringify({
-				users: [ ...users ]
-			}),
+	const handleUserLeaveGroup = () => {
+		socket.emit("leaveChannel", {
+			userId: user.id,
+			channelId: viewParams.channelId
 		});
-
-		if (res.status === 200) {
-			closeRightmostView(2);
-			return;
-		} else {
-			setAlert({
-				type: "error",
-				content: "Failed to leave group"
-			});
-		}
+		closeRightmostView(2);
 	};
 
 	const updateChannelData = (channel: Channel) => {
 		setOwnerView(channel.owner.id === user.id);
 		setPeopleCount(channel.users.length);
 		setUserInChan(!!channel.users.find(
-			(chanUser) => { return chanUser.id === user.id;}
+			(chanUser) => { return chanUser.id === user.id; }
 		));
 	};
 
@@ -348,7 +322,7 @@ const GroupSettings: React.FC<{ viewParams: any }> = ({ viewParams }) => {
 					<div className="flex flex-col gap-y-4">
 					<h6 className="text-xl">Leave group</h6>
 					<button
-						onClick={() => { handleLeaveGroup() }}
+						onClick={() => { handleUserLeaveGroup() }}
 						className="px-3 py-2 uppercase bg-red-600">
 							Leave group
 					</button>

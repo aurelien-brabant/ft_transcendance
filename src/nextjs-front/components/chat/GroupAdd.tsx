@@ -3,7 +3,6 @@ import { AiOutlineArrowLeft, AiOutlineClose } from "react-icons/ai";
 import { BaseUserData, Channel, User } from "transcendance-types";
 import { UserStatusItem } from "../UserStatus";
 import { useSession } from "../../hooks/use-session";
-import alertContext, { AlertContextType } from "../../context/alert/alertContext";
 import chatContext, { ChatContextType } from "../../context/chat/chatContext";
 import relationshipContext, { RelationshipContextType } from "../../context/relationship/relationshipContext";
 
@@ -35,7 +34,6 @@ export const GroupAddHeader: React.FC<{ viewParams: any }> = ({ viewParams }) =>
 const GroupAdd: React.FC<{ viewParams: any }> = ({ viewParams }) => {
 	const channelId: string = viewParams.channelId;
 	const { user } = useSession();
-	const { setAlert } = useContext(alertContext) as AlertContextType;
 	const { closeRightmostView, socket } = useContext(chatContext) as ChatContextType;
 	const { friends } = useContext(relationshipContext) as RelationshipContextType;
 	const [filteredFriends, setFilteredFriends] = useState<User[]>([]);
@@ -79,23 +77,14 @@ const GroupAdd: React.FC<{ viewParams: any }> = ({ viewParams }) => {
 		closeRightmostView();
 	};
 
-	const handleChannelJoinError = (errMessage: string) => {
-		setAlert({
-			type: "warning",
-			content: errMessage
-		});
-	};
-
 	useEffect(() => {
 		socket.emit("getChannelData", { channelId });
 
 		/* Listeners */
 		socket.on("updateChannel", selectFriends);
-		socket.on("joinChannelError", handleChannelJoinError);
 
 		return () => {
 			socket.off("updateChannel", selectFriends);
-			socket.off("joinChannelError", handleChannelJoinError);
 		};
 	}, [friends]);
 

@@ -3,7 +3,7 @@ import { BsFillChatDotsFill } from "react-icons/bs";
 import { Bounce } from "react-awesome-reveal";
 import { BaseUserData, Channel, DmChannel } from 'transcendance-types';
 import { useSession } from "../../hooks/use-session";
-import alertContext, { AlertContextType } from "../alert/alertContext";
+import alertContext, { AlertContextType, AlertType } from "../alert/alertContext";
 import authContext, { AuthContextValue } from "../auth/authContext";
 import relationshipContext, { RelationshipContextType } from "../relationship/relationshipContext";
 import { io } from "socket.io-client";
@@ -176,40 +176,8 @@ const ChatProvider: React.FC = ({ children }) => {
 			);
 	};
 
-	/* Event listeners */
-	const handleChannelCreation = (newChannel: Channel) => {
-		openChatView(
-			newChannel.privacy === "protected" ? "password_protection" : "group",
-			newChannel.name, {
-				channelId: newChannel.id,
-				channelName: newChannel.name,
-				privacy: newChannel.privacy
-			}
-		);
-	};
-
-	const handleDmCreation = (newDm: DmChannel) => {
-		console.log('[Chat] handleDmCreation');
-		const friend = (newDm.users[0].id === user.id) ? newDm.users[1] : newDm.users[0];
-
-		openChatView('dm', 'direct message', {
-			channelId: newDm.id,
-			friendUsername: friend.username,
-			friendId: friend.id
-		});
-		openChat();
-	};
-
-	const handleChatError = (errMessage: string) => {
-		setAlert({
-			type: "warning",
-			content: errMessage
-		});
-	};
-
 	/* To be accessed from outside the chat (i.e. pages/users/[id]) */
 	const createDirectMessage = (userId: string, friendId: string) => {
-		console.log('[Chat] createDirectMessage');
 		const data = {
 			users: [
 				{ id: userId },
@@ -218,13 +186,6 @@ const ChatProvider: React.FC = ({ children }) => {
 		};
 
 		socket.emit("createDm", data);
-	}
-
-	/* NOTE: to be removed */
-	const fetchChannelData = async (id: string) => {
-		const res = await fetch(`/api/channels/${id}`);
-		const data = await res.json();
-		return data;
 	}
 
 	const getMessageStyle = (authorId: string) => {
@@ -263,8 +224,8 @@ const ChatProvider: React.FC = ({ children }) => {
 		return message;
 	}
 
-	/* Load data */
-	const loadUserChannels = async (channels: Channel[]) => {
+	/* Event listeners */
+	const updateChannelsListener = async (channels: Channel[]) => {
 		const groups: ChatGroup[] = [];
 
 		for (var channel of Array.from(channels)) {
@@ -290,7 +251,7 @@ const ChatProvider: React.FC = ({ children }) => {
 		setChatGroups(groups);
 	}
 
-	const loadUserDms = async (channels: DmChannel[]) => {
+	const updateDmsListener = async (channels: DmChannel[]) => {
 		const dms: DirectMessage[] = [];
 
 		for (var channel of Array.from(channels)) {
@@ -319,6 +280,43 @@ const ChatProvider: React.FC = ({ children }) => {
 		setDirectMessages(dms);
 	}
 
+	const channelCreatedListener = (newChannel: Channel) => {
+		openChatView(
+			newChannel.privacy === "protected" ? "password_protection" : "group",
+			newChannel.name, {
+				channelId: newChannel.id,
+				channelName: newChannel.name,
+				privacy: newChannel.privacy
+			}
+		);
+	};
+
+	const dmCreatedListener = (newDm: DmChannel) => {
+		console.log('[Chat] dmCreatedListener');
+		const friend = (newDm.users[0].id === user.id) ? newDm.users[1] : newDm.users[0];
+
+		openChatView('dm', 'direct message', {
+			channelId: newDm.id,
+			friendUsername: friend.username,
+			friendId: friend.id
+		});
+		openChat();
+	};
+
+	const chatErrorListener = (errMessage: string) => {
+		setAlert({
+			type: "warning",
+			content: errMessage
+		});
+	};
+
+	/* NOTE: to be removed */
+	const fetchChannelData = async (id: string) => {
+		const res = await fetch(`/api/channels/${id}`);
+		const data = await res.json();
+		return data;
+	}
+
 	/* Update channels if view stack changes */
 	useEffect(() => {
 		if (!user || !socket) return ;
@@ -340,16 +338,16 @@ const ChatProvider: React.FC = ({ children }) => {
 		});
 
 		/* Listeners */
-		socket.on("updateUserChannels", loadUserChannels);
-		socket.on("updateUserDms", loadUserDms);
-		socket.on("dmCreated", handleDmCreation);
-		socket.on("createDmError", handleChatError);
+		socket.on("updateUserChannels", updateChannelsListener);
+		socket.on("updateUserDms", updateDmsListener);
+		socket.on("dmCreated", dmCreatedListener);
+		socket.on("chatError", chatErrorListener);
 
 		return () => {
-			socket.off("updateUserChannels", loadUserChannels);
-			socket.off("updateUserDms", loadUserDms);
-			socket.off("dmCreated", handleDmCreation);
-			socket.off("createDmError", handleChatError);
+			socket.off("updateUserChannels", updateChannelsListener);
+			socket.off("updateUserDms", updateDmsListener);
+			socket.off("dmCreated", dmCreatedListener);
+			socket.off("chatError", chatErrorListener);
 		};
 	}, [socket]);
 
@@ -387,11 +385,11 @@ const ChatProvider: React.FC = ({ children }) => {
 				openChatView,
 				setChatView,
 				closeRightmostView,
-				handleChannelCreation,
-				handleDmCreation,
-				handleChatError,
 				createDirectMessage,
 				getMessageStyle,
+				channelCreatedListener,
+				dmCreatedListener,
+				chatErrorListener,
 				fetchChannelData,
 				lastX,
 				lastY,

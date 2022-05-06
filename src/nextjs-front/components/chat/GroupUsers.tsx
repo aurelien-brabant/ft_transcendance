@@ -74,7 +74,7 @@ const GroupUsers: React.FC<{ viewParams: any }> = ({ viewParams }) => {
 	const channelId: string = viewParams.channelId;
 	const { user } = useSession();
 	const { setAlert } = useContext(alertContext) as AlertContextType;
-	const { fetchChannelData, socket } = useContext(chatContext) as ChatContextType; /* NOTE: fetch will be removed */
+	const { socket, fetchChannelData } = useContext(chatContext) as ChatContextType; /* NOTE: fetch will be removed */
 	const { blocked } = useContext(relationshipContext) as RelationshipContextType;
 	const [users, setUsers] = useState<UserSummary[]>([]);
 	const [ownerView, setOwnerView] = useState(false);

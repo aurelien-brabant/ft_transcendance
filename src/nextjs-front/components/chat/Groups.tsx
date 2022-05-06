@@ -18,7 +18,7 @@ const Groups: React.FC<{viewParams: Object;}> = ({ viewParams }) => {
 				(a: ChatGroup, b: ChatGroup) =>
 					(b.updatedAt.valueOf() - a.updatedAt.valueOf()
 			)
-	), []);
+	), [chatGroups]);
 
 	const [filteredGroups, setFilteredGroups] = useState(baseChatGroups);
 	const [visiblityFilter, setVisiblityFilter] = useState<ChatGroupPrivacy | null>(null);
@@ -50,10 +50,9 @@ const Groups: React.FC<{viewParams: Object;}> = ({ viewParams }) => {
 		handleSearch((searchInputRef.current as HTMLInputElement).value);
 	}, [visiblityFilter]);
 
-	/* Update filtered groups */
 	useEffect(() => {
-		setFilteredGroups(chatGroups);
-	}, [chatGroups]);
+		setFilteredGroups(baseChatGroups);
+	}, [baseChatGroups]);
 
 	return (
 		<Fragment>
