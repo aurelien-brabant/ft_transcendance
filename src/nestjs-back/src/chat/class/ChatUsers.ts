@@ -4,8 +4,22 @@ import { User } from 'src/games/class/ConnectedUsers';
 export class ChatUser extends User {
 	joinedRooms: string[];
 
+	constructor(
+		id: number,
+		username: string,
+		socketId: string
+	) {
+		super(id, username, socketId);
+		this.joinedRooms = [];
+	}
+
 	addRoom(roomId: string) {
-		this.joinedRooms.push(roomId);
+		const alreadyjoined = !!this.joinedRooms.find(
+			(room) => { return room === roomId; }
+		);
+		if (!alreadyjoined) {
+			this.joinedRooms.push(roomId);
+		}
 	}
 
 	removeRoom(roomId: string) {
@@ -41,9 +55,9 @@ export class ChatUsers {
 		return user;
 	}
 
-	getUserById(userId: number): ChatUser | undefined {
+	getUserById(userId: string): ChatUser | undefined {
 		const user: ChatUser = this.users.find(
-			(user) => user.id === userId
+			(user) => user.id === parseInt(userId)
 		);
 		return user;
 	}

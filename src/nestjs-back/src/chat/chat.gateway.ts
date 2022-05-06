@@ -33,6 +33,18 @@ export class ChatGateway implements OnGatewayInit, OnGatewayConnection {
     this.logger.log('[+] Init Chat Gateway');
   }
 
+  async addUserToRoom(
+    @ConnectedSocket() client: Socket, roomId: string
+  ) {
+    const chatUser = this.chatUsers.getUser(client.id);
+
+    if (chatUser) {
+      chatUser.addRoom(roomId);
+    }
+    client.join(roomId);
+  }
+
+
   async handleConnection(@ConnectedSocket() client: Socket) {
     this.logger.log(`Client connected: ${client.id}`);
   }
@@ -53,7 +65,7 @@ export class ChatGateway implements OnGatewayInit, OnGatewayConnection {
     @ConnectedSocket() client: Socket,
     @MessageBody() data: ChatUser
   ) {
-    let user = this.chatUsers.getUserById(data.id);
+    let user = this.chatUsers.getUserById(data.id.toString());
 
     if (!user) {
       user = new ChatUser(data.id, data.username, client.id);
@@ -78,7 +90,7 @@ export class ChatGateway implements OnGatewayInit, OnGatewayConnection {
     const channels = await this.chatService.getUserChannels(data.userId);
 
     for (var channel of channels) {
-      client.join(`channel_${channel.id}`);
+      this.addUserToRoom(client, `channel_${channel.id}`);
     }
     this.server.to(client.id).emit('updateUserChannels', (channels));
   }
@@ -90,7 +102,7 @@ export class ChatGateway implements OnGatewayInit, OnGatewayConnection {
   ) {
     const channel = await this.chatService.getChannelData(data.channelId);
 
-    client.join(`channel_${channel.id}`);
+    this.addUserToRoom(client, `channel_${channel.id}`);
     this.server.to(client.id).emit('updateChannel', (channel));
   }
 
@@ -100,6 +112,7 @@ export class ChatGateway implements OnGatewayInit, OnGatewayConnection {
     @MessageBody() data
   ) {
     let channel: Channel;
+    const roomId = `channel_${channel.id}`;
 
     try {
       channel = await this.chatService.createChannel(data);
@@ -107,8 +120,8 @@ export class ChatGateway implements OnGatewayInit, OnGatewayConnection {
       this.server.to(client.id).emit('createChannelError', e.message);
       return ;
     }
-    client.join(`channel_${channel.id}`);
-    this.server.to(`channel_${channel.id}`).emit('channelCreated', (channel));
+    this.addUserToRoom(client, roomId);
+    this.server.to(roomId).emit('channelCreated', (channel));
   }
 
   /* Save a new group message */
@@ -137,18 +150,15 @@ export class ChatGateway implements OnGatewayInit, OnGatewayConnection {
       this.server.to(client.id).emit('joinChannelError', e.message);
       return ;
     }
-    const chatUser = this.chatUsers.getUserById(parseInt(data.userId));
 
-    if (chatUser) {
-      const userSocket = (await this.server.fetchSockets()).find(socket => socket.id === chatUser.socketId);
-
-      if (userSocket) userSocket.join(`channel_${data.channelId}`);
-    }
+    const roomId = `channel_${data.channelId}`;
     const res = {
       message: `${user.username} joined group`,
       userId: data.userId,
     };
-    this.server.to(`channel_${data.channelId}`).emit('joinedChannel', res);
+
+    this.addUserToRoom(client, roomId);
+    this.server.to(roomId).emit('joinedChannel', res);
   }
 
   /**
@@ -162,7 +172,7 @@ export class ChatGateway implements OnGatewayInit, OnGatewayConnection {
     const dms = await this.chatService.getUserDms(data.userId);
 
     for (var dm of dms) {
-      client.join(`dm_${dm.id}`);
+      this.addUserToRoom(client, `dm_${dm.id}`);
     }
     this.server.to(client.id).emit('updateUserDms', (dms));
   }
@@ -173,8 +183,9 @@ export class ChatGateway implements OnGatewayInit, OnGatewayConnection {
     @MessageBody() data: { dmId: string }
   ) {
     const dm = await this.chatService.getDmData(data.dmId);
+    const roomId = `dm_${dm.id}`;
 
-    client.join(`dm_${dm.id}`);
+    this.addUserToRoom(client, roomId);
     this.server.to(client.id).emit('updateDm', (dm));
   }
 
