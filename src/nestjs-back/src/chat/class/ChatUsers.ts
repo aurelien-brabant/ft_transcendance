@@ -1,3 +1,5 @@
+import { Socket } from 'socket.io';
+import { ConnectedSocket } from '@nestjs/websockets';
 import { UserStatus } from 'src/games/class/Constants';
 import { User } from 'src/games/class/ConnectedUsers';
 
@@ -27,7 +29,7 @@ export class ChatUser extends User {
 	}
 }
 
-/* NOTE: couldn't extend ConnectedUsers from games */
+/* NOTE: couldn't extend games/ConnectedUsers */
 export class ChatUsers {
 	private users: Array<ChatUser> = new Array();
 
@@ -66,5 +68,27 @@ export class ChatUsers {
 		let user: ChatUser = this.getUser(socketId);
 
 		user.setUserStatus(status);
+	}
+
+	userJoinRoom(
+		@ConnectedSocket() client: Socket, roomId: string
+	) {
+		const chatUser = this.getUser(client.id);
+
+		if (chatUser) {
+			chatUser.addRoom(roomId);
+		}
+		client.join(roomId);
+	}
+
+	userLeaveRoom(
+		@ConnectedSocket() client: Socket, roomId: string
+	) {
+		const chatUser = this.getUser(client.id);
+
+		if (chatUser) {
+			chatUser.removeRoom(roomId);
+		}
+		client.leave(roomId);
 	}
 }

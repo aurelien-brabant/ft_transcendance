@@ -1,14 +1,14 @@
 import { Server, Socket } from 'socket.io';
 import { Logger } from '@nestjs/common';
 import {
-  ConnectedSocket,
-  MessageBody,
-  OnGatewayConnection,
-  // OnGatewayDisconnect,
-  OnGatewayInit,
-  SubscribeMessage,
-  WebSocketGateway,
-  WebSocketServer,
+	ConnectedSocket,
+	MessageBody,
+	OnGatewayConnection,
+	// OnGatewayDisconnect,
+	OnGatewayInit,
+	SubscribeMessage,
+	WebSocketGateway,
+	WebSocketServer,
 } from '@nestjs/websockets';
 import { ChatService } from './chat.service';
 import { Channel } from './channels/entities/channels.entity';
@@ -17,203 +17,217 @@ import { UserStatus } from 'src/games/class/Constants';
 import { ChatUser, ChatUsers } from './class/ChatUsers';
 
 @WebSocketGateway(
-  {
-    cors: true,
-    namespace: '/chat'
-  }
+	{
+		cors: true,
+		namespace: '/chat'
+	}
 )
 export class ChatGateway implements OnGatewayInit, OnGatewayConnection {
-  @WebSocketServer() server: Server;
-  private logger: Logger = new Logger('Chat Gateway');
-  private readonly chatUsers: ChatUsers = new ChatUsers();
+	@WebSocketServer() server: Server;
+	private logger: Logger = new Logger('Chat Gateway');
+	private readonly chatUsers: ChatUsers = new ChatUsers();
 
-  constructor(private readonly chatService: ChatService) {}
+	constructor(
+		private readonly chatService: ChatService
+	) {}
 
-  afterInit(server: Server) {
-    this.logger.log('[+] Init Chat Gateway');
-  }
+	afterInit(server: Server) {
+		this.logger.log('[+] Init Chat Gateway');
+	}
 
-  async addUserToRoom(
-    @ConnectedSocket() client: Socket, roomId: string
-  ) {
-    const chatUser = this.chatUsers.getUser(client.id);
+	async handleConnection(@ConnectedSocket() client: Socket) {
+		this.logger.log(`Client connected: ${client.id}`);
+	}
 
-    if (chatUser) {
-      chatUser.addRoom(roomId);
-    }
-    client.join(roomId);
-  }
+	/* TODO: handle disconnection at logout
+	async handleDisconnect(@ConnectedSocket() client: Socket) {
+		const user = this.chatUsers.getUser(client.id);
 
+		if (user) {
+			this.logger.log(`Remove user: [${user.id}][${user.username}]`);
+			this.chatUsers.removeUser(user);
+		}
+	}
+	*/
 
-  async handleConnection(@ConnectedSocket() client: Socket) {
-    this.logger.log(`Client connected: ${client.id}`);
-  }
+	@SubscribeMessage('updateChatUser')
+	handleNewUser(
+		@ConnectedSocket() client: Socket,
+		@MessageBody() data: ChatUser
+	) {
+		let user = this.chatUsers.getUserById(data.id.toString());
 
-  /* TODO: handle disconnection at logout
-  async handleDisconnect(@ConnectedSocket() client: Socket) {
-    const user = this.chatUsers.getUser(client.id);
+		if (!user) {
+			user = new ChatUser(data.id, data.username, client.id);
+			user.setUserStatus(UserStatus.ONLINE);
+			this.chatUsers.addUser(user);
+		} else {
+			user.setSocketId(client.id);
+			user.setUsername(data.username);
+		}
+		this.logger.log(`Add user[${user.id}][${user.username}]`);
+		console.log(this.chatUsers); // debug
+	}
 
-    if (user) {
-      this.logger.log(`Remove user: [${user.id}][${user.username}]`);
-      this.chatUsers.removeUser(user);
-    }
-  }
-  */
+	/**
+	 * Channels
+	 */
+	@SubscribeMessage('getUserChannels')
+	async handleUserChannels(
+		@ConnectedSocket() client: Socket,
+		@MessageBody() data: { userId: string }
+	) {
+		const channels = await this.chatService.getUserChannels(data.userId);
 
-  @SubscribeMessage('updateChatUser')
-  handleNewUser(
-    @ConnectedSocket() client: Socket,
-    @MessageBody() data: ChatUser
-  ) {
-    let user = this.chatUsers.getUserById(data.id.toString());
+		for (var channel of channels) {
+			this.chatUsers.userJoinRoom(client, `channel_${channel.id}`);
+		}
+		this.server.to(client.id).emit('updateUserChannels', (channels));
+	}
 
-    if (!user) {
-      user = new ChatUser(data.id, data.username, client.id);
-      user.setUserStatus(UserStatus.ONLINE);
-      this.chatUsers.addUser(user);
-    } else {
-      user.setSocketId(client.id);
-      user.setUsername(data.username);
-    }
-    this.logger.log(`Add user[${user.id}][${user.username}]`);
-    console.log(this.chatUsers); // debug
-  }
+	@SubscribeMessage('getChannelData')
+	async handleChannelData(
+		@ConnectedSocket() client: Socket,
+		@MessageBody() data: { channelId: string }
+	) {
+		const channel = await this.chatService.getChannelData(data.channelId);
 
-  /**
-   * Channels
-   */
-  @SubscribeMessage('getUserChannels')
-  async handleUserChannels(
-    @ConnectedSocket() client: Socket,
-    @MessageBody() data: { userId: string }
-  ) {
-    const channels = await this.chatService.getUserChannels(data.userId);
+		this.chatUsers.userJoinRoom(client, `channel_${channel.id}`);
+		this.server.to(client.id).emit('updateChannel', (channel));
+	}
 
-    for (var channel of channels) {
-      this.addUserToRoom(client, `channel_${channel.id}`);
-    }
-    this.server.to(client.id).emit('updateUserChannels', (channels));
-  }
+	@SubscribeMessage('createChannel')
+	async handleCreateChannel(
+		@ConnectedSocket() client: Socket,
+		@MessageBody() data
+	) {
+		let channel: Channel;
+		const roomId = `channel_${channel.id}`;
 
-  @SubscribeMessage('getChannelData')
-  async handleChannelData(
-    @ConnectedSocket() client: Socket,
-    @MessageBody() data: { channelId: string }
-  ) {
-    const channel = await this.chatService.getChannelData(data.channelId);
+		try {
+			channel = await this.chatService.createChannel(data);
+		} catch (e) {
+			this.server.to(client.id).emit('createChannelError', e.message);
+			return ;
+		}
+		this.chatUsers.userJoinRoom(client, roomId);
+		this.server.to(roomId).emit('channelCreated', (channel));
+	}
 
-    this.addUserToRoom(client, `channel_${channel.id}`);
-    this.server.to(client.id).emit('updateChannel', (channel));
-  }
+	/* Save a new group message */
+	@SubscribeMessage('gmSubmit')
+	async handleGmSubmit(
+		@ConnectedSocket() client: Socket,
+		@MessageBody() data: { content: string, from: number, channelId: string }
+	) {
+		const message = await this.chatService.addMessageToChannel(data.content, data.channelId, data.from.toString());
 
-  @SubscribeMessage('createChannel')
-  async handleCreateChannel(
-    @ConnectedSocket() client: Socket,
-    @MessageBody() data
-  ) {
-    let channel: Channel;
-    const roomId = `channel_${channel.id}`;
+		this.logger.log(`user [${data.from}] sends message "${data.content}" on channel [${data.channelId}]`);
+		this.server.to(`channel_${data.channelId}`).emit('newGm', { message });
+	}
 
-    try {
-      channel = await this.chatService.createChannel(data);
-    } catch (e) {
-      this.server.to(client.id).emit('createChannelError', e.message);
-      return ;
-    }
-    this.addUserToRoom(client, roomId);
-    this.server.to(roomId).emit('channelCreated', (channel));
-  }
+	/* User joins/quits channel */
+	@SubscribeMessage('joinChannel')
+	async handleJoinChannel(
+		@ConnectedSocket() client: Socket,
+		@MessageBody() data: { userId: string, channelId: string }
+	) {
+		let user: any;
 
-  /* Save a new group message */
-  @SubscribeMessage('gmSubmit')
-  async handleGmSubmit(
-    @ConnectedSocket() client: Socket,
-    @MessageBody() data: { content: string, from: number, channelId: string }
-  ) {
-    const message = await this.chatService.addMessageToChannel(data.content, data.channelId, data.from.toString());
+		try {
+			user = await this.chatService.addUserToChannel(data.userId, data.channelId);
+		} catch (e) {
+			this.server.to(client.id).emit('joinChannelError', e.message);
+			return ;
+		}
 
-    this.logger.log(`user [${data.from}] sends message "${data.content}" on channel [${data.channelId}]`);
-    this.server.to(`channel_${data.channelId}`).emit('newGm', { message });
-  }
+		const roomId = `channel_${data.channelId}`;
+		const res = {
+			message: `${user.username} joined group`,
+			userId: data.userId,
+		};
 
-  /* User joins/quits channel */
-  @SubscribeMessage('joinChannel')
-  async handleJoinChannel(
-    @ConnectedSocket() client: Socket,
-    @MessageBody() data: { userId: string, channelId: string }
-  ) {
-    let user: any;
+		this.chatUsers.userJoinRoom(client, roomId);
+		this.server.to(roomId).emit('joinedChannel', res);
+	}
 
-    try {
-      user = await this.chatService.addUserToChannel(data.userId, data.channelId);
-    } catch (e) {
-      this.server.to(client.id).emit('joinChannelError', e.message);
-      return ;
-    }
+	@SubscribeMessage('quitChannel')
+	async handleQuitChannel(
+		@ConnectedSocket() client: Socket,
+		@MessageBody() data: { userId: string, channelId: string }
+	) {
+		let user;
 
-    const roomId = `channel_${data.channelId}`;
-    const res = {
-      message: `${user.username} joined group`,
-      userId: data.userId,
-    };
+		try {
+			user = await this.chatService.removeUserFromChannel(data.userId, data.channelId);
+		} catch (e) {
+			this.server.to(client.id).emit('quitChannelError', e.message);
+			return ;
+		}
 
-    this.addUserToRoom(client, roomId);
-    this.server.to(roomId).emit('joinedChannel', res);
-  }
+		const roomId = `channel_${data.channelId}`;
+		const res = {
+			message: `${user.username} left group`,
+			userId: data.userId,
+		};
 
-  /**
-   * Direct Messages
-   */
-  @SubscribeMessage('getUserDms')
-  async handleUserDms(
-    @ConnectedSocket() client: Socket,
-    @MessageBody() data: { userId: string }
-  ) {
-    const dms = await this.chatService.getUserDms(data.userId);
+		this.chatUsers.userLeaveRoom(client, roomId);
+		this.server.to(roomId).emit('quittedChannel', res);
+	}
 
-    for (var dm of dms) {
-      this.addUserToRoom(client, `dm_${dm.id}`);
-    }
-    this.server.to(client.id).emit('updateUserDms', (dms));
-  }
+	/**
+	 * Direct Messages
+	 */
+	@SubscribeMessage('getUserDms')
+	async handleUserDms(
+		@ConnectedSocket() client: Socket,
+		@MessageBody() data: { userId: string }
+	) {
+		const dms = await this.chatService.getUserDms(data.userId);
 
-  @SubscribeMessage('getDmData')
-  async handleDmData(
-    @ConnectedSocket() client: Socket,
-    @MessageBody() data: { dmId: string }
-  ) {
-    const dm = await this.chatService.getDmData(data.dmId);
-    const roomId = `dm_${dm.id}`;
+		for (var dm of dms) {
+			this.chatUsers.userJoinRoom(client, `dm_${dm.id}`);
+		}
+		this.server.to(client.id).emit('updateUserDms', (dms));
+	}
 
-    this.addUserToRoom(client, roomId);
-    this.server.to(client.id).emit('updateDm', (dm));
-  }
+	@SubscribeMessage('getDmData')
+	async handleDmData(
+		@ConnectedSocket() client: Socket,
+		@MessageBody() data: { dmId: string }
+	) {
+		const dm = await this.chatService.getDmData(data.dmId);
+		const roomId = `dm_${dm.id}`;
 
-  @SubscribeMessage('createDm')
-  async handleCreateDm(
-    @ConnectedSocket() client: Socket,
-    @MessageBody() data
-  ) {
-    let dm: DirectMessage;
+		this.chatUsers.userJoinRoom(client, roomId);
+		this.server.to(client.id).emit('updateDm', (dm));
+	}
 
-    try {
-      dm = await this.chatService.createDm(data);
-    } catch (e) {
-      this.server.to(client.id).emit('createDmError', e.message);
-      return ;
-    }
-    this.server.to(client.id).emit('dmCreated', (dm));
-  }
+	@SubscribeMessage('createDm')
+	async handleCreateDm(
+		@ConnectedSocket() client: Socket,
+		@MessageBody() data
+	) {
+		let dm: DirectMessage;
 
-  /* Save a new DM message */
-  @SubscribeMessage('dmSubmit')
-  async handleDmSubmit(
-    @ConnectedSocket() client: Socket,
-    @MessageBody() data: { content: string, from: string, dmId: string }
-  ) {
-    const message = await this.chatService.addMessageToDm(data.content, data.dmId, data.from.toString());
+		try {
+			dm = await this.chatService.createDm(data);
+		} catch (e) {
+			this.server.to(client.id).emit('createDmError', e.message);
+			return ;
+		}
+		this.server.to(client.id).emit('dmCreated', (dm));
+	}
 
-    this.server.to(`dm_${data.dmId}`).emit('newDm', { message });
-    this.logger.log(`New message in DM [${data.dmId}]`);
-  }
+	/* Save a new DM message */
+	@SubscribeMessage('dmSubmit')
+	async handleDmSubmit(
+		@ConnectedSocket() client: Socket,
+		@MessageBody() data: { content: string, from: string, dmId: string }
+	) {
+		const message = await this.chatService.addMessageToDm(data.content, data.dmId, data.from.toString());
+
+		this.server.to(`dm_${data.dmId}`).emit('newDm', { message });
+		this.logger.log(`New message in DM [${data.dmId}]`);
+	}
 }
