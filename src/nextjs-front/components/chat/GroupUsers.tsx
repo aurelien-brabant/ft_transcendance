@@ -71,7 +71,7 @@ export const GroupUsersHeader: React.FC<{ viewParams: any }> = ({ viewParams }) 
 };
 
 const GroupUsers: React.FC<{ viewParams: any }> = ({ viewParams }) => {
-	const channelId: string = viewParams.channelId;
+	const channelId = viewParams.channelId;
 	const { user } = useSession();
 	const { setAlert } = useContext(alertContext) as AlertContextType;
 	const { socket, fetchChannelData } = useContext(chatContext) as ChatContextType; /* NOTE: fetch will be removed */

@@ -11,7 +11,7 @@ import relationshipContext, { RelationshipContextType } from "../../context/rela
 
 /* Header */
 export const GroupHeader: React.FC<{ viewParams: any }> = ({ viewParams }) => {
-	const channelId: string = viewParams.channelId;
+	const channelId = viewParams.channelId;
 	const { user } = useSession();
 	const { socket, closeChat, openChatView, setChatView } = useContext(chatContext) as ChatContextType;
 	const [userInChan, setUserInChan] = useState(false);

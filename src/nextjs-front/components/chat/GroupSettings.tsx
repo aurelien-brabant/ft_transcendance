@@ -54,7 +54,7 @@ export const GroupSettingsHeader: React.FC<{ viewParams: any }> = ({ viewParams 
 };
 
 const GroupSettings: React.FC<{ viewParams: any }> = ({ viewParams }) => {
-	const channelId: string = viewParams.channelId;
+	const channelId = viewParams.channelId;
 	const { user } = useSession();
 	const { setAlert } = useContext(alertContext) as AlertContextType;
 	const { socket, setChatView, closeRightmostView } = useContext(chatContext) as ChatContextType;
@@ -151,21 +151,9 @@ const GroupSettings: React.FC<{ viewParams: any }> = ({ viewParams }) => {
 
 	/* If the owner leaves the group, it is deleted */
 	const disbandGroup = async () => {
-		const res = await fetch(`/api/channels/${channelId}`, {
-			method: "DELETE",
-			headers: {
-				"Content-Type": "application/json",
-			},
+		socket.emit("deleteChannel", {
+			channelId
 		});
-
-		if (res.status === 200) {
-			setChatView("groups", "Group chats", {});
-		} else {
-			setAlert({
-				type: "error",
-				content: "Failed to disband group"
-			});
-		}
 	};
 
 	/* USER */
@@ -174,7 +162,7 @@ const GroupSettings: React.FC<{ viewParams: any }> = ({ viewParams }) => {
 	const handleUserLeaveGroup = () => {
 		socket.emit("leaveChannel", {
 			userId: user.id,
-			channelId: viewParams.channelId
+			channelId
 		});
 		closeRightmostView(2);
 	};

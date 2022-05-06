@@ -70,6 +70,14 @@ export class ChatService {
 		return await this.channelsService.findOne(res.id.toString());
 	}
 
+	async deleteChannel(channelId: string) {
+		const channel = await this.channelsService.remove(channelId);
+
+		if (!channel) {
+			throw new UnauthorizedException('Invalid operation');
+		}
+	}
+
 	async addMessageToChannel(content: string, channelId: string, authorId: string) {
 		return await this.channelsService.addMessage(content, channelId, authorId);
 	}

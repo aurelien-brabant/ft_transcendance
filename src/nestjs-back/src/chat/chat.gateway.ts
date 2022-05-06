@@ -116,6 +116,20 @@ export class ChatGateway implements OnGatewayInit, OnGatewayConnection {
 		this.server.to(roomId).emit('channelCreated', (channel));
 	}
 
+	@SubscribeMessage('deleteChannel')
+	async handleDeleteChannel(
+		@ConnectedSocket() client: Socket,
+		@MessageBody() { channelId }: { channelId: string }
+	) {
+		try {
+			await this.chatService.deleteChannel(channelId);
+			this.server.to(`channel_${channelId}`).emit('channelDeleted', channelId);
+		} catch (e) {
+			this.server.to(client.id).emit('chatError', e.message);
+			return ;
+		}
+	}
+
 	/* Save a new group message */
 	@SubscribeMessage('gmSubmit')
 	async handleGmSubmit(

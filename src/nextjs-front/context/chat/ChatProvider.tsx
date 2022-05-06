@@ -3,7 +3,7 @@ import { BsFillChatDotsFill } from "react-icons/bs";
 import { Bounce } from "react-awesome-reveal";
 import { BaseUserData, Channel, DmChannel } from 'transcendance-types';
 import { useSession } from "../../hooks/use-session";
-import alertContext, { AlertContextType, AlertType } from "../alert/alertContext";
+import alertContext, { AlertContextType } from "../alert/alertContext";
 import authContext, { AuthContextValue } from "../auth/authContext";
 import relationshipContext, { RelationshipContextType } from "../relationship/relationshipContext";
 import { io } from "socket.io-client";
@@ -310,6 +310,18 @@ const ChatProvider: React.FC = ({ children }) => {
 		});
 	};
 
+	const deleteChannelListener = (deletedId: string) => {
+		console.log(`[Chat] Channel ${deletedId} deleted`);
+
+		// if (viewStack.length > 0) {
+		// 	console.log(viewStack[viewStack.length - 1]);
+
+			// if (deletedId === channelId.toString()) {
+			// 	setChatView("groups", "Group chats", {});
+			// }
+		// }
+	};
+
 	/* NOTE: to be removed */
 	const fetchChannelData = async (id: string) => {
 		const res = await fetch(`/api/channels/${id}`);
@@ -338,16 +350,18 @@ const ChatProvider: React.FC = ({ children }) => {
 		});
 
 		/* Listeners */
+		socket.on("chatError", chatErrorListener);
 		socket.on("updateUserChannels", updateChannelsListener);
 		socket.on("updateUserDms", updateDmsListener);
 		socket.on("dmCreated", dmCreatedListener);
-		socket.on("chatError", chatErrorListener);
+		socket.on("channelDeleted", deleteChannelListener);
 
 		return () => {
+			socket.off("chatError", chatErrorListener);
 			socket.off("updateUserChannels", updateChannelsListener);
 			socket.off("updateUserDms", updateDmsListener);
 			socket.off("dmCreated", dmCreatedListener);
-			socket.off("chatError", chatErrorListener);
+			socket.off("channelDeleted", deleteChannelListener);
 		};
 	}, [socket]);
 

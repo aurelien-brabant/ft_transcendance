@@ -32,7 +32,7 @@ export const GroupAddHeader: React.FC<{ viewParams: any }> = ({ viewParams }) =>
 };
 
 const GroupAdd: React.FC<{ viewParams: any }> = ({ viewParams }) => {
-	const channelId: string = viewParams.channelId;
+	const channelId = viewParams.channelId;
 	const { user } = useSession();
 	const { closeRightmostView, socket } = useContext(chatContext) as ChatContextType;
 	const { friends } = useContext(relationshipContext) as RelationshipContextType;
