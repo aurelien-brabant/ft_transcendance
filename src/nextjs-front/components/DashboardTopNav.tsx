@@ -176,7 +176,7 @@ const DashboardTopNav: React.FC<DashboardTopNavProps> = ({
             <div className="flex items-center h-full gap-x-4 md:gap-x-">
                 <div className="flex items-center justify-center w-24 h-full bg-gray-900">
                     <Image
-                        src="/logo.svg"
+                        src="/logo_pink.svg"
                         width={50}
                         height={50}
                         alt="ft_transcendance's logo"

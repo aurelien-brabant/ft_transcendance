@@ -181,12 +181,16 @@ const SearchBar = () => {
 
 export const DashboardLayout: FunctionComponent = ({ children }) => {
   const [sidebarOpen, setSidebarOpen] = useState(false);
-  const { user } = useSession();
+  const { user, logout } = useSession();
 
   const userNavigation = [
     { name: "Settings", href: "/welcome" },
     { name: "My profile", href: `/users/${user.id}` },
   ];
+
+  const handleLogout = async () => {
+    await logout();
+  };
 
   return (
     <>
@@ -297,7 +301,7 @@ export const DashboardLayout: FunctionComponent = ({ children }) => {
           {/* Sidebar component, swap this element with another sidebar if you like */}
           <div className="flex-1 flex flex-col min-h-0 bg-02dp">
             <div className="flex items-center h-16 flex-shrink-0 px-4 bg-01dp">
-              <img className="h-8 w-auto" src="/logo.svg" alt="Workflow" />
+              <img className="h-8 w-auto" src="/logo_pink.svg" alt="Workflow" />
             </div>
             <div className="flex-1 flex flex-col overflow-y-auto">
               <nav className="flex-1 px-2 py-4 space-y-1">
@@ -389,6 +393,12 @@ export const DashboardLayout: FunctionComponent = ({ children }) => {
                           )}
                         </Menu.Item>
                       ))}
+                      <button
+                        className="block px-4 py-2 text-sm text-pink-600"
+                        onClick={handleLogout}
+                      >
+                        Logout
+                      </button>
                     </Menu.Items>
                   </Transition>
                 </Menu>

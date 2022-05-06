@@ -12,19 +12,19 @@ export const features: Feature[] = [
 	{
 		label: "PLAY ONLINE",
 		description:
-			"Lorem ipsum dolor sit amet, consectetur adipiscing elit. Vestibulum non pellentesque elit. Nam non eros sed elit consequat efficitur.",
+			"No download required. Sign in and start to play!",
 		Icon: IoLogoGameControllerA
 	},
 	{
 		label: "BATTLE FOR THE LEADERBOARD",
 		description:
-			"Lorem ipsum dolor sit amet, consectetur adipiscing elit. Vestibulum non pellentesque elit. Nam non eros sed elit consequat efficitur.",
+			"Prove your worth and get to the top!",
 		Icon: BsTrophyFill
 	},
 	{
 		label: "MAKE FRIENDS",
 		description:
-			"Lorem ipsum dolor sit amet, consectetur adipiscing elit. Vestibulum non pellentesque elit. Nam non eros sed elit consequat efficitur.",
+			"Join the community and make friends!",
 		Icon: FaUserFriends
 	},
 ];
