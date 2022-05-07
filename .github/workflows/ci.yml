@@ -28,7 +28,7 @@ jobs:
             - name: Build nestjs-back
               run: |
                 docker build ./src/nestjs-back -t aurelienbrabant/transcendance-back
-
+            
             - name: Push built images to Docker Hub
               run: |
                   echo ${{ secrets.DOCKER_HUB_PASSWORD }} | docker login --username ${{ secrets.DOCKER_HUB_LOGIN }} --password-stdin
@@ -56,6 +56,10 @@ jobs:
                   SSH_KEY: ${{ secrets.REMOTE_PRIVATE_KEY }}
                   SSH_USER: ${{ secrets.REMOTE_USER }}
                   SSH_HOST: ${{ secrets.REMOTE_HOST }}
+
+            - name: System prune (to avoid running out of storage :p)
+              run: |
+                ssh remote 'docker system prune --all --force'
 
             - name: Pull updated image
               run: |

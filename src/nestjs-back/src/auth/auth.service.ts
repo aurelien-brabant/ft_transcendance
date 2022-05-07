@@ -92,8 +92,6 @@ export class AuthService {
         if (!duoQuadraUser) {
             duoQuadraUser = await this.usersService.createDuoQuadra(
                 {
-                    phone:
-                        duoQuadraProfile.phone !== 'hidden' ? duoQuadraUser.phone : null,
                     email: duoQuadraProfile.email,
                     imageUrl: duoQuadraProfile.image_url,
                     login: duoQuadraProfile.login,

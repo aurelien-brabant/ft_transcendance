@@ -1,4 +1,4 @@
-import { useEffect, useRef, useState } from "react";
+import { SetStateAction, useEffect, useRef, useState } from "react";
 import { PulseLoader } from "react-spinners";
 
 export type ProgressiveFormField = {
@@ -8,6 +8,7 @@ export type ProgressiveFormField = {
 	initialValue?: string;
 	label?: string;
 	validate?: (currentFieldValue: string, fields: any) => string | undefined; // return a string describing the error if any, or nothing if no error
+	shouldBeReset?: boolean;
 };
 
 export type ProgressiveFormStep = {
@@ -63,6 +64,20 @@ export const defaultConfig: ProgressiveFormConfig = {
 	],
 };
 
+const getFieldNamesThatShouldBeReset = (config: ProgressiveFormConfig): string[] => {
+	const fieldNames: string[] = [];
+
+	for (const step of config.steps) {
+		for (const field of step.fields) {
+			if (field.shouldBeReset) {
+				fieldNames.push(field.name)
+			}
+		}
+	}
+
+	return fieldNames;
+}
+
 const initializeFields = (
 	config: ProgressiveFormConfig
 ): { [key: string]: string } => {
@@ -94,6 +109,8 @@ export type ProgressiveFormProps = {
 	onSubmit: (formData: any) => void;
 	isLoading?: boolean;
 	loaderColor?: string;
+	reset?: boolean;
+	setReset?: React.Dispatch<SetStateAction<boolean>>;
 };
 
 const ProgressiveForm: React.FC<ProgressiveFormProps> = ({
@@ -107,7 +124,9 @@ const ProgressiveForm: React.FC<ProgressiveFormProps> = ({
 	inputBoxClassName,
 	invalidInputBoxClassName,
 	isLoading,
-	loaderColor
+	loaderColor,
+	reset,
+	setReset
 }) => {
 	const [formData, setFormData] = useState(initializeFields(config));
 	const [currentStep, setCurrentStep] = useState(0);
@@ -115,6 +134,21 @@ const ProgressiveForm: React.FC<ProgressiveFormProps> = ({
 		[key: string]: string | undefined;
 	}>({});
 	const inputToFocus = useRef<HTMLInputElement>(null);
+
+	useEffect(() => {
+		if (reset && setReset) {
+			const fieldNamesThatShouldBeReset = getFieldNamesThatShouldBeReset(config);
+			setCurrentStep(0)
+			setFormData({
+				...formData,
+				...(fieldNamesThatShouldBeReset.reduce((acc, fieldName) => ({
+					...acc,
+					[fieldName]: ''
+				}), {}))
+			})
+			setReset(false)
+		}
+	}, [reset])
 
 	useEffect(() => {
 		inputToFocus.current?.focus();
