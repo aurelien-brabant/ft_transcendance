@@ -54,7 +54,7 @@ export const GroupSettingsHeader: React.FC<{ viewParams: any }> = ({ viewParams 
 };
 
 const GroupSettings: React.FC<{ viewParams: any }> = ({ viewParams }) => {
-	const channelId = viewParams.channelId;
+	const channelId: string = viewParams.channelId;
 	const { user } = useSession();
 	const { setAlert } = useContext(alertContext) as AlertContextType;
 	const { socket, setChatView, closeRightmostView } = useContext(chatContext) as ChatContextType;
@@ -156,9 +156,9 @@ const GroupSettings: React.FC<{ viewParams: any }> = ({ viewParams }) => {
 		});
 	};
 
-	/* USER */
-
-	/* User quits group */
+	/* USER
+	 * User quits group
+	 */
 	const handleUserLeaveGroup = () => {
 		socket.emit("leaveChannel", {
 			userId: user.id,
@@ -167,6 +167,7 @@ const GroupSettings: React.FC<{ viewParams: any }> = ({ viewParams }) => {
 		closeRightmostView(2);
 	};
 
+	/* Listeners */
 	const updateChannelData = (channel: Channel) => {
 		setOwnerView(channel.owner.id === user.id);
 		setPeopleCount(channel.users.length);
@@ -175,14 +176,22 @@ const GroupSettings: React.FC<{ viewParams: any }> = ({ viewParams }) => {
 		));
 	};
 
+	const channelDisbandedListener = (deletedId: string) => {
+		if (deletedId === channelId) {
+			setChatView("groups", "Group chats", {});
+		}
+	};
+
 	useEffect(() => {
 		socket.emit("getChannelData", { channelId });
 
 		/* Listeners */
 		socket.on("updateChannel", updateChannelData);
+		socket.on("channelDeleted", channelDisbandedListener);
 
 		return () => {
 			socket.off("updateChannel", updateChannelData);
+			socket.off("channelDeleted", channelDisbandedListener);
 		};
 	}, []);
 
