@@ -4,7 +4,6 @@ import {
   IsDecimal,
   IsOptional,
   IsNotEmpty,
-  IsPhoneNumber,
   IsString,
   Matches,
   MaxLength,
@@ -26,10 +25,6 @@ export class UpdateUserDto extends PartialType(CreateUserDto) {
     @MaxLength(30)
     @MinLength(2)
     readonly username: string;
-
-    @IsOptional()
-    @IsPhoneNumber()
-    readonly phone: string;
 
     @IsOptional()
     @IsBoolean()

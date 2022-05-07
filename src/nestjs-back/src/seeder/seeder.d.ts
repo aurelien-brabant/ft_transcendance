@@ -9,7 +9,6 @@ export type SeedUser = {
     username: string;
     password: string;
     email: string;
-    phone: string;
     tfa: boolean;
     tfaSecret: string;
     pic: string;

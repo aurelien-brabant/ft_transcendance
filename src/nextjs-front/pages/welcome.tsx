@@ -22,7 +22,6 @@ const inputGroupClassName = "grid md:grid-cols-4 grid-cols-1 items-center gap-x-
 type FormData = {
   username: string;
   email: string;
-  phone: string | null;
   tfa: boolean;
   pic: string;
 };
@@ -30,7 +29,6 @@ type FormData = {
 type InvalidInputs = {
   username?: string;
   email?: string;
-  phone?: string | null;
   tfa?: string;
 };
 
@@ -44,10 +42,6 @@ const InputErrorProvider: React.FC<{ error?: string | null }> = ({
   </div>
 );
 
-const validatePhone = (phone: string | null) => {
-  if (phone && phone !== "")
-    return isMobilePhone(phone.replace(/ /g, ""));
-};
 
 const Welcome: NextPageWithLayout = () => {
   const { user, logout, reloadUser } = useSession();
@@ -60,13 +54,10 @@ const Welcome: NextPageWithLayout = () => {
   const [tfaStatus, setTfaStatus] = useState(user.tfa ? 'enabled' : 'disabled');
   const [currentStep, setCurrentStep] = useState(0);
   const inputToFocus = useRef<HTMLInputElement>(null);
-  const phoneNb = user.phone;
 
   const [formData, setFormData] = useState<FormData>({
-
     username: user.username,
     email: user.email,
-    phone: phoneNb === undefined ? null : phoneNb,
     tfa: user.tfa,
     pic: user.pic
   });
@@ -103,7 +94,6 @@ const Welcome: NextPageWithLayout = () => {
     baseObject = {
       username: user.username,
       email: user.email,
-      phone: basePhoneNb === undefined ? null : basePhoneNb,
       tfa: user.tfa,
       pic: user.pic
     }
@@ -181,15 +171,8 @@ const Welcome: NextPageWithLayout = () => {
       tmp.email = "Not a valid email";
     }
 
-    if (formData.phone && !isMobilePhone(formData.phone.replace(/ /g, ""))) {
-      tmp.phone = "Not a valid phone number";
-    }
-  
     setInvalidInputs(tmp);
-    if (!tmp.username && !tmp.email && !tmp.phone) {
-      if (formData.phone === "")
-        editUser({...formData, phone: null});
-      else
+    if (!tmp.username && !tmp.email) {
         editUser(formData);
     }
   };
@@ -251,12 +234,6 @@ const Welcome: NextPageWithLayout = () => {
     else if (tfaCode.length === 6)
         activateTfa();
   }, [tfaCode])
-
-  const hasValidPhone = validatePhone(formData.phone);
-
-  const tfaBgColor = hasValidPhone ? "bg-gray-600" : "bg-gray-800";
-
-  const tfaText = hasValidPhone ? "SMS-2FA unavailable now..." : "Valid phone number required";
 
   const handleChangeTfa = (e: React.ChangeEvent<HTMLInputElement>) => {
       e.preventDefault();
@@ -529,48 +506,6 @@ const Welcome: NextPageWithLayout = () => {
                   className={inputClassName}
                 />
               </InputErrorProvider>
-              <small></small>
-            </div>
-
-            <div className={inputGroupClassName}>
-              <label htmlFor="phone" className={labelClassName}>
-                Phone
-              </label>
-              <InputErrorProvider error={invalidInputs.phone}>
-                <input
-                  value={formData.phone || ""}
-                  onChange={handleChange}
-                  type="text"
-                  name="phone"
-                  className={inputClassName}
-                />
-              </InputErrorProvider>
-              <small>
-                We will use that data for two factor authentication, nothing
-                else!
-              </small>
-            </div>
-
-            <div className={inputGroupClassName}>
-              <label htmlFor="tfa" className={labelClassName}>
-                2FA - SMS
-              </label>
-              <button
-                disabled
-                type="button"
-                className={`px-6 py-2 col-span-2 ${tfaBgColor}`}
-                onClick={() => {
-                  if (hasValidPhone) {
-                  //  setFormData({ ...formData, tfa: !formData.tfa });
-                    //formData.tfa ? setPendingQR(true) : setPendingQR(false);
-                  }
-                }}
-              >
-                {tfaText}
-              </button>
-              <small>
-                Confirm each connection to your account using your phone number
-              </small>
             </div>
 
             <div className={inputGroupClassName}>
