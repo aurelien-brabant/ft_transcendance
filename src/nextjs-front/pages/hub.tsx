@@ -36,7 +36,7 @@ const Hub: NextPageWithLayout = () => {
 
 	useEffect((): any => {
 		// connect to socket server
-		socket = io("localhost:8080/game");
+		socket = io(process.env.NEXT_PUBLIC_SOCKET_URL + "/game");
 
 		socket.on("connect", () => {
 			// Allow reconnection

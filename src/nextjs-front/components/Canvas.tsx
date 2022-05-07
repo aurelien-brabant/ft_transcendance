@@ -87,7 +87,7 @@ const Canvas: React.FC<{socketProps: Socket, roomProps: any}> = ({socketProps, r
 
 		const gameEnd = () => {
 			draw.drawGoalParticle(room.ball);
-			draw.drawRectangle(0, 0, canvasWidth, canvasHeight, "rgba(0, 0, 0, 0.2)");
+			draw.drawRectangle(0, 0, canvasWidth, canvasHeight, "rgba(0, 0, 0, 0.4)");
 			seconds += secondElapsed;
 			if (seconds >= 1)
 			{
