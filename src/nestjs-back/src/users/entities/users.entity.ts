@@ -6,10 +6,12 @@ import {
     OneToMany,
     PrimaryGeneratedColumn
 } from "typeorm";
-import { Channel } from 'src/chat/channels/entities/channels.entity';
+
 import { DirectMessage } from "src/chat/direct-messages/entities/direct-messages";
-import { Game } from "src/games/entities/games.entity";
+import { Channel} from 'src/chat/channels/entities/channels.entity';
+import { Game} from "src/games/entities/games.entity";
 import { Achievement } from "src/achievements/entities/achievements.entity";
+import { ChannelPunishment } from "src/chat/channels/entities/punishment.entity";
 
 @Entity()
 export class User {
@@ -106,5 +108,11 @@ export class User {
 
     @ManyToMany(() => DirectMessage, directMessages => directMessages.users)
     directMessages: DirectMessage[];
+
+    @OneToMany(() => ChannelPunishment, (punishment) => punishment.punishedUser)
+    receivedChannelPunishments: ChannelPunishment[];
+
+    @OneToMany(() => ChannelPunishment, (punishment) => punishment.punishedByUser)
+    givenChannelPunishments: ChannelPunishment[];
 }
 
