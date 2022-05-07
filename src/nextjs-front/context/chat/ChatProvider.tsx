@@ -175,6 +175,9 @@ const ChatProvider: React.FC = ({ children }) => {
 			&& (views[view].Component === viewStack[viewStack.length - 1].Component)
 			);
 	};
+	const getCurrentView = () => {
+		return viewStack;
+	};
 
 	/* To be accessed from outside the chat (i.e. pages/users/[id]) */
 	const createDirectMessage = (userId: string, friendId: string) => {
@@ -310,18 +313,6 @@ const ChatProvider: React.FC = ({ children }) => {
 		});
 	};
 
-	const deleteChannelListener = (deletedId: string) => {
-		console.log(`[Chat] Channel ${deletedId} deleted`);
-
-		// if (viewStack.length > 0) {
-		// 	console.log(viewStack[viewStack.length - 1]);
-
-			// if (deletedId === channelId.toString()) {
-			// 	setChatView("groups", "Group chats", {});
-			// }
-		// }
-	};
-
 	/* NOTE: to be removed */
 	const fetchChannelData = async (id: string) => {
 		const res = await fetch(`/api/channels/${id}`);
@@ -354,14 +345,12 @@ const ChatProvider: React.FC = ({ children }) => {
 		socket.on("updateUserChannels", updateChannelsListener);
 		socket.on("updateUserDms", updateDmsListener);
 		socket.on("dmCreated", dmCreatedListener);
-		socket.on("channelDeleted", deleteChannelListener);
 
 		return () => {
 			socket.off("chatError", chatErrorListener);
 			socket.off("updateUserChannels", updateChannelsListener);
 			socket.off("updateUserDms", updateDmsListener);
 			socket.off("dmCreated", dmCreatedListener);
-			socket.off("channelDeleted", deleteChannelListener);
 		};
 	}, [socket]);
 

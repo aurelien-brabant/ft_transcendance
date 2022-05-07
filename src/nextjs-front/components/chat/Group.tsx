@@ -11,7 +11,7 @@ import relationshipContext, { RelationshipContextType } from "../../context/rela
 
 /* Header */
 export const GroupHeader: React.FC<{ viewParams: any }> = ({ viewParams }) => {
-	const channelId = viewParams.channelId;
+	const channelId: string = viewParams.channelId;
 	const { user } = useSession();
 	const { socket, closeChat, openChatView, setChatView } = useContext(chatContext) as ChatContextType;
 	const [userInChan, setUserInChan] = useState(false);
@@ -23,7 +23,7 @@ export const GroupHeader: React.FC<{ viewParams: any }> = ({ viewParams }) => {
 		));
 	};
 
-	const handleNewUser = (res: { message: string, userId: string }) => {
+	const userJoinedListener = (res: { message: string, userId: string }) => {
 		if (res.userId === user.id) {
 			setUserInChan(true);
 		}
@@ -34,11 +34,11 @@ export const GroupHeader: React.FC<{ viewParams: any }> = ({ viewParams }) => {
 
 		/* Listeners */
 		socket.on("updateChannel", defineOptions);
-		socket.on("joinedChannel", handleNewUser);
+		socket.on("joinedChannel", userJoinedListener);
 
 		return () => {
 			socket.off("updateChannel", defineOptions);
-			socket.off("joinedChannel", handleNewUser);
+			socket.off("joinedChannel", userJoinedListener);
 		};
 	}, []);
 
@@ -103,7 +103,7 @@ const Group: React.FC<{ viewParams: { [key: string]: any } }> = ({
 }) => {
 	const channelId = viewParams.channelId;
 	const { user } = useSession();
-	const { socket, getMessageStyle } = useContext(chatContext) as ChatContextType;
+	const { socket, setChatView, getMessageStyle } = useContext(chatContext) as ChatContextType;
 	const { blocked } = useContext(relationshipContext) as RelationshipContextType;
 	const [messages, setMessages] = useState<ChatMessage[]>([]);
 	const [currentMessage, setCurrentMessage] = useState("");
@@ -167,7 +167,7 @@ const Group: React.FC<{ viewParams: { [key: string]: any } }> = ({
 	};
 
 	/* Receive new message */
-	const handleNewMessage = ({ message }: { message: Message }) => {
+	const newGmListener = ({ message }: { message: Message }) => {
 		console.log(`[Chat] Receive new message in [${message.channel.name}]`);
 
 		setMessages((prevMessages) => {
@@ -189,7 +189,7 @@ const Group: React.FC<{ viewParams: { [key: string]: any } }> = ({
 		});
 	};
 
-	const handleNewUser = (res: { message: string, userId: string }) => {
+	const userJoinedListener = (res: { message: string, userId: string }) => {
 		setMessages((prevMessages) => {
 			const newMessages: ChatMessage[] = [...prevMessages];
 
@@ -208,7 +208,7 @@ const Group: React.FC<{ viewParams: { [key: string]: any } }> = ({
 		}
 	};
 
-	const handleUserLeaving = (res: { message: string }) => {
+	const userLeftListener = (res: { message: string }) => {
 		setMessages((prevMessages) => {
 			const newMessages: ChatMessage[] = [...prevMessages];
 
@@ -224,20 +224,28 @@ const Group: React.FC<{ viewParams: { [key: string]: any } }> = ({
 		});
 	};
 
+	const channelDeletedListener = (deletedId: string) => {
+		if (deletedId === channelId) {
+			setChatView("groups", "Group chats", {});
+		}
+	};
+
 	useEffect(() => {
 		socket.emit("getChannelData", { channelId });
 
 		/* Listeners */
 		socket.on("updateChannel", updateGroupView);
-		socket.on("newGm", handleNewMessage);
-		socket.on("joinedChannel", handleNewUser);
-		socket.on("leftChannel", handleUserLeaving);
+		socket.on("newGm", newGmListener);
+		socket.on("joinedChannel", userJoinedListener);
+		socket.on("leftChannel", userLeftListener);
+		socket.on("channelDeleted", channelDeletedListener);
 
 		return () => {
 			socket.off("updateChannel", updateGroupView);
-			socket.off("newGm", handleNewMessage);
-			socket.off("joinedChannel", handleNewUser);
-			socket.off("leftChannel", handleUserLeaving);
+			socket.off("newGm", newGmListener);
+			socket.off("joinedChannel", userJoinedListener);
+			socket.off("leftChannel", userLeftListener);
+			socket.off("channelDeleted", channelDeletedListener);
 		};
 	}, []);
 
