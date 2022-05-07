@@ -5,7 +5,6 @@ import {
   IsDecimal,
   IsOptional,
   IsNotEmpty,
-  IsPhoneNumber,
   IsString,
   Matches,
   MaxLength,
@@ -34,10 +33,6 @@ export class UpdateUserDto extends PartialType(CreateUserDto) {
     @IsNotEmpty()
     @IsString()
     readonly duoquadra_login: string;
-
-    @IsOptional()
-    @IsPhoneNumber()
-    readonly phone: string;
 
     /* Security */
     @IsOptional()

@@ -5,31 +5,27 @@ import { Timestamp } from "typeorm";
 /* USERS */
 
 export type SeedUser = {
-    id: number;
-    username: string;
-    duoquadra_login: string;
-    email: string;
-    phone: string;
-    pic: string;
-    password: string;
-    tfa: boolean;
-    tfaSecret: string;
-    hasTfaBeenValidated: boolean;
-    lastTfaRequestTimestamp: string | number | Date;
-    accountDeactivated: boolean;
-    games: Game[];
-    wins: number;
-    losses: number;
-    draws: number;
-    ratio: number;
-    achievements: Achievement[];
-    friends: User[];
-    pendingFriendsSent: User[];
-    pendingFriendsReceived: User[];
-    blockedUsers: User[];
-    ownedChannels: Channel[];
-    joinedChannels: Channel[];
-    directMessages: DirectMessage[];
+  id: number;
+  username: string;
+  email: string;
+  pic: string;
+  password: string;
+  tfa: boolean;
+  tfaSecret: string;
+  duoquadra_login: string;
+  accountDeactivated: boolean;
+  games: SeedGame[];
+  wins: number;
+  losses: number;
+  draws: number;
+  ratio: number;
+  achievements: Achievement[];
+  friends: User[];
+  blockedUsers: User[];
+  pendingFriendsSent: User[];
+  pendingFriendsReceived: User[];
+  ownedChannels: SeedChannel[];
+  joinedChannels: SeedChannel[];
 };
 
 /* GAMES */
