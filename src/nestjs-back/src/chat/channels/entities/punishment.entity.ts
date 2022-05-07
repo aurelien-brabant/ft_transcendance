@@ -1,23 +1,23 @@
 import { User } from "src/users/entities/users.entity";
-import { Column, Entity, OneToOne, PrimaryGeneratedColumn } from "typeorm";
+import { Column, Entity, ManyToOne, OneToOne, PrimaryGeneratedColumn } from "typeorm";
 import { Channel } from "./channels.entity";
+
+export type PunishmentType = 'mute' | 'ban';
 
 @Entity()
 export class ChannelPunishment {
     @PrimaryGeneratedColumn()
     punishmentId: number;
     
-    @OneToOne(() => Channel, {
+    @ManyToOne(() => Channel, (channel) => channel.punishments, {
         onDelete: 'CASCADE'
     })
     channel: Channel;
 
-    @OneToOne(() => User, {
-        onDelete: 'CASCADE'
-    })
+    @ManyToOne(() => User, (user) => user.receivedChannelPunishments)
     punishedUser: User
 
-    @OneToOne(() => User)
+    @ManyToOne(() => User, (user) => user.givenChannelPunishments)
     punishedByUser: User;
 
     @Column({ type: 'timestamptz' })
@@ -33,4 +33,7 @@ export class ChannelPunishment {
 
     @Column({ length: 1000, nullable: true })
     reason: string;
+
+    @Column({ default: 'ban' })
+    type: PunishmentType;
 }

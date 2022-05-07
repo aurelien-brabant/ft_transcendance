@@ -11,6 +11,7 @@ import {
 import { IsOptional } from "class-validator";
 import { Message } from 'src/chat/messages/entities/messages.entity';
 import { User } from "src/users/entities/users.entity";
+import { ChannelPunishment } from "./punishment.entity";
 
 @Entity()
 export class Channel {
@@ -57,4 +58,7 @@ export class Channel {
     cascade: true
   })
   messages: Message[];
+
+  @OneToMany(() => ChannelPunishment, (punishment) => punishment.channel)
+  punishments: ChannelPunishment[];
 }
