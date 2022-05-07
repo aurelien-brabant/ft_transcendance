@@ -24,9 +24,6 @@ export class User {
     @Column({unique: true})
     email: string;
 
-    @Column({nullable: true})
-    phone: string;
-
     @Column({default: false})
     tfa: boolean;
 

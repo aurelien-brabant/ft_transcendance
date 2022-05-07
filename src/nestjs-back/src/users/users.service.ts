@@ -135,7 +135,7 @@ export class UsersService {
   }
 
   async createDuoQuadra(
-    { email, phone, login }: CreateDuoQuadraDto,
+    { email, login }: CreateDuoQuadraDto,
     ftBearer: string,
   ): Promise<User> {
     // we need to generate an username for the duoquadra. However, we can't guarantee that another user
@@ -161,7 +161,6 @@ export class UsersService {
     const user = this.usersRepository.create({
       username: actualLogin,
       email,
-      phone,
       pic: actualLogin,
       duoquadra_login: login,
     });
