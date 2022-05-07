@@ -1,20 +1,32 @@
 import { User } from "src/users/entities/users.entity";
 import { Column, Entity, OneToOne, PrimaryGeneratedColumn } from "typeorm";
+import { Channel } from "./channels.entity";
 
 @Entity()
 export class ChannelPunishment {
     @PrimaryGeneratedColumn()
     punishmentId: number;
+    
+    @OneToOne(() => Channel)
+    channel: Channel;
 
     @OneToOne(() => User)
     punishedUser: User
 
+    @OneToOne(() => User)
+    punishedByUser: User;
+
     @Column({ type: 'timestamptz' })
     startsAt: Date;
 
-    @Column({ type: 'timestamptz' })
+    /* punishment is permanent until explicit undo if this is nulled */
+    @Column({ type: 'timestamptz', nullable: true })
     endsAt: Date;
 
-    @Column({ unsigned: true })
+    /* should be null if the intent is to apply the punishment permanently */
+    @Column({ unsigned: true, nullable: true })
     durationInSeconds: number;
+
+    @Column({ length: 1000, nullable: true })
+    reason: string;
 }
