@@ -493,14 +493,6 @@ export class UsersService {
   }
 
   /* Chat */
-  async getOwnedChannels(id: string) {
-    const user = await this.usersRepository.findOne(id, {
-      relations: ['ownedChannels'],
-    });
-    if (!user) throw new NotFoundException(`User [${id}] not found`);
-    return user.ownedChannels;
-  }
-
   async getDirectMessage(id: string, friendId: string) {
     const user = await this.usersRepository.findOne(id, {
       relations: [

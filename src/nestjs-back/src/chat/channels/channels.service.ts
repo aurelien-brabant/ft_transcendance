@@ -1,7 +1,7 @@
 import { Injectable, Logger, NotFoundException, UnauthorizedException } from '@nestjs/common';
 import { SchedulerRegistry } from '@nestjs/schedule';
 import { InjectRepository } from '@nestjs/typeorm';
-import { Repository } from 'typeorm';
+import { QueryFailedError, Repository } from 'typeorm';
 import { CronJob } from 'cron';
 import { hash as hashPassword } from 'bcryptjs';
 import { Channel } from './entities/channels.entity';
@@ -106,23 +106,18 @@ export class ChannelsService {
   }
 
   async create(createChannelDto: CreateChannelDto) {
-    const ownedChannels = await this.usersService.getOwnedChannels(createChannelDto.owner.id.toString());
-
-    if (ownedChannels && ownedChannels.length !== 0) {
-      const chanExists = !!ownedChannels.find(channel => {
-        return channel.name === createChannelDto.name;
-      })
-      if (chanExists) {
-        throw new UnauthorizedException(`Group '${createChannelDto.name}' already exists. Choose another name.`);
-      }
-    }
     if (createChannelDto.password) {
       createChannelDto.password = await hashPassword(createChannelDto.password, 10);
     }
     const channel = this.channelsRepository.create(createChannelDto);
 
     this.logger.log(`Create new channel [${channel.name}]`);
-    return this.channelsRepository.save(channel);
+
+    return await this.channelsRepository.save(channel).catch(
+      () => {
+        throw new UnauthorizedException(`Group '${createChannelDto.name}' already exists. Choose another name.`);
+      }
+    );
   }
 
   async update(id: string, updateChannelDto: UpdateChannelDto) {
