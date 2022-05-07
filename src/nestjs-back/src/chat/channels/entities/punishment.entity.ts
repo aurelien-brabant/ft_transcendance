@@ -7,10 +7,14 @@ export class ChannelPunishment {
     @PrimaryGeneratedColumn()
     punishmentId: number;
     
-    @OneToOne(() => Channel)
+    @OneToOne(() => Channel, {
+        onDelete: 'CASCADE'
+    })
     channel: Channel;
 
-    @OneToOne(() => User)
+    @OneToOne(() => User, {
+        onDelete: 'CASCADE'
+    })
     punishedUser: User
 
     @OneToOne(() => User)
