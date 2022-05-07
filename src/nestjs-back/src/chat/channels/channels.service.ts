@@ -3,13 +3,11 @@ import { SchedulerRegistry } from '@nestjs/schedule';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Repository } from 'typeorm';
 import { CronJob } from 'cron';
-import {
-  hash as hashPassword,
-  compare as comparePassword
-} from 'bcryptjs';
+import { hash as hashPassword } from 'bcryptjs';
 import { Channel } from './entities/channels.entity';
 import { CreateChannelDto } from './dto/create-channel.dto';
 import { UpdateChannelDto } from './dto/update-channel.dto';
+import { ChanMessagesService } from './messages/chan-messages.service';
 import { UsersService } from 'src/users/users.service';
 
 @Injectable()
@@ -19,11 +17,15 @@ export class ChannelsService {
   constructor(
     @InjectRepository(Channel)
     private readonly channelsRepository: Repository<Channel>,
+    private readonly messagesService: ChanMessagesService,
     private readonly usersService: UsersService,
     private schedulerRegistry: SchedulerRegistry
   ) {}
 
-  /* A user is unban after a limited time */
+  /**
+   * NOTE: to be updated
+   * A user is unban after a limited time
+   */
   scheduleUnban(channelId: string, userId: string, duration: number) {
     const unbanTime = new Date(Date.now() + duration * 60000);
 
@@ -42,7 +44,10 @@ export class ChannelsService {
     job.start();
   }
 
-  /* A user is unmute after a limited time */
+  /**
+   * NOTE: to be updated
+   * A user is unmute after a limited time
+   */
   scheduleUnmute(channelId: string, userId: string, duration: number) {
     const unmuteTime = new Date(Date.now() + duration * 60000);
 
@@ -61,9 +66,24 @@ export class ChannelsService {
     job.start();
   }
 
+  /* Helpers */
+  async getChannelPassword(id: string) {
+    const channel = await this.channelsRepository
+      .createQueryBuilder('channel')
+      .select('channel.password')
+      .where('channel.id = :id', { id })
+      .getOne();
+    return channel.password;
+  }
+
   findAll() {
     return this.channelsRepository.find({
-      relations: ['owner']
+      relations: [
+        'owner',
+        'users',
+        'messages',
+        'messages.author'
+      ]
     });
   }
 
@@ -137,42 +157,10 @@ export class ChannelsService {
     return this.channelsRepository.remove(channel);
   }
 
-  /* Getters */
-  async getChannelPassword(id: string) {
-    const channel = await this.channelsRepository
-      .createQueryBuilder('channel')
-      .select('channel.password')
-      .where('channel.id = :id', { id })
-      .getOne();
-    return channel.password;
-  }
+  async addMessage(content: string, channelId: string, authorId: string) {
+    const channel = await this.channelsRepository.findOne(channelId);
+    const author = await this.usersService.findOne(authorId);
 
-  async getChannelUsers(id: string) {
-    const channel = await this.channelsRepository
-      .createQueryBuilder('channel')
-      .innerJoinAndSelect('channel.users', 'users')
-      .where('channel.id = :id', { id })
-      .getOne();
-    return channel;
-  }
-
-  /* Join */
-  async joinProtectedChan(id: string, userId: string, password: string) {
-    let channel = await this.channelsRepository.findOne(id, {
-      where: { privacy: 'protected' }
-    });
-    const user = await this.usersService.findOne(userId);
-
-    if (channel) {
-      const chanPassword = await this.getChannelPassword(id);
-      const passIsValid = await comparePassword(password, chanPassword);
-      if (passIsValid) {
-        channel = await this.getChannelUsers(id);
-        channel.users.push(user);
-        this.logger.log(`User [${userId}] joined channel [${channel.id}][${channel.name}]`);
-        return this.channelsRepository.save(channel);
-      }
-    }
-    throw new UnauthorizedException();
+    return await this.messagesService.create({ content, channel, author });
   }
 }

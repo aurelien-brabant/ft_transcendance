@@ -1,12 +1,11 @@
-import { Fragment, useContext, useState } from "react";
+import { Fragment, useContext, useEffect, useState } from "react";
 import { AiOutlineArrowLeft, AiOutlineClose } from "react-icons/ai";
 import { useSession } from "../../hooks/use-session";
-import alertContext, { AlertContextType } from "../../context/alert/alertContext";
 import chatContext, { ChatContextType, ChatGroupPrivacy } from "../../context/chat/chatContext";
 
 type NewGroupData = {
 	groupName: string;
-	privacy: ChatGroupPrivacy;
+	groupPrivacy: ChatGroupPrivacy;
 	password: string;
 	password2: string;
 };
@@ -26,6 +25,7 @@ const ErrorProvider: React.FC<{ error?: string }> = ({ children, error }) => (
 	</div>
 );
 
+/* Header */
 export const GroupNewHeader: React.FC = () => {
 	const { closeChat, closeRightmostView } = useContext(chatContext) as ChatContextType;
 
@@ -50,18 +50,15 @@ export const GroupNewHeader: React.FC = () => {
 	);
 };
 
+/* Form area */
 const GroupNew: React.FC = () => {
 	const { user } = useSession();
-	const { setAlert } = useContext(alertContext) as AlertContextType;
-	const {
-		openChatView,
-		updateChatGroups,
-		setChatGroupData
-	} = useContext(chatContext) as ChatContextType;
+	const { socket, channelCreatedListener } = useContext(chatContext) as ChatContextType;
 
+	/* Form */
 	const [formData, setFormData] = useState<NewGroupData>({
 		groupName: "",
-		privacy: "private",
+		groupPrivacy: "private",
 		password: "",
 		password2: "",
 	});
@@ -87,19 +84,19 @@ const GroupNew: React.FC = () => {
 		formData.groupName = formData.groupName.trim();
 
 		if (formData.groupName.length < 3 || formData.groupName.length > 20) {
-			errors['groupName'] = 'Group name should be between 3 and 20 characters long';
+			errors["groupName"] = "Group name should be between 3 and 20 characters long";
 		}
 
-		if (formData.privacy === 'protected') {
+		if (formData.groupPrivacy === "protected") {
 			if (formData.password) {
 				if (formData.password.length == 0) {
-					errors['password'] = 'Password can\'t be empty';
+					errors["password"] = "Password can\"t be empty";
 				}
 				if (formData.password.length < 8) {
-					errors['password'] = 'Password must contain at least 8 characters';
+					errors["password"] = "Password must contain at least 8 characters";
 				}
 			} else if (formData.password !== formData.password2) {
-				errors['password2'] = 'Passwords do not match';
+				errors["password2"] = "Passwords do not match";
 			}
 		}
 
@@ -109,50 +106,27 @@ const GroupNew: React.FC = () => {
 		setFieldErrors(errors);
 	};
 
+	/* Channel creation */
 	const createGroup = async (formData: NewGroupData) => {
-		const res = await fetch("/api/channels", {
-			method: "POST",
-			headers: {
-				"Content-Type": "application/json",
-			},
-			body: JSON.stringify({
-				name: formData.groupName,
-				owner: { id: user.id },
-				privacy: formData.privacy,
-				password: (formData.password.length !== 0) ? formData.password : undefined,
-				users: [ { id: user.id } ],
-			}),
-		});
+		const data = {
+			name: formData.groupName,
+			owner: { id: user.id },
+			privacy: formData.groupPrivacy,
+			password: (formData.password.length !== 0) ? formData.password : undefined,
+			users: [ { id: user.id } ],
+		};
 
-		const data = await res.json();
-
-		if (res.status === 201) {
-			const gm = setChatGroupData(JSON.parse(JSON.stringify(data)), user.id);
-
-			updateChatGroups();
-			openChatView(
-				gm.privacy === 'protected' ? 'password_protection' : 'group',
-				gm.label,
-				{
-					groupId: gm.id,
-					groupName: gm.label,
-					groupOwnerId: gm.ownerId,
-					peopleCount: gm.peopleCount,
-					groupPrivacy: gm.privacy
-				}
-			);
-		} else if ((res.status === 400) || (res.status === 401)) {
-			setAlert({
-				type: "warning",
-				content: `${data.message}`
-			});
-		} else {
-			setAlert({
-				type: "error",
-				content: "Failed to create group"
-			});
-		}
+		socket.emit("createChannel", data);
 	}
+
+	useEffect(() => {
+		/* Listeners */
+		socket.on("channelCreated", channelCreatedListener);
+
+		return () => {
+			socket.off("channelCreated", channelCreatedListener);
+		};
+	}, []);
 
 	const inputGroupClassName = "flex flex-col gap-y-2";
 	const inputClassName = "px-2 py-1 border border-pink-600 bg-transparent outline-none";
@@ -163,7 +137,7 @@ const GroupNew: React.FC = () => {
 			<h6 className="text-xl">New group settings</h6>
 			<form className="flex flex-col gap-y-4" onSubmit={handleSubmit}>
 				<div className={inputGroupClassName}>
-					<ErrorProvider error={fieldErrors['groupName']}>
+					<ErrorProvider error={fieldErrors["groupName"]}>
 					<label htmlFor="groupName" className={labelClassName}>
 						group name
 					</label>
@@ -184,20 +158,20 @@ const GroupNew: React.FC = () => {
 					</label>
 					<select
 						className="drag-cancellable px-2 py-2 bg-dark border-b border-pink-600 outline-none"
-						name="privacy"
-						value={formData.privacy}
+						name="groupPrivacy"
+						value={formData.groupPrivacy}
 						onChange={handleChange}
 					>
 						<option value="private">private</option>
 						<option value="protected">password protected</option>
 						<option value="public">public</option>
 					</select>
-					<small>{privacyTips[formData.privacy]}</small>
+					<small>{privacyTips[formData.groupPrivacy]}</small>
 				</div>
-				{formData.privacy === "protected" && (
+				{formData.groupPrivacy === "protected" && (
 					<Fragment>
 						<div className={inputGroupClassName}>
-							<ErrorProvider error={fieldErrors['password']}>
+							<ErrorProvider error={fieldErrors["password"]}>
 							<label
 								htmlFor="password"
 								className={labelClassName}
@@ -216,7 +190,7 @@ const GroupNew: React.FC = () => {
 							/>
 						</div>
 						<div className={inputGroupClassName}>
-							<ErrorProvider error={fieldErrors['password2']}>
+							<ErrorProvider error={fieldErrors["password2"]}>
 							<label
 								htmlFor="password2"
 								className={labelClassName}

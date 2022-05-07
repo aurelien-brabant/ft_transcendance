@@ -1,9 +1,8 @@
 import { Fragment, useContext, useEffect, useRef, useState } from "react";
 import { AiOutlineArrowLeft, AiOutlineClose } from "react-icons/ai";
-import { BaseUserData, User } from "transcendance-types";
+import { BaseUserData, Channel, User } from "transcendance-types";
 import { UserStatusItem } from "../UserStatus";
 import { useSession } from "../../hooks/use-session";
-import alertContext, { AlertContextType } from "../../context/alert/alertContext";
 import chatContext, { ChatContextType } from "../../context/chat/chatContext";
 import relationshipContext, { RelationshipContextType } from "../../context/relationship/relationshipContext";
 
@@ -33,42 +32,17 @@ export const GroupAddHeader: React.FC<{ viewParams: any }> = ({ viewParams }) =>
 };
 
 const GroupAdd: React.FC<{ viewParams: any }> = ({ viewParams }) => {
+	const channelId = viewParams.channelId;
 	const { user } = useSession();
-	const { setAlert } = useContext(alertContext) as AlertContextType;
-	const { closeRightmostView, fetchChannelData } = useContext(chatContext) as ChatContextType;
-	const { getData, friends } = useContext(relationshipContext) as RelationshipContextType;
-	const groupId = viewParams.groupId;
+	const { closeRightmostView, socket } = useContext(chatContext) as ChatContextType;
+	const { friends } = useContext(relationshipContext) as RelationshipContextType;
 	const [filteredFriends, setFilteredFriends] = useState<User[]>([]);
 	const searchInputRef = useRef<HTMLInputElement>(null);
-
-	const addUserToGroup = async (id: string) => {
-		const channelData = await fetchChannelData(groupId).catch(console.error);
-		const users = JSON.parse(JSON.stringify(channelData)).users;
-
-		const res = await fetch(`/api/channels/${groupId}`, {
-			method: "PATCH",
-			headers: {
-				"Content-Type": "application/json",
-			},
-			body: JSON.stringify({
-				users: [ ...users, { "id": id } ]
-			}),
-		});
-
-		if (res.status === 200) {
-			closeRightmostView();
-			return;
-		} else {
-			setAlert({
-				type: "error",
-				content: "Failed to add user to group"
-			});
-		}
-	};
 
 	/* Search a friend */
 	const handleSearch = (term: string) => {
 		const searchTerm = term.toLowerCase();
+
 		setFilteredFriends(
 			filteredFriends.filter(
 				(friend) =>
@@ -82,30 +56,41 @@ const GroupAdd: React.FC<{ viewParams: any }> = ({ viewParams }) => {
 		await addUserToGroup(friend.id);
 	}
 
-	useEffect(() => {
-		getData();
-		/* Select friends that didn't already join the group */
-		const selectFriends = async () => {
-			const channelData = await fetchChannelData(groupId).catch(console.error);
-			const users = await JSON.parse(JSON.stringify(channelData)).users;
-			const selectedFriends: User[] = [];
+	/* Select friends that didn't already join the group */
+	const selectFriends = async (channel: Channel) => {
+		const selectedFriends: User[] = [];
 
-			for (var i in friends) {
-				const isInChan = !!users.find((user: BaseUserData) => {
-					return user.id === friends[i].id;
-				})
-				if (!isInChan) {
-					selectedFriends.push(friends[i]);
-				}
+		for (var friend of friends) {
+			const isInChan = !!channel.users.find((user: BaseUserData) => {
+				return user.id === friend.id;
+			})
+			if (!isInChan && (friend.id !== user.id)) {
+				selectedFriends.push(friend);
 			}
-			setFilteredFriends(selectedFriends);
+		}
+		setFilteredFriends(selectedFriends);
+	};
+
+	/* Add a friend to group */
+	const addUserToGroup = async (id: string) => {
+		socket.emit("joinChannel", { userId: id, channelId });
+		closeRightmostView();
+	};
+
+	useEffect(() => {
+		socket.emit("getChannelData", { channelId });
+
+		/* Listeners */
+		socket.on("updateChannel", selectFriends);
+
+		return () => {
+			socket.off("updateChannel", selectFriends);
 		};
-		selectFriends();
-	}, []);
+	}, [friends]);
 
 	return (
 		<Fragment>
-			<div className="h-[15%] gap-x-2 flex items-center p-4 bg-dark/90 border-04dp border-b-4">
+			<div className="h-[15%] gap-x-2 flex items-center p-4 bg-dark/90 border-04dp border-b-4 justify-between">
 				<input
 						ref={searchInputRef}
 						type="text"

@@ -1,21 +1,13 @@
 import Link from "next/link";
-import Image from "next/image";
 import { useRouter } from "next/router";
 import { Fragment, useContext, useEffect, useState } from "react";
-import { BounceLoader } from "react-spinners";
 import { FaEquals } from "react-icons/fa";
 import { IoMdPersonAdd } from "react-icons/io";
 import { GiFalling, GiPodiumWinner } from "react-icons/gi";
-import {
-  RiPingPongLine,
-  RiMessage2Line,
-  RiUserSettingsLine,
-} from "react-icons/ri";
+import { RiPingPongLine, RiMessage2Line, RiUserSettingsLine } from "react-icons/ri";
 import { ActiveUser } from "transcendance-types";
 import { NextPageWithLayout } from "../_app";
-import alertContext, {
-  AlertContextType,
-} from "../../context/alert/alertContext";
+import alertContext, { AlertContextType } from "../../context/alert/alertContext";
 import chatContext, { ChatContextType } from "../../context/chat/chatContext";
 import Achievements from "../../components/Achievements";
 import Selector from "../../components/Selector";
@@ -144,7 +136,7 @@ const UserProfilePage: NextPageWithLayout = ({}) => {
   const { user } = useSession();
   const actionTooltipStyles = "font-bold bg-gray-900 text-neutral-200";
   const { setAlert } = useContext(alertContext) as AlertContextType;
-  const { openChat, openDirectMessage } = useContext(
+  const { createDirectMessage } = useContext(
     chatContext
   ) as ChatContextType;
   const [gamesHistory, setGamesHistory] = useState([]);
@@ -155,9 +147,13 @@ const UserProfilePage: NextPageWithLayout = ({}) => {
   const [userData, setUserData] = useState<ActiveUser>(user);
 
   /* Send DM to user */
-  const handleMessage = async () => {
-    await openDirectMessage("13".toString(), userData);
-    openChat();
+  const handleMessageToUser = async () => {
+    const from: string = user.id;
+    const to: string = userData.id;
+
+    if (from !== to) {
+      createDirectMessage(from, to);
+    }
   };
 
   /* Update user's information */
@@ -322,7 +318,7 @@ const UserProfilePage: NextPageWithLayout = ({}) => {
                   <Tooltip className={actionTooltipStyles} content="message">
                     <button
                       className="p-2 text-pink-700 bg-pink-200 text-2xl rounded-full transition hover:scale-105"
-                      onClick={handleMessage}
+                      onClick={handleMessageToUser}
                     >
                       <RiMessage2Line />
                     </button>

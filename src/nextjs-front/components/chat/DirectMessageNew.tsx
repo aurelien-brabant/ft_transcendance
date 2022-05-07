@@ -34,8 +34,8 @@ export const DirectMessageNewHeader: React.FC = () => {
 /* Search bar and friend list */
 const DirectMessageNew: React.FC = () => {
 	const { user } = useSession();
-	const { openDirectMessage } = useContext(chatContext) as ChatContextType;
-	const { getData, friends } = useContext(relationshipContext) as RelationshipContextType;
+	const { createDirectMessage } = useContext(chatContext) as ChatContextType;
+	const { friends } = useContext(relationshipContext) as RelationshipContextType;
 	const [filteredFriends, setFilteredFriends] = useState<User[]>([]);
 	const searchInputRef = useRef<HTMLInputElement>(null);
 
@@ -50,15 +50,14 @@ const DirectMessageNew: React.FC = () => {
 		);
 	};
 
+	useEffect(() => {
+		setFilteredFriends(friends);
+	}, [friends]);
+
 	/* Find existing DM or create a new one */
 	const handleSelect = async (friend: User) => {
-		await openDirectMessage(user.id, friend);
+		createDirectMessage(user.id, friend.id);
 	}
-
-	useEffect(() => {
-		getData();
-		setFilteredFriends(friends);
-	}, []);
 
 	return (
 		<Fragment>

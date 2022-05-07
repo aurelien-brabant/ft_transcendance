@@ -29,7 +29,7 @@ export interface IRoom {
 
 export default class Room implements IRoom {
 	roomId: string;
-    gameState: GameState;
+	gameState: GameState;
 	players: User[];
 	playerOne: Player;
 	playerTwo: Player;

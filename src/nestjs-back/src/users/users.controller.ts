@@ -46,23 +46,12 @@ export class UsersController {
     return this.usersService.findOne(id);
   }
 
-  @UseGuards(JwtAuthGuard, IsLoggedInUserGuard)
-  @Get('/:userId/ownedChannels')
-  getOwnedChannels(@Param('userId') id: string) {
-    return this.usersService.getOwnedChannels(id);
-  }
-
-  @UseGuards(JwtAuthGuard, IsLoggedInUserGuard)
-  @Get('/:userId/channels')
-  getJoinedChannels(@Param('userId') id: string) {
-    return this.usersService.getJoinedChannels(id);
-  }
-
+  /* NOTE: to replace by websockets */
   @UseGuards(JwtAuthGuard, IsLoggedInUserGuard)
   @Get('/:userId/directmessages')
   getDirectMessages(@Param('userId') id: string, @Query() friendDmQuery) {
     const { friendId } = friendDmQuery;
-    return this.usersService.getDirectMessages(id, friendId);
+    return this.usersService.getDirectMessage(id, friendId);
   }
 
   /* anyone can create a new user to begin the authentication process */
@@ -112,7 +101,7 @@ export class UsersController {
     @Param('userId') id: string,
     @Query() paginationQuery: PaginationQueryDto,
   ) {
-    return this.usersService.findRrank(id, paginationQuery);
+    return this.usersService.findRank(id, paginationQuery);
   }
 
   @UseGuards(JwtAuthGuard, IsLoggedInUserGuard)

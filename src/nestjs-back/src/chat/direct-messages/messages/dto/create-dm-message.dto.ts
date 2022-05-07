@@ -1,24 +1,22 @@
 import {
   IsNotEmpty,
   IsString,
-  MaxLength,
-  MinLength
+  MaxLength
 } from 'class-validator';
 import { Transform } from 'class-transformer';
-import { Channel } from "src/chat/channels/entities/channels.entity";
+import { DirectMessage } from "src/chat/direct-messages/entities/direct-messages";
 import { User } from "src/users/entities/users.entity";
 
-export class CreateMessageDto {
+export class CreateDmMessageDto {
   @Transform(({ value }) => value.trim())
   @IsNotEmpty()
   @IsString()
   @MaxLength(640)
-  @MinLength(1)
   readonly content: string;
 
   @IsNotEmpty()
   readonly author: User;
 
   @IsNotEmpty()
-  readonly channel: Channel;
+  readonly dm: DirectMessage;
 }

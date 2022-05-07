@@ -5,26 +5,23 @@ import { GamesService } from 'src/games/games.service';
 import { User } from '../users/entities/users.entity';
 import { UsersService } from 'src/users/users.service';
 import { UsersModule } from '../users/users.module';
+import { ChatModule } from 'src/chat/chat.module';
 import { Channel } from "src/chat/channels/entities/channels.entity";
-import { ChannelsService } from 'src/chat/channels/channels.service';
-import { Message } from 'src/chat/messages/entities/messages.entity';
-import { MessagesService } from 'src/chat/messages/messages.service';
-//import { SeederService } from './seeder.service';
+// import { SeederService } from './seeder.service';
 import { AchievementsService } from 'src/achievements/achievements.service';
 import { Achievement } from 'src/achievements/entities/achievements.entity';
 import { AchievementsModule } from 'src/achievements/achievements.module';
 
 @Module({
   imports: [
+    ChatModule,
     UsersModule,
     AchievementsModule,
-    TypeOrmModule.forFeature([User, Game, Channel, Message, Achievement])],
+    TypeOrmModule.forFeature([User, Game, Channel, Achievement])],
   providers: [
     UsersService,
     GamesService,
-    ChannelsService,
-    MessagesService,
-   // SeederService,
+    // SeederService,
     AchievementsService ],
   exports: [SeederModule]
 })

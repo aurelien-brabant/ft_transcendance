@@ -6,7 +6,7 @@ import { GiThorHammer } from "react-icons/gi";
 import { MdVoiceOverOff } from "react-icons/md";
 import { RiPingPongLine } from 'react-icons/ri';
 import Link from "next/link";
-import { BaseUserData } from "transcendance-types";
+import { BaseUserData, Channel } from "transcendance-types";
 import { useSession } from "../../hooks/use-session";
 import Tooltip from "../../components/Tooltip";
 import alertContext, { AlertContextType } from "../../context/alert/alertContext";
@@ -27,7 +27,23 @@ type UserSummary = {
 
 /* Header */
 export const GroupUsersHeader: React.FC<{ viewParams: any }> = ({ viewParams }) => {
-	const { closeChat, closeRightmostView } = useContext(chatContext) as ChatContextType;
+	const { closeChat, closeRightmostView, socket } = useContext(chatContext) as ChatContextType;
+	const [peopleCount, setPeopleCount] = useState(0);
+
+	const updatePeopleCount = (channel: Channel) => {
+		setPeopleCount(channel.users.length);
+	};
+
+	useEffect(() => {
+		socket.emit("getChannelData", { channelId: viewParams.channelId });
+
+		/* Listeners */
+		socket.on("updateChannel", updatePeopleCount);
+
+		return () => {
+			socket.off("updateChannel", updatePeopleCount);
+		};
+	}, []);
 
 	return (
 		<Fragment>
@@ -42,7 +58,7 @@ export const GroupUsersHeader: React.FC<{ viewParams: any }> = ({ viewParams }) 
 				</div>
 				<div className="flex items-center gap-x-1 px-2">
 					<FaUserFriends />
-					{viewParams.peopleCount}
+					{peopleCount}
 				</div>
 			</div>
 			<div className="flex flex-col items-center justify-center">
@@ -55,20 +71,21 @@ export const GroupUsersHeader: React.FC<{ viewParams: any }> = ({ viewParams }) 
 };
 
 const GroupUsers: React.FC<{ viewParams: any }> = ({ viewParams }) => {
+	const channelId = viewParams.channelId;
 	const { user } = useSession();
 	const { setAlert } = useContext(alertContext) as AlertContextType;
-	const { fetchChannelData } = useContext(chatContext) as ChatContextType;
-	const { blocked, getData } = useContext(relationshipContext) as RelationshipContextType;
+	const { socket, fetchChannelData } = useContext(chatContext) as ChatContextType; /* NOTE: fetch will be removed */
+	const { blocked } = useContext(relationshipContext) as RelationshipContextType;
 	const [users, setUsers] = useState<UserSummary[]>([]);
-	const groupId = viewParams.groupId;
+	const [ownerView, setOwnerView] = useState(false);
 	const actionTooltipStyles = "font-bold bg-gray-900 text-neutral-200";
 
 	/* Make user administrator */
 	const addAdmin = async (id: string) => {
-		const groupData = await fetchChannelData(groupId).catch(console.error);
+		const groupData = await fetchChannelData(channelId).catch(console.error); /* NOTE: fetch will be removed */
 		const admins = JSON.parse(JSON.stringify(groupData)).admins;
 
-		const res = await fetch(`/api/channels/${groupId}`, {
+		const res = await fetch(`/api/channels/${channelId}`, {
 			method: "PATCH",
 			headers: {
 				"Content-Type": "application/json",
@@ -79,7 +96,6 @@ const GroupUsers: React.FC<{ viewParams: any }> = ({ viewParams }) => {
 		});
 
 		if (res.status === 200) {
-			updateUsers();
 			return;
 		} else {
 			setAlert({
@@ -91,13 +107,13 @@ const GroupUsers: React.FC<{ viewParams: any }> = ({ viewParams }) => {
 
 	/* Remove administrator rights */
 	const removeAdmin = async (id: string) => {
-		const groupData = await fetchChannelData(groupId).catch(console.error);
+		const groupData = await fetchChannelData(channelId).catch(console.error); /* NOTE: fetch will be removed */
 		const currentAdmins = JSON.parse(JSON.stringify(groupData)).admins;
 		const admins = currentAdmins.filter((admin: BaseUserData) => { 
 			return admin.id != id
 		})
 
-		const res = await fetch(`/api/channels/${groupId}`, {
+		const res = await fetch(`/api/channels/${channelId}`, {
 			method: "PATCH",
 			headers: {
 				"Content-Type": "application/json",
@@ -108,7 +124,6 @@ const GroupUsers: React.FC<{ viewParams: any }> = ({ viewParams }) => {
 		});
 
 		if (res.status === 200) {
-			updateUsers();
 			return;
 		} else {
 			setAlert({
@@ -120,10 +135,10 @@ const GroupUsers: React.FC<{ viewParams: any }> = ({ viewParams }) => {
 
 	/* Ban user from group */
 	const banUser = async (id: string, username: string) => {
-		const groupData = await fetchChannelData(groupId).catch(console.error);
+		const groupData = await fetchChannelData(channelId).catch(console.error); /* NOTE: fetch will be removed */
 		const users = JSON.parse(JSON.stringify(groupData)).bannedUsers;
 
-		const res = await fetch(`/api/channels/${groupId}`, {
+		const res = await fetch(`/api/channels/${channelId}`, {
 			method: "PATCH",
 			headers: {
 				"Content-Type": "application/json",
@@ -134,7 +149,6 @@ const GroupUsers: React.FC<{ viewParams: any }> = ({ viewParams }) => {
 		});
 
 		if (res.status === 200) {
-			updateUsers();
 			setAlert({
 				type: "info",
 				content: `${username} is banned`
@@ -150,10 +164,10 @@ const GroupUsers: React.FC<{ viewParams: any }> = ({ viewParams }) => {
 
 	/* Mute user in group */
 	const muteUser = async (id: string, username: string) => {
-		const groupData = await fetchChannelData(groupId).catch(console.error);
+		const groupData = await fetchChannelData(channelId).catch(console.error); /* NOTE: fetch will be removed */
 		const users = JSON.parse(JSON.stringify(groupData)).mutedUsers;
 
-		const res = await fetch(`/api/channels/${groupId}`, {
+		const res = await fetch(`/api/channels/${channelId}`, {
 			method: "PATCH",
 			headers: {
 				"Content-Type": "application/json",
@@ -164,7 +178,6 @@ const GroupUsers: React.FC<{ viewParams: any }> = ({ viewParams }) => {
 		});
 
 		if (res.status === 200) {
-			updateUsers();
 			setAlert({
 				type: "info",
 				content: `${username} is muted`
@@ -180,13 +193,13 @@ const GroupUsers: React.FC<{ viewParams: any }> = ({ viewParams }) => {
 
 	/* Kick user from group */
 	const kickUser = async (id: string, username: string) => {
-		const groupData = await fetchChannelData(groupId).catch(console.error);
+		const groupData = await fetchChannelData(channelId).catch(console.error); /* NOTE: fetch will be removed */
 		const currentUsers = JSON.parse(JSON.stringify(groupData)).users;
 		const users = currentUsers.filter((user: BaseUserData) => {
 			return user.id !=  id
 		})
 
-		const res = await fetch(`/api/channels/${groupId}`, {
+		const res = await fetch(`/api/channels/${channelId}`, {
 			method: "PATCH",
 			headers: {
 				"Content-Type": "application/json",
@@ -197,7 +210,6 @@ const GroupUsers: React.FC<{ viewParams: any }> = ({ viewParams }) => {
 		});
 
 		if (res.status === 200) {
-			updateUsers();
 			setAlert({
 				type: "info",
 				content: `${username} was kicked`
@@ -212,44 +224,51 @@ const GroupUsers: React.FC<{ viewParams: any }> = ({ viewParams }) => {
 	};
 
 	/* Update user list on mount */
-	const updateUsers = async () => {
-		const data = await fetchChannelData(groupId).catch(console.error);
-		const chanOwner = await JSON.parse(JSON.stringify(data)).owner;
-		const chanAdmins = await JSON.parse(JSON.stringify(data)).admins;
-		const chanUsers = await JSON.parse(JSON.stringify(data)).users;
-		const mutedUsers = await JSON.parse(JSON.stringify(data)).mutedUsers;
-		const bannedUsers = await JSON.parse(JSON.stringify(data)).bannedUsers;
+	const defineUserList = async (channel: Channel) => {
 		const users: UserSummary[] = [];
 
-		for (var i in chanUsers) {
+		setOwnerView(channel.owner.id === user.id);
+
+		for (var chanUser of channel.users) {
 			users.push({
-				id: chanUsers[i].id,
-				username: chanUsers[i].username,
-				pic: `/api/users/${chanUsers[i].id}/photo`,
-				isMe: (chanUsers[i].id === user.id),
-				isOwner: (chanUsers[i].id === chanOwner.id),
-				isAdmin: (chanUsers[i].id === chanOwner.id) || !!chanAdmins.find((admin: BaseUserData) => {
-					return admin.id === chanUsers[i].id;
+				id: chanUser.id,
+				username: chanUser.username,
+				pic: `/api/users/${chanUser.id}/photo`,
+				isMe: (chanUser.id === user.id),
+				isOwner: (chanUser.id === channel.owner.id),
+				isAdmin: (chanUser.id === channel.owner.id) || !!channel.admins.find((admin: BaseUserData) => {
+					return admin.id === chanUser.id;
 				}),
-				isMuted: !!mutedUsers.find((user: BaseUserData) => {
-					return user.id === chanUsers[i].id;
+				isMuted: !!channel.mutedUsers.find((user: BaseUserData) => {
+					return user.id === chanUser.id;
 				}),
-				isBanned: !!bannedUsers.find((user: BaseUserData) => {
-					return user.id === chanUsers[i].id;
+				isBanned: !!channel.bannedUsers.find((user: BaseUserData) => {
+					return user.id === chanUser.id;
 				}),
-				isBlocked: !!blocked.find(user => user.id === chanUsers[i].id)
+				isBlocked: !!blocked.find(user => user.id === chanUser.id)
 			});
 		}
-		users.sort((a, b) => (a.isBlocked ? 1 : -1)).sort((a, b) => (a.isAdmin ? -1 : 1)).sort((a, b) => (a.isOwner ? -1 : 1));
+		users.sort(
+				(a, b) => (a.isBlocked ? 1 : -1)
+			).sort(
+				(a, b) => (a.isAdmin ? -1 : 1)
+			).sort(
+				(a, b) => (a.isOwner ? -1 : 1));
 		setUsers(users);
 	}
 
 	useEffect(() => {
-		getData();
-		updateUsers();
-	}, []);
+		socket.emit("getChannelData", { channelId });
 
-	if (viewParams.ownerView) { // NEED FIX: also admin
+		/* Listeners */
+		socket.on("updateChannel", defineUserList);
+
+		return () => {
+			socket.off("updateChannel", defineUserList);
+		};
+	}, [users]);
+
+	if (ownerView) { // NEED FIX: also admin
 		return (
 			<div className="flex flex-col h-full py-4 overflow-auto ">
 				{users.map((user) => (

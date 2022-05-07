@@ -17,7 +17,7 @@ const SocketProvider: React.FC = ({ children }) => {
   const [socket, setSocket] = useState<any>(null);
 
   useEffect((): any => {
-    const socketIo = io("localhost:8080");
+    const socketIo = io("localhost:8080/chat");
 
     setSocket(socketIo);
 
@@ -37,17 +37,17 @@ const SocketProvider: React.FC = ({ children }) => {
           username: user.username,
         });
 
-        // socket.on("joinChat", (data: ChatUser[]) => {
-        // 	setChatRoom(data);
-        // });
+        socket.on("joinChat", (data: ChatUser[]) => {
+        	setChatRoom(data);
+        });
 
-        // socket.on("leaveChat", (data: ChatUser[]) => {
-        // 	setChatRoom(data);
-        // });
+        socket.on("leaveChat", (data: ChatUser[]) => {
+        	setChatRoom(data);
+        });
 
-        // socket.on('updateChatRoomLen', (len: number) => {
-        // 	setChatRoomLen(len);
-        // });
+        socket.on('updateChatRoomLen', (len: number) => {
+        	setChatRoomLen(len);
+        });
       });
     };
     handleChat();

@@ -1,13 +1,13 @@
-import { Fragment, useContext, useState } from "react";
+import { Fragment, useContext, useEffect, useState } from "react";
 import { AiOutlineArrowLeft, AiOutlineClose } from "react-icons/ai";
-import { BaseUserData } from "transcendance-types";
+import { Channel } from "transcendance-types";
 import { useSession } from "../../hooks/use-session";
 import alertContext, { AlertContextType } from "../../context/alert/alertContext";
 import chatContext, { ChatContextType, ChatGroupPrivacy } from "../../context/chat/chatContext";
 
 type updateGroupData = {
 	groupName: string | undefined;
-	privacy: ChatGroupPrivacy;
+	groupPrivacy: ChatGroupPrivacy;
 	password: string | undefined;
 	password2: string | undefined;
 	restrictionDuration: string | undefined;
@@ -54,15 +54,13 @@ export const GroupSettingsHeader: React.FC<{ viewParams: any }> = ({ viewParams 
 };
 
 const GroupSettings: React.FC<{ viewParams: any }> = ({ viewParams }) => {
+	const channelId = viewParams.channelId;
 	const { user } = useSession();
 	const { setAlert } = useContext(alertContext) as AlertContextType;
-	const {
-		closeRightmostView,
-		removeChatGroup,
-		fetchChannelData
-	} = useContext(chatContext) as ChatContextType;
-	const groupId = viewParams.groupId;
-	const groupPrivacy = viewParams.groupPrivacy as ChatGroupPrivacy;
+	const { socket, setChatView, closeRightmostView } = useContext(chatContext) as ChatContextType;
+	const [ownerView, setOwnerView] = useState(false);
+	const [userInChan, setUserInChan] = useState(false);
+	const [peopleCount, setPeopleCount] = useState(0);
 	const inputGroupClassName = "flex flex-col gap-y-2";
 	const inputClassName = "px-2 py-1 border border-pink-600 bg-transparent outline-none";
 	const labelClassName = "text-xs text-neutral-200 uppercase";
@@ -72,7 +70,7 @@ const GroupSettings: React.FC<{ viewParams: any }> = ({ viewParams }) => {
 	/* Form */
 	const [formData, setFormData] = useState<updateGroupData>({
 		groupName: undefined,
-		privacy: groupPrivacy,
+		groupPrivacy: viewParams.privacy,
 		password: undefined,
 		password2: undefined,
 		restrictionDuration: undefined
@@ -100,7 +98,7 @@ const GroupSettings: React.FC<{ viewParams: any }> = ({ viewParams }) => {
 			errors['groupName'] = 'Group name should be between 3 and 20 characters long';
 		}
 
-		if (formData.privacy === 'protected') {
+		if (formData.groupPrivacy === 'protected') {
 			if (formData.password) {
 				if (formData.password.length == 0) {
 					errors['password'] = 'Password can\'t be empty';
@@ -121,14 +119,14 @@ const GroupSettings: React.FC<{ viewParams: any }> = ({ viewParams }) => {
 
 	/* Update the group name, visibility and password */
 	const updateGroup = async (formData: updateGroupData) => {
-		const res = await fetch(`/api/channels/${groupId}`, {
+		const res = await fetch(`/api/channels/${channelId}`, {
 			method: "PATCH",
 			headers: {
 				"Content-Type": "application/json",
 			},
 			body: JSON.stringify({
 				name: formData.groupName,
-				privacy: formData.privacy,
+				privacy: formData.groupPrivacy,
 				password: (formData.password && formData.password.length !== 0) ? formData.password : undefined,
 				restrictionDuration: formData.restrictionDuration
 			}),
@@ -153,58 +151,42 @@ const GroupSettings: React.FC<{ viewParams: any }> = ({ viewParams }) => {
 
 	/* If the owner leaves the group, it is deleted */
 	const disbandGroup = async () => {
-		const res = await fetch(`/api/channels/${groupId}`, {
-			method: "DELETE",
-			headers: {
-				"Content-Type": "application/json",
-			},
+		socket.emit("deleteChannel", {
+			channelId
 		});
-
-		if (res.status === 200) {
-			closeRightmostView(2);
-			removeChatGroup(groupId);
-			return;
-		} else {
-			setAlert({
-				type: "error",
-				content: "Failed to disband group"
-			});
-		}
 	};
 
 	/* USER */
 
 	/* User quits group */
-	const handleLeaveGroup = async () => {
-		const channelData = await fetchChannelData(groupId).catch(console.error);
-		const currentUsers = JSON.parse(JSON.stringify(channelData)).users;
-		const users = currentUsers.filter((user: BaseUserData) => {
-			return user.id != user.id
-		})
-
-		const res = await fetch(`/api/channels/${groupId}`, {
-			method: "PATCH",
-			headers: {
-				"Content-Type": "application/json",
-			},
-			body: JSON.stringify({
-				users: [ ...users ]
-			}),
+	const handleUserLeaveGroup = () => {
+		socket.emit("leaveChannel", {
+			userId: user.id,
+			channelId
 		});
-
-		if (res.status === 200) {
-			closeRightmostView(2);
-			removeChatGroup(groupId);
-			return;
-		} else {
-			setAlert({
-				type: "error",
-				content: "Failed to leave group"
-			});
-		}
+		closeRightmostView(2);
 	};
 
-	if (viewParams.ownerView) {
+	const updateChannelData = (channel: Channel) => {
+		setOwnerView(channel.owner.id === user.id);
+		setPeopleCount(channel.users.length);
+		setUserInChan(!!channel.users.find(
+			(chanUser) => { return chanUser.id === user.id; }
+		));
+	};
+
+	useEffect(() => {
+		socket.emit("getChannelData", { channelId });
+
+		/* Listeners */
+		socket.on("updateChannel", updateChannelData);
+
+		return () => {
+			socket.off("updateChannel", updateChannelData);
+		};
+	}, []);
+
+	if (ownerView) { // tmp
 		return (
 			<div className="flex flex-col h-full px-5 py-5 overflow-y-auto gap-y-4">
 				<h6 className="text-xl">Update group</h6>
@@ -231,17 +213,17 @@ const GroupSettings: React.FC<{ viewParams: any }> = ({ viewParams }) => {
 						</label>
 						<select
 							className="drag-cancellable px-2 py-2 bg-dark border-b border-pink-600 outline-none"
-							name="privacy"
-							value={formData.privacy}
+							name="groupPrivacy"
+							value={formData.groupPrivacy}
 							onChange={handleChange}
 						>
 							<option value="private">private</option>
 							<option value="protected">password protected</option>
 							<option value="public">public</option>
 						</select>
-						<small>{privacyTips[formData.privacy]}</small>
+						<small>{privacyTips[formData.groupPrivacy]}</small>
 					</div>
-					{formData.privacy === "protected" && (
+					{formData.groupPrivacy === "protected" && (
 						<Fragment>
 							<div className={inputGroupClassName}>
 								<ErrorProvider error={fieldErrors['password']}>
@@ -249,7 +231,7 @@ const GroupSettings: React.FC<{ viewParams: any }> = ({ viewParams }) => {
 									htmlFor="password"
 									className={labelClassName}
 								>
-									{groupPrivacy === "protected" ? "new password": "password"}
+									{viewParams.privacy === "protected" ? "new password": "password"}
 								</label>
 								</ErrorProvider>
 								<small>A 8 to 30 characters password that contains at least one letter, one number, and one special character (@$!%#?&).</small>
@@ -313,25 +295,27 @@ const GroupSettings: React.FC<{ viewParams: any }> = ({ viewParams }) => {
 				<div className="">
 					<div className="flex justify-between">
 						<span>Name</span>
-						<span>{viewParams.groupName}</span>
+						<span>{viewParams.channelName}</span>
 					</div>
 					<div className="flex justify-between">
 						<span>Visibility</span>
-						<span>{viewParams.groupPrivacy}</span>
+						<span>{viewParams.privacy}</span>
 					</div>
 					<div className="flex justify-between">
 						<span>Members</span>
-						<span>{viewParams.peopleCount}</span>
+						<span>{peopleCount}</span>
 					</div>
 				</div>
-				<div className="flex flex-col gap-y-4">
-				<h6 className="text-xl">Leave group</h6>
-				<button
-					onClick={() => { handleLeaveGroup() }}
-					className="px-3 py-2 uppercase bg-red-600">
-						Leave group
-				</button>
-				</div>
+				{userInChan &&
+					<div className="flex flex-col gap-y-4">
+					<h6 className="text-xl">Leave group</h6>
+					<button
+						onClick={() => { handleUserLeaveGroup() }}
+						className="px-3 py-2 uppercase bg-red-600">
+							Leave group
+					</button>
+					</div>
+				}
 			</div>
 		);
 	}
