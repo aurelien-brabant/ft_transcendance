@@ -16,6 +16,7 @@ const SignIn: NextPageWithLayout = () => {
     const router = useRouter();
     const { login, state: authState } = useSession();
     const [isLoading, setIsLoading] = useState(false);
+    const [resetInputFormStep, setResetInputFormStep] = useState(false)
     const {setAlert} = useContext(alertContext) as AlertContextType;
 
     const formConfig: ProgressiveFormConfig = {
@@ -39,6 +40,7 @@ const SignIn: NextPageWithLayout = () => {
                         label: "password",
                         name: "password",
                         inputType: "password",
+                        shouldBeReset: true
                     },
                 ],
                 submitCta: !isLoading ? "Continue with password" : "Authenticating...",
@@ -54,6 +56,7 @@ const SignIn: NextPageWithLayout = () => {
         setIsLoading(false);
 
         if (!hasLoggedIn) {
+            setResetInputFormStep(true)
             setAlert({
                 content: "Invalid credentials",
                 type: "error",
@@ -119,6 +122,8 @@ const SignIn: NextPageWithLayout = () => {
                         loaderColor="#ffffff"
                         isLoading={isLoading}
                         config={formConfig}
+                        reset={resetInputFormStep}
+                        setReset={setResetInputFormStep}
                     />
                 </main>
 
