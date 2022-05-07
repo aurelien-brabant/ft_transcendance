@@ -14,6 +14,7 @@ export class DirectMessagesController {
     private readonly directMessagesService: DirectMessagesService
   ) {}
 
+  /* NOTE: for debugging
   @Get()
   findAll() {
     return this.directMessagesService.findAll();
@@ -23,4 +24,5 @@ export class DirectMessagesController {
   remove(@Param('id') id: string) {
     return this.directMessagesService.remove(id);
   }
+  */
 }
