@@ -1,8 +1,8 @@
 import { Injectable } from "@nestjs/common";
 import { InjectRepository } from "@nestjs/typeorm";
+import { Repository } from "typeorm";
 import { Channel } from "diagnostics_channel";
 import { UsersService } from "src/users/users.service";
-import { Repository } from "typeorm";
 import { ChannelPunishment, PunishmentType } from "./entities/punishment.entity";
 
 type PunishmentOptions = {

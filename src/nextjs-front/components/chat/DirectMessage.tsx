@@ -69,17 +69,17 @@ const DirectMessage: React.FC<{ viewParams: { [key: string]: any } }> = ({
 	const { socket, getMessageStyle } = useContext(chatContext) as ChatContextType;
 	const [messages, setMessages] = useState<ChatMessage[]>([]);
 	const [currentMessage, setCurrentMessage] = useState("");
-	const [sendingEnabled, setSendingEnabled] = useState(false);
+	const [sendingEnabled, setSendingEnabled] = useState(true); // test
 	const chatBottom = useRef<HTMLDivElement>(null);
 
 	/* Send new message */
 	const handleDmSubmit = async () => {
-		if (currentMessage.trim().length === 0) return ;
+		// if (currentMessage.trim().length === 0) return ;
 
 		socket.emit("dmSubmit", {
 			content: currentMessage,
-			from: user.id,
-			dmId: dmId,
+			author: { "id": user.id },
+			dm: { "id": dmId },
 		});
 		setCurrentMessage("");
 	};
@@ -90,7 +90,7 @@ const DirectMessage: React.FC<{ viewParams: { [key: string]: any } }> = ({
 		const len = e.target.value.trim().length;
 
 		if ((len === 0) || (len > 640)) {
-			setSendingEnabled(false);
+			setSendingEnabled(true); // test
 		} else {
 			setSendingEnabled(true);
 		}

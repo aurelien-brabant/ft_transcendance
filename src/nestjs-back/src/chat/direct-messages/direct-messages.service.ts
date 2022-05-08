@@ -1,10 +1,9 @@
-import { Injectable, Logger, NotFoundException } from '@nestjs/common';
+import { Injectable, Logger } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Repository } from 'typeorm';
 import { DirectMessage } from './entities/direct-messages';
 import { CreateDirectMessageDto } from './dto/create-direct-message.dto';
 import { UpdateDirectMessageDto } from './dto/update-direct-message.dto';
-import { DmMessagesService } from 'src/chat/direct-messages/messages/dm-messages.service';
 import { UsersService } from 'src/users/users.service';
 
 @Injectable()
@@ -14,7 +13,6 @@ export class DirectMessagesService {
   constructor(
     @InjectRepository(DirectMessage)
     private readonly directMessagesRepository: Repository<DirectMessage>,
-    private readonly messagesService: DmMessagesService,
     private readonly usersService: UsersService,
   ) {}
 
@@ -37,7 +35,7 @@ export class DirectMessagesService {
       ]
     });
     if (!dm) {
-      throw new NotFoundException(`Direct Message [${id}] not found`);
+      throw new Error(`Direct Message [${id}] not found`);
     }
     return dm;
   }
@@ -52,7 +50,7 @@ export class DirectMessagesService {
       );
       return existingDm;
     } catch (e) {
-      if (e instanceof NotFoundException) {
+      if (e instanceof Error) {
         const dm = this.directMessagesRepository.create(createDirectMessageDto);
 
         this.logger.log('Create new Direct Message');
@@ -67,7 +65,7 @@ export class DirectMessagesService {
       ...updateDirectMessageDto
     });
     if (!dm) {
-      throw new NotFoundException(`Cannot update Direct Message [${id}]: Not found`);
+      throw new Error(`Cannot update Direct Message [${id}]: Not found`);
     }
     this.logger.log(`Update Direct Message [${dm.id}]`);
     return this.directMessagesRepository.save(dm);
@@ -77,24 +75,9 @@ export class DirectMessagesService {
     const dm = await this.directMessagesRepository.findOne(id);
 
     if (!dm) {
-      throw new NotFoundException(`Direct Message [${id}] not found`);
+      throw new Error(`Direct Message [${id}] not found`);
     }
     this.logger.log(`Remove Direct Message [${dm.id}]`);
     return this.directMessagesRepository.remove(dm);
-  }
-
-  /**
-   * Save a DM message in database
-   * 
-   * @param content - The content of the message to save
-   * @param dmId - The id of the Direct Message the message applies to
-   * @param userId - The id of the author (the user that sends the message)
-   * @returns The DM message as saved in database
-   */
-  async addMessage(content: string, dmId: string, authorId: string) {
-    const dm = await this.directMessagesRepository.findOne(dmId);
-    const author = await this.usersService.findOne(authorId);
-
-    return await this.messagesService.create({ content, dm, author });
   }
 }

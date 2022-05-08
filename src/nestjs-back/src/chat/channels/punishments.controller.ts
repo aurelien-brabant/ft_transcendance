@@ -32,14 +32,12 @@ export class ChannelPunishmentsController {
         })
     }
 
-
     @Get('/is-punished')
     async findOutIfUserIsPunished(@Param('channelId') channelId: number, @Query('userId') userId: number) {
         const isPunished = await this.channelPunishmentService.isUserCurrentlyPunished(channelId, userId);
 
         return { isPunished }
     }
-
 
     @Get('/is-muted')
     async findOutIfUserIsMuted(@Param('channelId') channelId: number, @Query('userId') userId: number) {

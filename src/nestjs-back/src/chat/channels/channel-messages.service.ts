@@ -1,4 +1,4 @@
-import { Injectable, Logger, NotFoundException, UnauthorizedException } from '@nestjs/common';
+import { Injectable, Logger } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Repository } from 'typeorm';
 import { ChannelMessage } from './entities/channel-messages.entity';
@@ -6,7 +6,7 @@ import { CreateChannelMessageDto } from './dto/create-channel-message.dto';
 import { UpdateChannelMessageDto } from './dto/update-channel-message.dto';
 
 @Injectable()
-export class ChanMessagesService {
+export class ChannelMessagesService {
   private logger: Logger = new Logger('Channel Messages Service');
 
   constructor(
@@ -26,7 +26,7 @@ export class ChanMessagesService {
     });
 
     if (!message) {
-      throw new NotFoundException(`Message [${id}] not found`);
+      throw new Error(`Message [${id}] not found`);
     }
     return message;
   }
@@ -37,7 +37,7 @@ export class ChanMessagesService {
     this.logger.log(`Create new message in channel [${createChanMessageDto.channel.id}]`);
 
     return await this.messagesRepository.save(message).catch(() => {
-      throw new UnauthorizedException('Message may not be longer than 640 characters.');
+      throw new Error('Message may not be longer than 640 characters.');
     });
   }
 
@@ -48,7 +48,7 @@ export class ChanMessagesService {
     });
 
     if (!message) {
-      throw new NotFoundException(`Cannot update Message [${id}]: Not found`);
+      throw new Error(`Cannot update Message [${id}]: Not found`);
     }
     return this.messagesRepository.save(message);
   }
@@ -57,7 +57,7 @@ export class ChanMessagesService {
     const message = await this.findOne(id);
 
     if (!message) {
-      throw new NotFoundException(`Message [${id}] not found`);
+      throw new Error(`Message [${id}] not found`);
     }
     return this.messagesRepository.remove(message);
   }

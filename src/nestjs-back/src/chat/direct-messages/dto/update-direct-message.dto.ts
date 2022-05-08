@@ -1,6 +1,6 @@
 import { IsArray, IsOptional } from 'class-validator';
 import { Type } from 'class-transformer';
-import { DmMessage } from 'src/chat/direct-messages/messages/entities/dm-messages.entity';
+import { DmMessage } from 'src/chat/direct-messages/entities/dm-messages.entity';
 import { PartialType } from '@nestjs/mapped-types';
 import { CreateDirectMessageDto } from './create-direct-message.dto';
 

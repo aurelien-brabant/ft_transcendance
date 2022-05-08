@@ -7,8 +7,6 @@ import { hash as hashPassword } from 'bcryptjs';
 import { Channel } from './entities/channels.entity';
 import { CreateChannelDto } from './dto/create-channel.dto';
 import { UpdateChannelDto } from './dto/update-channel.dto';
-import { ChanMessagesService } from './messages/chan-messages.service';
-import { UsersService } from 'src/users/users.service';
 
 @Injectable()
 export class ChannelsService {
@@ -17,8 +15,6 @@ export class ChannelsService {
   constructor(
     @InjectRepository(Channel)
     private readonly channelsRepository: Repository<Channel>,
-    private readonly messagesService: ChanMessagesService,
-    private readonly usersService: UsersService,
     private schedulerRegistry: SchedulerRegistry
   ) {}
 
@@ -144,13 +140,6 @@ export class ChannelsService {
     this.logger.log(`Remove channel [${channel.id}][${channel.name}]`);
 
     return this.channelsRepository.remove(channel);
-  }
-
-  async addMessage(content: string, channelId: string, authorId: string) {
-    const channel = await this.channelsRepository.findOne(channelId);
-    const author = await this.usersService.findOne(authorId);
-
-    return await this.messagesService.create({ content, channel, author });
   }
 
   /**

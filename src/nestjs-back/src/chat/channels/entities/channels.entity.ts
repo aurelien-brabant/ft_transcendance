@@ -8,7 +8,7 @@ import {
   PrimaryGeneratedColumn
 } from "typeorm";
 import { IsOptional } from "class-validator";
-import { ChannelMessage } from 'src/chat/channels/messages/entities/channel-messages.entity';
+import { ChannelMessage } from 'src/chat/channels/entities/channel-messages.entity';
 import { ChannelPunishment } from "./punishment.entity";
 import { User } from "src/users/entities/users.entity";
 

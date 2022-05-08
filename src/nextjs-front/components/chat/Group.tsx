@@ -107,7 +107,7 @@ const Group: React.FC<{ viewParams: { [key: string]: any } }> = ({
 	const { blocked } = useContext(relationshipContext) as RelationshipContextType;
 	const [messages, setMessages] = useState<ChatMessage[]>([]);
 	const [currentMessage, setCurrentMessage] = useState("");
-	const [sendingEnabled, setSendingEnabled] = useState(false);
+	const [sendingEnabled, setSendingEnabled] = useState(false); // test
 	const [userInChan, setUserInChan] = useState(false);
 	const chatBottom = useRef<HTMLDivElement>(null);
 
@@ -120,14 +120,14 @@ const Group: React.FC<{ viewParams: { [key: string]: any } }> = ({
 
 	/* Send new message */
 	const handleGmSubmit = async () => {
-		if (currentMessage.trim().length === 0) return;
+		// if (currentMessage.trim().length === 0) return;
 
 		console.log('[Chat] Submit group message');
 
 		socket.emit('gmSubmit', {
 			content: currentMessage,
-			from: user.id,
-			channelId
+			author: { "id": user.id },
+			channel: { "id": channelId },
 		});
 		setCurrentMessage("");
 	};
@@ -138,7 +138,7 @@ const Group: React.FC<{ viewParams: { [key: string]: any } }> = ({
 		const len = e.target.value.trim().length;
 
 		if ((len === 0) || (len > 640)) {
-			setSendingEnabled(false);
+			setSendingEnabled(true); // test
 		} else {
 			setSendingEnabled(true);
 		}

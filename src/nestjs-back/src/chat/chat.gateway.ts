@@ -17,6 +17,8 @@ import { ChatUser, ChatUsers } from './class/ChatUsers';
 import { User } from 'src/users/entities/users.entity';
 import { CreateChannelDto } from './channels/dto/create-channel.dto';
 import { CreateDirectMessageDto } from './direct-messages/dto/create-direct-message.dto';
+import { CreateChannelMessageDto } from './channels/dto/create-channel-message.dto';
+import { CreateDmMessageDto } from './direct-messages/dto/create-dm-message.dto';
 
 @WebSocketGateway({
 		cors: true,
@@ -133,15 +135,12 @@ export class ChatGateway implements OnGatewayInit, OnGatewayConnection {
 	@SubscribeMessage('gmSubmit')
 	async handleGmSubmit(
 		@ConnectedSocket() client: Socket,
-		@MessageBody() { content, from, channelId }: {
-			content: string, from: number, channelId: string
-		}
+		@MessageBody() data: CreateChannelMessageDto
 	) {
 		try {
-			const message = await this.chatService.addMessageToChannel(content, channelId, from.toString());
+			const message = await this.chatService.addMessageToChannel(data);
 
-			this.logger.log(`user [${from}] sends message "${content}" on channel [${channelId}]`);
-			this.server.to(`channel_${channelId}`).emit('newGm', { message });
+			this.server.to(`channel_${message.channel.id}`).emit('newGm', { message });
 		} catch (e) {
 			this.server.to(client.id).emit('chatError', e.message);
 		}
@@ -278,15 +277,12 @@ export class ChatGateway implements OnGatewayInit, OnGatewayConnection {
 	@SubscribeMessage('dmSubmit')
 	async handleDmSubmit(
 		@ConnectedSocket() client: Socket,
-		@MessageBody() { content, from, dmId }: {
-			content: string, from: string, dmId: string
-		}
+		@MessageBody() data: CreateDmMessageDto
 	) {
 		try {
-			const message = await this.chatService.addMessageToDm(content, dmId, from.toString());
+			const message = await this.chatService.addMessageToDm(data);
 
-			this.server.to(`dm_${dmId}`).emit('newDm', { message });
-			this.logger.log(`New message in DM [${dmId}]`);
+			this.logger.log(`New message in DM [${message.dm.id}]`);
 		} catch (e) {
 			this.server.to(client.id).emit('chatError', e.message);
 		}

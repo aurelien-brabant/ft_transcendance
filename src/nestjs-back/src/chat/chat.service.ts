@@ -2,15 +2,21 @@ import { Injectable, NotFoundException, UnauthorizedException } from '@nestjs/co
 import { compare as comparePassword } from 'bcryptjs';
 import { UsersService } from 'src/users/users.service';
 import { ChannelsService } from './channels/channels.service';
+import { ChannelMessagesService } from './channels/channel-messages.service';
 import { DirectMessagesService } from './direct-messages/direct-messages.service';
+import { DmMessagesService } from './direct-messages/dm-messages.service';
 import { CreateChannelDto } from './channels/dto/create-channel.dto';
+import { CreateChannelMessageDto } from './channels/dto/create-channel-message.dto';
 import { CreateDirectMessageDto } from './direct-messages/dto/create-direct-message.dto';
+import { CreateDmMessageDto } from './direct-messages/dto/create-dm-message.dto';
 
 @Injectable()
 export class ChatService {
 	constructor(
 		private readonly channelsService: ChannelsService,
+		private readonly channelMessagesService: ChannelMessagesService,
 		private readonly directMessagesService: DirectMessagesService,
+		private readonly dmMessagesService: DmMessagesService,
 		private readonly usersService: UsersService,
 	) {}
 
@@ -77,8 +83,8 @@ export class ChatService {
 		}
 	}
 
-	async addMessageToChannel(content: string, channelId: string, authorId: string) {
-		return await this.channelsService.addMessage(content, channelId, authorId);
+	async addMessageToChannel(createChannelMessageDto: CreateChannelMessageDto) {
+		return await this.channelMessagesService.create(createChannelMessageDto);
 	}
 
 	async addUserToChannel(userId: string, channelId: string) {
@@ -140,7 +146,7 @@ export class ChatService {
 		return await this.directMessagesService.findOne(res.id.toString());
 	}
 
-	async addMessageToDm(content: string, dmId: string, authorId: string) {
-		return await this.directMessagesService.addMessage(content, dmId, authorId);
+	async addMessageToDm(createDmMessageDto: CreateDmMessageDto) {
+		return await this.dmMessagesService.create(createDmMessageDto);
 	}
 }
