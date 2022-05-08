@@ -7,8 +7,7 @@ import {
   IsOptional,
   IsString,
   Matches,
-  MaxLength,
-  MinLength,
+  Length,
 } from 'class-validator';
 import { PasswordValidator } from 'src/utils/patternValidator';
 import { Transform, Type } from 'class-transformer';
@@ -22,8 +21,7 @@ export class CreateChannelDto {
     message:
       'The channel name must contain alphanumeric characters, underscores and spaces only.',
   })
-  @MaxLength(20)
-  @MinLength(2)
+  @Length(3, 20)
   readonly name: string;
 
   @IsString()
