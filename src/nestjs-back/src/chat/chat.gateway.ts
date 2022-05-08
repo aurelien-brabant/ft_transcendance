@@ -1,5 +1,5 @@
 import { Server, Socket } from 'socket.io';
-import { Logger } from '@nestjs/common';
+import { Logger, UsePipes, ValidationPipe } from '@nestjs/common';
 import {
 	ConnectedSocket,
 	MessageBody,
@@ -15,12 +15,23 @@ import { DirectMessage } from './direct-messages/entities/direct-messages';
 import { UserStatus } from 'src/games/class/Constants';
 import { ChatUser, ChatUsers } from './class/ChatUsers';
 import { User } from 'src/users/entities/users.entity';
+import { CreateChannelDto } from './channels/dto/create-channel.dto';
+import { CreateDirectMessageDto } from './direct-messages/dto/create-direct-message.dto';
 
-@WebSocketGateway(
-	{
+@WebSocketGateway({
 		cors: true,
 		namespace: '/chat'
 	}
+)
+@UsePipes(
+	new ValidationPipe({
+		whitelist: true,
+		forbidNonWhitelisted: true,
+		transform: true,
+		transformOptions: {
+			enableImplicitConversion: true
+		}
+	}),
 )
 export class ChatGateway implements OnGatewayInit, OnGatewayConnection {
 	@WebSocketServer() server: Server;
@@ -42,17 +53,17 @@ export class ChatGateway implements OnGatewayInit, OnGatewayConnection {
 	@SubscribeMessage('updateChatUser')
 	handleNewUser(
 		@ConnectedSocket() client: Socket,
-		@MessageBody() data: ChatUser
+		@MessageBody() newUser: ChatUser
 	) {
-		let user = this.chatUsers.getUserById(data.id.toString());
+		let user = this.chatUsers.getUserById(newUser.id.toString());
 
 		if (!user) {
-			user = new ChatUser(data.id, data.username, client.id);
+			user = new ChatUser(newUser.id, newUser.username, client.id);
 			user.setUserStatus(UserStatus.ONLINE);
 			this.chatUsers.addUser(user);
 		} else {
 			user.setSocketId(client.id);
-			user.setUsername(data.username);
+			user.setUsername(newUser.username);
 		}
 		this.logger.log(`Add user[${user.id}][${user.username}]`);
 		console.log(this.chatUsers); // debug
@@ -88,7 +99,7 @@ export class ChatGateway implements OnGatewayInit, OnGatewayConnection {
 	@SubscribeMessage('createChannel')
 	async handleCreateChannel(
 		@ConnectedSocket() client: Socket,
-		@MessageBody() data
+		@MessageBody() data: CreateChannelDto
 	) {
 		let channel: Channel;
 
@@ -250,7 +261,7 @@ export class ChatGateway implements OnGatewayInit, OnGatewayConnection {
 	@SubscribeMessage('createDm')
 	async handleCreateDm(
 		@ConnectedSocket() client: Socket,
-		@MessageBody() data
+		@MessageBody() data: CreateDirectMessageDto
 	) {
 		let dm: DirectMessage;
 
