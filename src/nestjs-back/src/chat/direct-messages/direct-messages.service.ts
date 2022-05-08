@@ -83,6 +83,14 @@ export class DirectMessagesService {
     return this.directMessagesRepository.remove(dm);
   }
 
+  /**
+   * Save a DM message in database
+   * 
+   * @param content - The content of the message to save
+   * @param dmId - The id of the Direct Message the message applies to
+   * @param userId - The id of the author (the user that sends the message)
+   * @returns The DM message as saved in database
+   */
   async addMessage(content: string, dmId: string, authorId: string) {
     const dm = await this.directMessagesRepository.findOne(dmId);
     const author = await this.usersService.findOne(authorId);

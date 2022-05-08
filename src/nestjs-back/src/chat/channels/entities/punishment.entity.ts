@@ -20,7 +20,10 @@ export class ChannelPunishment {
     @ManyToOne(() => User, (user) => user.givenChannelPunishments)
     punishedByUser: User;
 
-    @Column({ type: 'timestamptz' })
+    @Column({
+        type: 'timestamptz',
+        default: () => "CURRENT_TIMESTAMP(6)"
+    })
     startsAt: Date;
 
     /* punishment is permanent until explicit undo if this is nulled */

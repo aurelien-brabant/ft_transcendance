@@ -66,16 +66,6 @@ export class ChannelsService {
     job.start();
   }
 
-  /* Helpers */
-  async getChannelPassword(id: string) {
-    const channel = await this.channelsRepository
-      .createQueryBuilder('channel')
-      .select('channel.password')
-      .where('channel.id = :id', { id })
-      .getOne();
-    return channel.password;
-  }
-
   findAll() {
     return this.channelsRepository.find({
       relations: [
@@ -102,6 +92,7 @@ export class ChannelsService {
     if (!channel) {
       throw new NotFoundException(`Channel [${id}] not found`);
     }
+
     return channel;
   }
 
@@ -113,21 +104,21 @@ export class ChannelsService {
 
     this.logger.log(`Create new channel [${channel.name}]`);
 
-    return await this.channelsRepository.save(channel).catch(
-      () => {
+    return await this.channelsRepository.save(channel).catch(() => {
         throw new UnauthorizedException(`Group '${createChannelDto.name}' already exists. Choose another name.`);
-      }
-    );
+    });
   }
 
   async update(id: string, updateChannelDto: UpdateChannelDto) {
     if (updateChannelDto.password) {
       updateChannelDto.password = await hashPassword(updateChannelDto.password, 10);
     }
+
     const channel = await this.channelsRepository.preload({
       id: +id,
       ...updateChannelDto
     });
+
     if (!channel) {
       throw new NotFoundException(`Cannot update Channel [${id}]: Not found`);
     }
@@ -140,15 +131,18 @@ export class ChannelsService {
       this.scheduleUnmute(id, userId, channel.restrictionDuration);
     }
     this.logger.log(`Update channel [${channel.id}][${channel.name}]`);
+
     return this.channelsRepository.save(channel);
   }
 
   async remove(id: string) { 
     const channel = await this.channelsRepository.findOne(id);
+
     if (!channel) {
       throw new NotFoundException(`Channel [${id}] not found`);
     }
     this.logger.log(`Remove channel [${channel.id}][${channel.name}]`);
+
     return this.channelsRepository.remove(channel);
   }
 
@@ -157,5 +151,17 @@ export class ChannelsService {
     const author = await this.usersService.findOne(authorId);
 
     return await this.messagesService.create({ content, channel, author });
+  }
+
+  /**
+   * Used whenever a user wants to join a password-protected channel
+   */
+  async getChannelPassword(id: string) {
+    const channel = await this.channelsRepository.createQueryBuilder('channel')
+      .select('channel.password')
+      .where('channel.id = :id', { id })
+      .getOne();
+
+    return channel.password;
   }
 }

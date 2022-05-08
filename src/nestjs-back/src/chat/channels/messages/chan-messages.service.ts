@@ -1,17 +1,17 @@
 import { Injectable, Logger, NotFoundException } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Repository } from 'typeorm';
-import { ChanMessage } from './entities/chan-messages.entity';
-import { CreateChanMessageDto } from './dto/create-chan-message.dto';
-import { UpdateChanMessageDto } from './dto/update-chan-message.dto';
+import { ChannelMessage } from './entities/channel-messages.entity';
+import { CreateChannelMessageDto } from './dto/create-channel-message.dto';
+import { UpdateChannelMessageDto } from './dto/update-channel-message.dto';
 
 @Injectable()
 export class ChanMessagesService {
   private logger: Logger = new Logger('Channel Messages Service');
 
   constructor(
-    @InjectRepository(ChanMessage)
-    private readonly messagesRepository: Repository<ChanMessage>,
+    @InjectRepository(ChannelMessage)
+    private readonly messagesRepository: Repository<ChannelMessage>,
   ) {}
 
   findAll() {
@@ -31,14 +31,14 @@ export class ChanMessagesService {
     return message;
   }
 
-  create(createChanMessageDto: CreateChanMessageDto) {
+  create(createChanMessageDto: CreateChannelMessageDto) {
     const message = this.messagesRepository.create(createChanMessageDto);
 
     this.logger.log(`Create new message in channel [${createChanMessageDto.channel.id}]`);
     return this.messagesRepository.save(message);
   }
 
-  async update(id: string, updateMessageDto: UpdateChanMessageDto) { 
+  async update(id: string, updateMessageDto: UpdateChannelMessageDto) { 
     const message = await this.messagesRepository.preload({
       id: +id,
       ...updateMessageDto,

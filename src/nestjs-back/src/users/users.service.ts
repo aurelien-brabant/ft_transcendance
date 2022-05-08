@@ -1,19 +1,19 @@
 import { Injectable, NotFoundException } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Repository } from 'typeorm';
-import { User } from './entities/users.entity';
-import { CreateDuoQuadraDto } from './dto/create-duoquadra.dto';
-import { CreateUserDto } from './dto/create-user.dto';
-import { UpdateUserDto } from './dto/update-user.dto';
-import { hash as hashPassword } from 'bcryptjs';
-import { prefixWithRandomAdjective } from 'src/utils/prefixWithRandomAdjective';
-import { PaginationQueryDto } from 'src/common/dto/pagination-query.dto';
-import { downloadResource } from 'src/utils/download';
 import { join } from 'path';
 import { faker } from '@faker-js/faker';
 import { authenticator } from 'otplib';
 import { toFileStream } from 'qrcode';
+import { hash as hashPassword } from 'bcryptjs';
 import { AchievementsService } from 'src/achievements/achievements.service';
+import { User } from './entities/users.entity';
+import { CreateDuoQuadraDto } from './dto/create-duoquadra.dto';
+import { CreateUserDto } from './dto/create-user.dto';
+import { UpdateUserDto } from './dto/update-user.dto';
+import { PaginationQueryDto } from 'src/common/dto/pagination-query.dto';
+import { prefixWithRandomAdjective } from 'src/utils/prefixWithRandomAdjective';
+import { downloadResource } from 'src/utils/download';
 
 @Injectable()
 export class UsersService {
@@ -493,6 +493,14 @@ export class UsersService {
   }
 
   /* Chat */
+
+  /**
+   * Get a Direct Message between two users
+   * 
+   * @param id - The id of the user to which the result will be send back to
+   * @param friendId - The id of the user's friend
+   * @returns A Direct Message
+   */
   async getDirectMessage(id: string, friendId: string) {
     const user = await this.usersRepository.findOne(id, {
       relations: [

@@ -94,7 +94,6 @@ export class PunishmentsService {
         .orderBy('punishment.startsAt', 'DESC')
         .getMany()
 
-
         return userPunishments;
     }
 
@@ -124,7 +123,6 @@ export class PunishmentsService {
                 ...(options.onlyType ? { punishmentType: options.onlyType } : {})
             })
         .getCount()
-
 
         return punishmentCount > 0;
     }

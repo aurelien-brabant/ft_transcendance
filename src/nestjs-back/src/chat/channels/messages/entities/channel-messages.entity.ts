@@ -9,7 +9,7 @@ import { Channel } from "src/chat/channels/entities/channels.entity";
 import { User } from "src/users/entities/users.entity";
 
 @Entity()
-export class ChanMessage {
+export class ChannelMessage {
   @PrimaryGeneratedColumn()
   id: number;
 

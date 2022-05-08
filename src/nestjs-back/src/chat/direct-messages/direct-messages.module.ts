@@ -7,7 +7,11 @@ import { DmMessagesModule } from 'src/chat/direct-messages/messages/dm-messages.
 import { UsersModule } from 'src/users/users.module';
 
 @Module({
-  imports: [TypeOrmModule.forFeature([DirectMessage]), DmMessagesModule, UsersModule],
+  imports: [
+    DmMessagesModule,
+    UsersModule,
+    TypeOrmModule.forFeature([DirectMessage])
+  ],
   controllers: [DirectMessagesController],
   providers: [DirectMessagesService],
   exports: [DirectMessagesService]

@@ -4,7 +4,6 @@ import {
 	ConnectedSocket,
 	MessageBody,
 	OnGatewayConnection,
-	// OnGatewayDisconnect,
 	OnGatewayInit,
 	SubscribeMessage,
 	WebSocketGateway,
@@ -39,17 +38,6 @@ export class ChatGateway implements OnGatewayInit, OnGatewayConnection {
 	async handleConnection(@ConnectedSocket() client: Socket) {
 		this.logger.log(`Client connected: ${client.id}`);
 	}
-
-	/* TODO: handle disconnection at logout
-	async handleDisconnect(@ConnectedSocket() client: Socket) {
-		const user = this.chatUsers.getUser(client.id);
-
-		if (user) {
-			this.logger.log(`Remove user: [${user.id}][${user.username}]`);
-			this.chatUsers.removeUser(user);
-		}
-	}
-	*/
 
 	@SubscribeMessage('updateChatUser')
 	handleNewUser(
