@@ -1,6 +1,6 @@
 import { Injectable, NotFoundException } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
-import { MissingPrimaryColumnError, Repository } from 'typeorm';
+import { Repository } from 'typeorm';
 import { User } from './entities/users.entity';
 import { CreateDuoQuadraDto } from './dto/create-duoquadra.dto';
 import { CreateUserDto } from './dto/create-user.dto';
@@ -502,8 +502,7 @@ export class UsersService {
         'directMessages.messages.author',
       ],
     });
-
-    if (user) {
+    if (user && user.directMessages) {
       const dm = user.directMessages.find(
         (dm) => dm.users.find((user) => user.id.toString() === friendId)
       );

@@ -1,34 +1,34 @@
 import {
-  Controller,
-  Get,
-  Param,
-  Post,
-  Patch,
-  Delete,
   Body,
   ConflictException,
+  Controller,
+  Delete,
+  Get,
+  HttpCode,
   NotFoundException,
+  Param,
+  Patch,
+  Post,
+  Res,
   Response,
   Query,
-  Res,
-  HttpCode,
   UnauthorizedException,
   UseInterceptors,
   UploadedFile,
   UseGuards,
 } from '@nestjs/common';
+import { FileInterceptor } from '@nestjs/platform-express';
+import { createReadStream, statSync } from 'fs';
+import { join } from 'path/posix';
+import { diskStorage } from 'multer';
 import { PaginationQueryDto } from 'src/common/dto/pagination-query.dto';
 import { UsersService } from './users.service';
 import { CreateUserDto } from './dto/create-user.dto';
 import { UpdateUserDto } from './dto/update-user.dto';
-import { createReadStream, statSync } from 'fs';
-import { join } from 'path/posix';
-import { FileInterceptor } from '@nestjs/platform-express';
 import { editFileName, imageFileFilter } from 'src/utils/upload';
-import { diskStorage } from 'multer';
 import { ValidateTfaDto } from './dto/validate-tfa-dto';
-import {IsLoggedInUserGuard} from "./guard/is-logged-in-user.guard";
-import {JwtAuthGuard} from "../auth/guard/jwt-auth.guard";
+import { IsLoggedInUserGuard } from "./guard/is-logged-in-user.guard";
+import { JwtAuthGuard } from "../auth/guard/jwt-auth.guard";
 
 @Controller('users')
 export class UsersController {
@@ -44,14 +44,6 @@ export class UsersController {
   @Get(':userId')
   findOne(@Param('userId') id: string) {
     return this.usersService.findOne(id);
-  }
-
-  /* NOTE: to replace by websockets */
-  @UseGuards(JwtAuthGuard, IsLoggedInUserGuard)
-  @Get('/:userId/directmessages')
-  getDirectMessages(@Param('userId') id: string, @Query() friendDmQuery) {
-    const { friendId } = friendDmQuery;
-    return this.usersService.getDirectMessage(id, friendId);
   }
 
   /* anyone can create a new user to begin the authentication process */
