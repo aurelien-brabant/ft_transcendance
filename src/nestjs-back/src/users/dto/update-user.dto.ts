@@ -11,8 +11,11 @@ import {
   MinLength,
 } from 'class-validator';
 import { Transform, Type } from 'class-transformer';
-import { Achievement } from 'src/achievements/entities/achievements.entity';
 import { CreateUserDto } from './create-user.dto';
+import { Achievement } from 'src/achievements/entities/achievements.entity';
+import { Channel } from 'src/chat/channels/entities/channels.entity';
+import { ChannelPunishment } from "src/chat/channels/entities/punishment.entity";
+import { DirectMessage } from 'src/chat/direct-messages/entities/direct-messages';
 
 export class UpdateUserDto extends PartialType(CreateUserDto) {
     /* Informations */
@@ -52,4 +55,30 @@ export class UpdateUserDto extends PartialType(CreateUserDto) {
     @IsArray()
     @Type(() => Achievement)
     readonly achievements: Achievement[];
+
+    /* Chat */
+    @IsOptional()
+    @IsArray()
+    @Type(() => Channel)
+    readonly ownedChannels: Channel[];
+
+    @IsOptional()
+    @IsArray()
+    @Type(() => Channel)
+    readonly joinedChannels: Channel[];
+
+    @IsOptional()
+    @IsArray()
+    @Type(() => DirectMessage)
+    readonly directMessages: DirectMessage[];
+
+    @IsOptional()
+    @IsArray()
+    @Type(() => ChannelPunishment)
+    receivedChannelPunishments: ChannelPunishment[];
+
+    @IsOptional()
+    @IsArray()
+    @Type(() => ChannelPunishment)
+    givenChannelPunishments: ChannelPunishment[];
 }
