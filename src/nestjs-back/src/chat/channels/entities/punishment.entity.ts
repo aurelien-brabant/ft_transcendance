@@ -1,6 +1,6 @@
-import { User } from "src/users/entities/users.entity";
-import { Column, Entity, ManyToOne, OneToOne, PrimaryGeneratedColumn } from "typeorm";
+import { Column, Entity, ManyToOne, PrimaryGeneratedColumn } from "typeorm";
 import { Channel } from "./channels.entity";
+import { User } from "src/users/entities/users.entity";
 
 export type PunishmentType = 'mute' | 'ban';
 
@@ -8,7 +8,7 @@ export type PunishmentType = 'mute' | 'ban';
 export class ChannelPunishment {
     @PrimaryGeneratedColumn()
     punishmentId: number;
-    
+
     @ManyToOne(() => Channel, (channel) => channel.punishments, {
         onDelete: 'CASCADE'
     })

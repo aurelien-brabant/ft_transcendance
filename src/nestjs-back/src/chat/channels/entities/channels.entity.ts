@@ -20,7 +20,7 @@ export class Channel {
   @Column({ unique: true })
   name: string;
 
-  /* public, private, protected */
+  /* public | private | protected */
   @Column({ default: "private" })
   privacy: string
 
@@ -28,8 +28,11 @@ export class Channel {
   @Column({ select: false, nullable: true })
   password: string;
 
-  /* Mute/ban duration in minutes */
-  @Column({ default: 1 }) /* very short for test purposes */
+  /**
+   * Mute/ban duration in minutes: 1 | 5 | 15
+   * NOTE: very short to test it easily
+   */
+  @Column({ default: 1 })
   restrictionDuration: number;
 
   @ManyToOne(() => User, owner => owner.ownedChannels, {
@@ -58,6 +61,8 @@ export class Channel {
   })
   messages: ChanMessage[];
 
-  @OneToMany(() => ChannelPunishment, (punishment) => punishment.channel)
+  @OneToMany(() => ChannelPunishment, (punishment) => punishment.channel, {
+    cascade: true
+  })
   punishments: ChannelPunishment[];
 }

@@ -1,6 +1,4 @@
 import { BadRequestException, Controller, Get, Param, Query } from "@nestjs/common";
-import { runInThisContext } from "vm";
-
 import { PunishmentsService } from "./punishments.service";
 
 /**
