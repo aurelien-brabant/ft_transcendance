@@ -126,10 +126,14 @@ export class ChatGateway implements OnGatewayInit, OnGatewayConnection {
 			content: string, from: number, channelId: string
 		}
 	) {
-		const message = await this.chatService.addMessageToChannel(content, channelId, from.toString());
+		try {
+			const message = await this.chatService.addMessageToChannel(content, channelId, from.toString());
 
-		this.logger.log(`user [${from}] sends message "${content}" on channel [${channelId}]`);
-		this.server.to(`channel_${channelId}`).emit('newGm', { message });
+			this.logger.log(`user [${from}] sends message "${content}" on channel [${channelId}]`);
+			this.server.to(`channel_${channelId}`).emit('newGm', { message });
+		} catch (e) {
+			this.server.to(client.id).emit('chatError', e.message);
+		}
 	}
 
 	/* User joins/quits channel */
@@ -267,9 +271,13 @@ export class ChatGateway implements OnGatewayInit, OnGatewayConnection {
 			content: string, from: string, dmId: string
 		}
 	) {
-		const message = await this.chatService.addMessageToDm(content, dmId, from.toString());
+		try {
+			const message = await this.chatService.addMessageToDm(content, dmId, from.toString());
 
-		this.server.to(`dm_${dmId}`).emit('newDm', { message });
-		this.logger.log(`New message in DM [${dmId}]`);
+			this.server.to(`dm_${dmId}`).emit('newDm', { message });
+			this.logger.log(`New message in DM [${dmId}]`);
+		} catch (e) {
+			this.server.to(client.id).emit('chatError', e.message);
+		}
 	}
 }

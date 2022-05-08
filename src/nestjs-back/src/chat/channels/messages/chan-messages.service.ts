@@ -1,4 +1,4 @@
-import { Injectable, Logger, NotFoundException } from '@nestjs/common';
+import { Injectable, Logger, NotFoundException, UnauthorizedException } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Repository } from 'typeorm';
 import { ChannelMessage } from './entities/channel-messages.entity';
@@ -31,11 +31,14 @@ export class ChanMessagesService {
     return message;
   }
 
-  create(createChanMessageDto: CreateChannelMessageDto) {
+  async create(createChanMessageDto: CreateChannelMessageDto) {
     const message = this.messagesRepository.create(createChanMessageDto);
 
     this.logger.log(`Create new message in channel [${createChanMessageDto.channel.id}]`);
-    return this.messagesRepository.save(message);
+
+    return await this.messagesRepository.save(message).catch(() => {
+      throw new UnauthorizedException('Message may not be longer than 640 characters.');
+    });
   }
 
   async update(id: string, updateMessageDto: UpdateChannelMessageDto) { 

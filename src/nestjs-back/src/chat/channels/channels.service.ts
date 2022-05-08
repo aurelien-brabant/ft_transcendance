@@ -105,7 +105,7 @@ export class ChannelsService {
     this.logger.log(`Create new channel [${channel.name}]`);
 
     return await this.channelsRepository.save(channel).catch(() => {
-        throw new UnauthorizedException(`Group '${createChannelDto.name}' already exists. Choose another name.`);
+      throw new UnauthorizedException(`Group '${createChannelDto.name}' already exists. Choose another name.`);
     });
   }
 

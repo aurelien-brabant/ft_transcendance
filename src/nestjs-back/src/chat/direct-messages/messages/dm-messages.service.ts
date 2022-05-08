@@ -1,4 +1,4 @@
-import { Injectable, Logger, NotFoundException } from '@nestjs/common';
+import { Injectable, Logger, NotFoundException, UnauthorizedException } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Repository } from 'typeorm';
 import { DmMessage } from './entities/dm-messages.entity';
@@ -31,11 +31,14 @@ export class DmMessagesService {
     return message;
   }
 
-  create(createDmMessageDto: CreateDmMessageDto) {
+  async create(createDmMessageDto: CreateDmMessageDto) {
     const message = this.messagesRepository.create(createDmMessageDto);
 
     this.logger.log(`Create new message in DM [${createDmMessageDto.dm.id}]`);
-    return this.messagesRepository.save(message);
+
+    return await this.messagesRepository.save(message).catch(() => {
+      throw new UnauthorizedException('Message may not be longer than 640 characters.');
+    });
   }
 
   async update(id: string, updateDmMessageDto: UpdateDmMessageDto) { 
