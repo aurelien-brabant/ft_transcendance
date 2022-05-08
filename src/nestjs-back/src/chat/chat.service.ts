@@ -1,4 +1,4 @@
-import { Injectable, NotFoundException, UnauthorizedException } from '@nestjs/common';
+import { Injectable } from '@nestjs/common';
 import { compare as comparePassword } from 'bcryptjs';
 import { UsersService } from 'src/users/users.service';
 import { ChannelsService } from './channels/channels.service';
@@ -29,7 +29,7 @@ export class ChatService {
 		const channel = await this.channelsService.findOne(channelId);
 
 		if (!channel) {
-			throw new NotFoundException('No channel found.');
+			throw new Error('No channel found.');
 		}
 		const isInChan = !!channel.users.find((user) => {
 			return user.id === parseInt(userId);
@@ -45,9 +45,9 @@ export class ChatService {
 			const passIsValid = await comparePassword(password, chanPassword);
 
 			if (passIsValid) return ;
-			throw new UnauthorizedException('Invalid password');
+			throw new Error('Invalid password');
 		}
-		throw new UnauthorizedException('Invalid operation');
+		throw new Error('Invalid operation');
 	}
 
 	/* Getters */
@@ -59,7 +59,7 @@ export class ChatService {
 		const channels = await this.channelsService.findAll();
 
 		if (!channels) {
-			throw new NotFoundException('No channel found.');
+			throw new Error('No channel found.');
 		}
 		const userChannels = channels.filter((channel) =>
 			!!channel.users.find((user) => { return user.id === parseInt(userId); })
@@ -79,7 +79,7 @@ export class ChatService {
 		const channel = await this.channelsService.remove(channelId);
 
 		if (!channel) {
-			throw new UnauthorizedException('Invalid operation');
+			throw new Error('Invalid operation');
 		}
 	}
 
@@ -100,8 +100,8 @@ export class ChatService {
 	async removeUserFromChannel(userId: string, channelId: string) {
 		const user = await this.usersService.findOne(userId);
 		const channel = await this.channelsService.findOne(channelId);
-		const filteredUsers = channel.users.filter((user) => {
-			return user.id !== parseInt(userId);
+		const filteredUsers = channel.users.filter((chanUser) => {
+			return chanUser.id !== user.id;
 		})
 
 		await this.channelsService.update(channelId, {
@@ -129,7 +129,7 @@ export class ChatService {
 		const dms = await this.directMessagesService.findAll();
 
 		if (!dms) {
-			throw new NotFoundException('No DM found.');
+			throw new Error('No DM found.');
 		}
 		const userDms = dms.filter((dm) =>
 			!!dm.users.find((user) => {

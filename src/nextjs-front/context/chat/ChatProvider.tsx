@@ -175,9 +175,6 @@ const ChatProvider: React.FC = ({ children }) => {
 			&& (views[view].Component === viewStack[viewStack.length - 1].Component)
 			);
 	};
-	const getCurrentView = () => {
-		return viewStack;
-	};
 
 	/* To be accessed from outside the chat (i.e. pages/users/[id]) */
 	const createDirectMessage = (userId: string, friendId: string) => {

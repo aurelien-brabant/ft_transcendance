@@ -1,11 +1,13 @@
 import { Fragment, useContext, useEffect, useMemo, useRef, useState } from "react";
 import { AiFillLock, AiFillUnlock, AiOutlineEyeInvisible } from "react-icons/ai";
 import { FaUserFriends } from "react-icons/fa";
+import { useSession } from "../../hooks/use-session";
 import chatContext, { ChatContextType, ChatGroup, ChatGroupPrivacy } from "../../context/chat/chatContext";
 
 /* All group conversations tab */
 const Groups: React.FC<{viewParams: Object;}> = ({ viewParams }) => {
-	const { openChatView, chatGroups } = useContext(chatContext) as ChatContextType;
+	const { user } = useSession();
+	const { socket, chatGroups, openChatView } = useContext(chatContext) as ChatContextType;
 
 	const baseChatGroups = useMemo(() =>
 		chatGroups
@@ -53,6 +55,21 @@ const Groups: React.FC<{viewParams: Object;}> = ({ viewParams }) => {
 	useEffect(() => {
 		setFilteredGroups(baseChatGroups);
 	}, [baseChatGroups]);
+
+	const channelsChangeListener = () => {
+		socket.emit("getUserChannels", { userId: user.id });
+	};
+
+	useEffect(() => {
+		/* Listeners */
+		socket.on("channelCreated", channelsChangeListener);
+		socket.on("channelDeleted", channelsChangeListener);
+
+		return () => {
+			socket.off("channelCreated", channelsChangeListener);
+			socket.off("channelDeleted", channelsChangeListener);
+		};
+	}, []);
 
 	return (
 		<Fragment>

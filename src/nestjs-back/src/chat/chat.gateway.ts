@@ -1,6 +1,7 @@
 import { Server, Socket } from 'socket.io';
-import { Logger, UsePipes, ValidationPipe } from '@nestjs/common';
+import { Logger, UseFilters, UsePipes, ValidationPipe } from '@nestjs/common';
 import {
+	BaseWsExceptionFilter,
 	ConnectedSocket,
 	MessageBody,
 	OnGatewayConnection,
@@ -25,10 +26,9 @@ import { CreateDmMessageDto } from './direct-messages/dto/create-dm-message.dto'
 		namespace: '/chat'
 	}
 )
+@UseFilters(new BaseWsExceptionFilter())
 @UsePipes(
 	new ValidationPipe({
-		whitelist: true,
-		forbidNonWhitelisted: true,
 		transform: true,
 		transformOptions: {
 			enableImplicitConversion: true
@@ -115,6 +115,10 @@ export class ChatGateway implements OnGatewayInit, OnGatewayConnection {
 
 		this.chatUsers.userJoinRoom(client, roomId);
 		this.server.to(roomId).emit('channelCreated', (channel));
+
+		if (channel.privacy !== 'private') {
+			this.server.emit('channelCreated', (channel));
+		}
 	}
 
 	@SubscribeMessage('deleteChannel')

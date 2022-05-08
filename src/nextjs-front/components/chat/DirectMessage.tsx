@@ -69,12 +69,12 @@ const DirectMessage: React.FC<{ viewParams: { [key: string]: any } }> = ({
 	const { socket, getMessageStyle } = useContext(chatContext) as ChatContextType;
 	const [messages, setMessages] = useState<ChatMessage[]>([]);
 	const [currentMessage, setCurrentMessage] = useState("");
-	const [sendingEnabled, setSendingEnabled] = useState(true); // test
+	const [sendingEnabled, setSendingEnabled] = useState(false);
 	const chatBottom = useRef<HTMLDivElement>(null);
 
 	/* Send new message */
 	const handleDmSubmit = async () => {
-		// if (currentMessage.trim().length === 0) return ;
+		if (currentMessage.trim().length === 0) return ;
 
 		socket.emit("dmSubmit", {
 			content: currentMessage,
@@ -90,7 +90,7 @@ const DirectMessage: React.FC<{ viewParams: { [key: string]: any } }> = ({
 		const len = e.target.value.trim().length;
 
 		if ((len === 0) || (len > 640)) {
-			setSendingEnabled(true); // test
+			setSendingEnabled(false);
 		} else {
 			setSendingEnabled(true);
 		}
@@ -116,13 +116,8 @@ const DirectMessage: React.FC<{ viewParams: { [key: string]: any } }> = ({
 		});
 	};
 
-	/* Scroll to bottom if a new message is sent */
-	useEffect(() => {
-		chatBottom.current?.scrollIntoView();
-	}, [messages]);
-
 	/* Load all messages in channel */
-	const loadMessages = async (dm: DmChannel) => {
+	const updateDmView = async (dm: DmChannel) => {
 		if ((dm.id !== dmId) || !dm.messages) return ;
 
 		const messages: ChatMessage[] = [];
@@ -144,15 +139,20 @@ const DirectMessage: React.FC<{ viewParams: { [key: string]: any } }> = ({
 		setMessages(messages);
 	};
 
+	/* Scroll to bottom if a new message is sent */
+	useEffect(() => {
+		chatBottom.current?.scrollIntoView();
+	}, [messages]);
+
 	useEffect(() => {
 		socket.emit("getDmData", { dmId });
 
 		/* Listeners */
-		socket.on("updateDm", loadMessages);
+		socket.on("updateDm", updateDmView);
 		socket.on("newDm", handleNewMessage);
 
 		return () => {
-			socket.off("updateDm", loadMessages);
+			socket.off("updateDm", updateDmView);
 			socket.off("newDm", handleNewMessage);
 		};
 	}, []);

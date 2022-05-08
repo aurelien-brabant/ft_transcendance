@@ -107,7 +107,7 @@ const Group: React.FC<{ viewParams: { [key: string]: any } }> = ({
 	const { blocked } = useContext(relationshipContext) as RelationshipContextType;
 	const [messages, setMessages] = useState<ChatMessage[]>([]);
 	const [currentMessage, setCurrentMessage] = useState("");
-	const [sendingEnabled, setSendingEnabled] = useState(false); // test
+	const [sendingEnabled, setSendingEnabled] = useState(false);
 	const [userInChan, setUserInChan] = useState(false);
 	const chatBottom = useRef<HTMLDivElement>(null);
 
@@ -120,7 +120,7 @@ const Group: React.FC<{ viewParams: { [key: string]: any } }> = ({
 
 	/* Send new message */
 	const handleGmSubmit = async () => {
-		// if (currentMessage.trim().length === 0) return;
+		if (currentMessage.trim().length === 0) return;
 
 		console.log('[Chat] Submit group message');
 
@@ -138,7 +138,7 @@ const Group: React.FC<{ viewParams: { [key: string]: any } }> = ({
 		const len = e.target.value.trim().length;
 
 		if ((len === 0) || (len > 640)) {
-			setSendingEnabled(true); // test
+			setSendingEnabled(false);
 		} else {
 			setSendingEnabled(true);
 		}
@@ -168,11 +168,6 @@ const Group: React.FC<{ viewParams: { [key: string]: any } }> = ({
 		});
 	};
 
-	/* Scroll to bottom if new message is sent */
-	useEffect(() => {
-		chatBottom.current?.scrollIntoView();
-	}, [messages]);
-
 	const userJoinedListener = (res: { message: string, userId: string }) => {
 		setMessages((prevMessages) => {
 			const newMessages: ChatMessage[] = [...prevMessages];
@@ -191,6 +186,7 @@ const Group: React.FC<{ viewParams: { [key: string]: any } }> = ({
 			setUserInChan(true);
 		}
 	};
+
 
 	const userLeftListener = (res: { message: string }) => {
 		setMessages((prevMessages) => {
@@ -243,6 +239,11 @@ const Group: React.FC<{ viewParams: { [key: string]: any } }> = ({
 		}
 		setMessages(messages);
 	};
+
+	/* Scroll to bottom if new message is sent */
+	useEffect(() => {
+		chatBottom.current?.scrollIntoView();
+	}, [messages]);
 
 	useEffect(() => {
 		socket.emit("getChannelData", { channelId });
