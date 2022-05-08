@@ -69,7 +69,57 @@ const DirectMessage: React.FC<{ viewParams: { [key: string]: any } }> = ({
 	const { socket, getMessageStyle } = useContext(chatContext) as ChatContextType;
 	const [messages, setMessages] = useState<ChatMessage[]>([]);
 	const [currentMessage, setCurrentMessage] = useState("");
+	const [sendingEnabled, setSendingEnabled] = useState(false);
 	const chatBottom = useRef<HTMLDivElement>(null);
+
+	/* Send new message */
+	const handleDmSubmit = async () => {
+		if (currentMessage.trim().length === 0) return ;
+
+		socket.emit("dmSubmit", {
+			content: currentMessage,
+			from: user.id,
+			dmId: dmId,
+		});
+		setCurrentMessage("");
+	};
+
+	const handleChange = (
+		e: React.ChangeEvent<HTMLTextAreaElement>
+	) => {
+		const len = e.target.value.trim().length;
+
+		if ((len === 0) || (len > 640)) {
+			setSendingEnabled(false);
+		} else {
+			setSendingEnabled(true);
+		}
+		setCurrentMessage(e.target.value);
+	};
+
+	/* Receive new message */
+	const handleNewMessage = ({ message }: { message: Message }) => {
+		console.log(`[Chat] Receive new message in DM [${viewParams.friendUsername}]`);
+
+		setMessages((prevMessages) => {
+			const newMessages: ChatMessage[] = [...prevMessages];
+
+			newMessages.push({
+				id: prevMessages.length.toString(),
+				createdAt: message.createdAt,
+				content: message.content,
+				author: message.author.username,
+				displayAuthor: !(message.author.id === user.id),
+				displayStyle: getMessageStyle(message.author.id),
+			});
+			return newMessages;
+		});
+	};
+
+	/* Scroll to bottom if a new message is sent */
+	useEffect(() => {
+		chatBottom.current?.scrollIntoView();
+	}, [messages]);
 
 	/* Load all messages in channel */
 	const loadMessages = async (dm: DmChannel) => {
@@ -92,42 +142,6 @@ const DirectMessage: React.FC<{ viewParams: { [key: string]: any } }> = ({
 			});
 		}
 		setMessages(messages);
-	};
-
-	/* Send new message */
-	const handleDmSubmit = async () => {
-		if (currentMessage.trim().length === 0) return;
-
-		socket.emit("dmSubmit", {
-			content: currentMessage,
-			from: user.id,
-			dmId: dmId,
-		});
-		setCurrentMessage("");
-	};
-
-	/* Scroll to bottom if a new message is sent */
-	useEffect(() => {
-		chatBottom.current?.scrollIntoView();
-	}, [messages]);
-
-	/* Receive new message */
-	const handleNewMessage = ({ message }: { message: Message }) => {
-		console.log(`[Chat] Receive new message in DM [${viewParams.friendUsername}]`);
-
-		setMessages((prevMessages) => {
-			const newMessages: ChatMessage[] = [...prevMessages];
-
-			newMessages.push({
-				id: prevMessages.length.toString(),
-				createdAt: message.createdAt,
-				content: message.content,
-				author: message.author.username,
-				displayAuthor: !(message.author.id === user.id),
-				displayStyle: getMessageStyle(message.author.id),
-			});
-			return newMessages;
-		});
 	};
 
 	useEffect(() => {
@@ -164,16 +178,22 @@ const DirectMessage: React.FC<{ viewParams: { [key: string]: any } }> = ({
 					placeholder="Your message"
 					className="p-2 bg-transparent border border-pink-600 resize-none grow outline-0"
 					value={currentMessage}
-					onChange={(e) => {
-						setCurrentMessage(e.target.value);
-					}}
+					onChange={handleChange}
 				/>
+				{sendingEnabled ?
 				<button
 					onClick={handleDmSubmit}
 					className="self-stretch px-3 py-2 text-lg text-white uppercase bg-pink-600 rounded"
+					>
+					<FiSend />
+				</button>
+				:
+				<button
+					className="self-stretch px-3 py-2 text-lg text-white uppercase bg-pink-900 rounded"
 				>
 					<FiSend />
 				</button>
+				}
 			</div>
 		</div>
 	);

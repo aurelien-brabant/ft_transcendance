@@ -107,6 +107,7 @@ const Group: React.FC<{ viewParams: { [key: string]: any } }> = ({
 	const { blocked } = useContext(relationshipContext) as RelationshipContextType;
 	const [messages, setMessages] = useState<ChatMessage[]>([]);
 	const [currentMessage, setCurrentMessage] = useState("");
+	const [sendingEnabled, setSendingEnabled] = useState(false);
 	const [userInChan, setUserInChan] = useState(false);
 	const chatBottom = useRef<HTMLDivElement>(null);
 
@@ -118,7 +119,7 @@ const Group: React.FC<{ viewParams: { [key: string]: any } }> = ({
 	};
 
 	/* Send new message */
-	const handleGroupMessageSubmit = async () => {
+	const handleGmSubmit = async () => {
 		if (currentMessage.trim().length === 0) return;
 
 		console.log('[Chat] Submit group message');
@@ -131,39 +132,17 @@ const Group: React.FC<{ viewParams: { [key: string]: any } }> = ({
 		setCurrentMessage("");
 	};
 
-	/* Scroll to bottom if new message is sent */
-	useEffect(() => {
-		chatBottom.current?.scrollIntoView();
-	}, [messages]);
+	const handleChange = (
+		e: React.ChangeEvent<HTMLTextAreaElement>
+	) => {
+		const len = e.target.value.trim().length;
 
-	/* Load all messages in channel */
-	const updateGroupView = async (channel: Channel) => {
-		if ((channel.id !== channelId) || !channel.messages) return ;
-
-		setUserInChan(!!channel.users.find(
-			(chanUser) => { return chanUser.id === user.id;}
-		));
-
-		const messages: ChatMessage[] = [];
-
-		channel.messages.sort(
-			(a: Message, b: Message) => (parseInt(a.id) - parseInt(b.id))
-		);
-
-		for (var message of channel.messages) {
-			const isBlocked = !!blocked.find(blockedUser => blockedUser.id === message.author.id);
-			const isMe = (message.author.id === user.id);
-
-			messages.push({
-				id: messages.length.toString(),
-				createdAt: message.createdAt,
-				content: isBlocked ? "Blocked message" : message.content,
-				author: message.author.username,
-				displayAuthor: (!isMe && !isBlocked),
-				displayStyle: getMessageStyle(message.author.id),
-			});
+		if ((len === 0) || (len > 640)) {
+			setSendingEnabled(false);
+		} else {
+			setSendingEnabled(true);
 		}
-		setMessages(messages);
+		setCurrentMessage(e.target.value);
 	};
 
 	/* Receive new message */
@@ -188,6 +167,11 @@ const Group: React.FC<{ viewParams: { [key: string]: any } }> = ({
 			return newMessages;
 		});
 	};
+
+	/* Scroll to bottom if new message is sent */
+	useEffect(() => {
+		chatBottom.current?.scrollIntoView();
+	}, [messages]);
 
 	const userJoinedListener = (res: { message: string, userId: string }) => {
 		setMessages((prevMessages) => {
@@ -230,6 +214,36 @@ const Group: React.FC<{ viewParams: { [key: string]: any } }> = ({
 		}
 	};
 
+	/* Load all messages in channel */
+	const updateGroupView = async (channel: Channel) => {
+		if ((channel.id !== channelId) || !channel.messages) return ;
+
+		setUserInChan(!!channel.users.find(
+			(chanUser) => { return chanUser.id === user.id;}
+		));
+
+		const messages: ChatMessage[] = [];
+
+		channel.messages.sort(
+			(a: Message, b: Message) => (parseInt(a.id) - parseInt(b.id))
+		);
+
+		for (var message of channel.messages) {
+			const isBlocked = !!blocked.find(blockedUser => blockedUser.id === message.author.id);
+			const isMe = (message.author.id === user.id);
+
+			messages.push({
+				id: messages.length.toString(),
+				createdAt: message.createdAt,
+				content: isBlocked ? "Blocked message" : message.content,
+				author: message.author.username,
+				displayAuthor: (!isMe && !isBlocked),
+				displayStyle: getMessageStyle(message.author.id),
+			});
+		}
+		setMessages(messages);
+	};
+
 	useEffect(() => {
 		socket.emit("getChannelData", { channelId });
 
@@ -270,25 +284,35 @@ const Group: React.FC<{ viewParams: { [key: string]: any } }> = ({
 				))}
 				<div ref={chatBottom} />
 			</div>
-				{userInChan
-					? <div className="absolute inset-x-0 bottom-0 border-t-2 border-gray-800 min-h-[13%] flex gap-x-2 items-center px-8 py-2 bg-dark drop-shadow-md">
-							<textarea
-								placeholder="Your message"
-								className="p-2 bg-transparent border border-pink-600 resize-none grow outline-0"
-								value={currentMessage}
-								onChange={(e) => {
-									setCurrentMessage(e.target.value);
-								}}
-							/>
-							<button onClick={handleGroupMessageSubmit} className="self-stretch px-3 py-2 text-lg text-white uppercase bg-pink-600 rounded">
-								<FiSend />
-							</button>
-						</div>
-					: <div className="absolute inset-x-0 bottom-0 border-t-2 border-gray-800 min-h-[13%] flex gap-x-2 items-center justify-center px-8 py-2 bg-dark drop-shadow-md">
-							<button className="px-2 py-1 text-sm font-bold uppercase bg-pink-600 rounded" onClick={() => { joinGroup(); }}>
-								Join Group
-							</button>
-						</div>
+				{userInChan ?
+				<div className="absolute inset-x-0 bottom-0 border-t-2 border-gray-800 min-h-[13%] flex gap-x-2 items-center px-8 py-2 bg-dark drop-shadow-md">
+					<textarea
+						placeholder="Your message"
+						className="p-2 bg-transparent border border-pink-600 resize-none grow outline-0"
+						value={currentMessage}
+						onChange={handleChange}
+					/>
+					{sendingEnabled ?
+					<button
+						onClick={handleGmSubmit}
+						className="self-stretch px-3 py-2 text-lg text-white uppercase bg-pink-600 rounded"
+						>
+						<FiSend />
+					</button>
+					:
+					<button
+						className="self-stretch px-3 py-2 text-lg text-white uppercase bg-pink-900 rounded"
+					>
+						<FiSend />
+					</button>
+					}
+				</div>
+				:
+				<div className="absolute inset-x-0 bottom-0 border-t-2 border-gray-800 min-h-[13%] flex gap-x-2 items-center justify-center px-8 py-2 bg-dark drop-shadow-md">
+					<button className="px-2 py-1 text-sm font-bold uppercase bg-pink-600 rounded" onClick={() => { joinGroup(); }}>
+						Join Group
+					</button>
+				</div>
 				}
 		</div>
 	);
