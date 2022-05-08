@@ -3,10 +3,8 @@ import {
   ArrayMinSize,
   IsArray,
   IsNotEmpty,
-  IsOptional,
 } from 'class-validator';
 import { Type } from 'class-transformer';
-import { DmMessage } from 'src/chat/direct-messages/messages/entities/dm-messages.entity';
 import { User } from 'src/users/entities/users.entity';
 
 export class CreateDirectMessageDto {
@@ -16,9 +14,4 @@ export class CreateDirectMessageDto {
   @ArrayMaxSize(2)
   @ArrayMinSize(2)
   readonly users: User[];
-
-  @IsOptional()
-  @IsArray()
-  @Type(() => DmMessage)
-  readonly messages: DmMessage[];
 }

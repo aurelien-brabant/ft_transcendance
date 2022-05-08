@@ -12,7 +12,6 @@ import {
 } from 'class-validator';
 import { PasswordValidator } from 'src/utils/patternValidator';
 import { Transform, Type } from 'class-transformer';
-import { ChannelMessage } from 'src/chat/channels/messages/entities/channel-messages.entity';
 import { User } from 'src/users/entities/users.entity';
 
 export class CreateChannelDto {
@@ -50,9 +49,4 @@ export class CreateChannelDto {
   @Type(() => User)
   @ArrayMinSize(1)
   readonly users: User[];
-
-  @IsOptional()
-  @IsArray()
-  @Type(() => ChannelMessage)
-  readonly messages: ChannelMessage[];
 }

@@ -2,6 +2,7 @@ import { PartialType } from '@nestjs/mapped-types';
 import { IsArray, IsOptional } from 'class-validator';
 import { Type } from 'class-transformer';
 import { CreateChannelDto } from './create-channel.dto';
+import { ChannelMessage } from 'src/chat/channels/messages/entities/channel-messages.entity';
 import { User } from "src/users/entities/users.entity";
 
 export class UpdateChannelDto extends PartialType(CreateChannelDto) {
@@ -19,4 +20,9 @@ export class UpdateChannelDto extends PartialType(CreateChannelDto) {
   @IsArray()
   @Type(() => User)
   readonly bannedUsers?: User[];
+
+  @IsOptional()
+  @IsArray()
+  @Type(() => ChannelMessage)
+  readonly messages: ChannelMessage[];
 }

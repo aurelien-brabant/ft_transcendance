@@ -1,7 +1,6 @@
 import {
   IsNotEmpty,
   IsString,
-  IsOptional,
   MaxLength
 } from 'class-validator';
 import { Transform } from 'class-transformer';
@@ -15,7 +14,6 @@ export class CreateChannelMessageDto {
   @MaxLength(640)
   readonly content: string;
 
-  @IsOptional()
   @IsNotEmpty()
   readonly author: User;
 
