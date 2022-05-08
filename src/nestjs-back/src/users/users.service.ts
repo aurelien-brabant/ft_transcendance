@@ -502,9 +502,12 @@ export class UsersService {
         'directMessages.messages.author',
       ],
     });
+
     if (user && user.directMessages) {
-      const dm = user.directMessages.find(
-        (dm) => dm.users.find((user) => user.id.toString() === friendId)
+      const dm = user.directMessages.find((dm) =>
+        !!dm.users.find((user) => {
+          return user.id === parseInt(friendId);
+        })
       );
       if (dm) return dm;
     }

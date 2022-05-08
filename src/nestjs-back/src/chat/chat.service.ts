@@ -25,9 +25,9 @@ export class ChatService {
 		if (!channel) {
 			throw new NotFoundException('No channel found.');
 		}
-		const isInChan = !!channel.users.find(
-			(user) => { return user.id === parseInt(userId); }
-		);
+		const isInChan = !!channel.users.find((user) => {
+			return user.id === parseInt(userId);
+		});
 		return isInChan;
 	}
 
@@ -55,10 +55,9 @@ export class ChatService {
 		if (!channels) {
 			throw new NotFoundException('No channel found.');
 		}
-		const userChannels = channels.filter(
-			(channel) =>
-				!!channel.users.find((user) => { return user.id === parseInt(userId); })
-				|| (channel.privacy !== 'private')
+		const userChannels = channels.filter((channel) =>
+			!!channel.users.find((user) => { return user.id === parseInt(userId); })
+			|| (channel.privacy !== 'private')
 		);
 		return userChannels;
 	}
@@ -96,7 +95,7 @@ export class ChatService {
 		const user = await this.usersService.findOne(userId);
 		const channel = await this.channelsService.findOne(channelId);
 		const filteredUsers = channel.users.filter((user) => {
-			return user.id !== parseInt(userId)
+			return user.id !== parseInt(userId);
 		})
 
 		await this.channelsService.update(channelId, {
@@ -117,7 +116,7 @@ export class ChatService {
 	async getFriendFromDm(dmId: string, userId: string) {
 		const dm = await this.directMessagesService.findOne(dmId);
 
-		return (dm.users[0].id.toString() === userId) ? dm.users[1] : dm.users[0];
+		return (dm.users[0].id === parseInt(userId)) ? dm.users[1] : dm.users[0];
 	}
 
 	async getUserDms(userId: string) {
@@ -126,10 +125,10 @@ export class ChatService {
 		if (!dms) {
 			throw new NotFoundException('No DM found.');
 		}
-		const userDms = dms.filter(
-			(dm) => dm.users.filter(
-				(user) => user.id.toString() === userId
-			)
+		const userDms = dms.filter((dm) =>
+			!!dm.users.find((user) => {
+				return user.id === parseInt(userId);
+			})
 		);
 		return userDms;
 	}
