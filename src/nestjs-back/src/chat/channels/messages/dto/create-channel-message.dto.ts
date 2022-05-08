@@ -1,7 +1,7 @@
 import {
   IsNotEmpty,
   IsString,
-  MaxLength
+  Length,
 } from 'class-validator';
 import { Transform } from 'class-transformer';
 import { Channel } from "src/chat/channels/entities/channels.entity";
@@ -11,7 +11,7 @@ export class CreateChannelMessageDto {
   @Transform(({ value }) => value.trim())
   @IsNotEmpty()
   @IsString()
-  @MaxLength(640)
+  @Length(1, 640)
   readonly content: string;
 
   @IsNotEmpty()

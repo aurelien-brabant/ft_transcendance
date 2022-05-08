@@ -1,7 +1,7 @@
 import {
   IsNotEmpty,
   IsString,
-  MaxLength
+  Length,
 } from 'class-validator';
 import { Transform } from 'class-transformer';
 import { DirectMessage } from "src/chat/direct-messages/entities/direct-messages";
@@ -11,7 +11,7 @@ export class CreateDmMessageDto {
   @Transform(({ value }) => value.trim())
   @IsNotEmpty()
   @IsString()
-  @MaxLength(640)
+  @Length(1, 640)
   readonly content: string;
 
   @IsNotEmpty()

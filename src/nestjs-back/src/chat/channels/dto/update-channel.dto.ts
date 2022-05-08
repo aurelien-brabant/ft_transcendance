@@ -24,5 +24,5 @@ export class UpdateChannelDto extends PartialType(CreateChannelDto) {
   @IsOptional()
   @IsArray()
   @Type(() => ChannelMessage)
-  readonly messages: ChannelMessage[];
+  readonly messages?: ChannelMessage[];
 }
