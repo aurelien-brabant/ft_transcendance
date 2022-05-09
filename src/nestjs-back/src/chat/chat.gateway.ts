@@ -1,7 +1,6 @@
 import { Server, Socket } from 'socket.io';
-import { Logger, UseFilters, UsePipes, ValidationPipe } from '@nestjs/common';
+import { Logger, UsePipes, ValidationPipe } from '@nestjs/common';
 import {
-	BaseWsExceptionFilter,
 	ConnectedSocket,
 	MessageBody,
 	OnGatewayConnection,
@@ -24,7 +23,6 @@ import { UpdateChannelDto } from './channels/dto/update-channel.dto';
 		namespace: '/chat'
 	}
 )
-@UseFilters(new BaseWsExceptionFilter())
 @UsePipes(
 	new ValidationPipe({
 		transform: true,
