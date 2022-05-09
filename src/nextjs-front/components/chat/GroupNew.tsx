@@ -54,6 +54,9 @@ export const GroupNewHeader: React.FC = () => {
 const GroupNew: React.FC = () => {
 	const { user } = useSession();
 	const { socket, channelCreatedListener } = useContext(chatContext) as ChatContextType;
+	const inputGroupClassName = "flex flex-col gap-y-2";
+	const inputClassName = "px-2 py-1 border border-pink-600 bg-transparent outline-none";
+	const labelClassName = "text-xs text-neutral-200 uppercase";
 
 	/* Form */
 	const [formData, setFormData] = useState<NewGroupData>({
@@ -127,10 +130,6 @@ const GroupNew: React.FC = () => {
 			socket.off("channelCreated", channelCreatedListener);
 		};
 	}, []);
-
-	const inputGroupClassName = "flex flex-col gap-y-2";
-	const inputClassName = "px-2 py-1 border border-pink-600 bg-transparent outline-none";
-	const labelClassName = "text-xs text-neutral-200 uppercase";
 
 	return (
 		<div className="flex flex-col h-full px-5 py-5 overflow-y-auto gap-y-4">

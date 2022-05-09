@@ -39,9 +39,13 @@ export const GroupUsersHeader: React.FC<{ viewParams: any }> = ({ viewParams }) 
 
 		/* Listeners */
 		socket.on("updateChannel", updatePeopleCount);
+		socket.on("joinedChannel", updatePeopleCount);
+		socket.on("leftChannel", updatePeopleCount);
 
 		return () => {
 			socket.off("updateChannel", updatePeopleCount);
+			socket.off("joinedChannel", updatePeopleCount);
+			socket.off("leftChannel", updatePeopleCount);
 		};
 	}, []);
 
@@ -70,8 +74,9 @@ export const GroupUsersHeader: React.FC<{ viewParams: any }> = ({ viewParams }) 
 	);
 };
 
+/* User list */
 const GroupUsers: React.FC<{ viewParams: any }> = ({ viewParams }) => {
-	const channelId = viewParams.channelId;
+	const channelId: string = viewParams.channelId;
 	const { user } = useSession();
 	const { setAlert } = useContext(alertContext) as AlertContextType;
 	const { socket, fetchChannelData } = useContext(chatContext) as ChatContextType; /* NOTE: fetch will be removed */

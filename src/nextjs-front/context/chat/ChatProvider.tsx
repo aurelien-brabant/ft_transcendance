@@ -279,7 +279,6 @@ const ChatProvider: React.FC = ({ children }) => {
 			(b.updatedAt.valueOf() - a.updatedAt.valueOf())
 		);
 		setDirectMessages(dms);
-		console.log(dms);
 	}
 
 	const channelCreatedListener = (newChannel: Channel) => {

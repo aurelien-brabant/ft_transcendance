@@ -114,7 +114,7 @@ export const GroupHeader: React.FC<{ viewParams: any }> = ({ viewParams }) => {
 const Group: React.FC<{ viewParams: { [key: string]: any } }> = ({
 	viewParams,
 }) => {
-	const channelId = viewParams.channelId;
+	const channelId: string = viewParams.channelId;
 	const { user } = useSession();
 	const { socket, setChatView, getMessageStyle } = useContext(chatContext) as ChatContextType;
 	const { blocked } = useContext(relationshipContext) as RelationshipContextType;

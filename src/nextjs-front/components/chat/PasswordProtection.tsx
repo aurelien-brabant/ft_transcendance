@@ -1,9 +1,9 @@
 import { Fragment, useContext, useEffect } from "react";
 import { AiFillLock, AiOutlineArrowLeft, AiOutlineClose } from "react-icons/ai";
 import { useSession } from "../../hooks/use-session";
-import alertContext, { AlertContextType } from "../../context/alert/alertContext";
 import chatContext, { ChatContextType } from "../../context/chat/chatContext";
 
+/* Header */
 export const PasswordProtectionHeader: React.FC<{ viewParams: any }> = ({ viewParams}) => {
 	const { closeChat, setChatView } = useContext(chatContext) as ChatContextType;
 
@@ -28,10 +28,10 @@ export const PasswordProtectionHeader: React.FC<{ viewParams: any }> = ({ viewPa
 	);
 }
 
+/* Password prompt */
 const PasswordProtection: React.FC<{ viewParams: any }> = ({ viewParams }) => {
 	const { user } = useSession();
 	const { socket, setChatView } = useContext(chatContext) as ChatContextType;
-	const { setAlert } = useContext(alertContext) as AlertContextType;
 
 	/* Check password is correct */
 	const handleSubmit = (e: React.FormEvent<HTMLFormElement>) => {
