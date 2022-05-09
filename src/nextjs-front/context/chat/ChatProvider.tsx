@@ -1,18 +1,13 @@
 import { useContext, useEffect, useState } from "react";
 import { BsFillChatDotsFill } from "react-icons/bs";
 import { Bounce } from "react-awesome-reveal";
+import { io } from "socket.io-client";
 import { BaseUserData, Channel, DmChannel } from 'transcendance-types';
 import { useSession } from "../../hooks/use-session";
 import alertContext, { AlertContextType } from "../alert/alertContext";
 import authContext, { AuthContextValue } from "../auth/authContext";
 import relationshipContext, { RelationshipContextType } from "../relationship/relationshipContext";
-import { io } from "socket.io-client";
 /* Chat */
-import Chat from "../../components/Chat";
-import ChatGroupsView from "../../components/chat/Groups";
-import ChatGroupView, { GroupHeader } from "../../components/chat/Group";
-import ChatDirectMessagesView from "../../components/chat/DirectMessages";
-import ChatDirectMessageView, { DirectMessageHeader } from "../../components/chat/DirectMessage";
 import chatContext, {
 	ChatGroup,
 	ChatGroupPrivacy,
@@ -20,6 +15,11 @@ import chatContext, {
 	ChatView,
 	DirectMessage
 } from "./chatContext";
+import Chat from "../../components/Chat";
+import ChatDirectMessagesView from "../../components/chat/DirectMessages";
+import ChatDirectMessageView, { DirectMessageHeader } from "../../components/chat/DirectMessage";
+import ChatGroupsView from "../../components/chat/Groups";
+import ChatGroupView, { GroupHeader } from "../../components/chat/Group";
 import DirectMessageNew, { DirectMessageNewHeader } from "../../components/chat/DirectMessageNew";
 import GroupAdd, { GroupAddHeader } from "../../components/chat/GroupAdd";
 import GroupNew, { GroupNewHeader } from "../../components/chat/GroupNew";
@@ -118,10 +118,10 @@ const ChatProvider: React.FC = ({ children }) => {
 	const { setAlert } = useContext(alertContext) as AlertContextType;
 	const { isChatOpened, setIsChatOpened } = useContext(authContext) as AuthContextValue;
 	const { blocked } = useContext(relationshipContext) as RelationshipContextType;
-	const [socket, setSocket] = useState<any>(null);
-	const [viewStack, setViewStack] = useState<ChatViewItem[]>([]);
 	const [chatGroups, setChatGroups] = useState<ChatGroup[]>([]);
 	const [directMessages, setDirectMessages] = useState<DirectMessage[]>([]);
+	const [socket, setSocket] = useState<any>(null);
+	const [viewStack, setViewStack] = useState<ChatViewItem[]>([]);
 	const [lastX, setLastX] = useState<number>(0);
 	const [lastY, setLastY] = useState<number>(0);
 
@@ -171,9 +171,9 @@ const ChatProvider: React.FC = ({ children }) => {
 
 	const checkCurrentView = (view: ChatView) => {
 		return (
-			viewStack.length > 0
+			(viewStack.length > 0)
 			&& (views[view].Component === viewStack[viewStack.length - 1].Component)
-			);
+		);
 	};
 
 	/* To be accessed from outside the chat (i.e. pages/users/[id]) */
@@ -188,6 +188,7 @@ const ChatProvider: React.FC = ({ children }) => {
 		socket.emit("createDm", data);
 	}
 
+	/* NOTE: To be updated */
 	const getMessageStyle = (authorId: string) => {
 		if (authorId === user.id) return "self-end bg-green-600";
 
@@ -200,7 +201,7 @@ const ChatProvider: React.FC = ({ children }) => {
 		return "self-start text-gray-900 bg-gray-300";
 	}
 
-	const getLastMessage = (channel: Channel | DmChannel, isProtected: boolean) => {
+	const getLastMessage = (channel: Channel | DmChannel, isProtected = false) => {
 		let message: ChatMessagePreview = {
 			createdAt: new Date(Date.now()),
 			content: "",
@@ -225,11 +226,11 @@ const ChatProvider: React.FC = ({ children }) => {
 	}
 
 	/* Event listeners */
-	const updateChannelsListener = async (channels: Channel[]) => {
+	const updateChannelsListener = (channels: Channel[]) => {
 		const groups: ChatGroup[] = [];
 
 		for (var channel of Array.from(channels)) {
-			const lastMessage: ChatMessagePreview = getLastMessage(channel, channel.privacy === "protected");
+			const lastMessage: ChatMessagePreview = getLastMessage(channel, (channel.privacy === "protected"));
 
 			groups.push({
 				id: channel.id,
@@ -251,7 +252,7 @@ const ChatProvider: React.FC = ({ children }) => {
 		setChatGroups(groups);
 	}
 
-	const updateDmsListener = async (channels: DmChannel[]) => {
+	const updateDmsListener = (channels: DmChannel[]) => {
 		const dms: DirectMessage[] = [];
 
 		for (var channel of Array.from(channels)) {
@@ -260,7 +261,7 @@ const ChatProvider: React.FC = ({ children }) => {
 
 			/* Don't display DMs from blocked users */
 			if (!isBlocked) {
-				const lastMessage: ChatMessagePreview = getLastMessage(channel, false);
+				const lastMessage: ChatMessagePreview = getLastMessage(channel);
 
 				dms.push({
 					id: channel.id,
@@ -278,6 +279,7 @@ const ChatProvider: React.FC = ({ children }) => {
 			(b.updatedAt.valueOf() - a.updatedAt.valueOf())
 		);
 		setDirectMessages(dms);
+		console.log(dms);
 	}
 
 	const channelCreatedListener = (newChannel: Channel) => {

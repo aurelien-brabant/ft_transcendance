@@ -1,5 +1,5 @@
 import { Server, Socket } from 'socket.io';
-import { Logger, Param, UseFilters, UsePipes, ValidationPipe } from '@nestjs/common';
+import { Logger, UseFilters, UsePipes, ValidationPipe } from '@nestjs/common';
 import {
 	BaseWsExceptionFilter,
 	ConnectedSocket,
@@ -11,10 +11,8 @@ import {
 	WebSocketServer,
 } from '@nestjs/websockets';
 import { ChatService } from './chat.service';
-import { DirectMessage } from './direct-messages/entities/direct-messages';
 import { UserStatus } from 'src/games/class/Constants';
 import { ChatUser, ChatUsers } from './class/ChatUsers';
-import { User } from 'src/users/entities/users.entity';
 import { CreateChannelDto } from './channels/dto/create-channel.dto';
 import { CreateDirectMessageDto } from './direct-messages/dto/create-direct-message.dto';
 import { CreateChannelMessageDto } from './channels/dto/create-channel-message.dto';
@@ -48,6 +46,9 @@ export class ChatGateway implements OnGatewayInit, OnGatewayConnection {
 		this.logger.log('[+] Init Chat Gateway');
 	}
 
+	/**
+	 * Users
+	 */
 	async handleConnection(@ConnectedSocket() client: Socket) {
 		this.logger.log(`Client connected: ${client.id}`);
 	}
@@ -61,6 +62,7 @@ export class ChatGateway implements OnGatewayInit, OnGatewayConnection {
 
 		if (!user) {
 			user = new ChatUser(newUser.id, newUser.username, client.id);
+
 			user.setUserStatus(UserStatus.ONLINE);
 			this.chatUsers.addUser(user);
 		} else {
@@ -111,7 +113,7 @@ export class ChatGateway implements OnGatewayInit, OnGatewayConnection {
 			this.chatUsers.userJoinRoom(client, roomId);
 			this.server.to(roomId).emit('channelCreated', (channel));
 
-			/* If the channel is visible to everyone, inform the clients */
+			/* If the channel is visible to everyone, inform every client */
 			if (channel.privacy !== 'private') {
 				this.server.emit('channelCreated', (channel));
 			}
@@ -133,7 +135,7 @@ export class ChatGateway implements OnGatewayInit, OnGatewayConnection {
 
 			this.server.to(roomId).emit('channelUpdated', (channel));
 
-			/* If the channel is visible to everyone, inform the clients */
+			/* If the channel is visible to everyone, inform every client */
 			if (channel.privacy !== 'private') {
 				this.server.emit('channelUpdated', (channel));
 			}
@@ -152,7 +154,7 @@ export class ChatGateway implements OnGatewayInit, OnGatewayConnection {
 
 			this.server.to(`channel_${channelId}`).emit('channelDeleted', channelId);
 
-			/* If the channel is visible to everyone, inform the clients */
+			/* If the channel is visible to everyone, inform every client */
 			if (channel.privacy !== 'private') {
 				this.server.emit('channelDeleted', (channel));
 			}
@@ -171,6 +173,7 @@ export class ChatGateway implements OnGatewayInit, OnGatewayConnection {
 			const message = await this.chatService.addMessageToChannel(data);
 
 			this.server.to(`channel_${message.channel.id}`).emit('newGm', { message });
+			this.logger.log(`New message in Channel [${message.channel.id}]`);
 		} catch (e) {
 			this.server.to(client.id).emit('chatError', e.message);
 		}
@@ -180,52 +183,40 @@ export class ChatGateway implements OnGatewayInit, OnGatewayConnection {
 	@SubscribeMessage('joinChannel')
 	async handleJoinChannel(
 		@ConnectedSocket() client: Socket,
-		@MessageBody() { userId, channelId }: {
-			userId: string, channelId: string
-		}
+		@MessageBody() { userId, channelId }: { userId: string, channelId: string }
 	) {
-		let user: User;
-
 		try {
-			user = await this.chatService.addUserToChannel(userId, channelId);
+			const user = await this.chatService.addUserToChannel(userId, channelId);
+			const roomId = `channel_${channelId}`;
+			const res = {
+				message: `${user.username} joined group`,
+				userId: userId,
+			};
+
+			this.chatUsers.userJoinRoom(client, roomId);
+			this.server.to(roomId).emit('joinedChannel', res);
 		} catch (e) {
 			this.server.to(client.id).emit('chatError', e.message);
-			return ;
 		}
-
-		const roomId = `channel_${channelId}`;
-		const res = {
-			message: `${user.username} joined group`,
-			userId: userId,
-		};
-
-		this.chatUsers.userJoinRoom(client, roomId);
-		this.server.to(roomId).emit('joinedChannel', res);
 	}
 
 	@SubscribeMessage('leaveChannel')
 	async handleLeaveChannel(
 		@ConnectedSocket() client: Socket,
-		@MessageBody() { userId, channelId }: {
-			userId: string, channelId: string
-		}
+		@MessageBody() { userId, channelId }: { userId: string, channelId: string }
 	) {
-		let user: User;
-
 		try {
-			user = await this.chatService.removeUserFromChannel(userId, channelId);
+			const user = await this.chatService.removeUserFromChannel(userId, channelId);
+			const roomId = `channel_${channelId}`;
+			const res = {
+				message: `${user.username} left group`,
+			};
+
+			this.chatUsers.userLeaveRoom(client, roomId);
+			this.server.to(roomId).emit('leftChannel', res);
 		} catch (e) {
 			this.server.to(client.id).emit('chatError', e.message);
-			return ;
 		}
-
-		const roomId = `channel_${channelId}`;
-		const res = {
-			message: `${user.username} left group`,
-		};
-
-		this.chatUsers.userLeaveRoom(client, roomId);
-		this.server.to(roomId).emit('leftChannel', res);
 	}
 
 	@SubscribeMessage('joinProtected')
@@ -235,28 +226,26 @@ export class ChatGateway implements OnGatewayInit, OnGatewayConnection {
 			userId: string, channelId: string, password: string
 		}
 	) {
-		let user: User;
-		const roomId = `channel_${channelId}`;
-
 		try {
 			await this.chatService.checkChannelPassword(channelId, password);
 
+			const roomId = `channel_${channelId}`;
 			const isInChan = await this.chatService.userIsInChannel(userId, channelId);
 
 			if (!isInChan) {
-				user = await this.chatService.addUserToChannel(userId, channelId);
+				const user = await this.chatService.addUserToChannel(userId, channelId);
 				const res = {
 					message: `${user.username} joined group`,
 					userId: userId,
 				};
+
 				this.server.to(roomId).emit('joinedChannel', res);
 			}
+			this.server.to(client.id).emit('joinedProtected');
+			this.chatUsers.userJoinRoom(client, roomId);
 		} catch (e) {
 			this.server.to(client.id).emit('chatError', e.message);
-			return ;
 		}
-		this.server.to(client.id).emit('joinedProtected');
-		this.chatUsers.userJoinRoom(client, roomId);
 	}
 
 	/**
@@ -292,15 +281,19 @@ export class ChatGateway implements OnGatewayInit, OnGatewayConnection {
 		@ConnectedSocket() client: Socket,
 		@MessageBody() data: CreateDirectMessageDto
 	) {
-		let dm: DirectMessage;
-
 		try {
-			dm = await this.chatService.createDm(data);
+			const dm = await this.chatService.createDm(data);
+			const roomId = `dm_${dm.id}`;
+
+			// TODO
+			// const friend = this.chatUsers.getUserById(data.users[1].id.toString());
+			// const friendSocket = (await this.server.fetchSockets()).find(socket => socket.id === friend.socketId);
+
+			this.chatUsers.userJoinRoom(client, roomId);
+			this.server.to(roomId).emit('dmCreated', (dm));
 		} catch (e) {
 			this.server.to(client.id).emit('chatError', e.message);
-			return ;
 		}
-		this.server.to(client.id).emit('dmCreated', (dm));
 	}
 
 	/* Save a new DM message */
@@ -312,6 +305,7 @@ export class ChatGateway implements OnGatewayInit, OnGatewayConnection {
 		try {
 			const message = await this.chatService.addMessageToDm(data);
 
+			this.server.to(`dm_${message.dm.id}`).emit('newDm', { message });
 			this.logger.log(`New message in DM [${message.dm.id}]`);
 		} catch (e) {
 			this.server.to(client.id).emit('chatError', e.message);

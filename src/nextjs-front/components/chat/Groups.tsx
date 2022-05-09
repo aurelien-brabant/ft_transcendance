@@ -57,6 +57,7 @@ const Groups: React.FC<{viewParams: Object;}> = ({ viewParams }) => {
 	}, [baseChatGroups]);
 
 	const channelsChangeListener = () => {
+		console.log("[Groups] new GM");
 		socket.emit("getUserChannels", { userId: user.id });
 	};
 
@@ -65,11 +66,13 @@ const Groups: React.FC<{viewParams: Object;}> = ({ viewParams }) => {
 		socket.on("channelCreated", channelsChangeListener);
 		socket.on("channelUpdated", channelsChangeListener);
 		socket.on("channelDeleted", channelsChangeListener);
+		socket.on("newGm", channelsChangeListener);
 
 		return () => {
 			socket.off("channelCreated", channelsChangeListener);
 			socket.off("channelUpdated", channelsChangeListener);
 			socket.off("channelDeleted", channelsChangeListener);
+			socket.on("newGm", channelsChangeListener);
 		};
 	}, []);
 

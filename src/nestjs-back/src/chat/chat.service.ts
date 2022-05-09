@@ -6,10 +6,10 @@ import { ChannelMessagesService } from './channels/channel-messages.service';
 import { DirectMessagesService } from './direct-messages/direct-messages.service';
 import { DmMessagesService } from './direct-messages/dm-messages.service';
 import { CreateChannelDto } from './channels/dto/create-channel.dto';
+import { UpdateChannelDto } from './channels/dto/update-channel.dto';
 import { CreateChannelMessageDto } from './channels/dto/create-channel-message.dto';
 import { CreateDirectMessageDto } from './direct-messages/dto/create-direct-message.dto';
 import { CreateDmMessageDto } from './direct-messages/dto/create-dm-message.dto';
-import { UpdateChannelDto } from './channels/dto/update-channel.dto';
 
 @Injectable()
 export class ChatService {

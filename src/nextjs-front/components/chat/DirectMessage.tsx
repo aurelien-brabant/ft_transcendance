@@ -99,8 +99,6 @@ const DirectMessage: React.FC<{ viewParams: { [key: string]: any } }> = ({
 
 	/* Receive new message */
 	const handleNewMessage = ({ message }: { message: Message }) => {
-		console.log(`[Chat] Receive new message in DM [${viewParams.friendUsername}]`);
-
 		setMessages((prevMessages) => {
 			const newMessages: ChatMessage[] = [...prevMessages];
 
@@ -145,6 +143,7 @@ const DirectMessage: React.FC<{ viewParams: { [key: string]: any } }> = ({
 	}, [messages]);
 
 	useEffect(() => {
+		console.log(viewParams);
 		socket.emit("getDmData", { dmId });
 
 		/* Listeners */
