@@ -107,17 +107,18 @@ export class ChatGateway implements OnGatewayInit, OnGatewayConnection {
 
 		try {
 			channel = await this.chatService.createChannel(data);
+
+			const roomId = `channel_${channel.id}`;
+
+			this.chatUsers.userJoinRoom(client, roomId);
+			this.server.to(roomId).emit('channelCreated', (channel));
+
+			/* If the channel is visible to everyone, inform the clients */
+			if (channel.privacy !== 'private') {
+				this.server.emit('channelCreated', (channel));
+			}
 		} catch (e) {
 			this.server.to(client.id).emit('chatError', e.message);
-			return ;
-		}
-		const roomId = `channel_${channel.id}`;
-
-		this.chatUsers.userJoinRoom(client, roomId);
-		this.server.to(roomId).emit('channelCreated', (channel));
-
-		if (channel.privacy !== 'private') {
-			this.server.emit('channelCreated', (channel));
 		}
 	}
 
@@ -127,11 +128,16 @@ export class ChatGateway implements OnGatewayInit, OnGatewayConnection {
 		@MessageBody() { channelId }: { channelId: string }
 	) {
 		try {
-			await this.chatService.deleteChannel(channelId);
+			const channel = await this.chatService.deleteChannel(channelId);
+
 			this.server.to(`channel_${channelId}`).emit('channelDeleted', channelId);
+
+			/* If the channel is visible to everyone, inform the clients */
+			if (channel.privacy !== 'private') {
+				this.server.emit('channelDeleted', (channel));
+			}
 		} catch (e) {
 			this.server.to(client.id).emit('chatError', e.message);
-			return ;
 		}
 	}
 

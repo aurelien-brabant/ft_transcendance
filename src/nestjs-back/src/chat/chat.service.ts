@@ -81,6 +81,7 @@ export class ChatService {
 		if (!channel) {
 			throw new Error('Invalid operation');
 		}
+		return channel;
 	}
 
 	async addMessageToChannel(createChannelMessageDto: CreateChannelMessageDto) {
