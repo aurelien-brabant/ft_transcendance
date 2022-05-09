@@ -63,10 +63,12 @@ const Groups: React.FC<{viewParams: Object;}> = ({ viewParams }) => {
 	useEffect(() => {
 		/* Listeners */
 		socket.on("channelCreated", channelsChangeListener);
+		socket.on("channelUpdated", channelsChangeListener);
 		socket.on("channelDeleted", channelsChangeListener);
 
 		return () => {
 			socket.off("channelCreated", channelsChangeListener);
+			socket.off("channelUpdated", channelsChangeListener);
 			socket.off("channelDeleted", channelsChangeListener);
 		};
 	}, []);

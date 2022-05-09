@@ -2,7 +2,6 @@ import { Fragment, useContext, useEffect, useState } from "react";
 import { AiOutlineArrowLeft, AiOutlineClose } from "react-icons/ai";
 import { Channel } from "transcendance-types";
 import { useSession } from "../../hooks/use-session";
-import alertContext, { AlertContextType } from "../../context/alert/alertContext";
 import chatContext, { ChatContextType, ChatGroupPrivacy } from "../../context/chat/chatContext";
 
 type updateGroupData = {
@@ -56,7 +55,6 @@ export const GroupSettingsHeader: React.FC<{ viewParams: any }> = ({ viewParams 
 const GroupSettings: React.FC<{ viewParams: any }> = ({ viewParams }) => {
 	const channelId: string = viewParams.channelId;
 	const { user } = useSession();
-	const { setAlert } = useContext(alertContext) as AlertContextType;
 	const { socket, setChatView, closeRightmostView } = useContext(chatContext) as ChatContextType;
 	const [ownerView, setOwnerView] = useState(false);
 	const [userInChan, setUserInChan] = useState(false);
@@ -90,7 +88,7 @@ const GroupSettings: React.FC<{ viewParams: any }> = ({ viewParams }) => {
 		});
 	};
 
-	const handleSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
+	const handleSubmit = (e: React.FormEvent<HTMLFormElement>) => {
 		e.preventDefault();
 		const errors: Partial<updateGroupData> = {};
 
@@ -112,41 +110,21 @@ const GroupSettings: React.FC<{ viewParams: any }> = ({ viewParams }) => {
 		}
 
 		if (Object.keys(errors).length === 0) {
-			await updateGroup(formData);
+			updateGroup(formData);
 		}
 		setFieldErrors(errors);
 	};
 
 	/* Update the group name, visibility and password */
-	const updateGroup = async (formData: updateGroupData) => {
-		const res = await fetch(`/api/channels/${channelId}`, {
-			method: "PATCH",
-			headers: {
-				"Content-Type": "application/json",
-			},
-			body: JSON.stringify({
-				name: formData.groupName,
-				privacy: formData.groupPrivacy,
-				password: (formData.password && formData.password.length !== 0) ? formData.password : undefined,
-				restrictionDuration: formData.restrictionDuration
-			}),
+	const updateGroup = (formData: updateGroupData) => {
+		socket.emit("updateChannel", {
+			id: channelId,
+			name: formData.groupName,
+			privacy: formData.groupPrivacy,
+			password: (formData.password && formData.password.length !== 0) ? formData.password : undefined,
+			restrictionDuration: formData.restrictionDuration
 		});
-
-		if (res.status === 200) {
-			closeRightmostView();
-		} else if (res.status === 400) {
-			const data = await res.json();
-
-			setAlert({
-				type: "warning",
-				content: `${data.message}`
-			}); // TODO: replace alert by error['password']
-		} else {
-			setAlert({
-				type: "error",
-				content: "Failed to update group"
-			});
-		}
+		closeRightmostView();
 	}
 
 	/* If the owner leaves the group, it is deleted */

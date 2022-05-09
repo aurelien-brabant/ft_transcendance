@@ -1,4 +1,4 @@
-import { Injectable, Logger, NotFoundException, UnauthorizedException } from '@nestjs/common';
+import { Injectable, Logger } from '@nestjs/common';
 import { SchedulerRegistry } from '@nestjs/schedule';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Repository } from 'typeorm';
@@ -86,7 +86,7 @@ export class ChannelsService {
       ]
     });
     if (!channel) {
-      throw new NotFoundException(`Channel [${id}] not found`);
+      throw new Error(`Channel [${id}] not found`);
     }
 
     return channel;
@@ -101,7 +101,7 @@ export class ChannelsService {
     this.logger.log(`Create new channel [${channel.name}]`);
 
     return await this.channelsRepository.save(channel).catch(() => {
-      throw new UnauthorizedException(`Group '${createChannelDto.name}' already exists. Choose another name.`);
+      throw new Error(`Group '${createChannelDto.name}' already exists. Choose another name.`);
     });
   }
 
@@ -116,7 +116,7 @@ export class ChannelsService {
     });
 
     if (!channel) {
-      throw new NotFoundException(`Cannot update Channel [${id}]: Not found`);
+      throw new Error(`Cannot update Channel [${id}]: Not found`);
     }
     if (updateChannelDto.bannedUsers) {
       const userId = updateChannelDto.bannedUsers[updateChannelDto.bannedUsers.length -1].id.toString();
@@ -135,7 +135,7 @@ export class ChannelsService {
     const channel = await this.channelsRepository.findOne(id);
 
     if (!channel) {
-      throw new NotFoundException(`Channel [${id}] not found`);
+      throw new Error(`Channel [${id}] not found`);
     }
     this.logger.log(`Remove channel [${channel.id}][${channel.name}]`);
 

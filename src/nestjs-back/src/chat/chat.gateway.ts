@@ -1,5 +1,5 @@
 import { Server, Socket } from 'socket.io';
-import { Logger, UseFilters, UsePipes, ValidationPipe } from '@nestjs/common';
+import { Logger, Param, UseFilters, UsePipes, ValidationPipe } from '@nestjs/common';
 import {
 	BaseWsExceptionFilter,
 	ConnectedSocket,
@@ -11,7 +11,6 @@ import {
 	WebSocketServer,
 } from '@nestjs/websockets';
 import { ChatService } from './chat.service';
-import { Channel } from './channels/entities/channels.entity';
 import { DirectMessage } from './direct-messages/entities/direct-messages';
 import { UserStatus } from 'src/games/class/Constants';
 import { ChatUser, ChatUsers } from './class/ChatUsers';
@@ -20,6 +19,7 @@ import { CreateChannelDto } from './channels/dto/create-channel.dto';
 import { CreateDirectMessageDto } from './direct-messages/dto/create-direct-message.dto';
 import { CreateChannelMessageDto } from './channels/dto/create-channel-message.dto';
 import { CreateDmMessageDto } from './direct-messages/dto/create-dm-message.dto';
+import { UpdateChannelDto } from './channels/dto/update-channel.dto';
 
 @WebSocketGateway({
 		cors: true,
@@ -98,16 +98,14 @@ export class ChatGateway implements OnGatewayInit, OnGatewayConnection {
 		this.server.to(client.id).emit('updateChannel', (channel));
 	}
 
+	/* Create/delete/update */
 	@SubscribeMessage('createChannel')
 	async handleCreateChannel(
 		@ConnectedSocket() client: Socket,
 		@MessageBody() data: CreateChannelDto
 	) {
-		let channel: Channel;
-
 		try {
-			channel = await this.chatService.createChannel(data);
-
+			const channel = await this.chatService.createChannel(data);
 			const roomId = `channel_${channel.id}`;
 
 			this.chatUsers.userJoinRoom(client, roomId);
@@ -116,6 +114,28 @@ export class ChatGateway implements OnGatewayInit, OnGatewayConnection {
 			/* If the channel is visible to everyone, inform the clients */
 			if (channel.privacy !== 'private') {
 				this.server.emit('channelCreated', (channel));
+			}
+		} catch (e) {
+			this.server.to(client.id).emit('chatError', e.message);
+		}
+	}
+
+	@SubscribeMessage('updateChannel')
+	async handleUpdateChannel(
+		@ConnectedSocket() client: Socket,
+		@MessageBody() data: UpdateChannelDto
+	) {
+		const id = (data as any).id;
+
+		try {
+			const channel = await this.chatService.updateChannel(id, data);
+			const roomId = `channel_${channel.id}`;
+
+			this.server.to(roomId).emit('channelUpdated', (channel));
+
+			/* If the channel is visible to everyone, inform the clients */
+			if (channel.privacy !== 'private') {
+				this.server.emit('channelUpdated', (channel));
 			}
 		} catch (e) {
 			this.server.to(client.id).emit('chatError', e.message);

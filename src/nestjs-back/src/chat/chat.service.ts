@@ -9,6 +9,7 @@ import { CreateChannelDto } from './channels/dto/create-channel.dto';
 import { CreateChannelMessageDto } from './channels/dto/create-channel-message.dto';
 import { CreateDirectMessageDto } from './direct-messages/dto/create-direct-message.dto';
 import { CreateDmMessageDto } from './direct-messages/dto/create-dm-message.dto';
+import { UpdateChannelDto } from './channels/dto/update-channel.dto';
 
 @Injectable()
 export class ChatService {
@@ -75,13 +76,12 @@ export class ChatService {
 		return await this.channelsService.findOne(res.id.toString());
 	}
 
-	async deleteChannel(channelId: string) {
-		const channel = await this.channelsService.remove(channelId);
+	async updateChannel(channelId: string, updateChannelDto: UpdateChannelDto) {
+		return await this.channelsService.update(channelId, updateChannelDto);
+	}
 
-		if (!channel) {
-			throw new Error('Invalid operation');
-		}
-		return channel;
+	async deleteChannel(channelId: string) {
+		return await this.channelsService.remove(channelId);
 	}
 
 	async addMessageToChannel(createChannelMessageDto: CreateChannelMessageDto) {

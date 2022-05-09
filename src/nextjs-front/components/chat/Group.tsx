@@ -13,7 +13,9 @@ import relationshipContext, { RelationshipContextType } from "../../context/rela
 export const GroupHeader: React.FC<{ viewParams: any }> = ({ viewParams }) => {
 	const channelId: string = viewParams.channelId;
 	const { user } = useSession();
-	const { socket, closeChat, openChatView, setChatView } = useContext(chatContext) as ChatContextType;
+	const { socket, closeChat, openChatView, setChatView, closeRightmostView } = useContext(chatContext) as ChatContextType;
+	const [channelName, setChannelName] = useState(viewParams.channelName);
+	const [privacy, setChannelPrivacy] = useState(viewParams.privacy);
 	const [userInChan, setUserInChan] = useState(false);
 	const actionTooltipStyles = "font-bold bg-dark text-neutral-200";
 
@@ -29,16 +31,27 @@ export const GroupHeader: React.FC<{ viewParams: any }> = ({ viewParams }) => {
 		}
 	};
 
+	const channelUpdatedListener = (channel: Channel) => {
+		setChannelName(channel.name);
+		setChannelPrivacy(channel.privacy);
+
+		if (!userInChan && (channel.privacy !== 'public')) {
+			closeRightmostView();
+		}
+	};
+
 	useEffect(() => {
 		socket.emit("getChannelData", { channelId });
 
 		/* Listeners */
 		socket.on("updateChannel", defineOptions);
 		socket.on("joinedChannel", userJoinedListener);
+		socket.on("channelUpdated", channelUpdatedListener);
 
 		return () => {
 			socket.off("updateChannel", defineOptions);
 			socket.off("joinedChannel", userJoinedListener);
+			socket.off("channelUpdated", channelUpdatedListener);
 		};
 	}, []);
 
@@ -68,7 +81,7 @@ export const GroupHeader: React.FC<{ viewParams: any }> = ({ viewParams }) => {
 						<button onClick={() => {
 							openChatView('group_users', 'group users', {
 									channelId: viewParams.channelId,
-									channelName: viewParams.channelName,
+									channelName,
 								}
 							)}}
 						>
@@ -78,8 +91,8 @@ export const GroupHeader: React.FC<{ viewParams: any }> = ({ viewParams }) => {
 					<button onClick={() => {
 						openChatView('group_settings', 'group settings', {
 								channelId: viewParams.channelId,
-								channelName: viewParams.channelName,
-								privacy: viewParams.privacy,
+								channelName,
+								privacy,
 							}
 						)}}
 						>
@@ -90,7 +103,7 @@ export const GroupHeader: React.FC<{ viewParams: any }> = ({ viewParams }) => {
 			</div>
 			<div className="flex flex-col items-center justify-center">
 				<h6 className="text-lg font-bold text-pink-600">
-					{viewParams.channelName}
+					{channelName}
 				</h6>
 			</div>
 		</Fragment>
@@ -162,7 +175,6 @@ const Group: React.FC<{ viewParams: { [key: string]: any } }> = ({
 				author: message.author.username,
 				displayAuthor: (!isMe && !isBlocked),
 				displayStyle: getMessageStyle(message.author.id),
-				
 			});
 			return newMessages;
 		});
@@ -187,7 +199,6 @@ const Group: React.FC<{ viewParams: { [key: string]: any } }> = ({
 		}
 	};
 
-
 	const userLeftListener = (res: { message: string }) => {
 		setMessages((prevMessages) => {
 			const newMessages: ChatMessage[] = [...prevMessages];
@@ -211,7 +222,7 @@ const Group: React.FC<{ viewParams: { [key: string]: any } }> = ({
 	};
 
 	/* Load all messages in channel */
-	const updateGroupView = async (channel: Channel) => {
+	const updateGroupView = (channel: Channel) => {
 		if ((channel.id !== channelId) || !channel.messages) return ;
 
 		setUserInChan(!!channel.users.find(
