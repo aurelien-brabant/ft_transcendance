@@ -40,18 +40,26 @@ export const GroupHeader: React.FC<{ viewParams: any }> = ({ viewParams }) => {
 		}
 	};
 
+	const channelDeletedListener = (deletedId: string) => {
+		if (deletedId === channelId) {
+			setChatView("groups", "Group chats", {});
+		}
+	};
+
 	useEffect(() => {
 		socket.emit("getChannelData", { channelId });
 
 		/* Listeners */
-		socket.on("updateChannel", defineOptions);
+		socket.on("channelData", defineOptions);
 		socket.on("joinedChannel", userJoinedListener);
 		socket.on("channelUpdated", channelUpdatedListener);
+		socket.on("channelDeleted", channelDeletedListener);
 
 		return () => {
-			socket.off("updateChannel", defineOptions);
+			socket.off("channelData", defineOptions);
 			socket.off("joinedChannel", userJoinedListener);
 			socket.off("channelUpdated", channelUpdatedListener);
+			socket.off("channelDeleted", channelDeletedListener);
 		};
 	}, []);
 
@@ -260,14 +268,14 @@ const Group: React.FC<{ viewParams: { [key: string]: any } }> = ({
 		socket.emit("getChannelData", { channelId });
 
 		/* Listeners */
-		socket.on("updateChannel", updateGroupView);
+		socket.on("channelData", updateGroupView);
 		socket.on("newGm", newGmListener);
 		socket.on("joinedChannel", userJoinedListener);
 		socket.on("leftChannel", userLeftListener);
 		socket.on("channelDeleted", channelDeletedListener);
 
 		return () => {
-			socket.off("updateChannel", updateGroupView);
+			socket.off("channelData", updateGroupView);
 			socket.off("newGm", newGmListener);
 			socket.off("joinedChannel", userJoinedListener);
 			socket.off("leftChannel", userLeftListener);

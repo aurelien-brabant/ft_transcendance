@@ -27,7 +27,7 @@ type UserSummary = {
 
 /* Header */
 export const GroupUsersHeader: React.FC<{ viewParams: any }> = ({ viewParams }) => {
-	const { closeChat, closeRightmostView, socket } = useContext(chatContext) as ChatContextType;
+	const { socket, closeChat, closeRightmostView } = useContext(chatContext) as ChatContextType;
 	const [peopleCount, setPeopleCount] = useState(0);
 
 	const updatePeopleCount = (channel: Channel) => {
@@ -38,12 +38,12 @@ export const GroupUsersHeader: React.FC<{ viewParams: any }> = ({ viewParams }) 
 		socket.emit("getChannelData", { channelId: viewParams.channelId });
 
 		/* Listeners */
-		socket.on("updateChannel", updatePeopleCount);
+		socket.on("channelData", updatePeopleCount);
 		socket.on("joinedChannel", updatePeopleCount);
 		socket.on("leftChannel", updatePeopleCount);
 
 		return () => {
-			socket.off("updateChannel", updatePeopleCount);
+			socket.off("channelData", updatePeopleCount);
 			socket.off("joinedChannel", updatePeopleCount);
 			socket.off("leftChannel", updatePeopleCount);
 		};
@@ -266,10 +266,10 @@ const GroupUsers: React.FC<{ viewParams: any }> = ({ viewParams }) => {
 		socket.emit("getChannelData", { channelId });
 
 		/* Listeners */
-		socket.on("updateChannel", defineUserList);
+		socket.on("channelData", defineUserList);
 
 		return () => {
-			socket.off("updateChannel", defineUserList);
+			socket.off("channelData", defineUserList);
 		};
 	}, [users]);
 

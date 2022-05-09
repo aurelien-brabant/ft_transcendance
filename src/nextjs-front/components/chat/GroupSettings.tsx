@@ -55,10 +55,11 @@ export const GroupSettingsHeader: React.FC<{ viewParams: any }> = ({ viewParams 
 const GroupSettings: React.FC<{ viewParams: any }> = ({ viewParams }) => {
 	const channelId: string = viewParams.channelId;
 	const { user } = useSession();
-	const { socket, setChatView, closeRightmostView } = useContext(chatContext) as ChatContextType;
+	const { socket, closeRightmostView } = useContext(chatContext) as ChatContextType;
 	const [ownerView, setOwnerView] = useState(false);
 	const [userInChan, setUserInChan] = useState(false);
-	const [peopleCount, setPeopleCount] = useState(0);
+	const [channelName, setChannelName] = useState(viewParams.channelName);
+	const [privacy, setChannelPrivacy] = useState<string>(viewParams.privacy);
 	const inputGroupClassName = "flex flex-col gap-y-2";
 	const inputClassName = "px-2 py-1 border border-pink-600 bg-transparent outline-none";
 	const labelClassName = "text-xs text-neutral-200 uppercase";
@@ -132,6 +133,7 @@ const GroupSettings: React.FC<{ viewParams: any }> = ({ viewParams }) => {
 		socket.emit("deleteChannel", {
 			channelId
 		});
+		closeRightmostView();
 	};
 
 	/* USER
@@ -142,38 +144,40 @@ const GroupSettings: React.FC<{ viewParams: any }> = ({ viewParams }) => {
 			userId: user.id,
 			channelId
 		});
-		closeRightmostView(2);
+		if (privacy === 'protected') {
+			closeRightmostView(3);
+		} else {
+			closeRightmostView(2);
+		}
 	};
 
 	/* Listeners */
 	const updateChannelData = (channel: Channel) => {
+		setChannelName(channel.name);
+		setChannelPrivacy(channel.privacy);
+	};
+
+	const defineChannelSettings = (channel: Channel) => {
 		setOwnerView(channel.owner.id === user.id);
-		setPeopleCount(channel.users.length);
 		setUserInChan(!!channel.users.find(
 			(chanUser) => { return chanUser.id === user.id; }
 		));
-	};
-
-	const channelDisbandedListener = (deletedId: string) => {
-		if (deletedId === channelId) {
-			setChatView("groups", "Group chats", {});
-		}
 	};
 
 	useEffect(() => {
 		socket.emit("getChannelData", { channelId });
 
 		/* Listeners */
-		socket.on("updateChannel", updateChannelData);
-		socket.on("channelDeleted", channelDisbandedListener);
+		socket.on("channelData", defineChannelSettings);
+		socket.on("channelUpdated", updateChannelData);
 
 		return () => {
-			socket.off("updateChannel", updateChannelData);
-			socket.off("channelDeleted", channelDisbandedListener);
+			socket.off("channelData", defineChannelSettings);
+			socket.off("channelUpdated", updateChannelData);
 		};
 	}, []);
 
-	if (ownerView) { // tmp
+	if (ownerView) {
 		return (
 			<div className="flex flex-col h-full px-5 py-5 overflow-y-auto gap-y-4">
 				<h6 className="text-xl">Update group</h6>
@@ -282,15 +286,11 @@ const GroupSettings: React.FC<{ viewParams: any }> = ({ viewParams }) => {
 				<div className="">
 					<div className="flex justify-between">
 						<span>Name</span>
-						<span>{viewParams.channelName}</span>
+						<span>{channelName}</span>
 					</div>
 					<div className="flex justify-between">
-						<span>Visibility</span>
-						<span>{viewParams.privacy}</span>
-					</div>
-					<div className="flex justify-between">
-						<span>Members</span>
-						<span>{peopleCount}</span>
+						<span>Privacy level</span>
+						<span>{privacy}</span>
 					</div>
 				</div>
 				{userInChan &&

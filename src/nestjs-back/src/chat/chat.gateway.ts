@@ -97,7 +97,7 @@ export class ChatGateway implements OnGatewayInit, OnGatewayConnection {
 		const channel = await this.chatService.getChannelData(channelId);
 
 		this.chatUsers.userJoinRoom(client, `channel_${channel.id}`);
-		this.server.to(client.id).emit('updateChannel', (channel));
+		this.server.to(client.id).emit('channelData', (channel));
 	}
 
 	/* Create/delete/update */
@@ -111,11 +111,11 @@ export class ChatGateway implements OnGatewayInit, OnGatewayConnection {
 			const roomId = `channel_${channel.id}`;
 
 			this.chatUsers.userJoinRoom(client, roomId);
-			this.server.to(roomId).emit('channelCreated', (channel));
-
 			/* If the channel is visible to everyone, inform every client */
 			if (channel.privacy !== 'private') {
 				this.server.emit('channelCreated', (channel));
+			} else {
+				this.server.to(roomId).emit('channelCreated', (channel));
 			}
 		} catch (e) {
 			this.server.to(client.id).emit('chatError', e.message);
@@ -133,11 +133,11 @@ export class ChatGateway implements OnGatewayInit, OnGatewayConnection {
 			const channel = await this.chatService.updateChannel(id, data);
 			const roomId = `channel_${channel.id}`;
 
-			this.server.to(roomId).emit('channelUpdated', (channel));
-
 			/* If the channel is visible to everyone, inform every client */
 			if (channel.privacy !== 'private') {
 				this.server.emit('channelUpdated', (channel));
+			} else {
+				this.server.to(roomId).emit('channelUpdated', (channel));
 			}
 		} catch (e) {
 			this.server.to(client.id).emit('chatError', e.message);
@@ -152,11 +152,11 @@ export class ChatGateway implements OnGatewayInit, OnGatewayConnection {
 		try {
 			const channel = await this.chatService.deleteChannel(channelId);
 
-			this.server.to(`channel_${channelId}`).emit('channelDeleted', channelId);
-
 			/* If the channel is visible to everyone, inform every client */
 			if (channel.privacy !== 'private') {
-				this.server.emit('channelDeleted', (channel));
+				this.server.emit('channelDeleted', channelId);
+			} else {
+				this.server.to(`channel_${channelId}`).emit('channelDeleted', channelId);
 			}
 		} catch (e) {
 			this.server.to(client.id).emit('chatError', e.message);
@@ -171,9 +171,10 @@ export class ChatGateway implements OnGatewayInit, OnGatewayConnection {
 	) {
 		try {
 			const message = await this.chatService.addMessageToChannel(data);
+			const channel = message.channel;
 
-			this.server.to(`channel_${message.channel.id}`).emit('newGm', { message });
-			this.logger.log(`New message in Channel [${message.channel.id}]`);
+			this.server.to(`channel_${channel.id}`).emit('newGm', { message });
+			this.logger.log(`New message in Channel [${channel.id}]`);
 		} catch (e) {
 			this.server.to(client.id).emit('chatError', e.message);
 		}
@@ -187,6 +188,7 @@ export class ChatGateway implements OnGatewayInit, OnGatewayConnection {
 	) {
 		try {
 			const user = await this.chatService.addUserToChannel(userId, channelId);
+			const channel = await this.chatService.getChannelData(channelId);
 			const roomId = `channel_${channelId}`;
 			const res = {
 				message: `${user.username} joined group`,
@@ -195,6 +197,11 @@ export class ChatGateway implements OnGatewayInit, OnGatewayConnection {
 
 			this.chatUsers.userJoinRoom(client, roomId);
 			this.server.to(roomId).emit('joinedChannel', res);
+
+			/* If the channel is visible to everyone, inform every client */
+			if (channel.privacy !== 'private') {
+				this.server.emit('channelUsersUpdated', (channel));
+			}
 		} catch (e) {
 			this.server.to(client.id).emit('chatError', e.message);
 		}
@@ -207,6 +214,7 @@ export class ChatGateway implements OnGatewayInit, OnGatewayConnection {
 	) {
 		try {
 			const user = await this.chatService.removeUserFromChannel(userId, channelId);
+			const channel = await this.chatService.getChannelData(channelId);
 			const roomId = `channel_${channelId}`;
 			const res = {
 				message: `${user.username} left group`,
@@ -214,6 +222,11 @@ export class ChatGateway implements OnGatewayInit, OnGatewayConnection {
 
 			this.chatUsers.userLeaveRoom(client, roomId);
 			this.server.to(roomId).emit('leftChannel', res);
+
+			/* If the channel is visible to everyone, inform every client */
+			if (channel.privacy !== 'private') {
+				this.server.emit('channelUsersUpdated', (channel));
+			}
 		} catch (e) {
 			this.server.to(client.id).emit('chatError', e.message);
 		}
@@ -222,27 +235,20 @@ export class ChatGateway implements OnGatewayInit, OnGatewayConnection {
 	@SubscribeMessage('joinProtected')
 	async handleJoinProtectedChannel(
 		@ConnectedSocket() client: Socket,
-		@MessageBody() { userId, channelId, password }: { 
+		@MessageBody() { userId, channelId, password }: {
 			userId: string, channelId: string, password: string
 		}
 	) {
 		try {
+			/* If password is wrong, raise an Error */
 			await this.chatService.checkChannelPassword(channelId, password);
 
-			const roomId = `channel_${channelId}`;
 			const isInChan = await this.chatService.userIsInChannel(userId, channelId);
 
 			if (!isInChan) {
-				const user = await this.chatService.addUserToChannel(userId, channelId);
-				const res = {
-					message: `${user.username} joined group`,
-					userId: userId,
-				};
-
-				this.server.to(roomId).emit('joinedChannel', res);
+				this.handleJoinChannel(client, { userId, channelId });
 			}
 			this.server.to(client.id).emit('joinedProtected');
-			this.chatUsers.userJoinRoom(client, roomId);
 		} catch (e) {
 			this.server.to(client.id).emit('chatError', e.message);
 		}
@@ -285,7 +291,7 @@ export class ChatGateway implements OnGatewayInit, OnGatewayConnection {
 			const dm = await this.chatService.createDm(data);
 			const roomId = `dm_${dm.id}`;
 
-			// TODO
+			// TODO: inform friend if connected
 			// const friend = this.chatUsers.getUserById(data.users[1].id.toString());
 			// const friendSocket = (await this.server.fetchSockets()).find(socket => socket.id === friend.socketId);
 

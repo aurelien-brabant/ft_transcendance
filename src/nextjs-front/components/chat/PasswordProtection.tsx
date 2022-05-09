@@ -31,7 +31,7 @@ export const PasswordProtectionHeader: React.FC<{ viewParams: any }> = ({ viewPa
 /* Password prompt */
 const PasswordProtection: React.FC<{ viewParams: any }> = ({ viewParams }) => {
 	const { user } = useSession();
-	const { socket, setChatView } = useContext(chatContext) as ChatContextType;
+	const { socket, openChatView } = useContext(chatContext) as ChatContextType;
 
 	/* Check password is correct */
 	const handleSubmit = (e: React.FormEvent<HTMLFormElement>) => {
@@ -46,7 +46,7 @@ const PasswordProtection: React.FC<{ viewParams: any }> = ({ viewParams }) => {
 	};
 
 	const joinedProtectedListener = () => {
-		setChatView('group', viewParams.groupName, { ...viewParams });
+		openChatView('group', viewParams.channelName, { ...viewParams });
 	};
 
 	useEffect(() => {
