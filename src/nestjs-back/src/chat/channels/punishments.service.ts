@@ -1,12 +1,12 @@
 import { Injectable } from "@nestjs/common";
 import { InjectRepository } from "@nestjs/typeorm";
 import { Repository } from "typeorm";
-import { Channel } from "diagnostics_channel";
+import { Channel } from "./entities/channels.entity";
 import { UsersService } from "src/users/users.service";
 import { ChannelPunishment, PunishmentType } from "./entities/punishment.entity";
 
 type PunishmentOptions = {
-    durationInSeconds?: number;
+    // durationInSeconds?: number;
     reason?: string;
 }
 
@@ -49,16 +49,18 @@ export class PunishmentsService {
             throw new Error(`Could not punish user: no user with id ${punishedUserId}`);
         }
 
+        const durationInSeconds = channel.restrictionDuration * 60;
         const punishmentStartDate = new Date();
-        const punishmentEndDate = options.durationInSeconds ? new Date(punishmentStartDate.getTime() + options.durationInSeconds * 1000) : null;
+        const punishmentEndDate = new Date(punishmentStartDate.getTime() + durationInSeconds * 1000);
 
         const punishment = this.channelPunishmentRepository.create({
             channel,
-            durationInSeconds: options.durationInSeconds,
-            startsAt: punishmentStartDate,
-            endsAt: punishmentEndDate,
             punishedUser: punishedUser,
             punishedByUser: punisherUser,
+            startsAt: punishmentStartDate,
+            endsAt: punishmentEndDate,
+            durationInSeconds,
+            type,
             reason: options.reason
         })
 

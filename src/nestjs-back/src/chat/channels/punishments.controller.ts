@@ -27,7 +27,6 @@ export class ChannelPunishmentsController {
         }
 
         return this.channelPunishmentService.punishUser(channelId, punishedId, punisherId, 'mute', {
-            durationInSeconds: 120,
             reason: 'Un méchant garçon, à n\'en point douter.'
         })
     }

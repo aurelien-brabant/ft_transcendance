@@ -299,6 +299,9 @@ export class ChatGateway implements OnGatewayInit, OnGatewayConnection {
 		}
 	) {
 		try {
+			if (adminId === userId) {
+				throw new Error('punisherId should be different from punishedId');
+			}
 			await this.chatService.checkPrivileges(adminId, channelId);
 			await this.chatService.punishUser(adminId, channelId, userId);
 
