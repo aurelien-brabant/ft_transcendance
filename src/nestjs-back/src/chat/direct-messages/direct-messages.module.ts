@@ -3,13 +3,26 @@ import { TypeOrmModule } from '@nestjs/typeorm';
 import { DirectMessage } from './entities/direct-messages';
 import { DirectMessagesService } from './direct-messages.service';
 import { DirectMessagesController } from 'src/chat/direct-messages/direct-messages.controller';
-import { DmMessagesModule } from 'src/chat/direct-messages/messages/dm-messages.module';
+import { DmMessage } from './entities/dm-messages.entity';
+import { DmMessagesService } from './dm-messages.service';
 import { UsersModule } from 'src/users/users.module';
 
 @Module({
-  imports: [TypeOrmModule.forFeature([DirectMessage]), DmMessagesModule, UsersModule],
+  imports: [
+    UsersModule,
+    TypeOrmModule.forFeature([
+      DirectMessage,
+      DmMessage
+    ])
+  ],
   controllers: [DirectMessagesController],
-  providers: [DirectMessagesService],
-  exports: [DirectMessagesService]
+  providers: [
+    DirectMessagesService,
+    DmMessagesService
+  ],
+  exports: [
+    DirectMessagesService,
+    DmMessagesService
+  ]
 })
 export class DirectMessagesModule {}

@@ -6,7 +6,7 @@ import chatContext, { ChatContextType, ChatGroupPrivacy } from "../../context/ch
 /* All DM conversations tab */
 const DirectMessages: React.FC<{ viewParams: Object; }> = ({ viewParams }) => {
 	const { user } = useSession();
-	const { openChatView, directMessages } = useContext(chatContext) as ChatContextType;
+	const { socket, directMessages, openChatView } = useContext(chatContext) as ChatContextType;
 	const [filteredDms, setFilteredDms] = useState(directMessages);
 	const [visiblityFilter, setVisiblityFilter] = useState<ChatGroupPrivacy | null>(null);
 	const searchInputRef = useRef<HTMLInputElement>(null);
@@ -30,6 +30,19 @@ const DirectMessages: React.FC<{ viewParams: Object; }> = ({ viewParams }) => {
 	useEffect(() => {
 		setFilteredDms(directMessages);
 	}, [directMessages]);
+
+	const dmsChangeListener = () => {
+		socket.emit("getUserDms", { userId: user.id });
+	};
+
+	useEffect(() => {
+		/* Listeners */
+		socket.on("newDm", dmsChangeListener);
+
+		return () => {
+			socket.off("newDm", dmsChangeListener);
+		};
+	}, []);
 
 	return (
 		<Fragment>

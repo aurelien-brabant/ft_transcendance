@@ -6,12 +6,11 @@ import {
     OneToMany,
     PrimaryGeneratedColumn
 } from "typeorm";
-
-import { DirectMessage } from "src/chat/direct-messages/entities/direct-messages";
-import { Channel} from 'src/chat/channels/entities/channels.entity';
-import { Game} from "src/games/entities/games.entity";
-import { Achievement } from "src/achievements/entities/achievements.entity";
+import { Channel } from 'src/chat/channels/entities/channels.entity';
 import { ChannelPunishment } from "src/chat/channels/entities/punishment.entity";
+import { DirectMessage } from "src/chat/direct-messages/entities/direct-messages";
+import { Game } from "src/games/entities/games.entity";
+import { Achievement } from "src/achievements/entities/achievements.entity";
 
 @Entity()
 export class User {

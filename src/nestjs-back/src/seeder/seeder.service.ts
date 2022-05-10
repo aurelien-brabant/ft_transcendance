@@ -48,9 +48,6 @@ export class SeederService {
             pendingFriendsSent: [],
             pendingFriendsReceived: [],
             blockedUsers: [],
-            ownedChannels: [],
-            joinedChannels: [],
-            directMessages: [],
         });
         user = await this.usersService.update(user.id.toString(), {
             username: username,

@@ -5,7 +5,7 @@ import {
   OneToMany,
   PrimaryGeneratedColumn
 } from "typeorm";
-import { DmMessage } from 'src/chat/direct-messages/messages/entities/dm-messages.entity';
+import { DmMessage } from 'src/chat/direct-messages/entities/dm-messages.entity';
 import { User } from "src/users/entities/users.entity";
 
 @Entity()

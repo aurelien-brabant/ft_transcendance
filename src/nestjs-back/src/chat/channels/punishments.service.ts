@@ -1,8 +1,8 @@
 import { Injectable } from "@nestjs/common";
 import { InjectRepository } from "@nestjs/typeorm";
+import { Repository } from "typeorm";
 import { Channel } from "diagnostics_channel";
 import { UsersService } from "src/users/users.service";
-import { Repository } from "typeorm";
 import { ChannelPunishment, PunishmentType } from "./entities/punishment.entity";
 
 type PunishmentOptions = {
@@ -94,7 +94,6 @@ export class PunishmentsService {
         .orderBy('punishment.startsAt', 'DESC')
         .getMany()
 
-
         return userPunishments;
     }
 
@@ -124,7 +123,6 @@ export class PunishmentsService {
                 ...(options.onlyType ? { punishmentType: options.onlyType } : {})
             })
         .getCount()
-
 
         return punishmentCount > 0;
     }

@@ -13,7 +13,15 @@ import relationshipContext, { RelationshipContextType } from "../../context/rela
 export const GroupHeader: React.FC<{ viewParams: any }> = ({ viewParams }) => {
 	const channelId: string = viewParams.channelId;
 	const { user } = useSession();
-	const { socket, closeChat, openChatView, setChatView } = useContext(chatContext) as ChatContextType;
+	const {
+		socket,
+		closeChat,
+		openChatView,
+		setChatView,
+		closeRightmostView
+	} = useContext(chatContext) as ChatContextType;
+	const [channelName, setChannelName] = useState(viewParams.channelName);
+	const [privacy, setChannelPrivacy] = useState(viewParams.privacy);
 	const [userInChan, setUserInChan] = useState(false);
 	const actionTooltipStyles = "font-bold bg-dark text-neutral-200";
 
@@ -21,6 +29,21 @@ export const GroupHeader: React.FC<{ viewParams: any }> = ({ viewParams }) => {
 		setUserInChan(!!channel.users.find(
 			(chanUser) => { return chanUser.id === user.id;}
 		));
+	};
+
+	const channelUpdatedListener = (channel: Channel) => {
+		setChannelName(channel.name);
+		setChannelPrivacy(channel.privacy);
+
+		if (!userInChan && (channel.privacy !== 'public')) {
+			closeRightmostView();
+		}
+	};
+
+	const channelDeletedListener = (deletedId: string) => {
+		if (deletedId === channelId) {
+			setChatView("groups", "Group chats", {});
+		}
 	};
 
 	const userJoinedListener = (res: { message: string, userId: string }) => {
@@ -33,11 +56,15 @@ export const GroupHeader: React.FC<{ viewParams: any }> = ({ viewParams }) => {
 		socket.emit("getChannelData", { channelId });
 
 		/* Listeners */
-		socket.on("updateChannel", defineOptions);
+		socket.on("channelData", defineOptions);
+		socket.on("channelUpdated", channelUpdatedListener);
+		socket.on("channelDeleted", channelDeletedListener);
 		socket.on("joinedChannel", userJoinedListener);
 
 		return () => {
-			socket.off("updateChannel", defineOptions);
+			socket.off("channelData", defineOptions);
+			socket.off("channelUpdated", channelUpdatedListener);
+			socket.off("channelDeleted", channelDeletedListener);
 			socket.off("joinedChannel", userJoinedListener);
 		};
 	}, []);
@@ -68,7 +95,7 @@ export const GroupHeader: React.FC<{ viewParams: any }> = ({ viewParams }) => {
 						<button onClick={() => {
 							openChatView('group_users', 'group users', {
 									channelId: viewParams.channelId,
-									channelName: viewParams.channelName,
+									channelName,
 								}
 							)}}
 						>
@@ -78,8 +105,8 @@ export const GroupHeader: React.FC<{ viewParams: any }> = ({ viewParams }) => {
 					<button onClick={() => {
 						openChatView('group_settings', 'group settings', {
 								channelId: viewParams.channelId,
-								channelName: viewParams.channelName,
-								privacy: viewParams.privacy,
+								channelName,
+								privacy,
 							}
 						)}}
 						>
@@ -90,7 +117,7 @@ export const GroupHeader: React.FC<{ viewParams: any }> = ({ viewParams }) => {
 			</div>
 			<div className="flex flex-col items-center justify-center">
 				<h6 className="text-lg font-bold text-pink-600">
-					{viewParams.channelName}
+					{channelName}
 				</h6>
 			</div>
 		</Fragment>
@@ -101,12 +128,13 @@ export const GroupHeader: React.FC<{ viewParams: any }> = ({ viewParams }) => {
 const Group: React.FC<{ viewParams: { [key: string]: any } }> = ({
 	viewParams,
 }) => {
-	const channelId = viewParams.channelId;
+	const channelId: string = viewParams.channelId;
 	const { user } = useSession();
 	const { socket, setChatView, getMessageStyle } = useContext(chatContext) as ChatContextType;
 	const { blocked } = useContext(relationshipContext) as RelationshipContextType;
 	const [messages, setMessages] = useState<ChatMessage[]>([]);
 	const [currentMessage, setCurrentMessage] = useState("");
+	const [sendingEnabled, setSendingEnabled] = useState(false);
 	const [userInChan, setUserInChan] = useState(false);
 	const chatBottom = useRef<HTMLDivElement>(null);
 
@@ -118,27 +146,105 @@ const Group: React.FC<{ viewParams: { [key: string]: any } }> = ({
 	};
 
 	/* Send new message */
-	const handleGroupMessageSubmit = async () => {
+	const handleGmSubmit = async () => {
 		if (currentMessage.trim().length === 0) return;
 
 		console.log('[Chat] Submit group message');
 
 		socket.emit('gmSubmit', {
 			content: currentMessage,
-			from: user.id,
-			channelId
+			author: { "id": user.id },
+			channel: { "id": channelId },
 		});
 		setCurrentMessage("");
 	};
 
-	/* Scroll to bottom if new message is sent */
-	useEffect(() => {
-		chatBottom.current?.scrollIntoView();
-	}, [messages]);
+	const handleChange = (
+		e: React.ChangeEvent<HTMLTextAreaElement>
+	) => {
+		const len = e.target.value.trim().length;
+
+		if ((len === 0) || (len > 640)) {
+			setSendingEnabled(false);
+		} else {
+			setSendingEnabled(true);
+		}
+		setCurrentMessage(e.target.value);
+	};
+
+	/* Listeners */
+	const channelDeletedListener = (deletedId: string) => {
+		if (deletedId === channelId) {
+			setChatView("groups", "Group chats", {});
+		}
+	};
+
+	/* Receive new message */
+	const newGmListener = ({ message }: { message: Message }) => {
+		console.log(`[Chat] Receive new message in [${message.channel.name}]`);
+
+		setMessages((prevMessages) => {
+			const newMessages: ChatMessage[] = [...prevMessages];
+
+			const isBlocked = !!blocked.find(blockedUser => blockedUser.id === message.author.id);
+			const isMe = (message.author.id === user.id);
+
+			newMessages.push({
+				id: prevMessages.length.toString(),
+				createdAt: message.createdAt,
+				content: isBlocked ? "Blocked message" : message.content,
+				author: message.author.username,
+				displayAuthor: (!isMe && !isBlocked),
+				displayStyle: getMessageStyle(message.author.id),
+			});
+			return newMessages;
+		});
+	};
+
+	const userJoinedListener = (res: { message: string, userId: string }) => {
+		setMessages((prevMessages) => {
+			const newMessages: ChatMessage[] = [...prevMessages];
+
+			newMessages.push({
+				id: prevMessages.length.toString(),
+				createdAt: new Date(Date.now()),
+				content: res.message,
+				author: "bot",
+				displayAuthor: false,
+				displayStyle: "self-center text-gray-500",
+			});
+			return newMessages;
+		});
+		if (res.userId === user.id) {
+			setUserInChan(true);
+		}
+	};
+
+	const userLeftListener = (message: string) => {
+		setMessages((prevMessages) => {
+			const newMessages: ChatMessage[] = [...prevMessages];
+
+			newMessages.push({
+				id: prevMessages.length.toString(),
+				createdAt: new Date(Date.now()),
+				content: message,
+				author: "bot",
+				displayAuthor: false,
+				displayStyle: "self-center text-gray-500",
+			});
+			return newMessages;
+		});
+	};
+
+	const userPunishedListener = (message: string) => {
+		console.log('[Group] User punished');
+		setChatView("groups", "Group chats", {});
+	}
 
 	/* Load all messages in channel */
-	const updateGroupView = async (channel: Channel) => {
+	const updateGroupView = (channel: Channel) => {
 		if ((channel.id !== channelId) || !channel.messages) return ;
+		console.log('[Group] Update view');
 
 		setUserInChan(!!channel.users.find(
 			(chanUser) => { return chanUser.id === user.id;}
@@ -166,86 +272,29 @@ const Group: React.FC<{ viewParams: { [key: string]: any } }> = ({
 		setMessages(messages);
 	};
 
-	/* Receive new message */
-	const newGmListener = ({ message }: { message: Message }) => {
-		console.log(`[Chat] Receive new message in [${message.channel.name}]`);
-
-		setMessages((prevMessages) => {
-			const newMessages: ChatMessage[] = [...prevMessages];
-
-			const isBlocked = !!blocked.find(blockedUser => blockedUser.id === message.author.id);
-			const isMe = (message.author.id === user.id);
-
-			newMessages.push({
-				id: prevMessages.length.toString(),
-				createdAt: message.createdAt,
-				content: isBlocked ? "Blocked message" : message.content,
-				author: message.author.username,
-				displayAuthor: (!isMe && !isBlocked),
-				displayStyle: getMessageStyle(message.author.id),
-				
-			});
-			return newMessages;
-		});
-	};
-
-	const userJoinedListener = (res: { message: string, userId: string }) => {
-		setMessages((prevMessages) => {
-			const newMessages: ChatMessage[] = [...prevMessages];
-
-			newMessages.push({
-				id: prevMessages.length.toString(),
-				createdAt: new Date(Date.now()),
-				content: res.message,
-				author: "bot",
-				displayAuthor: false,
-				displayStyle: "self-center text-gray-500",
-			});
-			return newMessages;
-		});
-		if (res.userId === user.id) {
-			setUserInChan(true);
-		}
-	};
-
-	const userLeftListener = (res: { message: string }) => {
-		setMessages((prevMessages) => {
-			const newMessages: ChatMessage[] = [...prevMessages];
-
-			newMessages.push({
-				id: prevMessages.length.toString(),
-				createdAt: new Date(Date.now()),
-				content: res.message,
-				author: "bot",
-				displayAuthor: false,
-				displayStyle: "self-center text-gray-500",
-			});
-			return newMessages;
-		});
-	};
-
-	const channelDeletedListener = (deletedId: string) => {
-		if (deletedId === channelId) {
-			setChatView("groups", "Group chats", {});
-		}
-	};
+	/* Scroll to bottom if new message is sent */
+	useEffect(() => {
+		chatBottom.current?.scrollIntoView();
+	}, [messages]);
 
 	useEffect(() => {
 		socket.emit("getChannelData", { channelId });
 
 		/* Listeners */
-		socket.on("updateChannel", updateGroupView);
+		socket.on("channelData", updateGroupView);
+		socket.on("channelDeleted", channelDeletedListener);
 		socket.on("newGm", newGmListener);
 		socket.on("joinedChannel", userJoinedListener);
 		socket.on("leftChannel", userLeftListener);
-		socket.on("channelDeleted", channelDeletedListener);
+		socket.on("chatPunishment", userPunishedListener);
 
 		return () => {
-			socket.off("updateChannel", updateGroupView);
+			socket.off("channelData", updateGroupView);
+			socket.off("channelDeleted", channelDeletedListener);
 			socket.off("newGm", newGmListener);
 			socket.off("joinedChannel", userJoinedListener);
 			socket.off("leftChannel", userLeftListener);
-			socket.off("channelDeleted", channelDeletedListener);
+			socket.off("chatPunishment", userPunishedListener);
 		};
 	}, []);
 
@@ -270,25 +319,35 @@ const Group: React.FC<{ viewParams: { [key: string]: any } }> = ({
 				))}
 				<div ref={chatBottom} />
 			</div>
-				{userInChan
-					? <div className="absolute inset-x-0 bottom-0 border-t-2 border-gray-800 min-h-[13%] flex gap-x-2 items-center px-8 py-2 bg-dark drop-shadow-md">
-							<textarea
-								placeholder="Your message"
-								className="p-2 bg-transparent border border-pink-600 resize-none grow outline-0"
-								value={currentMessage}
-								onChange={(e) => {
-									setCurrentMessage(e.target.value);
-								}}
-							/>
-							<button onClick={handleGroupMessageSubmit} className="self-stretch px-3 py-2 text-lg text-white uppercase bg-pink-600 rounded">
-								<FiSend />
-							</button>
-						</div>
-					: <div className="absolute inset-x-0 bottom-0 border-t-2 border-gray-800 min-h-[13%] flex gap-x-2 items-center justify-center px-8 py-2 bg-dark drop-shadow-md">
-							<button className="px-2 py-1 text-sm font-bold uppercase bg-pink-600 rounded" onClick={() => { joinGroup(); }}>
-								Join Group
-							</button>
-						</div>
+				{userInChan ?
+				<div className="absolute inset-x-0 bottom-0 border-t-2 border-gray-800 min-h-[13%] flex gap-x-2 items-center px-8 py-2 bg-dark drop-shadow-md">
+					<textarea
+						placeholder="Your message"
+						className="p-2 bg-transparent border border-pink-600 resize-none grow outline-0"
+						value={currentMessage}
+						onChange={handleChange}
+					/>
+					{sendingEnabled ?
+					<button
+						onClick={handleGmSubmit}
+						className="self-stretch px-3 py-2 text-lg text-white uppercase bg-pink-600 rounded"
+						>
+						<FiSend />
+					</button>
+					:
+					<button
+						className="self-stretch px-3 py-2 text-lg text-white uppercase bg-pink-900 rounded"
+					>
+						<FiSend />
+					</button>
+					}
+				</div>
+				:
+				<div className="absolute inset-x-0 bottom-0 border-t-2 border-gray-800 min-h-[13%] flex gap-x-2 items-center justify-center px-8 py-2 bg-dark drop-shadow-md">
+					<button className="px-2 py-1 text-sm font-bold uppercase bg-pink-600 rounded" onClick={() => { joinGroup(); }}>
+						Join Group
+					</button>
+				</div>
 				}
 		</div>
 	);

@@ -6,7 +6,10 @@ import {
 } from '@nestjs/common';
 import { DirectMessagesService } from './direct-messages.service';
 
-/* NOTE: tmp for debugging */
+/**
+ * Mostly built for test purposes, we should use the service with
+ * websockets exclusively.
+ */
 
 @Controller('direct-messages')
 export class DirectMessagesController {
@@ -14,7 +17,6 @@ export class DirectMessagesController {
     private readonly directMessagesService: DirectMessagesService
   ) {}
 
-  /* NOTE: for debugging
   @Get()
   findAll() {
     return this.directMessagesService.findAll();
@@ -24,5 +26,4 @@ export class DirectMessagesController {
   remove(@Param('id') id: string) {
     return this.directMessagesService.remove(id);
   }
-  */
 }

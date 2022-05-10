@@ -1,27 +1,36 @@
 import { Server, Socket } from 'socket.io';
-import { Logger } from '@nestjs/common';
+import { Logger, UseFilters, UsePipes, ValidationPipe } from '@nestjs/common';
 import {
 	ConnectedSocket,
 	MessageBody,
 	OnGatewayConnection,
-	// OnGatewayDisconnect,
 	OnGatewayInit,
 	SubscribeMessage,
 	WebSocketGateway,
 	WebSocketServer,
 } from '@nestjs/websockets';
 import { ChatService } from './chat.service';
-import { Channel } from './channels/entities/channels.entity';
-import { DirectMessage } from './direct-messages/entities/direct-messages';
 import { UserStatus } from 'src/games/class/Constants';
 import { ChatUser, ChatUsers } from './class/ChatUsers';
-import { User } from 'src/users/entities/users.entity';
+import { CreateChannelDto } from './channels/dto/create-channel.dto';
+import { CreateDirectMessageDto } from './direct-messages/dto/create-direct-message.dto';
+import { CreateChannelMessageDto } from './channels/dto/create-channel-message.dto';
+import { CreateDmMessageDto } from './direct-messages/dto/create-dm-message.dto';
+import { UpdateChannelDto } from './channels/dto/update-channel.dto';
+import { BadRequestTransformationFilter } from './chat-ws-exception-filter';
 
-@WebSocketGateway(
-	{
+@WebSocketGateway({
 		cors: true,
 		namespace: '/chat'
 	}
+)
+@UsePipes(
+	new ValidationPipe({
+		transform: true,
+		transformOptions: {
+			enableImplicitConversion: true
+		}
+	}),
 )
 export class ChatGateway implements OnGatewayInit, OnGatewayConnection {
 	@WebSocketServer() server: Server;
@@ -36,35 +45,28 @@ export class ChatGateway implements OnGatewayInit, OnGatewayConnection {
 		this.logger.log('[+] Init Chat Gateway');
 	}
 
+	/**
+	 * Users
+	 */
 	async handleConnection(@ConnectedSocket() client: Socket) {
 		this.logger.log(`Client connected: ${client.id}`);
 	}
 
-	/* TODO: handle disconnection at logout
-	async handleDisconnect(@ConnectedSocket() client: Socket) {
-		const user = this.chatUsers.getUser(client.id);
-
-		if (user) {
-			this.logger.log(`Remove user: [${user.id}][${user.username}]`);
-			this.chatUsers.removeUser(user);
-		}
-	}
-	*/
-
 	@SubscribeMessage('updateChatUser')
 	handleNewUser(
 		@ConnectedSocket() client: Socket,
-		@MessageBody() data: ChatUser
+		@MessageBody() newUser: ChatUser
 	) {
-		let user = this.chatUsers.getUserById(data.id.toString());
+		let user = this.chatUsers.getUserById(newUser.id.toString());
 
 		if (!user) {
-			user = new ChatUser(data.id, data.username, client.id);
+			user = new ChatUser(newUser.id, newUser.username, client.id);
+
 			user.setUserStatus(UserStatus.ONLINE);
 			this.chatUsers.addUser(user);
 		} else {
 			user.setSocketId(client.id);
-			user.setUsername(data.username);
+			user.setUsername(newUser.username);
 		}
 		this.logger.log(`Add user[${user.id}][${user.username}]`);
 		console.log(this.chatUsers); // debug
@@ -94,26 +96,52 @@ export class ChatGateway implements OnGatewayInit, OnGatewayConnection {
 		const channel = await this.chatService.getChannelData(channelId);
 
 		this.chatUsers.userJoinRoom(client, `channel_${channel.id}`);
-		this.server.to(client.id).emit('updateChannel', (channel));
+		this.server.to(client.id).emit('channelData', (channel));
 	}
 
+	/* Create/delete/update */
+	@UseFilters(new BadRequestTransformationFilter())
 	@SubscribeMessage('createChannel')
 	async handleCreateChannel(
 		@ConnectedSocket() client: Socket,
-		@MessageBody() data
+		@MessageBody() data: CreateChannelDto
 	) {
-		let channel: Channel;
-
 		try {
-			channel = await this.chatService.createChannel(data);
+			const channel = await this.chatService.createChannel(data)
+
+			const roomId = `channel_${channel.id}`;
+
+			this.chatUsers.userJoinRoom(client, roomId);
+			/* If the channel is visible to everyone, inform every client */
+			if (channel.privacy !== 'private') {
+				this.server.emit('channelCreated', (channel));
+			} else {
+				this.server.to(roomId).emit('channelCreated', (channel));
+			}
 		} catch (e) {
 			this.server.to(client.id).emit('chatError', e.message);
-			return ;
 		}
-		const roomId = `channel_${channel.id}`;
+	}
 
-		this.chatUsers.userJoinRoom(client, roomId);
-		this.server.to(roomId).emit('channelCreated', (channel));
+	@UseFilters(new BadRequestTransformationFilter())
+	@SubscribeMessage('updateChannel')
+	async handleUpdateChannel(
+		@ConnectedSocket() client: Socket,
+		@MessageBody() data: UpdateChannelDto
+	) {
+		try {
+			const channel = await this.chatService.updateChannel((data as any).id, data);
+			const roomId = `channel_${channel.id}`;
+
+			/* If the channel is visible to everyone, inform every client */
+			if (channel.privacy !== 'private') {
+				this.server.emit('channelUpdated', (channel));
+			} else {
+				this.server.to(roomId).emit('channelUpdated', (channel));
+			}
+		} catch (e) {
+			this.server.to(client.id).emit('chatError', e.message);
+		}
 	}
 
 	@SubscribeMessage('deleteChannel')
@@ -122,109 +150,195 @@ export class ChatGateway implements OnGatewayInit, OnGatewayConnection {
 		@MessageBody() { channelId }: { channelId: string }
 	) {
 		try {
-			await this.chatService.deleteChannel(channelId);
-			this.server.to(`channel_${channelId}`).emit('channelDeleted', channelId);
+			const channel = await this.chatService.deleteChannel(channelId);
+
+			/* If the channel is visible to everyone, inform every client */
+			if (channel.privacy !== 'private') {
+				this.server.emit('channelDeleted', channelId);
+			} else {
+				this.server.to(`channel_${channelId}`).emit('channelDeleted', channelId);
+			}
 		} catch (e) {
 			this.server.to(client.id).emit('chatError', e.message);
-			return ;
 		}
 	}
 
 	/* Save a new group message */
+	@UseFilters(new BadRequestTransformationFilter())
 	@SubscribeMessage('gmSubmit')
 	async handleGmSubmit(
 		@ConnectedSocket() client: Socket,
-		@MessageBody() { content, from, channelId }: {
-			content: string, from: number, channelId: string
-		}
+		@MessageBody() data: CreateChannelMessageDto
 	) {
-		const message = await this.chatService.addMessageToChannel(content, channelId, from.toString());
+		try {
+			const message = await this.chatService.addMessageToChannel(data);
+			const channel = message.channel;
 
-		this.logger.log(`user [${from}] sends message "${content}" on channel [${channelId}]`);
-		this.server.to(`channel_${channelId}`).emit('newGm', { message });
+			this.server.to(`channel_${channel.id}`).emit('newGm', { message });
+			this.logger.log(`New message in Channel [${channel.id}]`);
+		} catch (e) {
+			this.server.to(client.id).emit('chatError', e.message);
+		}
 	}
 
 	/* User joins/quits channel */
 	@SubscribeMessage('joinChannel')
 	async handleJoinChannel(
 		@ConnectedSocket() client: Socket,
-		@MessageBody() { userId, channelId }: {
-			userId: string, channelId: string
-		}
+		@MessageBody() { userId, channelId }: { userId: string, channelId: string }
 	) {
-		let user: User;
-
 		try {
-			user = await this.chatService.addUserToChannel(userId, channelId);
+			const user = await this.chatService.addUserToChannel(userId, channelId);
+			const channel = await this.chatService.getChannelData(channelId);
+			const roomId = `channel_${channelId}`;
+			const res = {
+				message: `${user.username} joined group`,
+				userId: userId,
+			};
+
+			this.chatUsers.userJoinRoom(client, roomId);
+			this.server.to(roomId).emit('joinedChannel', res);
+
+			/* If the channel is visible to everyone, inform every client */
+			if (channel.privacy !== 'private') {
+				this.server.emit('channelUsersUpdated', (channel)); // TODO
+			}
 		} catch (e) {
 			this.server.to(client.id).emit('chatError', e.message);
-			return ;
 		}
-
-		const roomId = `channel_${channelId}`;
-		const res = {
-			message: `${user.username} joined group`,
-			userId: userId,
-		};
-
-		this.chatUsers.userJoinRoom(client, roomId);
-		this.server.to(roomId).emit('joinedChannel', res);
 	}
 
 	@SubscribeMessage('leaveChannel')
 	async handleLeaveChannel(
 		@ConnectedSocket() client: Socket,
-		@MessageBody() { userId, channelId }: {
-			userId: string, channelId: string
-		}
+		@MessageBody() { userId, channelId }: { userId: string, channelId: string }
 	) {
-		let user: User;
-
 		try {
-			user = await this.chatService.removeUserFromChannel(userId, channelId);
+			const user = await this.chatService.removeUserFromChannel(userId, channelId);
+			const channel = await this.chatService.getChannelData(channelId);
+			const roomId = `channel_${channelId}`;
+
+			this.chatUsers.userLeaveRoom(client, roomId);
+			this.server.to(roomId).emit('leftChannel', `${user.username} left group`);
+
+			/* If the channel is visible to everyone, inform every client */
+			if (channel.privacy !== 'private') {
+				this.server.emit('channelUsersUpdated', (channel)); // TODO
+			}
 		} catch (e) {
 			this.server.to(client.id).emit('chatError', e.message);
-			return ;
 		}
-
-		const roomId = `channel_${channelId}`;
-		const res = {
-			message: `${user.username} left group`,
-		};
-
-		this.chatUsers.userLeaveRoom(client, roomId);
-		this.server.to(roomId).emit('leftChannel', res);
 	}
 
 	@SubscribeMessage('joinProtected')
 	async handleJoinProtectedChannel(
 		@ConnectedSocket() client: Socket,
-		@MessageBody() { userId, channelId, password }: { 
+		@MessageBody() { userId, channelId, password }: {
 			userId: string, channelId: string, password: string
 		}
 	) {
-		let user: User;
-		const roomId = `channel_${channelId}`;
-
 		try {
+			/* If password is wrong, raise an Error */
 			await this.chatService.checkChannelPassword(channelId, password);
 
 			const isInChan = await this.chatService.userIsInChannel(userId, channelId);
 
 			if (!isInChan) {
-				user = await this.chatService.addUserToChannel(userId, channelId);
-				const res = {
-					message: `${user.username} joined group`,
-					userId: userId,
-				};
-				this.server.to(roomId).emit('joinedChannel', res);
+				this.handleJoinChannel(client, { userId, channelId });
 			}
+			this.server.to(client.id).emit('joinedProtected');
+
+			// this.server.emit('channelUsersUpdated', (channel));
 		} catch (e) {
 			this.server.to(client.id).emit('chatError', e.message);
-			return ;
 		}
-		this.server.to(client.id).emit('joinedProtected');
-		this.chatUsers.userJoinRoom(client, roomId);
+	}
+
+	/* Roles */
+	@SubscribeMessage('makeAdmin')
+	async handleMakeAdmin(
+		@ConnectedSocket() client: Socket,
+		@MessageBody() { ownerId, channelId, userId }: {
+			ownerId: string, channelId: string, userId: string
+		}
+	) {
+		try {
+			await this.chatService.checkPrivileges(ownerId, channelId, true);
+			await this.chatService.addAdminToChannel(ownerId, channelId, userId);
+
+			this.server.to(client.id).emit('adminAdded');
+			this.logger.log(`User [${userId}] is now admin in Channel [${channelId}]`);
+		} catch (e) {
+			this.server.to(client.id).emit('chatError', e.message);
+		}
+	}
+
+	@SubscribeMessage('removeAdmin')
+	async handleRemoveAdmin(
+		@ConnectedSocket() client: Socket,
+		@MessageBody() { ownerId, channelId, userId }: {
+			ownerId: string, channelId: string, userId: string
+		}
+	) {
+		try {
+			await this.chatService.checkPrivileges(ownerId, channelId, true);
+			await this.chatService.removeAdminFromChannel(ownerId, channelId, userId);
+
+			this.server.to(client.id).emit('adminRemoved');
+			this.logger.log(`User [${userId}] no longer admin in Channel [${channelId}]`);
+		} catch (e) {
+			this.server.to(client.id).emit('chatError', e.message);
+		}
+	}
+
+	@SubscribeMessage('punishUser')
+	async handlePunishUser(
+		@ConnectedSocket() client: Socket,
+		@MessageBody() { adminId, channelId, userId }: {
+			adminId: string, channelId: string, userId: string
+		}
+	) {
+		try {
+			await this.chatService.checkPrivileges(adminId, channelId);
+			await this.chatService.punishUser(adminId, channelId, userId);
+
+			const userSocket = this.chatUsers.getUserById(userId);
+			const channel = await this.chatService.getChannelData(channelId);
+
+			this.server.to(client.id).emit('userPunished');
+			this.server.to(userSocket.socketId).emit('chatPunishment', `You have been banned from ${channel.name}.`);
+		} catch (e) {
+			this.server.to(client.id).emit('chatError', e.message);
+		}
+	}
+
+	@SubscribeMessage('kickUser')
+	async handleKickUser(
+		@ConnectedSocket() client: Socket,
+		@MessageBody() { adminId, channelId, userId }: {
+			adminId: string, channelId: string, userId: string
+		}
+	) {
+		try {
+			await this.chatService.checkPrivileges(adminId, channelId);
+			await this.chatService.removeUserFromChannel(userId, channelId);
+
+			const userSocket = this.chatUsers.getUserById(userId);
+			const channel = await this.chatService.getChannelData(channelId);
+			const roomId = `channel_${channelId}`;
+
+			// Tmp
+			// this.chatUsers.userLeaveRoom(kickedSocket, roomId);
+			this.server.to(roomId).emit('userKicked');
+			this.server.to(userSocket.socketId).emit('chatPunishment', `You have been kicked from ${channel.name}.`);
+			/* If the channel is visible to everyone, inform every client */
+			// if (channel.privacy !== 'private') {
+			// 	this.server.emit('channelUsersUpdated', (channel));
+			// }
+			this.logger.log(`User [${userId}] was kicked from Channel [${channelId}]`);
+		} catch (e) {
+			this.server.to(client.id).emit('chatError', e.message);
+		}
 	}
 
 	/**
@@ -255,33 +369,40 @@ export class ChatGateway implements OnGatewayInit, OnGatewayConnection {
 		this.server.to(client.id).emit('updateDm', (dm));
 	}
 
+	@UseFilters(new BadRequestTransformationFilter())
 	@SubscribeMessage('createDm')
 	async handleCreateDm(
 		@ConnectedSocket() client: Socket,
-		@MessageBody() data
+		@MessageBody() data: CreateDirectMessageDto
 	) {
-		let dm: DirectMessage;
-
 		try {
-			dm = await this.chatService.createDm(data);
+			const dm = await this.chatService.createDm(data);
+			const roomId = `dm_${dm.id}`;
+			const friend = this.chatUsers.getUserById(data.users[1].id.toString());
+			// const friendSocket = (await this.server.fetchSockets()).find(socket => socket.id === friend.socketId);
+
+			this.chatUsers.userJoinRoom(client, roomId);
+			this.server.to(roomId).emit('dmCreated', (dm));
+			this.server.to(friend.socketId).emit('dmCreated', (dm));
 		} catch (e) {
 			this.server.to(client.id).emit('chatError', e.message);
-			return ;
 		}
-		this.server.to(client.id).emit('dmCreated', (dm));
 	}
 
 	/* Save a new DM message */
+	@UseFilters(new BadRequestTransformationFilter())
 	@SubscribeMessage('dmSubmit')
 	async handleDmSubmit(
 		@ConnectedSocket() client: Socket,
-		@MessageBody() { content, from, dmId }: {
-			content: string, from: string, dmId: string
-		}
+		@MessageBody() data: CreateDmMessageDto
 	) {
-		const message = await this.chatService.addMessageToDm(content, dmId, from.toString());
+		try {
+			const message = await this.chatService.addMessageToDm(data);
 
-		this.server.to(`dm_${dmId}`).emit('newDm', { message });
-		this.logger.log(`New message in DM [${dmId}]`);
+			this.server.to(`dm_${message.dm.id}`).emit('newDm', { message });
+			this.logger.log(`New message in DM [${message.dm.id}]`);
+		} catch (e) {
+			this.server.to(client.id).emit('chatError', e.message);
+		}
 	}
 }

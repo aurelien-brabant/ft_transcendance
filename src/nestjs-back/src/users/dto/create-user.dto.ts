@@ -7,8 +7,6 @@ import {
   IsString
 } from 'class-validator';
 import { Type } from 'class-transformer';
-import { Channel } from 'src/chat/channels/entities/channels.entity';
-import { DirectMessage } from 'src/chat/direct-messages/entities/direct-messages';
 import { Game } from 'src/games/entities/games.entity';
 import { User } from '../entities/users.entity';
 
@@ -67,20 +65,4 @@ export class CreateUserDto {
     @IsArray()
     @Type(() => User)
     readonly blockedUsers: User[];
-
-    /* Chat */
-    @IsOptional()
-    @IsArray()
-    @Type(() => Channel)
-    readonly ownedChannels: Channel[];
-
-    @IsOptional()
-    @IsArray()
-    @Type(() => Channel)
-    readonly joinedChannels: Channel[];
-
-    @IsOptional()
-    @IsArray()
-    @Type(() => DirectMessage)
-    readonly directMessages: DirectMessage[];
 }

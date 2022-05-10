@@ -2,7 +2,6 @@ import { Fragment, useContext, useEffect, useState } from "react";
 import { AiOutlineArrowLeft, AiOutlineClose } from "react-icons/ai";
 import { Channel } from "transcendance-types";
 import { useSession } from "../../hooks/use-session";
-import alertContext, { AlertContextType } from "../../context/alert/alertContext";
 import chatContext, { ChatContextType, ChatGroupPrivacy } from "../../context/chat/chatContext";
 
 type updateGroupData = {
@@ -56,11 +55,11 @@ export const GroupSettingsHeader: React.FC<{ viewParams: any }> = ({ viewParams 
 const GroupSettings: React.FC<{ viewParams: any }> = ({ viewParams }) => {
 	const channelId: string = viewParams.channelId;
 	const { user } = useSession();
-	const { setAlert } = useContext(alertContext) as AlertContextType;
 	const { socket, setChatView, closeRightmostView } = useContext(chatContext) as ChatContextType;
 	const [ownerView, setOwnerView] = useState(false);
 	const [userInChan, setUserInChan] = useState(false);
-	const [peopleCount, setPeopleCount] = useState(0);
+	const [channelName, setChannelName] = useState(viewParams.channelName);
+	const [privacy, setChannelPrivacy] = useState<string>(viewParams.privacy);
 	const inputGroupClassName = "flex flex-col gap-y-2";
 	const inputClassName = "px-2 py-1 border border-pink-600 bg-transparent outline-none";
 	const labelClassName = "text-xs text-neutral-200 uppercase";
@@ -90,7 +89,7 @@ const GroupSettings: React.FC<{ viewParams: any }> = ({ viewParams }) => {
 		});
 	};
 
-	const handleSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
+	const handleSubmit = (e: React.FormEvent<HTMLFormElement>) => {
 		e.preventDefault();
 		const errors: Partial<updateGroupData> = {};
 
@@ -106,47 +105,28 @@ const GroupSettings: React.FC<{ viewParams: any }> = ({ viewParams }) => {
 				if (formData.password.length < 8) {
 					errors['password'] = 'Password must contain at least 8 characters';
 				}
-			} else if (formData.password !== formData.password2) {
+			}
+			if (formData.password !== formData.password2) {
 				errors['password2'] = 'Passwords do not match';
 			}
 		}
 
 		if (Object.keys(errors).length === 0) {
-			await updateGroup(formData);
+			updateGroup(formData);
 		}
 		setFieldErrors(errors);
 	};
 
 	/* Update the group name, visibility and password */
-	const updateGroup = async (formData: updateGroupData) => {
-		const res = await fetch(`/api/channels/${channelId}`, {
-			method: "PATCH",
-			headers: {
-				"Content-Type": "application/json",
-			},
-			body: JSON.stringify({
-				name: formData.groupName,
-				privacy: formData.groupPrivacy,
-				password: (formData.password && formData.password.length !== 0) ? formData.password : undefined,
-				restrictionDuration: formData.restrictionDuration
-			}),
+	const updateGroup = (formData: updateGroupData) => {
+		socket.emit("updateChannel", {
+			id: channelId,
+			name: formData.groupName,
+			privacy: formData.groupPrivacy,
+			password: (formData.password && formData.password.length !== 0) ? formData.password : undefined,
+			restrictionDuration: formData.restrictionDuration
 		});
-
-		if (res.status === 200) {
-			closeRightmostView();
-		} else if (res.status === 400) {
-			const data = await res.json();
-
-			setAlert({
-				type: "warning",
-				content: `${data.message}`
-			}); // TODO: replace alert by error['password']
-		} else {
-			setAlert({
-				type: "error",
-				content: "Failed to update group"
-			});
-		}
+		closeRightmostView();
 	}
 
 	/* If the owner leaves the group, it is deleted */
@@ -154,6 +134,7 @@ const GroupSettings: React.FC<{ viewParams: any }> = ({ viewParams }) => {
 		socket.emit("deleteChannel", {
 			channelId
 		});
+		closeRightmostView();
 	};
 
 	/* USER
@@ -164,38 +145,47 @@ const GroupSettings: React.FC<{ viewParams: any }> = ({ viewParams }) => {
 			userId: user.id,
 			channelId
 		});
-		closeRightmostView(2);
+		if (privacy === 'protected') {
+			closeRightmostView(3);
+		} else {
+			closeRightmostView(2);
+		}
 	};
 
 	/* Listeners */
 	const updateChannelData = (channel: Channel) => {
+		setChannelName(channel.name);
+		setChannelPrivacy(channel.privacy);
+	};
+
+	const defineChannelSettings = (channel: Channel) => {
 		setOwnerView(channel.owner.id === user.id);
-		setPeopleCount(channel.users.length);
 		setUserInChan(!!channel.users.find(
 			(chanUser) => { return chanUser.id === user.id; }
 		));
 	};
 
-	const channelDisbandedListener = (deletedId: string) => {
-		if (deletedId === channelId) {
-			setChatView("groups", "Group chats", {});
-		}
-	};
+	const userPunishedListener = (message: string) => {
+		console.log('[Group Settings] User punished');
+		setChatView("groups", "Group chats", {});
+	}
 
 	useEffect(() => {
 		socket.emit("getChannelData", { channelId });
 
 		/* Listeners */
-		socket.on("updateChannel", updateChannelData);
-		socket.on("channelDeleted", channelDisbandedListener);
+		socket.on("channelData", defineChannelSettings);
+		socket.on("channelUpdated", updateChannelData);
+		socket.on("chatPunishment", userPunishedListener);
 
 		return () => {
-			socket.off("updateChannel", updateChannelData);
-			socket.off("channelDeleted", channelDisbandedListener);
+			socket.off("channelData", defineChannelSettings);
+			socket.off("channelUpdated", updateChannelData);
+			socket.off("chatPunishment", userPunishedListener);
 		};
 	}, []);
 
-	if (ownerView) { // tmp
+	if (ownerView) {
 		return (
 			<div className="flex flex-col h-full px-5 py-5 overflow-y-auto gap-y-4">
 				<h6 className="text-xl">Update group</h6>
@@ -304,15 +294,11 @@ const GroupSettings: React.FC<{ viewParams: any }> = ({ viewParams }) => {
 				<div className="">
 					<div className="flex justify-between">
 						<span>Name</span>
-						<span>{viewParams.channelName}</span>
+						<span>{channelName}</span>
 					</div>
 					<div className="flex justify-between">
-						<span>Visibility</span>
-						<span>{viewParams.privacy}</span>
-					</div>
-					<div className="flex justify-between">
-						<span>Members</span>
-						<span>{peopleCount}</span>
+						<span>Privacy level</span>
+						<span>{privacy}</span>
 					</div>
 				</div>
 				{userInChan &&

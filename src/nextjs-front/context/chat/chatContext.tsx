@@ -1,6 +1,6 @@
 import { createContext } from 'react';
-import { Channel, DmChannel } from 'transcendance-types';
 import { Socket } from 'socket.io-client';
+import { Channel, DmChannel } from 'transcendance-types';
 
 export type ChatView = 'dms' | 'dm' | 'dm_new' | 'groups' | 'group' | 'group_new' | 'group_add' | 'group_users' | 'group_settings' |'password_protection'; // plural form denotes the list, singular the chat itself
 
@@ -49,15 +49,14 @@ export type ChatContextType = {
 	openChatView: (view: ChatView, label: string, params: Object) => void;
 	setChatView: (view: ChatView, label: string, params: Object) => void;
 	closeRightmostView: (n?: number) => void;
-	/* Messages manipulation */
+
 	createDirectMessage: (userId: string, friendId: string) => void;
 	getMessageStyle: (authorId: string) => string;
+
+	/* Event listeners */
 	channelCreatedListener: (newChannel: Channel) => void;
 	dmCreatedListener: (newDm: DmChannel) => void;
 	chatErrorListener: (errMessage: string) => void;
-
-	/* Data fetching */
-	fetchChannelData: (id: string) => Promise<any>; // to be removed
 
 	/* Draggable */
 	lastX: number;

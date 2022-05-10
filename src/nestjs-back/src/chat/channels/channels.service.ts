@@ -1,4 +1,4 @@
-import { Injectable, Logger, NotFoundException, UnauthorizedException } from '@nestjs/common';
+import { Injectable, Logger } from '@nestjs/common';
 import { SchedulerRegistry } from '@nestjs/schedule';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Repository } from 'typeorm';
@@ -7,8 +7,6 @@ import { hash as hashPassword } from 'bcryptjs';
 import { Channel } from './entities/channels.entity';
 import { CreateChannelDto } from './dto/create-channel.dto';
 import { UpdateChannelDto } from './dto/update-channel.dto';
-import { ChanMessagesService } from './messages/chan-messages.service';
-import { UsersService } from 'src/users/users.service';
 
 @Injectable()
 export class ChannelsService {
@@ -17,8 +15,6 @@ export class ChannelsService {
   constructor(
     @InjectRepository(Channel)
     private readonly channelsRepository: Repository<Channel>,
-    private readonly messagesService: ChanMessagesService,
-    private readonly usersService: UsersService,
     private schedulerRegistry: SchedulerRegistry
   ) {}
 
@@ -66,16 +62,6 @@ export class ChannelsService {
     job.start();
   }
 
-  /* Helpers */
-  async getChannelPassword(id: string) {
-    const channel = await this.channelsRepository
-      .createQueryBuilder('channel')
-      .select('channel.password')
-      .where('channel.id = :id', { id })
-      .getOne();
-    return channel.password;
-  }
-
   findAll() {
     return this.channelsRepository.find({
       relations: [
@@ -100,8 +86,9 @@ export class ChannelsService {
       ]
     });
     if (!channel) {
-      throw new NotFoundException(`Channel [${id}] not found`);
+      throw new Error(`Channel [${id}] not found`);
     }
+
     return channel;
   }
 
@@ -113,23 +100,23 @@ export class ChannelsService {
 
     this.logger.log(`Create new channel [${channel.name}]`);
 
-    return await this.channelsRepository.save(channel).catch(
-      () => {
-        throw new UnauthorizedException(`Group '${createChannelDto.name}' already exists. Choose another name.`);
-      }
-    );
+    return await this.channelsRepository.save(channel).catch(() => {
+      throw new Error(`Group '${createChannelDto.name}' already exists. Choose another name.`);
+    });
   }
 
   async update(id: string, updateChannelDto: UpdateChannelDto) {
     if (updateChannelDto.password) {
       updateChannelDto.password = await hashPassword(updateChannelDto.password, 10);
     }
+
     const channel = await this.channelsRepository.preload({
       id: +id,
       ...updateChannelDto
     });
+
     if (!channel) {
-      throw new NotFoundException(`Cannot update Channel [${id}]: Not found`);
+      throw new Error(`Cannot update Channel [${id}]: Not found`);
     }
     if (updateChannelDto.bannedUsers) {
       const userId = updateChannelDto.bannedUsers[updateChannelDto.bannedUsers.length -1].id.toString();
@@ -140,22 +127,30 @@ export class ChannelsService {
       this.scheduleUnmute(id, userId, channel.restrictionDuration);
     }
     this.logger.log(`Update channel [${channel.id}][${channel.name}]`);
+
     return this.channelsRepository.save(channel);
   }
 
   async remove(id: string) { 
     const channel = await this.channelsRepository.findOne(id);
+
     if (!channel) {
-      throw new NotFoundException(`Channel [${id}] not found`);
+      throw new Error(`Channel [${id}] not found`);
     }
     this.logger.log(`Remove channel [${channel.id}][${channel.name}]`);
+
     return this.channelsRepository.remove(channel);
   }
 
-  async addMessage(content: string, channelId: string, authorId: string) {
-    const channel = await this.channelsRepository.findOne(channelId);
-    const author = await this.usersService.findOne(authorId);
+  /**
+   * Used whenever a user wants to join a password-protected channel
+   */
+  async getChannelPassword(id: string) {
+    const channel = await this.channelsRepository.createQueryBuilder('channel')
+      .select('channel.password')
+      .where('channel.id = :id', { id })
+      .getOne();
 
-    return await this.messagesService.create({ content, channel, author });
+    return channel.password;
   }
 }

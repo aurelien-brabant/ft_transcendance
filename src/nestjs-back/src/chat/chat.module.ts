@@ -6,7 +6,11 @@ import { DirectMessagesModule } from './direct-messages/direct-messages.module';
 import { UsersModule } from 'src/users/users.module';
 
 @Module({
-  imports: [ChannelsModule, DirectMessagesModule, UsersModule],
+  imports: [
+    ChannelsModule,
+    DirectMessagesModule,
+    UsersModule
+  ],
   providers: [ChatGateway, ChatService],
 })
 export class ChatModule {}

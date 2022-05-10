@@ -1,17 +1,17 @@
-import { Injectable, Logger, NotFoundException } from '@nestjs/common';
+import { Injectable, Logger } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Repository } from 'typeorm';
-import { ChanMessage } from './entities/chan-messages.entity';
-import { CreateChanMessageDto } from './dto/create-chan-message.dto';
-import { UpdateChanMessageDto } from './dto/update-chan-message.dto';
+import { ChannelMessage } from './entities/channel-messages.entity';
+import { CreateChannelMessageDto } from './dto/create-channel-message.dto';
+import { UpdateChannelMessageDto } from './dto/update-channel-message.dto';
 
 @Injectable()
-export class ChanMessagesService {
+export class ChannelMessagesService {
   private logger: Logger = new Logger('Channel Messages Service');
 
   constructor(
-    @InjectRepository(ChanMessage)
-    private readonly messagesRepository: Repository<ChanMessage>,
+    @InjectRepository(ChannelMessage)
+    private readonly messagesRepository: Repository<ChannelMessage>,
   ) {}
 
   findAll() {
@@ -26,26 +26,29 @@ export class ChanMessagesService {
     });
 
     if (!message) {
-      throw new NotFoundException(`Message [${id}] not found`);
+      throw new Error(`Message [${id}] not found`);
     }
     return message;
   }
 
-  create(createChanMessageDto: CreateChanMessageDto) {
+  async create(createChanMessageDto: CreateChannelMessageDto) {
     const message = this.messagesRepository.create(createChanMessageDto);
 
     this.logger.log(`Create new message in channel [${createChanMessageDto.channel.id}]`);
-    return this.messagesRepository.save(message);
+
+    return await this.messagesRepository.save(message).catch(() => {
+      throw new Error('Message may not be longer than 640 characters.');
+    });
   }
 
-  async update(id: string, updateMessageDto: UpdateChanMessageDto) { 
+  async update(id: string, updateMessageDto: UpdateChannelMessageDto) { 
     const message = await this.messagesRepository.preload({
       id: +id,
       ...updateMessageDto,
     });
 
     if (!message) {
-      throw new NotFoundException(`Cannot update Message [${id}]: Not found`);
+      throw new Error(`Cannot update Message [${id}]: Not found`);
     }
     return this.messagesRepository.save(message);
   }
@@ -54,7 +57,7 @@ export class ChanMessagesService {
     const message = await this.findOne(id);
 
     if (!message) {
-      throw new NotFoundException(`Message [${id}] not found`);
+      throw new Error(`Message [${id}] not found`);
     }
     return this.messagesRepository.remove(message);
   }

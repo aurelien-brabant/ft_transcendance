@@ -1,4 +1,4 @@
-import { Injectable, Logger, NotFoundException } from '@nestjs/common';
+import { Injectable, Logger } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Repository } from 'typeorm';
 import { DmMessage } from './entities/dm-messages.entity';
@@ -26,16 +26,19 @@ export class DmMessagesService {
     });
 
     if (!message) {
-      throw new NotFoundException(`Message [${id}] not found`);
+      throw new Error(`Message [${id}] not found`);
     }
     return message;
   }
 
-  create(createDmMessageDto: CreateDmMessageDto) {
+  async create(createDmMessageDto: CreateDmMessageDto) {
     const message = this.messagesRepository.create(createDmMessageDto);
 
     this.logger.log(`Create new message in DM [${createDmMessageDto.dm.id}]`);
-    return this.messagesRepository.save(message);
+
+    return await this.messagesRepository.save(message).catch(() => {
+      throw new Error('Message may not be longer than 640 characters.');
+    });
   }
 
   async update(id: string, updateDmMessageDto: UpdateDmMessageDto) { 
@@ -45,7 +48,7 @@ export class DmMessagesService {
     });
 
     if (!message) {
-      throw new NotFoundException(`Cannot update Message [${id}]: Not found`);
+      throw new Error(`Cannot update Message [${id}]: Not found`);
     }
     return this.messagesRepository.save(message);
   }
@@ -54,7 +57,7 @@ export class DmMessagesService {
     const message = await this.findOne(id);
 
     if (!message) {
-      throw new NotFoundException(`DmMessage [${id}] not found`);
+      throw new Error(`DmMessage [${id}] not found`);
     }
     return this.messagesRepository.remove(message);
   }
