@@ -105,7 +105,8 @@ const GroupSettings: React.FC<{ viewParams: any }> = ({ viewParams }) => {
 				if (formData.password.length < 8) {
 					errors['password'] = 'Password must contain at least 8 characters';
 				}
-			} else if (formData.password !== formData.password2) {
+			}
+			if (formData.password !== formData.password2) {
 				errors['password2'] = 'Passwords do not match';
 			}
 		}
