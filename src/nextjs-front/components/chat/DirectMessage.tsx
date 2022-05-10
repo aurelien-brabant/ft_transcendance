@@ -143,7 +143,6 @@ const DirectMessage: React.FC<{ viewParams: { [key: string]: any } }> = ({
 	}, [messages]);
 
 	useEffect(() => {
-		console.log(viewParams);
 		socket.emit("getDmData", { dmId });
 
 		/* Listeners */

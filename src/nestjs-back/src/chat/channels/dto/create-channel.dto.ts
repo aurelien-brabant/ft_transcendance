@@ -15,11 +15,9 @@ import { User } from 'src/users/entities/users.entity';
 
 export class CreateChannelDto {
   @Transform(({ value }) => value.trim())
-  @IsNotEmpty()
   @IsString()
   @Matches(/^[a-zA-Z0-9_ ]+$/, {
-    message:
-      'The channel name must contain alphanumeric characters, underscores and spaces only.',
+    message: 'The channel name must contain alphanumeric characters, underscores and spaces only.',
   })
   @Length(3, 20)
   readonly name: string;

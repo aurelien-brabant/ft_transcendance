@@ -9,9 +9,10 @@ import { User } from "src/users/entities/users.entity";
 
 export class CreateDmMessageDto {
   @Transform(({ value }) => value.trim())
-  @IsNotEmpty()
   @IsString()
-  @Length(1, 640)
+  @Length(1, 640, {
+    message: 'Empty messages are not allowed.'
+  })
   readonly content: string;
 
   @IsNotEmpty()
