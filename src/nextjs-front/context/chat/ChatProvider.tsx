@@ -319,6 +319,13 @@ const ChatProvider: React.FC = ({ children }) => {
 		});
 	};
 
+	const chatExceptionListener = (e: { statusCode: number, message: string, error: string }) => {
+		setAlert({
+			type: "warning",
+			content: e.message
+		});
+	};
+
 	/* Update channels if view stack changes */
 	useEffect(() => {
 		if (!user || !socket) return ;
@@ -340,6 +347,7 @@ const ChatProvider: React.FC = ({ children }) => {
 		});
 
 		/* Listeners */
+		socket.on("exception", chatExceptionListener);
 		socket.on("chatError", chatErrorListener);
 		socket.on("chatPunishment", chatPunishmentListener);
 		socket.on("updateUserChannels", updateChannelsListener);
@@ -347,6 +355,7 @@ const ChatProvider: React.FC = ({ children }) => {
 		socket.on("dmCreated", dmCreatedListener);
 
 		return () => {
+			socket.off("exception", chatExceptionListener);
 			socket.off("chatError", chatErrorListener);
 			socket.off("updateUserChannels", updateChannelsListener);
 			socket.off("updateUserDms", updateDmsListener);

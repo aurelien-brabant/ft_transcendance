@@ -1,5 +1,5 @@
 import { Server, Socket } from 'socket.io';
-import { Logger, UsePipes, ValidationPipe } from '@nestjs/common';
+import { Logger, UseFilters, UsePipes, ValidationPipe } from '@nestjs/common';
 import {
 	ConnectedSocket,
 	MessageBody,
@@ -17,6 +17,7 @@ import { CreateDirectMessageDto } from './direct-messages/dto/create-direct-mess
 import { CreateChannelMessageDto } from './channels/dto/create-channel-message.dto';
 import { CreateDmMessageDto } from './direct-messages/dto/create-dm-message.dto';
 import { UpdateChannelDto } from './channels/dto/update-channel.dto';
+import { BadRequestTransformationFilter } from './chat-ws-exception-filter';
 
 @WebSocketGateway({
 		cors: true,
@@ -99,13 +100,15 @@ export class ChatGateway implements OnGatewayInit, OnGatewayConnection {
 	}
 
 	/* Create/delete/update */
+	@UseFilters(new BadRequestTransformationFilter())
 	@SubscribeMessage('createChannel')
 	async handleCreateChannel(
 		@ConnectedSocket() client: Socket,
 		@MessageBody() data: CreateChannelDto
 	) {
 		try {
-			const channel = await this.chatService.createChannel(data);
+			const channel = await this.chatService.createChannel(data)
+
 			const roomId = `channel_${channel.id}`;
 
 			this.chatUsers.userJoinRoom(client, roomId);
@@ -120,6 +123,7 @@ export class ChatGateway implements OnGatewayInit, OnGatewayConnection {
 		}
 	}
 
+	@UseFilters(new BadRequestTransformationFilter())
 	@SubscribeMessage('updateChannel')
 	async handleUpdateChannel(
 		@ConnectedSocket() client: Socket,
@@ -160,6 +164,7 @@ export class ChatGateway implements OnGatewayInit, OnGatewayConnection {
 	}
 
 	/* Save a new group message */
+	@UseFilters(new BadRequestTransformationFilter())
 	@SubscribeMessage('gmSubmit')
 	async handleGmSubmit(
 		@ConnectedSocket() client: Socket,
@@ -364,6 +369,7 @@ export class ChatGateway implements OnGatewayInit, OnGatewayConnection {
 		this.server.to(client.id).emit('updateDm', (dm));
 	}
 
+	@UseFilters(new BadRequestTransformationFilter())
 	@SubscribeMessage('createDm')
 	async handleCreateDm(
 		@ConnectedSocket() client: Socket,
@@ -384,6 +390,7 @@ export class ChatGateway implements OnGatewayInit, OnGatewayConnection {
 	}
 
 	/* Save a new DM message */
+	@UseFilters(new BadRequestTransformationFilter())
 	@SubscribeMessage('dmSubmit')
 	async handleDmSubmit(
 		@ConnectedSocket() client: Socket,
