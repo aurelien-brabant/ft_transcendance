@@ -55,7 +55,7 @@ export const GroupSettingsHeader: React.FC<{ viewParams: any }> = ({ viewParams 
 const GroupSettings: React.FC<{ viewParams: any }> = ({ viewParams }) => {
 	const channelId: string = viewParams.channelId;
 	const { user } = useSession();
-	const { socket, closeRightmostView } = useContext(chatContext) as ChatContextType;
+	const { socket, setChatView, closeRightmostView } = useContext(chatContext) as ChatContextType;
 	const [ownerView, setOwnerView] = useState(false);
 	const [userInChan, setUserInChan] = useState(false);
 	const [channelName, setChannelName] = useState(viewParams.channelName);
@@ -164,16 +164,23 @@ const GroupSettings: React.FC<{ viewParams: any }> = ({ viewParams }) => {
 		));
 	};
 
+	const userPunishedListener = (message: string) => {
+		console.log('[Group Settings] User punished');
+		setChatView("groups", "Group chats", {});
+	}
+
 	useEffect(() => {
 		socket.emit("getChannelData", { channelId });
 
 		/* Listeners */
 		socket.on("channelData", defineChannelSettings);
 		socket.on("channelUpdated", updateChannelData);
+		socket.on("chatPunishment", userPunishedListener);
 
 		return () => {
 			socket.off("channelData", defineChannelSettings);
 			socket.off("channelUpdated", updateChannelData);
+			socket.off("chatPunishment", userPunishedListener);
 		};
 	}, []);
 

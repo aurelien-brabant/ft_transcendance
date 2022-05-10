@@ -51,6 +51,22 @@ export class ChatService {
 		throw new Error('Invalid operation');
 	}
 
+	async checkPrivileges(userId: string, channelId: string, ownerOnly = false) {
+		const channel = await this.channelsService.findOne(channelId);
+
+		if (channel) {
+			const hasOwnerPriv = channel.owner.id === parseInt(userId);
+			const hasAdminPriv = !!channel.admins.find((admin) => {
+				return admin.id === parseInt(userId);
+			});
+
+			if (ownerOnly && hasOwnerPriv) return;
+			if (hasOwnerPriv || hasAdminPriv) return ;
+			throw new Error('Insufficient Privileges');
+		}
+		throw new Error('Invalid operation');
+	}
+
 	/* Getters */
 	async getChannelData(id: string) {
 		return await this.channelsService.findOne(id);
@@ -109,6 +125,77 @@ export class ChatService {
 			users: filteredUsers
 		});
 		return user;
+	}
+
+	/* Owner operations */
+	async addAdminToChannel(ownerId: string, channelId: string, userId: string) {
+		const channel = await this.channelsService.findOne(channelId);
+
+		if (channel && (channel.owner.id === parseInt(ownerId))) {
+			const newAdmin = await this.usersService.findOne(userId);
+			const isAdmin = !!channel.admins.find((admin) => {
+				return admin.id === parseInt(userId);
+			});
+
+			if (!isAdmin) {
+				await this.channelsService.update(channelId, {
+					admins: [ ...channel.users, newAdmin]
+				});
+				return newAdmin;
+			}
+			throw new Error('User is already administrator');
+		}
+		throw new Error('Invalid operation');
+	}
+
+	async removeAdminFromChannel(ownerId: string, channelId: string, userId: string) {
+		const channel = await this.channelsService.findOne(channelId);
+
+		if (channel && (channel.owner.id === parseInt(ownerId))) {
+			const formerAdmin = await this.usersService.findOne(userId);
+			const isAdmin = !!channel.admins.find((admin) => {
+				return admin.id === parseInt(userId);
+			});
+
+			if (isAdmin) {
+				const filteredAdmins = channel.admins.filter((chanAdmin) => {
+					return chanAdmin.id !== formerAdmin.id;
+				});
+	
+				await this.channelsService.update(channelId, {
+					admins: filteredAdmins
+				});
+				console.log(channel);
+				return formerAdmin;
+			}
+			throw new Error('User is not an administrator');
+		}
+		throw new Error('Invalid operation');
+	}
+
+	/**
+	 * NOTE: Will be replaced by punishment
+	 */
+	async punishUser(adminId: string, channelId: string, userId: string) {
+		const channel = await this.channelsService.findOne(channelId);
+
+		if (channel) {
+			/* Only ban for testing */
+			const isBanned = !!channel.bannedUsers.find((bannedUser) => {
+				return bannedUser.id === parseInt(userId);
+			});
+
+			if (!isBanned) {
+				const user = await this.usersService.findOne(userId);
+
+				await this.channelsService.update(channelId, {
+					bannedUsers: [ ...channel.bannedUsers, user]
+				});
+				return user;
+			}
+			throw new Error('User is already banned');
+		}
+		throw new Error('Invalid operation');
 	}
 
 	/**

@@ -6,10 +6,9 @@ import { GiThorHammer } from "react-icons/gi";
 import { MdVoiceOverOff } from "react-icons/md";
 import { RiPingPongLine } from 'react-icons/ri';
 import Link from "next/link";
-import { BaseUserData, Channel } from "transcendance-types";
+import { Channel } from "transcendance-types";
 import { useSession } from "../../hooks/use-session";
 import Tooltip from "../../components/Tooltip";
-import alertContext, { AlertContextType } from "../../context/alert/alertContext";
 import chatContext, { ChatContextType } from "../../context/chat/chatContext";
 import relationshipContext, { RelationshipContextType } from "../../context/relationship/relationshipContext";
 
@@ -28,7 +27,9 @@ export const GroupUsersHeader: React.FC<{ viewParams: any }> = ({ viewParams }) 
 	const [peopleCount, setPeopleCount] = useState(0);
 
 	const updatePeopleCount = (channel: Channel) => {
-		setPeopleCount(channel.users.length);
+		if (channel.users) {
+			setPeopleCount(channel.users.length);
+		}
 	};
 
 	useEffect(() => {
@@ -75,8 +76,7 @@ export const GroupUsersHeader: React.FC<{ viewParams: any }> = ({ viewParams }) 
 const GroupUsers: React.FC<{ viewParams: any }> = ({ viewParams }) => {
 	const channelId: string = viewParams.channelId;
 	const { user } = useSession();
-	const { setAlert } = useContext(alertContext) as AlertContextType;
-	const { socket, fetchChannelData } = useContext(chatContext) as ChatContextType; /* NOTE: fetch will be removed */
+	const { socket, setChatView } = useContext(chatContext) as ChatContextType;
 	const { blocked } = useContext(relationshipContext) as RelationshipContextType;
 	const [users, setUsers] = useState<UserSummary[]>([]);
 	const [owner, setOwner] = useState<UserSummary>();
@@ -86,146 +86,58 @@ const GroupUsers: React.FC<{ viewParams: any }> = ({ viewParams }) => {
 
 	/* Make user administrator */
 	const addAdmin = async (id: string) => {
-		const groupData = await fetchChannelData(channelId).catch(console.error); /* NOTE: fetch will be removed */
-		const admins = JSON.parse(JSON.stringify(groupData)).admins;
-
-		const res = await fetch(`/api/channels/${channelId}`, {
-			method: "PATCH",
-			headers: {
-				"Content-Type": "application/json",
-			},
-			body: JSON.stringify({
-				admins: [ ...admins, { "id": id } ]
-			}),
+		socket.emit("makeAdmin", {
+			ownerId: user.id,
+			channelId,
+			userId: id
 		});
-
-		if (res.status === 200) {
-			return;
-		} else {
-			setAlert({
-				type: "error",
-				content: "Failed to give administrator role"
-			});
-		}
 	};
 
 	/* Remove administrator rights */
 	const removeAdmin = async (id: string) => {
-		const groupData = await fetchChannelData(channelId).catch(console.error); /* NOTE: fetch will be removed */
-		const currentAdmins = JSON.parse(JSON.stringify(groupData)).admins;
-		const admins = currentAdmins.filter((admin: BaseUserData) => { 
-			return admin.id != id
-		})
-
-		const res = await fetch(`/api/channels/${channelId}`, {
-			method: "PATCH",
-			headers: {
-				"Content-Type": "application/json",
-			},
-			body: JSON.stringify({
-				admins: [ ...admins ]
-			}),
+		socket.emit("removeAdmin", {
+			ownerId: user.id,
+			channelId,
+			userId: id
 		});
-
-		if (res.status === 200) {
-			return;
-		} else {
-			setAlert({
-				type: "error",
-				content: "Failed to remove administrator role"
-			});
-		}
 	};
 
 	/* Ban user from group */
-	const banUser = async (id: string, username: string) => {
-		const groupData = await fetchChannelData(channelId).catch(console.error); /* NOTE: fetch will be removed */
-		const users = JSON.parse(JSON.stringify(groupData)).bannedUsers;
-
-		const res = await fetch(`/api/channels/${channelId}`, {
-			method: "PATCH",
-			headers: {
-				"Content-Type": "application/json",
-			},
-			body: JSON.stringify({
-				bannedUsers: [ ...users, { "id": id } ]
-			}),
+	const banUser = async (id: string) => {
+		socket.emit("punishUser", { /* tmp */
+			adminId: user.id,
+			channelId,
+			userId: id
 		});
-
-		if (res.status === 200) {
-			setAlert({
-				type: "info",
-				content: `${username} is banned`
-			});
-			return;
-		} else {
-			setAlert({
-				type: "error",
-				content: "Failed to ban user"
-			});
-		}
 	};
 
 	/* Mute user in group */
-	const muteUser = async (id: string, username: string) => {
-		const groupData = await fetchChannelData(channelId).catch(console.error); /* NOTE: fetch will be removed */
-		const users = JSON.parse(JSON.stringify(groupData)).mutedUsers;
-
-		const res = await fetch(`/api/channels/${channelId}`, {
-			method: "PATCH",
-			headers: {
-				"Content-Type": "application/json",
-			},
-			body: JSON.stringify({
-				mutedUsers: [ ...users, { "id": id } ]
-			}),
+	const muteUser = async (id: string) => {
+		socket.emit("punishUser", { /* tmp */
+			adminId: user.id,
+			channelId,
+			userId: id
 		});
-
-		if (res.status === 200) {
-			setAlert({
-				type: "info",
-				content: `${username} is muted`
-			});
-			return;
-		} else {
-			setAlert({
-				type: "error",
-				content: "Failed to mute user"
-			});
-		}
 	};
 
 	/* Kick user from group */
-	const kickUser = async (id: string, username: string) => {
-		const groupData = await fetchChannelData(channelId).catch(console.error); /* NOTE: fetch will be removed */
-		const currentUsers = JSON.parse(JSON.stringify(groupData)).users;
-		const users = currentUsers.filter((user: BaseUserData) => {
-			return user.id !=  id
-		})
-
-		const res = await fetch(`/api/channels/${channelId}`, {
-			method: "PATCH",
-			headers: {
-				"Content-Type": "application/json",
-			},
-			body: JSON.stringify({
-				users: [ ...users ]
-			}),
+	const kickUser = async (id: string) => {
+		socket.emit("kickUser", {
+			adminId: user.id,
+			channelId,
+			userId: id
 		});
-
-		if (res.status === 200) {
-			setAlert({
-				type: "info",
-				content: `${username} was kicked`
-			});
-			return;
-		} else {
-			setAlert({
-				type: "error",
-				content: "Failed to mute user"
-			});
-		}
 	};
+
+	/* Listeners */
+	const userChangedListener = () => {
+		socket.emit("getChannelData", { channelId });
+	}
+
+	const userPunishedListener = (message: string) => {
+		console.log('[Group Users] User punished');
+		setChatView("groups", "Group chats", {});
+	}
 
 	/**
 	 * If true, display administration tools
@@ -233,7 +145,9 @@ const GroupUsers: React.FC<{ viewParams: any }> = ({ viewParams }) => {
 	 */
 	const setViewMode = (channel: Channel) => {
 		setOwnerView(channel.owner.id === user.id);
-		setAdminView(!!channel.admins.find((admin) => { return admin.id === user.id; }));
+		setAdminView(!!channel.admins.find((admin) => {
+			return admin.id === user.id; }
+		));
 	}
 
 	/* Update user list on mount */
@@ -248,6 +162,7 @@ const GroupUsers: React.FC<{ viewParams: any }> = ({ viewParams }) => {
 			isBlocked: !!blocked.find((user) => user.id === channel.owner.id),
 			isAdmin: false
 		};
+		setOwner(owner);
 
 		const users: UserSummary[] = [];
 		for (var chanUser of channel.users) {
@@ -263,7 +178,6 @@ const GroupUsers: React.FC<{ viewParams: any }> = ({ viewParams }) => {
 			}
 		}
 		users.sort((a, b) => (a.isBlocked ? 1 : -1)).sort((a, b) => (a.isAdmin ? -1 : 1));
-		setOwner(owner);
 		setUsers(users);
 	}
 
@@ -272,9 +186,18 @@ const GroupUsers: React.FC<{ viewParams: any }> = ({ viewParams }) => {
 
 		/* Listeners */
 		socket.on("channelData", defineUserList);
+		socket.on("adminAdded", userChangedListener);
+		socket.on("adminRemoved", userChangedListener);
+		socket.on("userPunished", userChangedListener);
+		socket.on("userKicked", userChangedListener);
+		socket.on("chatPunishment", userPunishedListener);
 
 		return () => {
 			socket.off("channelData", defineUserList);
+			socket.off("adminAdded", userChangedListener);
+			socket.off("adminRemoved", userChangedListener);
+			socket.off("userPunished", userChangedListener);
+			socket.off("chatPunishment", userPunishedListener);
 		};
 	}, [users]);
 
@@ -307,18 +230,18 @@ const GroupUsers: React.FC<{ viewParams: any }> = ({ viewParams }) => {
 		<>
 			<Tooltip className={actionTooltipStyles} content="mute">
 				<button
-				onClick={() => muteUser(String(user.id), user.username)}
+				onClick={() => muteUser(String(user.id))}
 				className="transition hover:scale-110">
 					<MdVoiceOverOff color="grey"/>
 				</button>
 			</Tooltip>
 			<Tooltip className={actionTooltipStyles} content="ban">
-				<button onClick={() => banUser(String(user.id), user.username)} className="transition hover:scale-110">
+				<button onClick={() => banUser(String(user.id))} className="transition hover:scale-110">
 					<GiThorHammer color="grey"/>
 				</button>
 			</Tooltip>
 			<Tooltip className={actionTooltipStyles} content="kick">
-				<button onClick={() => kickUser(String(user.id), user.username)} className="transition hover:scale-110">
+				<button onClick={() => kickUser(String(user.id))} className="transition hover:scale-110">
 					<FaUserMinus className="text-lg" color="grey"/>
 				</button>
 			</Tooltip>

@@ -42,6 +42,7 @@ const DirectMessageNew: React.FC = () => {
 	/* Search a friend */
 	const handleSearch = (term: string) => {
 		const searchTerm = term.toLowerCase();
+
 		setFilteredFriends(
 			friends.filter(
 				(friend) =>

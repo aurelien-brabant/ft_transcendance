@@ -304,19 +304,20 @@ const ChatProvider: React.FC = ({ children }) => {
 		openChat();
 	};
 
+	const chatPunishmentListener = (message: string) => {
+		console.log('[Chat Provider] User punished');
+		setAlert({
+			type: "warning",
+			content: message
+		});
+	}
+
 	const chatErrorListener = (errMessage: string) => {
 		setAlert({
 			type: "warning",
 			content: errMessage
 		});
 	};
-
-	/* NOTE: to be removed */
-	const fetchChannelData = async (id: string) => {
-		const res = await fetch(`/api/channels/${id}`);
-		const data = await res.json();
-		return data;
-	}
 
 	/* Update channels if view stack changes */
 	useEffect(() => {
@@ -340,6 +341,7 @@ const ChatProvider: React.FC = ({ children }) => {
 
 		/* Listeners */
 		socket.on("chatError", chatErrorListener);
+		socket.on("chatPunishment", chatPunishmentListener);
 		socket.on("updateUserChannels", updateChannelsListener);
 		socket.on("updateUserDms", updateDmsListener);
 		socket.on("dmCreated", dmCreatedListener);
@@ -349,6 +351,7 @@ const ChatProvider: React.FC = ({ children }) => {
 			socket.off("updateUserChannels", updateChannelsListener);
 			socket.off("updateUserDms", updateDmsListener);
 			socket.off("dmCreated", dmCreatedListener);
+			socket.off("chatPunishment", chatPunishmentListener);
 		};
 	}, [socket]);
 
@@ -391,7 +394,6 @@ const ChatProvider: React.FC = ({ children }) => {
 				channelCreatedListener,
 				dmCreatedListener,
 				chatErrorListener,
-				fetchChannelData,
 				lastX,
 				lastY,
 				setLastX,

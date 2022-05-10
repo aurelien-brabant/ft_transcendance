@@ -49,15 +49,14 @@ export type ChatContextType = {
 	openChatView: (view: ChatView, label: string, params: Object) => void;
 	setChatView: (view: ChatView, label: string, params: Object) => void;
 	closeRightmostView: (n?: number) => void;
-	/* Messages manipulation */
+
 	createDirectMessage: (userId: string, friendId: string) => void;
 	getMessageStyle: (authorId: string) => string;
+
+	/* Event listeners */
 	channelCreatedListener: (newChannel: Channel) => void;
 	dmCreatedListener: (newDm: DmChannel) => void;
 	chatErrorListener: (errMessage: string) => void;
-
-	/* Data fetching */
-	fetchChannelData: (id: string) => Promise<any>; // to be removed
 
 	/* Draggable */
 	lastX: number;

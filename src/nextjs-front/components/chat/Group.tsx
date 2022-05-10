@@ -13,7 +13,13 @@ import relationshipContext, { RelationshipContextType } from "../../context/rela
 export const GroupHeader: React.FC<{ viewParams: any }> = ({ viewParams }) => {
 	const channelId: string = viewParams.channelId;
 	const { user } = useSession();
-	const { socket, closeChat, openChatView, setChatView, closeRightmostView } = useContext(chatContext) as ChatContextType;
+	const {
+		socket,
+		closeChat,
+		openChatView,
+		setChatView,
+		closeRightmostView
+	} = useContext(chatContext) as ChatContextType;
 	const [channelName, setChannelName] = useState(viewParams.channelName);
 	const [privacy, setChannelPrivacy] = useState(viewParams.privacy);
 	const [userInChan, setUserInChan] = useState(false);
@@ -23,12 +29,6 @@ export const GroupHeader: React.FC<{ viewParams: any }> = ({ viewParams }) => {
 		setUserInChan(!!channel.users.find(
 			(chanUser) => { return chanUser.id === user.id;}
 		));
-	};
-
-	const userJoinedListener = (res: { message: string, userId: string }) => {
-		if (res.userId === user.id) {
-			setUserInChan(true);
-		}
 	};
 
 	const channelUpdatedListener = (channel: Channel) => {
@@ -46,20 +46,26 @@ export const GroupHeader: React.FC<{ viewParams: any }> = ({ viewParams }) => {
 		}
 	};
 
+	const userJoinedListener = (res: { message: string, userId: string }) => {
+		if (res.userId === user.id) {
+			setUserInChan(true);
+		}
+	};
+
 	useEffect(() => {
 		socket.emit("getChannelData", { channelId });
 
 		/* Listeners */
 		socket.on("channelData", defineOptions);
-		socket.on("joinedChannel", userJoinedListener);
 		socket.on("channelUpdated", channelUpdatedListener);
 		socket.on("channelDeleted", channelDeletedListener);
+		socket.on("joinedChannel", userJoinedListener);
 
 		return () => {
 			socket.off("channelData", defineOptions);
-			socket.off("joinedChannel", userJoinedListener);
 			socket.off("channelUpdated", channelUpdatedListener);
 			socket.off("channelDeleted", channelDeletedListener);
+			socket.off("joinedChannel", userJoinedListener);
 		};
 	}, []);
 
@@ -166,6 +172,13 @@ const Group: React.FC<{ viewParams: { [key: string]: any } }> = ({
 		setCurrentMessage(e.target.value);
 	};
 
+	/* Listeners */
+	const channelDeletedListener = (deletedId: string) => {
+		if (deletedId === channelId) {
+			setChatView("groups", "Group chats", {});
+		}
+	};
+
 	/* Receive new message */
 	const newGmListener = ({ message }: { message: Message }) => {
 		console.log(`[Chat] Receive new message in [${message.channel.name}]`);
@@ -207,14 +220,14 @@ const Group: React.FC<{ viewParams: { [key: string]: any } }> = ({
 		}
 	};
 
-	const userLeftListener = (res: { message: string }) => {
+	const userLeftListener = (message: string) => {
 		setMessages((prevMessages) => {
 			const newMessages: ChatMessage[] = [...prevMessages];
 
 			newMessages.push({
 				id: prevMessages.length.toString(),
 				createdAt: new Date(Date.now()),
-				content: res.message,
+				content: message,
 				author: "bot",
 				displayAuthor: false,
 				displayStyle: "self-center text-gray-500",
@@ -223,15 +236,15 @@ const Group: React.FC<{ viewParams: { [key: string]: any } }> = ({
 		});
 	};
 
-	const channelDeletedListener = (deletedId: string) => {
-		if (deletedId === channelId) {
-			setChatView("groups", "Group chats", {});
-		}
-	};
+	const userPunishedListener = (message: string) => {
+		console.log('[Group] User punished');
+		setChatView("groups", "Group chats", {});
+	}
 
 	/* Load all messages in channel */
 	const updateGroupView = (channel: Channel) => {
 		if ((channel.id !== channelId) || !channel.messages) return ;
+		console.log('[Group] Update view');
 
 		setUserInChan(!!channel.users.find(
 			(chanUser) => { return chanUser.id === user.id;}
@@ -269,17 +282,19 @@ const Group: React.FC<{ viewParams: { [key: string]: any } }> = ({
 
 		/* Listeners */
 		socket.on("channelData", updateGroupView);
+		socket.on("channelDeleted", channelDeletedListener);
 		socket.on("newGm", newGmListener);
 		socket.on("joinedChannel", userJoinedListener);
 		socket.on("leftChannel", userLeftListener);
-		socket.on("channelDeleted", channelDeletedListener);
+		socket.on("chatPunishment", userPunishedListener);
 
 		return () => {
 			socket.off("channelData", updateGroupView);
+			socket.off("channelDeleted", channelDeletedListener);
 			socket.off("newGm", newGmListener);
 			socket.off("joinedChannel", userJoinedListener);
 			socket.off("leftChannel", userLeftListener);
-			socket.off("channelDeleted", channelDeletedListener);
+			socket.off("chatPunishment", userPunishedListener);
 		};
 	}, []);
 
