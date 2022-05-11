@@ -213,13 +213,15 @@ const GroupUsers: React.FC<{ viewParams: any }> = ({ viewParams }) => {
 						user.isAdmin
 							? "border-blue-500"
 							: "border-04dp"
-					} object-fill w-full h-full rounded-full`}
+					} ${
+						user.isBlocked && "filter brightness-50"
+					} object-fill w-full h-full rounded-full` }
 				/>
 				<Link href={`/users/${user.username}`}>
 					<a className="flex items-center gap-x-2">
 						{user.username}
 						{user.isAdmin && <BsShieldFillCheck className="text-blue-500"/>}
-						{user.isBlocked && <FaUserLock className="text-red-600" />}
+						{user.isBlocked && <FaUserLock color="grey" />}
 					</a>
 				</Link>
 			</div>

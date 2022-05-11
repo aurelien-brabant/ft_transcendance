@@ -215,7 +215,7 @@ const ChatProvider: React.FC = ({ children }) => {
 			message.createdAt = new Date(lastMessage.createdAt);
 
 			if (!isProtected) {
-				if (!!blocked.find(user => user.id == lastMessage.author.id)) {
+				if (!!blocked.find((user) => { return user.id == lastMessage.author.id; })) {
 					message.content = "Blocked message";
 				} else {
 					message.content = lastMessage.content;
