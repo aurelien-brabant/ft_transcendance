@@ -1,34 +1,34 @@
 import {
-  Controller,
-  Get,
-  Param,
-  Post,
-  Patch,
-  Delete,
   Body,
   ConflictException,
+  Controller,
+  Delete,
+  Get,
+  HttpCode,
   NotFoundException,
+  Param,
+  Patch,
+  Post,
+  Res,
   Response,
   Query,
-  Res,
-  HttpCode,
   UnauthorizedException,
   UseInterceptors,
   UploadedFile,
   UseGuards,
 } from '@nestjs/common';
+import { FileInterceptor } from '@nestjs/platform-express';
+import { createReadStream, statSync } from 'fs';
+import { join } from 'path/posix';
+import { diskStorage } from 'multer';
 import { PaginationQueryDto } from 'src/common/dto/pagination-query.dto';
 import { UsersService } from './users.service';
 import { CreateUserDto } from './dto/create-user.dto';
 import { UpdateUserDto } from './dto/update-user.dto';
-import { createReadStream, statSync } from 'fs';
-import { join } from 'path/posix';
-import { FileInterceptor } from '@nestjs/platform-express';
 import { editFileName, imageFileFilter } from 'src/utils/upload';
-import { diskStorage } from 'multer';
 import { ValidateTfaDto } from './dto/validate-tfa-dto';
-import {IsLoggedInUserGuard} from "./guard/is-logged-in-user.guard";
-import {JwtAuthGuard} from "../auth/guard/jwt-auth.guard";
+import { IsLoggedInUserGuard } from "./guard/is-logged-in-user.guard";
+import { JwtAuthGuard } from "../auth/guard/jwt-auth.guard";
 
 @Controller('users')
 export class UsersController {
@@ -44,25 +44,6 @@ export class UsersController {
   @Get(':userId')
   findOne(@Param('userId') id: string) {
     return this.usersService.findOne(id);
-  }
-
-  @UseGuards(JwtAuthGuard, IsLoggedInUserGuard)
-  @Get('/:userId/ownedChannels')
-  getOwnedChannels(@Param('userId') id: string) {
-    return this.usersService.getOwnedChannels(id);
-  }
-
-  @UseGuards(JwtAuthGuard, IsLoggedInUserGuard)
-  @Get('/:userId/channels')
-  getJoinedChannels(@Param('userId') id: string) {
-    return this.usersService.getJoinedChannels(id);
-  }
-
-  @UseGuards(JwtAuthGuard, IsLoggedInUserGuard)
-  @Get('/:userId/directmessages')
-  getDirectMessages(@Param('userId') id: string, @Query() friendDmQuery) {
-    const { friendId } = friendDmQuery;
-    return this.usersService.getDirectMessages(id, friendId);
   }
 
   /* anyone can create a new user to begin the authentication process */
@@ -112,7 +93,7 @@ export class UsersController {
     @Param('userId') id: string,
     @Query() paginationQuery: PaginationQueryDto,
   ) {
-    return this.usersService.findRrank(id, paginationQuery);
+    return this.usersService.findRank(id, paginationQuery);
   }
 
   @UseGuards(JwtAuthGuard, IsLoggedInUserGuard)

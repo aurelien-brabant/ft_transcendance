@@ -6,23 +6,37 @@ import {
     OneToMany,
     PrimaryGeneratedColumn
 } from "typeorm";
-import {Channel} from 'src/chat/channels/entities/channels.entity';
-import {Game} from "src/games/entities/games.entity";
-import {Achievement} from "src/achievements/entities/achievements.entity";
+import { Channel } from 'src/chat/channels/entities/channels.entity';
+import { ChannelPunishment } from "src/chat/channels/entities/punishment.entity";
+import { DirectMessage } from "src/chat/direct-messages/entities/direct-messages";
+import { Game } from "src/games/entities/games.entity";
+import { Achievement } from "src/achievements/entities/achievements.entity";
 
 @Entity()
 export class User {
     @PrimaryGeneratedColumn()
     id: number;
 
+    /* Informations */
     @Column({unique: true})
     username: string;
 
-    @Column({select: false, nullable: true})
-    password: string;
+    /**
+     * Should be null if user is not a duoquadra,
+     * otherwise must be set to the duoquadra's unique login
+     */
+    @Column({nullable: true, unique: true})
+    duoquadra_login: string;
 
     @Column({unique: true})
     email: string;
+
+    @Column({nullable: true})
+    pic: string;
+
+    /* Security */
+    @Column({select: false, nullable: true})
+    password: string;
 
     @Column({default: false})
     tfa: boolean;
@@ -30,16 +44,23 @@ export class User {
     @Column({nullable: true})
     tfaSecret: string;
 
-    @Column({nullable: true})
-    pic: string;
+    @Column({default: false})
+    hasTfaBeenValidated: boolean;
 
-    // should be null if user is not a duoquadra, otherwise must be set to the duoquadra's unique login
-    @Column({nullable: true, unique: true})
-    duoquadra_login: string;
+    /**
+     * Used to determine if the tfa request has expired or not.
+     * See the TFA_REQUEST_EXPIRES_IN environment variable
+     */
+    @Column({
+        type: 'timestamp',
+        nullable: true,
+    })
+    lastTfaRequestTimestamp: string | number | Date;
 
     @Column({default: false})
     accountDeactivated: boolean;
 
+    /* Games */
     @ManyToMany(() => Game, game => game.players)
     games: Game[];
 
@@ -58,6 +79,7 @@ export class User {
     @ManyToMany(() => Achievement, achievement => achievement.users)
     achievements: Achievement[];
 
+    /* Relationships */
     @ManyToMany(() => User)
     @JoinTable()
     friends: User[];
@@ -74,6 +96,7 @@ export class User {
     @JoinTable()
     blockedUsers: User[];
 
+    /* Chat */
     @OneToMany(() => Channel, channel => channel.owner, {
         cascade: true,
     })
@@ -82,14 +105,13 @@ export class User {
     @ManyToMany(() => Channel, joinedChannels => joinedChannels.users)
     joinedChannels: Channel[];
 
-    @Column({default: false})
-    hasTfaBeenValidated: boolean;
+    @ManyToMany(() => DirectMessage, directMessages => directMessages.users)
+    directMessages: DirectMessage[];
 
-    /* used to determine if the tfa request has expired or not. See the TFA_REQUEST_EXPIRES_IN environment variable */
-    @Column({
-        type: 'timestamp',
-        nullable: true,
-    })
-    lastTfaRequestTimestamp: string | number | Date;
+    @OneToMany(() => ChannelPunishment, (punishment) => punishment.punishedUser)
+    receivedChannelPunishments: ChannelPunishment[];
+
+    @OneToMany(() => ChannelPunishment, (punishment) => punishment.punishedByUser)
+    givenChannelPunishments: ChannelPunishment[];
 }
 

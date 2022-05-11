@@ -1,6 +1,5 @@
 import {
   Column,
-  CreateDateColumn,
   Entity,
   JoinTable,
   ManyToMany,
@@ -9,7 +8,8 @@ import {
   PrimaryGeneratedColumn
 } from "typeorm";
 import { IsOptional } from "class-validator";
-import { Message } from 'src/chat/messages/entities/messages.entity';
+import { ChannelMessage } from 'src/chat/channels/entities/channel-messages.entity';
+import { ChannelPunishment } from "./punishment.entity";
 import { User } from "src/users/entities/users.entity";
 
 @Entity()
@@ -17,10 +17,10 @@ export class Channel {
   @PrimaryGeneratedColumn()
   id: number;
 
-  @Column({ length: 50 })
+  @Column({ unique: true })
   name: string;
 
-  /* public, private, protected, dm */
+  /* public | private | protected */
   @Column({ default: "private" })
   privacy: string
 
@@ -28,8 +28,11 @@ export class Channel {
   @Column({ select: false, nullable: true })
   password: string;
 
-  /* Mute/ban duration in minutes */
-  @Column({ default: 1 }) /* very short for test purposes */
+  /**
+   * Mute/ban duration in minutes: 1 | 5 | 15
+   * NOTE: very short to test it easily
+   */
+  @Column({ default: 1 })
   restrictionDuration: number;
 
   @ManyToOne(() => User, owner => owner.ownedChannels, {
@@ -53,8 +56,13 @@ export class Channel {
   @JoinTable()
   bannedUsers: User[];
 
-  @OneToMany(() => Message, message => message.channel, {
+  @OneToMany(() => ChannelMessage, message => message.channel, {
     cascade: true
   })
-  messages: Message[];
+  messages: ChannelMessage[];
+
+  @OneToMany(() => ChannelPunishment, (punishment) => punishment.channel, {
+    cascade: true
+  })
+  punishments: ChannelPunishment[];
 }

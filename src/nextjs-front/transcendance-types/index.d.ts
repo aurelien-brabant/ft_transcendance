@@ -55,3 +55,35 @@ export type Achievement = {
 	levelToReach: number;
 	users: User[];
 }
+
+/* CHAT */
+
+/**
+ * GET /api/messages/:id
+ */
+export type Message = {
+	id: string;
+	createdAt: Date;
+	content: string;
+	author: User;
+	channel: Channel;
+};
+
+export type DmChannel = {
+	id: string;
+	users: User[];
+	messages: Message[];
+}
+
+/**
+ * GET /api/channels/:id
+ */
+export type Channel = DmChannel & {
+	name: string;
+	privacy: string;
+	restrictionDuration: number;
+	owner: User;
+	admins: User[];
+	mutedUsers: User[];
+	bannedUsers: User[];
+}

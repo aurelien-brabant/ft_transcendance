@@ -5,27 +5,27 @@ import { Timestamp } from "typeorm";
 /* USERS */
 
 export type SeedUser = {
-    id: number;
-    username: string;
-    password: string;
-    email: string;
-    tfa: boolean;
-    tfaSecret: string;
-    pic: string;
-    duoquadra_login: string;
-    accountDeactivated: boolean;
-    games: SeedGame[];
-    wins: number;
-    losses: number;
-    draws: number;
-    ratio: number;
-    achievements: Achievement[];
-    friends: User[];
-    blockedUsers: User[];
-    pendingFriendsSent: User[];
-    pendingFriendsReceived: User[];
-    ownedChannels: SeedChannel[];
-    joinedChannels: SeedChannel[];
+  id: number;
+  username: string;
+  email: string;
+  pic: string;
+  password: string;
+  tfa: boolean;
+  tfaSecret: string;
+  duoquadra_login: string;
+  accountDeactivated: boolean;
+  games: SeedGame[];
+  wins: number;
+  losses: number;
+  draws: number;
+  ratio: number;
+  achievements: Achievement[];
+  friends: User[];
+  blockedUsers: User[];
+  pendingFriendsSent: User[];
+  pendingFriendsReceived: User[];
+  ownedChannels: SeedChannel[];
+  joinedChannels: SeedChannel[];
 };
 
 /* GAMES */
@@ -41,28 +41,39 @@ export type SeedGame = {
   gameDuration: number;
 };
 
-/* CHANNELS */
-
-export type SeedChannel = {
-  id: number;
-  name: string;
-  privacy: string;
-  password: string;
-  restrictionDuration: number;
-  owner: SeedUser;
-  users: SeedUser[];
-  admins: SeedUser[];
-  mutedUsers: SeedUser[];
-  bannedUsers: SeedUser[];
-  messages: SeedMessage[];
-};
-
-/* MESSAGES */
-
-export type SeedMessage = {
+/* NOTE: don't need chat seeding anymore
+export type SeedChanMessage = {
   id: number;
   createdAt: Date;
   content: string;
   author: SeedUser;
   channel: SeedChannel;
 };
+
+export type SeedDmMessage = {
+  id: number;
+  createdAt: Date;
+  content: string;
+  author: SeedUser;
+  channel: SeedDirectMessage;
+};
+
+export type SeedChannel = {
+  id: number;
+  name: string;
+  privacy: string;
+  password?: string;
+  restrictionDuration: number;
+  owner: SeedUser;
+  users: SeedUser[];
+  admins: SeedUser[];
+  mutedUsers: SeedUser[];
+  bannedUsers: SeedUser[];
+  messages: SeedChanMessage[];
+};
+
+export type SeedDirectMessage = {
+  id: number;
+  users: SeedUser[];
+  messages: SeedChanMessage[];
+};*/
