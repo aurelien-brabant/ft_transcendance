@@ -8,6 +8,7 @@ import {
 	SubscribeMessage,
 	WebSocketGateway,
 	WebSocketServer,
+	WsException,
 } from '@nestjs/websockets';
 import { ChatService } from './chat.service';
 import { UserStatus } from 'src/games/class/Constants';
@@ -262,6 +263,9 @@ export class ChatGateway implements OnGatewayInit, OnGatewayConnection {
 			ownerId: string, channelId: string, userId: string
 		}
 	) {
+		if (ownerId == userId) {
+			throw new WsException('Owner and admin are separate roles.');
+		}
 		try {
 			await this.chatService.checkPrivileges(ownerId, channelId, true);
 			await this.chatService.addAdminToChannel(ownerId, channelId, userId);
@@ -280,6 +284,9 @@ export class ChatGateway implements OnGatewayInit, OnGatewayConnection {
 			ownerId: string, channelId: string, userId: string
 		}
 	) {
+		if (ownerId == userId) {
+			throw new WsException('Owner and admin are separate roles.');
+		}
 		try {
 			await this.chatService.checkPrivileges(ownerId, channelId, true);
 			await this.chatService.removeAdminFromChannel(ownerId, channelId, userId);
@@ -298,10 +305,10 @@ export class ChatGateway implements OnGatewayInit, OnGatewayConnection {
 			adminId: string, channelId: string, userId: string
 		}
 	) {
+		if (adminId == userId) {
+			throw new WsException('You can\'t punish yourself.');
+		}
 		try {
-			if (adminId === userId) {
-				throw new Error('punisherId should be different from punishedId');
-			}
 			await this.chatService.checkPrivileges(adminId, channelId);
 			await this.chatService.punishUser(adminId, channelId, userId);
 
@@ -322,6 +329,9 @@ export class ChatGateway implements OnGatewayInit, OnGatewayConnection {
 			adminId: string, channelId: string, userId: string
 		}
 	) {
+		if (adminId == userId) {
+			throw new WsException('If you want to leave the channel, go to Channel settings.');
+		}
 		try {
 			await this.chatService.checkPrivileges(adminId, channelId);
 			await this.chatService.removeUserFromChannel(userId, channelId);
