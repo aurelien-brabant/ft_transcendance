@@ -17,6 +17,7 @@ export enum GameState {
 export type User = {
 	id: number;
 	username: string;
+	ratio?: number;
 }
 
 export interface IPlayer {

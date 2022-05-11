@@ -39,12 +39,8 @@ export class PongGateway implements OnGatewayInit, OnGatewayConnection, OnGatewa
 				let roomId: string;
 				let room: Room;
 
-				players.push(this.queue.dequeue());
-				// Match players based on ratio, etc...
-				players.push(this.queue.dequeue());
+				players = this.queue.matchPlayers();
 
-				// emit rooms change event for spectator or create a game in DB
-				
 				roomId = `${players[0].username}&${players[1].username}`;
 				
 				room = new Room(roomId, players, {maxGoal: 1});
@@ -65,7 +61,7 @@ export class PongGateway implements OnGatewayInit, OnGatewayConnection, OnGatewa
 
 	@SubscribeMessage('handleUserConnect')
 	async handleUserConnect(@ConnectedSocket() client: Socket, @MessageBody() user: User) {
-		let newUser: User = new User(user.id, user.username, client.id);
+		let newUser: User = new User(user.id, user.username, client.id, user.ratio);
 		newUser.setSocketId(client.id);
 		newUser.setUserStatus(UserStatus.INHUB);
 

@@ -24,7 +24,7 @@ const Hub: NextPageWithLayout = () => {
 
 	let roomData: IRoom;
 	let roomId: string | undefined;
-	let userData: User = {id: user.id, username: user.username};
+	let userData: User = {id: user.id, username: user.username, ratio: user.ratio};
 
 	const joinQueue = () => {
 		socket.emit("joinQueue", userData.username);
