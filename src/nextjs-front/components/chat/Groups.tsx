@@ -147,8 +147,8 @@ const Groups: React.FC<{viewParams: Object;}> = ({ viewParams }) => {
 								style={
 									{
 										backgroundColor: gm.privacy === 'public'
-											? "#48bb78"
-											: gm.privacy === 'private' ? "#3182ce" : "#805ad5"
+											? "#0d9488"
+											: gm.privacy === 'private' ? "#db2777" : "#0c4a6e"
 									}
 								}
 								className="flex items-center justify-center w-16 h-16 text-4xl rounded-full"

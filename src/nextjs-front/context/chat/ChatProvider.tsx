@@ -419,7 +419,7 @@ const ChatProvider: React.FC = ({ children }) => {
 				/>
 				:
 				<button
-					className="fixed z-50 flex items-center justify-center p-4 text-5xl bg-orange-500 rounded-full transition hover:scale-105 text-neutral-200"
+					className="fixed z-50 flex items-center justify-center p-4 text-5xl text-pink-200 bg-pink-600 rounded-full transition hover:scale-105 text-neutral-200"
 					style={{ right: "10px", bottom: "10px" }}
 					onClick={() => {
 						if (viewStack.length === 0) {
