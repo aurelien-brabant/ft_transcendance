@@ -190,7 +190,7 @@ const ChatProvider: React.FC = ({ children }) => {
 
 	/* NOTE: To be updated */
 	const getMessageStyle = (authorId: string) => {
-		if (authorId === user.id) return "self-end bg-green-600";
+		if (authorId === user.id) return "self-end bg-blue-500";
 
 		const isBlocked = !!blocked.find(
 			blockedUser => blockedUser.id === authorId
