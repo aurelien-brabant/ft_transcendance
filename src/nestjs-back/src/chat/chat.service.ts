@@ -205,6 +205,22 @@ export class ChatService {
 		throw new Error('Invalid operation');
 	}
 
+	async checkIfUserIsBanned(channelId: number, userId: number) {
+		const isBanned = await this.channelsService.findOutIfUserIsBanned(channelId, userId);
+
+		if (isBanned) {
+			throw new Error('You were banned from this group.');
+		}
+	}
+
+	async checkIfUserIsMuted(channelId: number, userId: number) {
+		const isMuted = await this.channelsService.findOutIfUserIsMuted(channelId, userId);
+
+		if (isMuted) {
+			throw new Error('Muted users are not allowed to post.');
+		}
+	}
+
 	/**
 	 * Direct Messages
 	 */

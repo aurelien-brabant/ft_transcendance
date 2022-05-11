@@ -17,6 +17,14 @@ export class ChannelsService {
 		private readonly channelPunishmentService: PunishmentsService
 	) {}
 
+	async findOutIfUserIsMuted(channelId: number, userId: number) {
+		return await this.channelPunishmentService.isUserCurrentlyMuted(channelId, userId);
+	}
+
+	async findOutIfUserIsBanned(channelId: number, userId: number) {
+		return await this.channelPunishmentService.isUserCurrentlyBanned(channelId, userId);
+	}
+
 	async banUser(channelId: number, punishedId: number, punisherId: number) {
 		const isBanned = await this.channelPunishmentService.isUserCurrentlyBanned(channelId, punishedId);
 

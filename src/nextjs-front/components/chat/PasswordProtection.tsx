@@ -43,20 +43,11 @@ const PasswordProtection: React.FC<{ viewParams: any }> = ({ viewParams }) => {
 			userId: user.id,
 			password: input
 		});
+
+		socket.on("joinedProtected", () => {
+			openChatView('group', viewParams.channelName, { ...viewParams });
+		});
 	};
-
-	const joinedProtectedListener = () => {
-		openChatView('group', viewParams.channelName, { ...viewParams });
-	};
-
-	useEffect(() => {
-		/* Listeners */
-		socket.on("joinedProtected", joinedProtectedListener);
-
-		return () => {
-			socket.off("joinedProtected", joinedProtectedListener);
-		};
-	}, []);
 
 	return <div className = "flex flex-col items-center justify-center p-5 gap-y-4">
 		<AiFillLock className="text-8xl" />

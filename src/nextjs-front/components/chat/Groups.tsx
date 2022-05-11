@@ -26,6 +26,27 @@ const Groups: React.FC<{viewParams: Object;}> = ({ viewParams }) => {
 	const [visiblityFilter, setVisiblityFilter] = useState<ChatGroupPrivacy | null>(null);
 	const searchInputRef = useRef<HTMLInputElement>(null);
 
+	/* Open a group if user is not banned */
+	const handleOpenGroup = (gm: ChatGroup) => {
+		socket.emit("openChannel", {
+			channelId: gm.id,
+			userId: user.id
+		});
+
+		socket.on("canOpenChannel", (channelId: string) => {
+			if (channelId != gm.id) return ;
+
+			openChatView(
+				gm.privacy === 'protected' ? 'password_protection' : 'group',
+				gm.label, {
+					channelId: gm.id,
+					channelName: gm.label,
+					privacy: gm.privacy
+				}
+			);
+		})
+	};
+
 	/* Select all | private | public | protected */
 	const handleSelect = (e: React.ChangeEvent<HTMLSelectElement>) => {
 		setVisiblityFilter(
@@ -109,14 +130,7 @@ const Groups: React.FC<{viewParams: Object;}> = ({ viewParams }) => {
 						key={gm.label}
 						className="relative items-center px-10 py-5 grid grid-cols-3 border-b border-04dp bg-dark/90 hover:bg-04dp/90 transition"
 						onClick={() => {
-							openChatView(
-								gm.privacy === 'protected' ? 'password_protection' : 'group',
-								gm.label, {
-									channelId: gm.id,
-									channelName: gm.label,
-									privacy: gm.privacy
-								}
-							);
+							handleOpenGroup(gm);
 						}}
 					>
 						<div className="absolute bottom-0 left-0 flex items-center px-3 py-1 text-sm text-white bg-04dp drop-shadow-md gap-x-1">

@@ -185,6 +185,7 @@ export class ChatGateway implements OnGatewayInit, OnGatewayConnection {
 		@MessageBody() data: CreateChannelMessageDto
 	) {
 		try {
+			await this.chatService.checkIfUserIsMuted(data.channel.id, data.author.id);
 			const message = await this.chatService.addMessageToChannel(data);
 			const channel = message.channel;
 
@@ -196,6 +197,20 @@ export class ChatGateway implements OnGatewayInit, OnGatewayConnection {
 	}
 
 	/* User joins/quits channel */
+	@SubscribeMessage('openChannel')
+	async handleOpenChannel(
+		@ConnectedSocket() client: Socket,
+		@MessageBody() { channelId, userId }: { channelId: number, userId: number }
+	) {
+		try {
+			await this.chatService.checkIfUserIsBanned(channelId, userId);
+
+			this.server.to(client.id).emit('canOpenChannel', channelId);
+		} catch (e) {
+			this.server.to(client.id).emit('chatError', e.message);
+		}
+	}
+
 	@SubscribeMessage('joinChannel')
 	async handleJoinChannel(
 		@ConnectedSocket() client: Socket,

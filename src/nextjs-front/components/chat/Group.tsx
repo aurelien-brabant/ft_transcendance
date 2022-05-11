@@ -246,34 +246,34 @@ const Group: React.FC<{ viewParams: { [key: string]: any } }> = ({
 
 	/* Load all messages in channel */
 	const updateGroupView = (channel: Channel) => {
-		if ((channel.id !== channelId) || !channel.messages) {
-			return ;
-		}
+		if (channel.id !== channelId) return ;
 
 		setUserInChan(!!channel.users.find(
 			(chanUser) => { return chanUser.id === user.id;}
 		));
 
-		const messages: ChatMessage[] = [];
+		if (channel.messages) {
+			const messages: ChatMessage[] = [];
 
-		channel.messages.sort(
-			(a: Message, b: Message) => (parseInt(a.id) - parseInt(b.id))
-		);
+			channel.messages.sort(
+				(a: Message, b: Message) => (parseInt(a.id) - parseInt(b.id))
+			);
 
-		for (var message of channel.messages) {
-			const isBlocked = !!blocked.find(blockedUser => blockedUser.id === message.author.id);
-			const isMe = (message.author.id === user.id);
+			for (var message of channel.messages) {
+				const isBlocked = !!blocked.find(blockedUser => blockedUser.id === message.author.id);
+				const isMe = (message.author.id === user.id);
 
-			messages.push({
-				id: messages.length.toString(),
-				createdAt: message.createdAt,
-				content: isBlocked ? "Blocked message" : message.content,
-				author: message.author.username,
-				displayAuthor: (!isMe && !isBlocked),
-				displayStyle: getMessageStyle(message.author.id),
-			});
+				messages.push({
+					id: messages.length.toString(),
+					createdAt: message.createdAt,
+					content: isBlocked ? "Blocked message" : message.content,
+					author: message.author.username,
+					displayAuthor: (!isMe && !isBlocked),
+					displayStyle: getMessageStyle(message.author.id),
+				});
+			}
+			setMessages(messages);
 		}
-		setMessages(messages);
 	};
 
 	/* Scroll to bottom if new message is sent */
