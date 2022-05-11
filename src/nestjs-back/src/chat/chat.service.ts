@@ -26,23 +26,23 @@ export class ChatService {
 	 */
 
 	/* Helpers */
-	async userIsInChannel(userId: string, channelId: string) {
-		const channel = await this.channelsService.findOne(channelId);
+	async userIsInChannel(channelId: number, userId: number) {
+		const channel = await this.channelsService.findOne(channelId.toString());
 
 		if (!channel) {
 			throw new Error('No channel found.');
 		}
 		const isInChan = !!channel.users.find((user) => {
-			return user.id === parseInt(userId);
+			return user.id === userId;
 		});
 		return isInChan;
 	}
 
-	async checkChannelPassword(channelId: string, password: string) {
-		const channel = await this.channelsService.findOne(channelId);
+	async checkChannelPassword(channelId: number, password: string) {
+		const channel = await this.channelsService.findOne(channelId.toString());
 
 		if (channel && channel.privacy === 'protected') {
-			const chanPassword = await this.channelsService.getChannelPassword(channelId);
+			const chanPassword = await this.channelsService.getChannelPassword(channelId.toString());
 			const passIsValid = await comparePassword(password, chanPassword);
 
 			if (passIsValid) return ;
@@ -51,13 +51,13 @@ export class ChatService {
 		throw new Error('Invalid operation');
 	}
 
-	async checkPrivileges(userId: string, channelId: string, ownerOnly = false) {
-		const channel = await this.channelsService.findOne(channelId);
+	async checkPrivileges(channelId: number, userId: number, ownerOnly = false) {
+		const channel = await this.channelsService.findOne(channelId.toString());
 
 		if (channel) {
-			const hasOwnerPriv = channel.owner.id === parseInt(userId);
+			const hasOwnerPriv = channel.owner.id === userId;
 			const hasAdminPriv = !!channel.admins.find((admin) => {
-				return admin.id === parseInt(userId);
+				return admin.id === userId;
 			});
 
 			if (ownerOnly && hasOwnerPriv) return;
@@ -68,18 +68,18 @@ export class ChatService {
 	}
 
 	/* Getters */
-	async getChannelData(id: string) {
-		return await this.channelsService.findOne(id);
+	async getChannelData(channelId: number) {
+		return await this.channelsService.findOne(channelId.toString());
 	}
 
-	async getUserChannels(userId: string) {
+	async getUserChannels(userId: number) {
 		const channels = await this.channelsService.findAll();
 
 		if (!channels) {
 			throw new Error('No channel found.');
 		}
 		const userChannels = channels.filter((channel) =>
-			!!channel.users.find((user) => { return user.id === parseInt(userId); })
+			!!channel.users.find((user) => { return user.id === userId; })
 			|| (channel.privacy !== 'private')
 		);
 		return userChannels;
@@ -92,53 +92,53 @@ export class ChatService {
 		return await this.channelsService.findOne(res.id.toString());
 	}
 
-	async updateChannel(channelId: string, updateChannelDto: UpdateChannelDto) {
-		return await this.channelsService.update(channelId, updateChannelDto);
+	async updateChannel(channelId: number, updateChannelDto: UpdateChannelDto) {
+		return await this.channelsService.update(channelId.toString(), updateChannelDto);
 	}
 
-	async deleteChannel(channelId: string) {
-		return await this.channelsService.remove(channelId);
+	async deleteChannel(channelId: number) {
+		return await this.channelsService.remove(channelId.toString());
 	}
 
 	async addMessageToChannel(createChannelMessageDto: CreateChannelMessageDto) {
 		return await this.channelMessagesService.create(createChannelMessageDto);
 	}
 
-	async addUserToChannel(userId: string, channelId: string) {
-		const user = await this.usersService.findOne(userId);
-		const channel = await this.channelsService.findOne(channelId);
+	async addUserToChannel(channelId: number, userId: number) {
+		const user = await this.usersService.findOne(userId.toString());
+		const channel = await this.channelsService.findOne(channelId.toString());
 
-		await this.channelsService.update(channelId, {
+		await this.channelsService.update(channelId.toString(), {
 			users: [ ...channel.users, user]
 		});
 		return user;
 	}
 
-	async removeUserFromChannel(userId: string, channelId: string) {
-		const user = await this.usersService.findOne(userId);
-		const channel = await this.channelsService.findOne(channelId);
+	async removeUserFromChannel(channelId: number, userId: number) {
+		const user = await this.usersService.findOne(userId.toString());
+		const channel = await this.channelsService.findOne(channelId.toString());
 		const filteredUsers = channel.users.filter((chanUser) => {
 			return chanUser.id !== user.id;
 		})
 
-		await this.channelsService.update(channelId, {
+		await this.channelsService.update(channelId.toString(), {
 			users: filteredUsers
 		});
 		return user;
 	}
 
 	/* Owner operations */
-	async addAdminToChannel(ownerId: string, channelId: string, userId: string) {
-		const channel = await this.channelsService.findOne(channelId);
+	async addAdminToChannel(channelId: number, ownerId: number, userId: number) {
+		const channel = await this.channelsService.findOne(channelId.toString());
 
-		if (channel && (channel.owner.id === parseInt(ownerId))) {
-			const newAdmin = await this.usersService.findOne(userId);
+		if (channel && (channel.owner.id === ownerId)) {
+			const newAdmin = await this.usersService.findOne(userId.toString());
 			const isAdmin = !!channel.admins.find((admin) => {
-				return admin.id === parseInt(userId);
+				return admin.id === userId;
 			});
 
 			if (!isAdmin) {
-				await this.channelsService.update(channelId, {
+				await this.channelsService.update(channelId.toString(), {
 					admins: [ ...channel.users, newAdmin]
 				});
 				return newAdmin;
@@ -148,21 +148,21 @@ export class ChatService {
 		throw new Error('Invalid operation');
 	}
 
-	async removeAdminFromChannel(ownerId: string, channelId: string, userId: string) {
-		const channel = await this.channelsService.findOne(channelId);
+	async removeAdminFromChannel(channelId: number, ownerId: number, userId: number) {
+		const channel = await this.channelsService.findOne(channelId.toString());
 
-		if (channel && (channel.owner.id === parseInt(ownerId))) {
-			const formerAdmin = await this.usersService.findOne(userId);
+		if (channel && (channel.owner.id === ownerId)) {
+			const formerAdmin = await this.usersService.findOne(userId.toString());
 			const isAdmin = !!channel.admins.find((admin) => {
-				return admin.id === parseInt(userId);
+				return admin.id === userId;
 			});
 
 			if (isAdmin) {
 				const filteredAdmins = channel.admins.filter((chanAdmin) => {
 					return chanAdmin.id !== formerAdmin.id;
 				});
-	
-				await this.channelsService.update(channelId, {
+
+				await this.channelsService.update(channelId.toString(), {
 					admins: filteredAdmins
 				});
 				console.log(channel);
@@ -176,26 +176,26 @@ export class ChatService {
 	/**
 	 * NOTE: Will be replaced by punishment
 	 */
-	async punishUser(adminId: string, channelId: string, userId: string) {
-		const channel = await this.channelsService.findOne(channelId);
+	async punishUser(channelId: number, adminId: number, userId: number) {
+		// const channel = await this.channelsService.findOne(channelId.toString());
 
-		if (channel) {
-			/* Only ban for testing */
-			const isBanned = !!channel.bannedUsers.find((bannedUser) => {
-				return bannedUser.id === parseInt(userId);
-			});
+		// if (channel) {
+		// 	/* Only ban for testing */
+		// 	const isBanned = !!channel.bannedUsers.find((bannedUser) => {
+		// 		return bannedUser.id === userId;
+		// 	});
 
-			if (!isBanned) {
-				const user = await this.usersService.findOne(userId);
+		// 	if (!isBanned) {
+		// 		const user = await this.usersService.findOne(userId);
 
-				await this.channelsService.update(channelId, {
-					bannedUsers: [ ...channel.bannedUsers, user]
-				});
-				return user;
-			}
-			throw new Error('User is already banned');
-		}
-		throw new Error('Invalid operation');
+		// 		await this.channelsService.update(channelId, {
+		// 			bannedUsers: [ ...channel.bannedUsers, user]
+		// 		});
+		// 		return user;
+		// 	}
+		// 	throw new Error('User is already banned');
+		// }
+		// throw new Error('Invalid operation');
 	}
 
 	/**
@@ -203,17 +203,17 @@ export class ChatService {
 	 */
 
 	/* Getters */
-	async getDmData(id: string) {
-		return await this.directMessagesService.findOne(id);
+	async getDmData(dmId: number) {
+		return await this.directMessagesService.findOne(dmId.toString());
 	}
 
-	async getFriendFromDm(dmId: string, userId: string) {
-		const dm = await this.directMessagesService.findOne(dmId);
+	async getFriendFromDm(dmId: number, userId: number) {
+		const dm = await this.directMessagesService.findOne(dmId.toString());
 
-		return (dm.users[0].id === parseInt(userId)) ? dm.users[1] : dm.users[0];
+		return (dm.users[0].id === userId) ? dm.users[1] : dm.users[0];
 	}
 
-	async getUserDms(userId: string) {
+	async getUserDms(userId: number) {
 		const dms = await this.directMessagesService.findAll();
 
 		if (!dms) {
@@ -221,7 +221,7 @@ export class ChatService {
 		}
 		const userDms = dms.filter((dm) =>
 			!!dm.users.find((user) => {
-				return user.id === parseInt(userId);
+				return user.id === userId;
 			})
 		);
 		return userDms;

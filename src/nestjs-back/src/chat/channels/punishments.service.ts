@@ -30,7 +30,7 @@ export class PunishmentsService {
      * @param channelId - The id of the channel the punishment applies to
      * @param punishedUserId - The id of the punishED user (the user that receives a punishment)
      * @param punisherUserId  - The id of the punishER user (the user that gives the punishment)
-     * @param options - Optional parameters such as punishment duration and reason
+     * @param options - Optional parameters such as punishment reason
      * @returns The punishment as saved in database
      */
     async punishUser(channelId: number, punishedUserId: number, punisherUserId: number, type: PunishmentType, options: PunishmentOptions = {}) {

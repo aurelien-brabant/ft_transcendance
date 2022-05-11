@@ -39,8 +39,8 @@ const PasswordProtection: React.FC<{ viewParams: any }> = ({ viewParams }) => {
 		const input = (e.currentTarget.elements[0] as HTMLInputElement).value;
 
 		socket.emit("joinProtected", {
-			userId: user.id,
 			channelId: viewParams.channelId,
+			userId: user.id,
 			password: input
 		});
 	};

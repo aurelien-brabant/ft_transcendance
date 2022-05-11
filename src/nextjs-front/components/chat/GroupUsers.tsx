@@ -87,8 +87,8 @@ const GroupUsers: React.FC<{ viewParams: any }> = ({ viewParams }) => {
 	/* Make user administrator */
 	const addAdmin = async (id: string) => {
 		socket.emit("makeAdmin", {
-			ownerId: user.id.toString(),
 			channelId,
+			ownerId: String(user.id),
 			userId: id
 		});
 	};
@@ -96,8 +96,8 @@ const GroupUsers: React.FC<{ viewParams: any }> = ({ viewParams }) => {
 	/* Remove administrator rights */
 	const removeAdmin = async (id: string) => {
 		socket.emit("removeAdmin", {
-			ownerId: user.id.toString(),
 			channelId,
+			ownerId: String(user.id),
 			userId: id
 		});
 	};
@@ -105,8 +105,8 @@ const GroupUsers: React.FC<{ viewParams: any }> = ({ viewParams }) => {
 	/* Ban user from group */
 	const banUser = async (id: string) => {
 		socket.emit("punishUser", { /* tmp */
-			adminId: user.id.toString(),
 			channelId,
+			adminId: String(user.id),
 			userId: id
 		});
 	};
@@ -114,8 +114,8 @@ const GroupUsers: React.FC<{ viewParams: any }> = ({ viewParams }) => {
 	/* Mute user in group */
 	const muteUser = async (id: string) => {
 		socket.emit("punishUser", { /* tmp */
-			adminId: user.id.toString(),
 			channelId,
+			adminId: String(user.id),
 			userId: id
 		});
 	};
@@ -123,8 +123,8 @@ const GroupUsers: React.FC<{ viewParams: any }> = ({ viewParams }) => {
 	/* Kick user from group */
 	const kickUser = async (id: string) => {
 		socket.emit("kickUser", {
-			adminId: user.id,
 			channelId,
+			adminId: String(user.id),
 			userId: id
 		});
 	};

@@ -142,8 +142,8 @@ const GroupSettings: React.FC<{ viewParams: any }> = ({ viewParams }) => {
 	 */
 	const handleUserLeaveGroup = () => {
 		socket.emit("leaveChannel", {
-			userId: user.id,
-			channelId
+			channelId,
+			userId: user.id
 		});
 		if (privacy === 'protected') {
 			closeRightmostView(3);

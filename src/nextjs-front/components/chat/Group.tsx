@@ -22,7 +22,7 @@ export const GroupHeader: React.FC<{ viewParams: any }> = ({ viewParams }) => {
 	} = useContext(chatContext) as ChatContextType;
 	const [channelName, setChannelName] = useState(viewParams.channelName);
 	const [privacy, setChannelPrivacy] = useState(viewParams.privacy);
-	const [userInChan, setUserInChan] = useState(false);
+	const [userInChan, setUserInChan] = useState((privacy === 'protected') ? true : false);
 	const actionTooltipStyles = "font-bold bg-dark text-neutral-200";
 
 	const defineOptions = (channel: Channel) => {
@@ -34,6 +34,9 @@ export const GroupHeader: React.FC<{ viewParams: any }> = ({ viewParams }) => {
 	const channelUpdatedListener = (channel: Channel) => {
 		setChannelName(channel.name);
 		setChannelPrivacy(channel.privacy);
+		setUserInChan(!!channel.users.find(
+			(chanUser) => { return chanUser.id === user.id;}
+		));
 
 		if (!userInChan && (channel.privacy !== 'public')) {
 			closeRightmostView();
@@ -47,7 +50,7 @@ export const GroupHeader: React.FC<{ viewParams: any }> = ({ viewParams }) => {
 	};
 
 	const userJoinedListener = (res: { message: string, userId: string }) => {
-		if (res.userId === user.id) {
+		if (res.userId === user.id.toString()) {
 			setUserInChan(true);
 		}
 	};
@@ -140,8 +143,8 @@ const Group: React.FC<{ viewParams: { [key: string]: any } }> = ({
 
 	const joinGroup = async () => {
 		socket.emit("joinChannel", {
+			channelId: viewParams.channelId,
 			userId: user.id,
-			channelId: viewParams.channelId
 		});
 	};
 
@@ -181,7 +184,7 @@ const Group: React.FC<{ viewParams: { [key: string]: any } }> = ({
 
 	/* Receive new message */
 	const newGmListener = ({ message }: { message: Message }) => {
-		console.log(`[Chat] Receive new message in [${message.channel.name}]`);
+		console.log(`[Chat] Receive new message in [${message.channel.id}]`);
 
 		setMessages((prevMessages) => {
 			const newMessages: ChatMessage[] = [...prevMessages];
@@ -243,12 +246,17 @@ const Group: React.FC<{ viewParams: { [key: string]: any } }> = ({
 
 	/* Load all messages in channel */
 	const updateGroupView = (channel: Channel) => {
-		if ((channel.id !== channelId) || !channel.messages) return ;
+		if ((channel.id !== channelId) || !channel.messages) {
+			return ;
+		}
+
 		console.log('[Group] Update view');
 
 		setUserInChan(!!channel.users.find(
 			(chanUser) => { return chanUser.id === user.id;}
 		));
+
+		if (!userInChan) return ;
 
 		const messages: ChatMessage[] = [];
 
