@@ -87,45 +87,47 @@ const GroupUsers: React.FC<{ viewParams: any }> = ({ viewParams }) => {
 	/* Make user administrator */
 	const addAdmin = async (id: string) => {
 		socket.emit("makeAdmin", {
-			channelId,
-			ownerId: String(user.id),
-			userId: id
+			channelId: parseInt(channelId),
+			ownerId: user.id,
+			userId: parseInt(id)
 		});
 	};
 
 	/* Remove administrator rights */
 	const removeAdmin = async (id: string) => {
 		socket.emit("removeAdmin", {
-			channelId,
-			ownerId: String(user.id),
-			userId: id
+			channelId: parseInt(channelId),
+			ownerId: user.id,
+			userId: parseInt(id)
 		});
 	};
 
 	/* Ban user from group */
 	const banUser = async (id: string) => {
-		socket.emit("punishUser", { /* tmp */
-			channelId,
-			adminId: String(user.id),
-			userId: id
+		socket.emit("punishUser", {
+			channelId: parseInt(channelId),
+			adminId: user.id,
+			userId: parseInt(id),
+			type: "ban"
 		});
 	};
 
 	/* Mute user in group */
 	const muteUser = async (id: string) => {
-		socket.emit("punishUser", { /* tmp */
-			channelId,
-			adminId: String(user.id),
-			userId: id
+		socket.emit("punishUser", {
+			channelId: parseInt(channelId),
+			adminId: user.id,
+			userId: parseInt(id),
+			type: "mute"
 		});
 	};
 
 	/* Kick user from group */
 	const kickUser = async (id: string) => {
 		socket.emit("kickUser", {
-			channelId,
-			adminId: String(user.id),
-			userId: id
+			channelId: parseInt(channelId),
+			adminId: user.id,
+			userId: parseInt(id)
 		});
 	};
 
@@ -134,7 +136,7 @@ const GroupUsers: React.FC<{ viewParams: any }> = ({ viewParams }) => {
 		socket.emit("getChannelData", { channelId });
 	}
 
-	const userPunishedListener = (message: string) => {
+	const userPunishedListener = () => {
 		console.log('[Group Users] User punished');
 		setChatView("groups", "Group chats", {});
 	}
@@ -230,18 +232,18 @@ const GroupUsers: React.FC<{ viewParams: any }> = ({ viewParams }) => {
 		<>
 			<Tooltip className={actionTooltipStyles} content="mute">
 				<button
-				onClick={() => muteUser(String(user.id))}
+				onClick={() => muteUser(user.id)}
 				className="transition hover:scale-110">
 					<MdVoiceOverOff color="grey"/>
 				</button>
 			</Tooltip>
 			<Tooltip className={actionTooltipStyles} content="ban">
-				<button onClick={() => banUser(String(user.id))} className="transition hover:scale-110">
+				<button onClick={() => banUser(user.id)} className="transition hover:scale-110">
 					<GiThorHammer color="grey"/>
 				</button>
 			</Tooltip>
 			<Tooltip className={actionTooltipStyles} content="kick">
-				<button onClick={() => kickUser(String(user.id))} className="transition hover:scale-110">
+				<button onClick={() => kickUser(user.id)} className="transition hover:scale-110">
 					<FaUserMinus className="text-lg" color="grey"/>
 				</button>
 			</Tooltip>
@@ -253,14 +255,14 @@ const GroupUsers: React.FC<{ viewParams: any }> = ({ viewParams }) => {
 	const getOwnerTools = (user: UserSummary) => {
 		if (user.isAdmin) {
 			return (
-				<button onClick={() => removeAdmin(String(user.id))} className="text-red-600 transition hover:scale-110">
+				<button onClick={() => removeAdmin(user.id)} className="text-red-600 transition hover:scale-110">
 					<BsShieldFillX />
 				</button>
 			);
 		}
 		return (
 			<Tooltip className={actionTooltipStyles} content="+admin">
-				<button onClick={() => addAdmin(String(user.id))} className="text-blue-500 transition hover:scale-110">
+				<button onClick={() => addAdmin(user.id)} className="text-blue-500 transition hover:scale-110">
 					<BsShieldFillPlus />
 				</button>
 			</Tooltip>

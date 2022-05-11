@@ -48,16 +48,6 @@ export class Channel {
   @JoinTable()
   admins: User[];
 
-  /* NOTE: to be removed */
-  @ManyToMany(() => User)
-  @JoinTable()
-  mutedUsers: User[];
-
-  /* NOTE: to be removed */
-  @ManyToMany(() => User)
-  @JoinTable()
-  bannedUsers: User[];
-
   @OneToMany(() => ChannelMessage, message => message.channel, {
     cascade: true
   })

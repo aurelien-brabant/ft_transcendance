@@ -311,21 +311,19 @@ export class ChatGateway implements OnGatewayInit, OnGatewayConnection {
 	@SubscribeMessage('punishUser')
 	async handlePunishUser(
 		@ConnectedSocket() client: Socket,
-		@MessageBody() { channelId, adminId, userId }: {
-			channelId: number, adminId: number, userId: number
+		@MessageBody() { channelId, adminId, userId, type }: {
+			channelId: number, adminId: number, userId: number, type: string
 		}
 	) {
 		if (adminId === userId) {
-			throw new WsException('You can\'t punish yourself.');
+			throw new WsException('Don\'t be so mean to yourself. :(');
 		}
 		try {
-			await this.chatService.punishUser(channelId, adminId, userId);
-
+			const message = await this.chatService.punishUser(channelId, adminId, userId, type);
 			const userSocket = this.chatUsers.getUserById(userId.toString());
-			const channel = await this.chatService.getChannelData(channelId);
 
 			this.server.to(client.id).emit('userPunished');
-			this.server.to(userSocket.socketId).emit('chatPunishment', `You have been banned from ${channel.name}.`);
+			this.server.to(userSocket.socketId).emit('chatPunishment', message);
 		} catch (e) {
 			this.server.to(client.id).emit('chatError', e.message);
 		}

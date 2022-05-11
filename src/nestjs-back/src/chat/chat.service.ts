@@ -182,10 +182,9 @@ export class ChatService {
 		throw new Error('Invalid operation');
 	}
 
-	/**
-	 * NOTE: Will be replaced by punishment
-	 */
-	async punishUser(channelId: number, adminId: number, userId: number) {
+	async punishUser(
+		channelId: number, adminId: number, userId: number, type: string
+	) {
 		const channel = await this.channelsService.findOne(channelId.toString());
 
 		if (channel) {
@@ -195,28 +194,15 @@ export class ChatService {
 			if ((channel.owner.id !== adminId) && !isAdmin) {
 				throw new Error('Insufficient Privileges');
 			}
-
+			if (type === 'ban') {
+				await this.channelsService.banUser(channelId, userId, adminId);
+				return `You have been banned from ${channel.name}.`;
+			} else if (type === 'mute') {
+				await this.channelsService.muteUser(channelId, userId, adminId);
+				return `You have been muted in ${channel.name}.`;
+			}
 		}
 		throw new Error('Invalid operation');
-		// const channel = await this.channelsService.findOne(channelId.toString());
-
-		// if (channel) {
-		// 	/* Only ban for testing */
-		// 	const isBanned = !!channel.bannedUsers.find((bannedUser) => {
-		// 		return bannedUser.id === userId;
-		// 	});
-
-		// 	if (!isBanned) {
-		// 		const user = await this.usersService.findOne(userId);
-
-		// 		await this.channelsService.update(channelId, {
-		// 			bannedUsers: [ ...channel.bannedUsers, user]
-		// 		});
-		// 		return user;
-		// 	}
-		// 	throw new Error('User is already banned');
-		// }
-		// throw new Error('Invalid operation');
 	}
 
 	/**

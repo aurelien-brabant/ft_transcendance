@@ -84,6 +84,4 @@ export type Channel = DmChannel & {
 	restrictionDuration: number;
 	owner: User;
 	admins: User[];
-	mutedUsers: User[];
-	bannedUsers: User[];
 }

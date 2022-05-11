@@ -12,18 +12,6 @@ export class UpdateChannelDto extends PartialType(CreateChannelDto) {
   @Type(() => User)
   readonly admins?: User[];
 
-  /* NOTE: to be removed */
-  @IsOptional()
-  @IsArray()
-  @Type(() => User)
-  readonly mutedUsers?: User[];
-
-  /* NOTE: to be removed */
-  @IsOptional()
-  @IsArray()
-  @Type(() => User)
-  readonly bannedUsers?: User[];
-
   @IsOptional()
   @IsArray()
   @Type(() => ChannelMessage)

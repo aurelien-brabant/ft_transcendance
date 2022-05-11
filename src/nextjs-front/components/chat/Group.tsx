@@ -250,13 +250,9 @@ const Group: React.FC<{ viewParams: { [key: string]: any } }> = ({
 			return ;
 		}
 
-		console.log('[Group] Update view');
-
 		setUserInChan(!!channel.users.find(
 			(chanUser) => { return chanUser.id === user.id;}
 		));
-
-		if (!userInChan) return ;
 
 		const messages: ChatMessage[] = [];
 
