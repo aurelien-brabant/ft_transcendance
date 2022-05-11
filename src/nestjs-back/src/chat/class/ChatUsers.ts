@@ -1,5 +1,3 @@
-import { Socket } from 'socket.io';
-import { ConnectedSocket } from '@nestjs/websockets';
 import { UserStatus } from 'src/games/class/Constants';
 import { User } from 'src/games/class/ConnectedUsers';
 
@@ -70,25 +68,19 @@ export class ChatUsers {
 		user.setUserStatus(status);
 	}
 
-	userJoinRoom(
-		@ConnectedSocket() client: Socket, roomId: string
-	) {
-		const chatUser = this.getUser(client.id);
+	addRoomToUser(socketId: string, roomId: string) {
+		const chatUser = this.getUser(socketId);
 
 		if (chatUser) {
 			chatUser.addRoom(roomId);
 		}
-		client.join(roomId);
 	}
 
-	userLeaveRoom(
-		@ConnectedSocket() client: Socket, roomId: string
-	) {
-		const chatUser = this.getUser(client.id);
+	removeRoomFromUser(socketId: string, roomId: string) {
+		const chatUser = this.getUser(socketId);
 
 		if (chatUser) {
 			chatUser.removeRoom(roomId);
 		}
-		client.leave(roomId);
 	}
 }

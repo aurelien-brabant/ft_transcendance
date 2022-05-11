@@ -51,22 +51,6 @@ export class ChatService {
 		throw new Error('Invalid operation');
 	}
 
-	async checkPrivileges(channelId: number, userId: number, ownerOnly = false) {
-		const channel = await this.channelsService.findOne(channelId.toString());
-
-		if (channel) {
-			const hasOwnerPriv = channel.owner.id === userId;
-			const hasAdminPriv = !!channel.admins.find((admin) => {
-				return admin.id === userId;
-			});
-
-			if (ownerOnly && hasOwnerPriv) return;
-			if (hasOwnerPriv || hasAdminPriv) return ;
-			throw new Error('Insufficient Privileges');
-		}
-		throw new Error('Invalid operation');
-	}
-
 	/* Getters */
 	async getChannelData(channelId: number) {
 		return await this.channelsService.findOne(channelId.toString());
@@ -131,13 +115,18 @@ export class ChatService {
 	async addAdminToChannel(channelId: number, ownerId: number, userId: number) {
 		const channel = await this.channelsService.findOne(channelId.toString());
 
-		if (channel && (channel.owner.id === ownerId)) {
-			const newAdmin = await this.usersService.findOne(userId.toString());
+		if (channel) {
+			if (channel.owner.id !== ownerId) {
+				throw new Error('Insufficient Privileges');
+			}
+
 			const isAdmin = !!channel.admins.find((admin) => {
 				return admin.id === userId;
 			});
 
 			if (!isAdmin) {
+				const newAdmin = await this.usersService.findOne(userId.toString());
+
 				await this.channelsService.update(channelId.toString(), {
 					admins: [ ...channel.users, newAdmin]
 				});
@@ -151,13 +140,17 @@ export class ChatService {
 	async removeAdminFromChannel(channelId: number, ownerId: number, userId: number) {
 		const channel = await this.channelsService.findOne(channelId.toString());
 
-		if (channel && (channel.owner.id === ownerId)) {
-			const formerAdmin = await this.usersService.findOne(userId.toString());
+		if (channel) {
+			if (channel.owner.id != ownerId) {
+				throw new Error('Insufficient Privileges');
+			}
+
 			const isAdmin = !!channel.admins.find((admin) => {
 				return admin.id === userId;
 			});
 
 			if (isAdmin) {
+				const formerAdmin = await this.usersService.findOne(userId.toString());
 				const filteredAdmins = channel.admins.filter((chanAdmin) => {
 					return chanAdmin.id !== formerAdmin.id;
 				});
@@ -165,10 +158,26 @@ export class ChatService {
 				await this.channelsService.update(channelId.toString(), {
 					admins: filteredAdmins
 				});
-				console.log(channel);
 				return formerAdmin;
 			}
 			throw new Error('User is not an administrator');
+		}
+		throw new Error('Invalid operation');
+	}
+
+	/* Admin operations */
+	async kickUser(channelId: number, adminId: number, userId: number) {
+		const channel = await this.channelsService.findOne(channelId.toString());
+
+		if (channel) {
+			const isAdmin = !!channel.admins.find((admin) => {
+				return admin.id === userId;
+			});
+			if ((channel.owner.id != adminId) && !isAdmin) {
+				throw new Error('Insufficient Privileges');
+			}
+
+			return await this.removeUserFromChannel(channelId, userId);
 		}
 		throw new Error('Invalid operation');
 	}
@@ -177,6 +186,18 @@ export class ChatService {
 	 * NOTE: Will be replaced by punishment
 	 */
 	async punishUser(channelId: number, adminId: number, userId: number) {
+		const channel = await this.channelsService.findOne(channelId.toString());
+
+		if (channel) {
+			const isAdmin = !!channel.admins.find((admin) => {
+				return admin.id === userId;
+			});
+			if ((channel.owner.id !== adminId) && !isAdmin) {
+				throw new Error('Insufficient Privileges');
+			}
+
+		}
+		throw new Error('Invalid operation');
 		// const channel = await this.channelsService.findOne(channelId.toString());
 
 		// if (channel) {
