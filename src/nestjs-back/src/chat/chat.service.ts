@@ -1,6 +1,7 @@
 import { Injectable } from '@nestjs/common';
 import { compare as comparePassword } from 'bcryptjs';
 import { UsersService } from 'src/users/users.service';
+import { Channel } from './channels/entities/channels.entity';
 import { ChannelsService } from './channels/channels.service';
 import { ChannelMessagesService } from './channels/channel-messages.service';
 import { DirectMessagesService } from './direct-messages/direct-messages.service';
@@ -51,6 +52,22 @@ export class ChatService {
 		throw new Error('Invalid operation');
 	}
 
+	async checkIfUserIsBanned(channelId: number, userId: number) {
+		const isBanned = await this.channelsService.findOutIfUserIsBanned(channelId, userId);
+
+		if (isBanned) {
+			throw new Error('You were banned from this group.');
+		}
+	}
+
+	async checkIfUserIsMuted(channelId: number, userId: number) {
+		const isMuted = await this.channelsService.findOutIfUserIsMuted(channelId, userId);
+
+		if (isMuted) {
+			throw new Error('Muted users are not allowed to post.');
+		}
+	}
+
 	/* Getters */
 	async getChannelData(channelId: number) {
 		return await this.channelsService.findOne(channelId.toString());
@@ -88,136 +105,94 @@ export class ChatService {
 		return await this.channelMessagesService.create(createChannelMessageDto);
 	}
 
-	async addUserToChannel(channelId: number, userId: number) {
+	async addUserToChannel(channel: Channel, userId: number) {
 		const user = await this.usersService.findOne(userId.toString());
-		const channel = await this.channelsService.findOne(channelId.toString());
 
-		await this.channelsService.update(channelId.toString(), {
+		await this.channelsService.update(channel.id.toString(), {
 			users: [ ...channel.users, user]
 		});
 		return user;
 	}
 
-	async removeUserFromChannel(channelId: number, userId: number) {
+	async removeUserFromChannel(channel: Channel, userId: number) {
+		try {
+			await this.removeAdminFromChannel(channel, userId);
+		} catch (e) {}
+
 		const user = await this.usersService.findOne(userId.toString());
-		const channel = await this.channelsService.findOne(channelId.toString());
 		const filteredUsers = channel.users.filter((chanUser) => {
 			return chanUser.id !== user.id;
 		})
 
-		await this.channelsService.update(channelId.toString(), {
+		await this.channelsService.update(channel.id.toString(), {
 			users: filteredUsers
 		});
 		return user;
 	}
 
 	/* Owner operations */
-	async addAdminToChannel(channelId: number, ownerId: number, userId: number) {
-		const channel = await this.channelsService.findOne(channelId.toString());
+	async addAdminToChannel(channel: Channel, userId: number) {
+		const isAdmin = !!channel.admins.find((admin) => {
+			return admin.id === userId;
+		});
 
-		if (channel) {
-			if (channel.owner.id !== ownerId) {
-				throw new Error('Insufficient Privileges');
-			}
+		if (!isAdmin) {
+			const newAdmin = await this.usersService.findOne(userId.toString());
 
-			const isAdmin = !!channel.admins.find((admin) => {
-				return admin.id === userId;
+			await this.channelsService.update(channel.id.toString(), {
+				admins: [ ...channel.users, newAdmin]
 			});
-
-			if (!isAdmin) {
-				const newAdmin = await this.usersService.findOne(userId.toString());
-
-				await this.channelsService.update(channelId.toString(), {
-					admins: [ ...channel.users, newAdmin]
-				});
-				return newAdmin;
-			}
-			throw new Error('User is already administrator');
+			return newAdmin;
 		}
-		throw new Error('Invalid operation');
+		throw new Error('User is already administrator');
 	}
 
-	async removeAdminFromChannel(channelId: number, ownerId: number, userId: number) {
-		const channel = await this.channelsService.findOne(channelId.toString());
+	async removeAdminFromChannel(channel: Channel, userId: number) {
+		const isAdmin = !!channel.admins.find((admin) => {
+			return admin.id === userId;
+		});
 
-		if (channel) {
-			if (channel.owner.id != ownerId) {
-				throw new Error('Insufficient Privileges');
-			}
-
-			const isAdmin = !!channel.admins.find((admin) => {
-				return admin.id === userId;
+		if (isAdmin) {
+			const formerAdmin = await this.usersService.findOne(userId.toString());
+			const filteredAdmins = channel.admins.filter((chanAdmin) => {
+				return chanAdmin.id !== formerAdmin.id;
 			});
 
-			if (isAdmin) {
-				const formerAdmin = await this.usersService.findOne(userId.toString());
-				const filteredAdmins = channel.admins.filter((chanAdmin) => {
-					return chanAdmin.id !== formerAdmin.id;
-				});
-
-				await this.channelsService.update(channelId.toString(), {
-					admins: filteredAdmins
-				});
-				return formerAdmin;
-			}
-			throw new Error('User is not an administrator');
+			await this.channelsService.update(channel.id.toString(), {
+				admins: filteredAdmins
+			});
+			return formerAdmin;
 		}
-		throw new Error('Invalid operation');
+		throw new Error('User is not an administrator');
 	}
 
 	/* Admin operations */
-	async kickUser(channelId: number, adminId: number, userId: number) {
-		const channel = await this.channelsService.findOne(channelId.toString());
-
-		if (channel) {
-			const isAdmin = !!channel.admins.find((admin) => {
-				return admin.id === userId;
-			});
-			if ((channel.owner.id != adminId) && !isAdmin) {
-				throw new Error('Insufficient Privileges');
-			}
-
-			return await this.removeUserFromChannel(channelId, userId);
+	async kickUser(channel: Channel, adminId: number, userId: number) {
+		const isAdmin = !!channel.admins.find((admin) => {
+			return admin.id === adminId;
+		});
+		if ((channel.owner.id != adminId) && !isAdmin) {
+			throw new Error('Insufficient Privileges');
 		}
-		throw new Error('Invalid operation');
+
+		return await this.removeUserFromChannel(channel, userId);
 	}
 
 	async punishUser(
-		channelId: number, adminId: number, userId: number, type: string
+		channel: Channel, adminId: number, userId: number, type: string
 	) {
-		const channel = await this.channelsService.findOne(channelId.toString());
-
-		if (channel) {
-			const isAdmin = !!channel.admins.find((admin) => {
-				return admin.id === userId;
-			});
-			if ((channel.owner.id !== adminId) && !isAdmin) {
-				throw new Error('Insufficient Privileges');
-			}
-			if (type === 'ban') {
-				await this.channelsService.banUser(channelId, userId, adminId);
-				return `You have been banned from ${channel.name}.`;
-			} else if (type === 'mute') {
-				await this.channelsService.muteUser(channelId, userId, adminId);
-				return `You have been muted in ${channel.name}.`;
-			}
+		const isAdmin = !!channel.admins.find((admin) => {
+			return admin.id === adminId;
+		});
+		if ((channel.owner.id !== adminId) && !isAdmin) {
+			throw new Error('Insufficient Privileges');
 		}
-		throw new Error('Invalid operation');
-	}
-
-	async checkIfUserIsBanned(channelId: number, userId: number) {
-		const isBanned = await this.channelsService.findOutIfUserIsBanned(channelId, userId);
-
-		if (isBanned) {
-			throw new Error('You were banned from this group.');
-		}
-	}
-
-	async checkIfUserIsMuted(channelId: number, userId: number) {
-		const isMuted = await this.channelsService.findOutIfUserIsMuted(channelId, userId);
-
-		if (isMuted) {
-			throw new Error('Muted users are not allowed to post.');
+		if (type === 'ban') {
+			await this.channelsService.banUser(channel.id, userId, adminId);
+			return `You have been banned from ${channel.name}.`;
+		} else if (type === 'mute') {
+			await this.channelsService.muteUser(channel.id, userId, adminId);
+			return `You have been muted in ${channel.name}.`;
 		}
 	}
 

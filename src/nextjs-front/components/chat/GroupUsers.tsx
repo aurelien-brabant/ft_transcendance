@@ -230,27 +230,29 @@ const GroupUsers: React.FC<{ viewParams: any }> = ({ viewParams }) => {
 
 	/* Ban, mute, kick */
 	const getAdminTools = (user: UserSummary) => {
-		return (
-		<>
-			<Tooltip className={actionTooltipStyles} content="mute">
-				<button
-				onClick={() => muteUser(user.id)}
-				className="transition hover:scale-110">
-					<MdVoiceOverOff color="grey"/>
-				</button>
-			</Tooltip>
-			<Tooltip className={actionTooltipStyles} content="ban">
-				<button onClick={() => banUser(user.id)} className="transition hover:scale-110">
-					<GiThorHammer color="grey"/>
-				</button>
-			</Tooltip>
-			<Tooltip className={actionTooltipStyles} content="kick">
-				<button onClick={() => kickUser(user.id)} className="transition hover:scale-110">
-					<FaUserMinus className="text-lg" color="grey"/>
-				</button>
-			</Tooltip>
-		</>
-		);
+		if (!user.isMe) {
+			return (
+				<>
+					<Tooltip className={actionTooltipStyles} content="mute">
+						<button
+						onClick={() => muteUser(user.id)}
+						className="transition hover:scale-110">
+							<MdVoiceOverOff color="grey"/>
+						</button>
+					</Tooltip>
+					<Tooltip className={actionTooltipStyles} content="ban">
+						<button onClick={() => banUser(user.id)} className="transition hover:scale-110">
+							<GiThorHammer color="grey"/>
+						</button>
+					</Tooltip>
+					<Tooltip className={actionTooltipStyles} content="kick">
+						<button onClick={() => kickUser(user.id)} className="transition hover:scale-110">
+							<FaUserMinus className="text-lg" color="grey"/>
+						</button>
+					</Tooltip>
+				</>
+			);
+		}
 	}
 
 	/* Only the owner can set other users as administrators */
@@ -294,7 +296,7 @@ const GroupUsers: React.FC<{ viewParams: any }> = ({ viewParams }) => {
 				<div className="flex text-xl gap-x-2">
 					{!owner.isMe && !owner.isBlocked && <Tooltip className={actionTooltipStyles} content="play">
 						<button
-							className="p-1 text-gray-900 bg-white rounded-full transition hover:scale-110  hover:text-pink-600"
+							className="p-1 text-pink-700 bg-pink-200 rounded-full transition hover:scale-110  hover:text-pink-600"
 						>
 							<RiPingPongLine />
 						</button>
@@ -310,7 +312,7 @@ const GroupUsers: React.FC<{ viewParams: any }> = ({ viewParams }) => {
 						{ownerView && getOwnerTools(user)}
 						{!user.isMe && !user.isBlocked && <Tooltip className={actionTooltipStyles} content="play">
 							<button
-								className="p-1 text-gray-900 bg-white rounded-full transition hover:scale-110  hover:text-pink-600"
+								className="p-1 text-pink-700 bg-pink-200 rounded-full transition hover:scale-110  hover:text-pink-600"
 							>
 								<RiPingPongLine />
 							</button>

@@ -50,7 +50,7 @@ export const GroupHeader: React.FC<{ viewParams: any }> = ({ viewParams }) => {
 	};
 
 	const userJoinedListener = (res: { message: string, userId: string }) => {
-		if (res.userId === user.id.toString()) {
+		if (res.userId == user.id.toString()) {
 			setUserInChan(true);
 		}
 	};

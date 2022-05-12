@@ -217,8 +217,8 @@ export class ChatGateway implements OnGatewayInit, OnGatewayConnection {
 		@MessageBody() { channelId, userId }: { channelId: number, userId: number }
 	) {
 		try {
-			const user = await this.chatService.addUserToChannel(channelId, userId);
-			// const channel = await this.chatService.getChannelData(channelId);
+			const channel = await this.chatService.getChannelData(channelId);
+			const user = await this.chatService.addUserToChannel(channel, userId);
 			const roomId = `channel_${channelId}`;
 			const res = {
 				message: `${user.username} joined group`,
@@ -243,8 +243,8 @@ export class ChatGateway implements OnGatewayInit, OnGatewayConnection {
 		@MessageBody() { channelId, userId }: { channelId: number, userId: number }
 	) {
 		try {
-			const user = await this.chatService.removeUserFromChannel(channelId, userId);
-			// const channel = await this.chatService.getChannelData(channelId);
+			const channel = await this.chatService.getChannelData(channelId);
+			const user = await this.chatService.removeUserFromChannel(channel, userId);
 			const roomId = `channel_${channelId}`;
 
 			this.userLeaveRoom(client.id, roomId);
@@ -294,13 +294,17 @@ export class ChatGateway implements OnGatewayInit, OnGatewayConnection {
 			throw new WsException('Owner and admin are separate roles.');
 		}
 		try {
-			await this.chatService.addAdminToChannel(channelId, ownerId, userId);
-
 			const channel = await this.chatService.getChannelData(channelId);
-			const chatUser = this.chatUsers.getUserById(userId.toString());
 
+			if (channel.owner.id != ownerId) {
+				throw new Error('Insufficient Privileges');
+			}
+			await this.chatService.addAdminToChannel(channel, userId);
 			this.server.to(client.id).emit('adminAdded');
 			this.logger.log(`User [${userId}] is now admin in Channel [${channel.name}]`);
+
+			const chatUser = this.chatUsers.getUserById(userId.toString());
+
 			if (chatUser) {
 				this.server.to(chatUser.socketId).emit('chatInfo', `You are now admin in ${channel.name}.`);
 			}
@@ -320,13 +324,17 @@ export class ChatGateway implements OnGatewayInit, OnGatewayConnection {
 			throw new WsException('Owner and admin are separate roles.');
 		}
 		try {
-			await this.chatService.removeAdminFromChannel(channelId, ownerId, userId);
-
 			const channel = await this.chatService.getChannelData(channelId);
-			const chatUser = this.chatUsers.getUserById(userId.toString());
 
+			if (channel.owner.id != ownerId) {
+				throw new Error('Insufficient Privileges');
+			}
+			await this.chatService.removeAdminFromChannel(channel, userId);
 			this.server.to(client.id).emit('adminRemoved');
 			this.logger.log(`User [${userId}] no longer admin in Channel [${channel.name}]`);
+
+			const chatUser = this.chatUsers.getUserById(userId.toString());
+
 			if (chatUser) {
 				this.server.to(chatUser.socketId).emit('chatInfo', `You are no longer admin in ${channel.name}.`);
 			}
@@ -346,7 +354,8 @@ export class ChatGateway implements OnGatewayInit, OnGatewayConnection {
 			throw new WsException('Don\'t be so mean to yourself. :(');
 		}
 		try {
-			const message = await this.chatService.punishUser(channelId, adminId, userId, type);
+			const channel = await this.chatService.getChannelData(channelId);
+			const message = await this.chatService.punishUser(channel, adminId, userId, type);
 			const chatUser = this.chatUsers.getUserById(userId.toString());
 
 			this.server.to(client.id).emit('userPunished');
@@ -369,9 +378,10 @@ export class ChatGateway implements OnGatewayInit, OnGatewayConnection {
 			throw new WsException('If you want to leave the channel, go to Channel settings.');
 		}
 		try {
-			await this.chatService.kickUser(channelId, adminId, userId);
-
 			const channel = await this.chatService.getChannelData(channelId);
+
+			await this.chatService.kickUser(channel, adminId, userId);
+
 			const roomId = `channel_${channelId}`;
 			const chatUser = this.chatUsers.getUserById(userId.toString());
 
