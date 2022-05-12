@@ -77,7 +77,7 @@ const GroupUsers: React.FC<{ viewParams: any }> = ({ viewParams }) => {
 	const channelId: string = viewParams.channelId;
 	const { user } = useSession();
 	const { socket, setChatView } = useContext(chatContext) as ChatContextType;
-	const { blocked, getRelationshipsData } = useContext(relationshipContext) as RelationshipContextType;
+	const { blocked } = useContext(relationshipContext) as RelationshipContextType;
 	const [users, setUsers] = useState<UserSummary[]>([]);
 	const [owner, setOwner] = useState<UserSummary>();
 	const [ownerView, setOwnerView] = useState(false);
@@ -202,10 +202,6 @@ const GroupUsers: React.FC<{ viewParams: any }> = ({ viewParams }) => {
 			socket.off("chatPunishment", userPunishedListener);
 		};
 	}, [users]);
-
-	useEffect(() => {
-		getRelationshipsData();
-	}, []);
 
 	/* The color of the user picture and any required icon next to the username */
 	 const getUserLine = (user: UserSummary) => {

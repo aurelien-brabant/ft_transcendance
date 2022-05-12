@@ -134,7 +134,7 @@ const Group: React.FC<{ viewParams: { [key: string]: any } }> = ({
 	const channelId: string = viewParams.channelId;
 	const { user } = useSession();
 	const { socket, setChatView, getMessageStyle } = useContext(chatContext) as ChatContextType;
-	const { blocked, getRelationshipsData } = useContext(relationshipContext) as RelationshipContextType;
+	const { blocked } = useContext(relationshipContext) as RelationshipContextType;
 	const [messages, setMessages] = useState<ChatMessage[]>([]);
 	const [currentMessage, setCurrentMessage] = useState("");
 	const [sendingEnabled, setSendingEnabled] = useState(false);
@@ -282,7 +282,6 @@ const Group: React.FC<{ viewParams: { [key: string]: any } }> = ({
 	}, [messages]);
 
 	useEffect(() => {
-		getRelationshipsData();
 		socket.emit("getChannelData", { channelId });
 
 		/* Listeners */
