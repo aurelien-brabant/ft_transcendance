@@ -2,19 +2,13 @@ import { useContext, useEffect, useState } from "react";
 import { BsFillChatDotsFill } from "react-icons/bs";
 import { Bounce } from "react-awesome-reveal";
 import { io } from "socket.io-client";
-import { BaseUserData, Channel, DmChannel } from 'transcendance-types';
+import { Channel, DmChannel } from 'transcendance-types';
 import { useSession } from "../../hooks/use-session";
 import alertContext, { AlertContextType } from "../alert/alertContext";
 import authContext, { AuthContextValue } from "../auth/authContext";
 import relationshipContext, { RelationshipContextType } from "../relationship/relationshipContext";
 /* Chat */
-import chatContext, {
-	ChatGroup,
-	ChatGroupPrivacy,
-	ChatMessagePreview,
-	ChatView,
-	DirectMessage
-} from "./chatContext";
+import chatContext, { ChatView } from "./chatContext";
 import Chat from "../../components/Chat";
 import ChatDirectMessagesView from "../../components/chat/DirectMessages";
 import ChatDirectMessageView, { DirectMessageHeader } from "../../components/chat/DirectMessage";
@@ -118,8 +112,6 @@ const ChatProvider: React.FC = ({ children }) => {
 	const { setAlert } = useContext(alertContext) as AlertContextType;
 	const { isChatOpened, setIsChatOpened } = useContext(authContext) as AuthContextValue;
 	const { blocked } = useContext(relationshipContext) as RelationshipContextType;
-	const [chatGroups, setChatGroups] = useState<ChatGroup[]>([]);
-	const [directMessages, setDirectMessages] = useState<DirectMessage[]>([]);
 	const [socket, setSocket] = useState<any>(null);
 	const [viewStack, setViewStack] = useState<ChatViewItem[]>([]);
 	const [lastX, setLastX] = useState<number>(0);
@@ -169,13 +161,6 @@ const ChatProvider: React.FC = ({ children }) => {
 		setViewStack(viewStack.slice(0, -n));
 	};
 
-	const checkCurrentView = (view: ChatView) => {
-		return (
-			(viewStack.length > 0)
-			&& (views[view].Component === viewStack[viewStack.length - 1].Component)
-		);
-	};
-
 	/* To be accessed from outside the chat (i.e. pages/users/[id]) */
 	const createDirectMessage = (userId: string, friendId: string) => {
 		const data = {
@@ -201,86 +186,7 @@ const ChatProvider: React.FC = ({ children }) => {
 		return "self-start text-gray-900 bg-gray-300";
 	}
 
-	const getLastMessage = (channel: Channel | DmChannel, isProtected = false) => {
-		let message: ChatMessagePreview = {
-			createdAt: new Date(Date.now()),
-			content: "",
-		};
-
-		if (channel.messages && channel.messages.length > 0) {
-			const lastMessage = channel.messages.reduce(function(prev, current) {
-				return (prev.id > current.id) ? prev : current;
-			})
-
-			message.createdAt = new Date(lastMessage.createdAt);
-
-			if (!isProtected) {
-				if (!!blocked.find((user) => { return user.id == lastMessage.author.id; })) {
-					message.content = "Blocked message";
-				} else {
-					message.content = lastMessage.content;
-				}
-			}
-		}
-		return message;
-	}
-
 	/* Event listeners */
-	const updateChannelsListener = (channels: Channel[]) => {
-		const groups: ChatGroup[] = [];
-
-		for (var channel of Array.from(channels)) {
-			const lastMessage: ChatMessagePreview = getLastMessage(channel, (channel.privacy === "protected"));
-
-			groups.push({
-				id: channel.id,
-				label: channel.name,
-				lastMessage: lastMessage.content,
-				in: !!channel.users.find((chanUser: BaseUserData) => {
-					return chanUser.id === user.id;
-				}),
-				peopleCount: channel.users.length,
-				privacy: channel.privacy as ChatGroupPrivacy,
-				updatedAt: lastMessage.createdAt
-			});
-		}
-		/* Sorts from most recent */
-		groups.sort(
-			(a: ChatGroup, b: ChatGroup) =>
-			(b.updatedAt.valueOf() - a.updatedAt.valueOf())
-		);
-		setChatGroups(groups);
-	}
-
-	const updateDmsListener = (channels: DmChannel[]) => {
-		const dms: DirectMessage[] = [];
-
-		for (var channel of Array.from(channels)) {
-			const friend = (channel.users[0].id === user.id) ? channel.users[1] : channel.users[0];
-			const isBlocked = !!blocked.find(user => user.id === friend.id);
-
-			/* Don't display DMs from blocked users */
-			if (!isBlocked) {
-				const lastMessage: ChatMessagePreview = getLastMessage(channel);
-
-				dms.push({
-					id: channel.id,
-					friendId: friend.id,
-					friendUsername: friend.username,
-					friendPic: `/api/users/${friend.id}/photo`,
-					lastMessage: lastMessage.content,
-					updatedAt: lastMessage.createdAt
-				});
-			}
-		}
-		/* Sorts from most recent */
-		dms.sort(
-			(a: DirectMessage, b: DirectMessage) =>
-			(b.updatedAt.valueOf() - a.updatedAt.valueOf())
-		);
-		setDirectMessages(dms);
-	}
-
 	const channelCreatedListener = (newChannel: Channel) => {
 		openChatView(
 			newChannel.privacy === "protected" ? "password_protection" : "group",
@@ -326,17 +232,6 @@ const ChatProvider: React.FC = ({ children }) => {
 		});
 	};
 
-	/* Update channels if view stack changes */
-	useEffect(() => {
-		if (!user || !socket) return ;
-
-		if (checkCurrentView("groups")) {
-			socket.emit("getUserChannels", { userId: user.id });
-		} else if (checkCurrentView("dms")) {
-			socket.emit("getUserDms", { userId: user.id });
-		}
-	}, [viewStack]);
-
 	useEffect(() => {
 		if (!socket || (session.state !== "authenticated")) return;
 
@@ -350,15 +245,11 @@ const ChatProvider: React.FC = ({ children }) => {
 		socket.on("exception", chatExceptionListener);
 		socket.on("chatError", chatErrorListener);
 		socket.on("chatPunishment", chatPunishmentListener);
-		socket.on("updateUserChannels", updateChannelsListener);
-		socket.on("updateUserDms", updateDmsListener);
 		socket.on("dmCreated", dmCreatedListener);
 
 		return () => {
 			socket.off("exception", chatExceptionListener);
 			socket.off("chatError", chatErrorListener);
-			socket.off("updateUserChannels", updateChannelsListener);
-			socket.off("updateUserDms", updateDmsListener);
 			socket.off("dmCreated", dmCreatedListener);
 			socket.off("chatPunishment", chatPunishmentListener);
 		};
@@ -390,8 +281,6 @@ const ChatProvider: React.FC = ({ children }) => {
 		<chatContext.Provider
 			value={{
 				isChatOpened,
-				chatGroups,
-				directMessages,
 				socket,
 				openChat,
 				closeChat,

@@ -39,8 +39,6 @@ export type DirectMessage = {
 
 export type ChatContextType = {
 	isChatOpened: boolean;
-	chatGroups: ChatGroup[];
-	directMessages: DirectMessage[];
 	socket: Socket;
 
 	/* Chat manipulation */

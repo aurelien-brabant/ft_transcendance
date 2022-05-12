@@ -1,13 +1,17 @@
 import { Fragment, useContext, useEffect, useMemo, useRef, useState } from "react";
 import { AiFillLock, AiFillUnlock, AiOutlineEyeInvisible } from "react-icons/ai";
 import { FaUserFriends } from "react-icons/fa";
+import { BaseUserData, Channel } from 'transcendance-types';
 import { useSession } from "../../hooks/use-session";
-import chatContext, { ChatContextType, ChatGroup, ChatGroupPrivacy } from "../../context/chat/chatContext";
+import chatContext, { ChatContextType, ChatGroup, ChatGroupPrivacy, ChatMessagePreview } from "../../context/chat/chatContext";
+import relationshipContext, { RelationshipContextType } from "../../context/relationship/relationshipContext";
 
 /* All group conversations tab */
 const Groups: React.FC<{viewParams: Object;}> = ({ viewParams }) => {
 	const { user } = useSession();
-	const { socket, chatGroups, openChatView } = useContext(chatContext) as ChatContextType;
+	const { socket, openChatView } = useContext(chatContext) as ChatContextType;
+	const { blocked } = useContext(relationshipContext) as RelationshipContextType;
+	const [chatGroups, setChatGroups] = useState<ChatGroup[]>([]);
 
 	const baseChatGroups = useMemo(() =>
 		chatGroups
@@ -25,6 +29,57 @@ const Groups: React.FC<{viewParams: Object;}> = ({ viewParams }) => {
 	const [filteredGroups, setFilteredGroups] = useState(baseChatGroups);
 	const [visiblityFilter, setVisiblityFilter] = useState<ChatGroupPrivacy | null>(null);
 	const searchInputRef = useRef<HTMLInputElement>(null);
+
+	/* Chat groups loading */
+	const getLastMessage = (channel: Channel, isProtected = false) => {
+		let message: ChatMessagePreview = {
+			createdAt: new Date(Date.now()),
+			content: "",
+		};
+
+		if (channel.messages && channel.messages.length > 0) {
+			const lastMessage = channel.messages.reduce(function(prev, current) {
+				return (prev.id > current.id) ? prev : current;
+			})
+
+			message.createdAt = new Date(lastMessage.createdAt);
+
+			if (!isProtected) {
+				if (!!blocked.find((user) => { return user.id == lastMessage.author.id; })) {
+					message.content = "Blocked message";
+				} else {
+					message.content = lastMessage.content;
+				}
+			}
+		}
+		return message;
+	}
+
+	const updateChannelsListener = (channels: Channel[]) => {
+		const groups: ChatGroup[] = [];
+
+		for (var channel of Array.from(channels)) {
+			const lastMessage: ChatMessagePreview = getLastMessage(channel, (channel.privacy === "protected"));
+
+			groups.push({
+				id: channel.id,
+				label: channel.name,
+				lastMessage: lastMessage.content,
+				in: !!channel.users.find((chanUser: BaseUserData) => {
+					return chanUser.id === user.id;
+				}),
+				peopleCount: channel.users.length,
+				privacy: channel.privacy as ChatGroupPrivacy,
+				updatedAt: lastMessage.createdAt
+			});
+		}
+		/* Sorts from most recent */
+		groups.sort(
+			(a: ChatGroup, b: ChatGroup) =>
+			(b.updatedAt.valueOf() - a.updatedAt.valueOf())
+		);
+		setChatGroups(groups);
+	}
 
 	/* Open a group if user is not banned */
 	const handleOpenGroup = (gm: ChatGroup) => {
@@ -83,13 +138,17 @@ const Groups: React.FC<{viewParams: Object;}> = ({ viewParams }) => {
 	};
 
 	useEffect(() => {
+		socket.emit("getUserChannels", { userId: user.id });
+
 		/* Listeners */
+		socket.on("updateUserChannels", updateChannelsListener);
 		socket.on("channelCreated", channelsChangeListener);
 		socket.on("channelUpdated", channelsChangeListener);
 		socket.on("channelDeleted", channelsChangeListener);
 		socket.on("newGm", channelsChangeListener);
 
 		return () => {
+			socket.off("updateUserChannels", updateChannelsListener);
 			socket.off("channelCreated", channelsChangeListener);
 			socket.off("channelUpdated", channelsChangeListener);
 			socket.off("channelDeleted", channelsChangeListener);
