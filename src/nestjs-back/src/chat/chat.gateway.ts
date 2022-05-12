@@ -296,8 +296,14 @@ export class ChatGateway implements OnGatewayInit, OnGatewayConnection {
 		try {
 			await this.chatService.addAdminToChannel(channelId, ownerId, userId);
 
+			const channel = await this.chatService.getChannelData(channelId);
+			const chatUser = this.chatUsers.getUserById(userId.toString());
+
 			this.server.to(client.id).emit('adminAdded');
-			this.logger.log(`User [${userId}] is now admin in Channel [${channelId}]`);
+			this.logger.log(`User [${userId}] is now admin in Channel [${channel.name}]`);
+			if (chatUser) {
+				this.server.to(chatUser.socketId).emit('chatInfo', `You are now admin in ${channel.name}.`);
+			}
 		} catch (e) {
 			this.server.to(client.id).emit('chatError', e.message);
 		}
@@ -316,8 +322,14 @@ export class ChatGateway implements OnGatewayInit, OnGatewayConnection {
 		try {
 			await this.chatService.removeAdminFromChannel(channelId, ownerId, userId);
 
+			const channel = await this.chatService.getChannelData(channelId);
+			const chatUser = this.chatUsers.getUserById(userId.toString());
+
 			this.server.to(client.id).emit('adminRemoved');
-			this.logger.log(`User [${userId}] no longer admin in Channel [${channelId}]`);
+			this.logger.log(`User [${userId}] no longer admin in Channel [${channel.name}]`);
+			if (chatUser) {
+				this.server.to(chatUser.socketId).emit('chatInfo', `You are no longer admin in ${channel.name}.`);
+			}
 		} catch (e) {
 			this.server.to(client.id).emit('chatError', e.message);
 		}
@@ -335,10 +347,12 @@ export class ChatGateway implements OnGatewayInit, OnGatewayConnection {
 		}
 		try {
 			const message = await this.chatService.punishUser(channelId, adminId, userId, type);
-			const userSocket = this.chatUsers.getUserById(userId.toString());
+			const chatUser = this.chatUsers.getUserById(userId.toString());
 
 			this.server.to(client.id).emit('userPunished');
-			this.server.to(userSocket.socketId).emit('chatPunishment', message);
+			if (chatUser) {
+				this.server.to(chatUser.socketId).emit('chatInfo', message);
+			}
 		} catch (e) {
 			this.server.to(client.id).emit('chatError', e.message);
 		}
@@ -362,7 +376,7 @@ export class ChatGateway implements OnGatewayInit, OnGatewayConnection {
 			const chatUser = this.chatUsers.getUserById(userId.toString());
 
 			if (chatUser) {
-				this.server.to(chatUser.socketId).emit('chatPunishment', `You have been kicked from ${channel.name}.`);
+				this.server.to(chatUser.socketId).emit('chatInfo', `You have been kicked from ${channel.name}.`);
 				this.userLeaveRoom(chatUser.socketId, roomId);
 			}
 
@@ -414,12 +428,15 @@ export class ChatGateway implements OnGatewayInit, OnGatewayConnection {
 		try {
 			const dm = await this.chatService.createDm(data);
 			const roomId = `dm_${dm.id}`;
-			const friend = this.chatUsers.getUserById(data.users[1].id.toString());
-			// const friendSocket = (await this.server.fetchSockets()).find(socket => socket.id === friend.socketId);
+			const userId = this.chatUsers.getUser(client.id).id;
+			const friendId = data.users.find((user) => user.id != userId);
+			const friend = this.chatUsers.getUserById(friendId.toString());
 
 			this.userJoinRoom(client.id, roomId);
+			if (friend) {
+				this.server.to(friend.socketId).emit('dmCreated', (dm));
+			}
 			this.server.to(roomId).emit('dmCreated', (dm));
-			this.server.to(friend.socketId).emit('dmCreated', (dm));
 		} catch (e) {
 			this.server.to(client.id).emit('chatError', e.message);
 		}

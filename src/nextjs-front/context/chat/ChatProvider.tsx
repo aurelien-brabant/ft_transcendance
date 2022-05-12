@@ -210,17 +210,16 @@ const ChatProvider: React.FC = ({ children }) => {
 		openChat();
 	};
 
-	const chatPunishmentListener = (message: string) => {
-		console.log('[Chat Provider] User punished');
+	const chatInfoListener = (message: string) => {
 		setAlert({
-			type: "warning",
+			type: "info",
 			content: message
 		});
 	}
 
 	const chatErrorListener = (errMessage: string) => {
 		setAlert({
-			type: "warning",
+			type: "error",
 			content: errMessage
 		});
 	};
@@ -244,14 +243,14 @@ const ChatProvider: React.FC = ({ children }) => {
 		/* Listeners */
 		socket.on("exception", chatExceptionListener);
 		socket.on("chatError", chatErrorListener);
-		socket.on("chatPunishment", chatPunishmentListener);
+		socket.on("chatInfo", chatInfoListener);
 		socket.on("dmCreated", dmCreatedListener);
 
 		return () => {
 			socket.off("exception", chatExceptionListener);
 			socket.off("chatError", chatErrorListener);
 			socket.off("dmCreated", dmCreatedListener);
-			socket.off("chatPunishment", chatPunishmentListener);
+			socket.off("chatInfo", chatInfoListener);
 		};
 	}, [socket]);
 
