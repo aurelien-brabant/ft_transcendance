@@ -57,7 +57,7 @@ const FriendsPage: NextPageWithLayout = ({}) => {
   const [selected, setSelected] = useState(0);
   const { user } = useSession();
   const {
-    getData,
+    getRelationshipsData,
     getRelationships,
     createSuggested,
     setSuggested,
@@ -72,7 +72,7 @@ const FriendsPage: NextPageWithLayout = ({}) => {
 
   useEffect(() => {
     if (user) {
-      getData();
+      getRelationshipsData();
       setIsLoading(false);
     }
   }, []);
