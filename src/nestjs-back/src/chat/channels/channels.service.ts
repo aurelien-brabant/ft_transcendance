@@ -79,6 +79,13 @@ export class ChannelsService {
 		if (!channel) {
 			throw new Error(`Channel [${id}] not found`);
 		}
+
+		const timeNow = new Date(Date.now());
+		const activePunishements = channel.punishments.filter((punishment) => {
+			return !punishment.endsAt || (punishment.endsAt > timeNow);
+		});
+
+		channel.punishments = activePunishements;
 		return channel;
 	}
 

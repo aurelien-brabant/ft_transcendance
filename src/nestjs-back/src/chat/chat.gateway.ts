@@ -115,10 +115,7 @@ export class ChatGateway implements OnGatewayInit, OnGatewayConnection {
 		@ConnectedSocket() client: Socket,
 		@MessageBody() { channelId }: { channelId: number }
 	) {
-		console.log('----- getChannelUsers');
 		const channel = await this.chatService.getChannelUserList(channelId);
-
-		console.log(channel);
 
 		this.server.to(client.id).emit('channelUserList', (channel));
 	}

@@ -126,7 +126,7 @@ export class ChatService {
 		const user = await this.usersService.findOne(userId.toString());
 		const filteredUsers = channel.users.filter((chanUser) => {
 			return chanUser.id !== user.id;
-		})
+		});
 
 		await this.channelsService.update(channel.id.toString(), {
 			users: filteredUsers
