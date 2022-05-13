@@ -145,6 +145,7 @@ const Groups: React.FC<{viewParams: Object;}> = ({ viewParams }) => {
 		socket.on("channelCreated", channelsChangeListener);
 		socket.on("channelUpdated", channelsChangeListener);
 		socket.on("channelDeleted", channelsChangeListener);
+		socket.on("peopleCountChanged", channelsChangeListener);
 		socket.on("newGm", channelsChangeListener);
 
 		return () => {
@@ -152,6 +153,7 @@ const Groups: React.FC<{viewParams: Object;}> = ({ viewParams }) => {
 			socket.off("channelCreated", channelsChangeListener);
 			socket.off("channelUpdated", channelsChangeListener);
 			socket.off("channelDeleted", channelsChangeListener);
+			socket.on("peopleCountChanged", channelsChangeListener);
 			socket.on("newGm", channelsChangeListener);
 		};
 	}, []);

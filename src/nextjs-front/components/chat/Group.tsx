@@ -34,9 +34,6 @@ export const GroupHeader: React.FC<{ viewParams: any }> = ({ viewParams }) => {
 	const channelUpdatedListener = (channel: Channel) => {
 		setChannelName(channel.name);
 		setChannelPrivacy(channel.privacy);
-		setUserInChan(!!channel.users.find(
-			(chanUser) => { return chanUser.id === user.id;}
-		));
 
 		if (!userInChan && (channel.privacy !== 'public')) {
 			closeRightmostView();
@@ -50,7 +47,7 @@ export const GroupHeader: React.FC<{ viewParams: any }> = ({ viewParams }) => {
 	};
 
 	const userJoinedListener = (res: { message: string, userId: string }) => {
-		if (res.userId == user.id.toString()) {
+		if (res.userId === user.id) {
 			setUserInChan(true);
 		}
 	};
@@ -83,7 +80,7 @@ export const GroupHeader: React.FC<{ viewParams: any }> = ({ viewParams }) => {
 						<AiOutlineArrowLeft />
 					</button>
 				</div>
-				{userInChan && <div className="flex items-right gap-x-3">
+				{(userInChan === true) && <div className="flex items-right gap-x-3">
 					<Tooltip className={actionTooltipStyles} content="add user">
 						<button onClick={() => {
 							openChatView('group_add', 'Add a user to group', {
