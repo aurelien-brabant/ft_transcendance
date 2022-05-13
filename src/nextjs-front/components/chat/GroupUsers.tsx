@@ -193,6 +193,8 @@ const GroupUsers: React.FC<{ viewParams: any }> = ({ viewParams }) => {
 
 		/* Listeners */
 		socket.on("channelUserList", defineUserList);
+		socket.on("joinedChannel", userChangedListener);
+		socket.on("leftChannel", userChangedListener);
 		socket.on("adminAdded", userChangedListener);
 		socket.on("adminRemoved", userChangedListener);
 		socket.on("userPunished", userChangedListener);
@@ -202,6 +204,8 @@ const GroupUsers: React.FC<{ viewParams: any }> = ({ viewParams }) => {
 
 		return () => {
 			socket.off("channelUserList", defineUserList);
+			socket.off("joinedChannel", userChangedListener);
+			socket.off("leftChannel", userChangedListener);
 			socket.off("adminAdded", userChangedListener);
 			socket.off("adminRemoved", userChangedListener);
 			socket.off("userPunished", userChangedListener);

@@ -97,5 +97,5 @@ export type Channel = DmChannel & {
 	restrictionDuration: number;
 	owner: User;
 	admins: User[];
-	punishments?: ChannelPunishment[];
+	punishments: ChannelPunishment[];
 }
