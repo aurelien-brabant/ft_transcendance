@@ -217,10 +217,10 @@ const ChatProvider: React.FC = ({ children }) => {
 		});
 	}
 
-	const chatErrorListener = (errMessage: string) => {
+	const chatWarningListener = (message: string) => {
 		setAlert({
-			type: "error",
-			content: errMessage
+			type: "warning",
+			content: message
 		});
 	};
 
@@ -242,13 +242,17 @@ const ChatProvider: React.FC = ({ children }) => {
 
 		/* Listeners */
 		socket.on("exception", chatExceptionListener);
-		socket.on("chatError", chatErrorListener);
+		socket.on("kickedFromChannel", chatWarningListener);
+		socket.on("punishedInChannel", chatWarningListener);
+		socket.on("chatError", chatWarningListener);
 		socket.on("chatInfo", chatInfoListener);
 		socket.on("dmCreated", dmCreatedListener);
 
 		return () => {
 			socket.off("exception", chatExceptionListener);
-			socket.off("chatError", chatErrorListener);
+			socket.off("kickedFromChannel", chatWarningListener);
+			socket.off("punishedInChannel", chatWarningListener);
+			socket.off("chatError", chatWarningListener);
 			socket.off("dmCreated", dmCreatedListener);
 			socket.off("chatInfo", chatInfoListener);
 		};
@@ -295,7 +299,7 @@ const ChatProvider: React.FC = ({ children }) => {
 				getMessageStyle,
 				channelCreatedListener,
 				dmCreatedListener,
-				chatErrorListener,
+				chatWarningListener,
 				lastX,
 				lastY,
 				setLastX,

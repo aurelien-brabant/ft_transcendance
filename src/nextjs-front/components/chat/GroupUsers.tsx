@@ -136,8 +136,7 @@ const GroupUsers: React.FC<{ viewParams: any }> = ({ viewParams }) => {
 		socket.emit("getChannelUserList", { channelId });
 	}
 
-	const userPunishedListener = () => {
-		console.log('[Group Users] User punished');
+	const userPunishedListener = (message: string) => {
 		setChatView("groups", "Group chats", {});
 	}
 
@@ -190,25 +189,25 @@ const GroupUsers: React.FC<{ viewParams: any }> = ({ viewParams }) => {
 	}
 
 	useEffect(() => {
+		socket.emit("getChannelUserList", { channelId });
+
 		/* Listeners */
 		socket.on("channelUserList", defineUserList);
 		socket.on("adminAdded", userChangedListener);
 		socket.on("adminRemoved", userChangedListener);
 		socket.on("userPunished", userChangedListener);
 		socket.on("userKicked", userChangedListener);
-		socket.on("chatPunishment", userPunishedListener);
+		socket.on("punishedInChannel", userPunishedListener);
+		socket.on("kickedFromChannel", userPunishedListener);
 
 		return () => {
 			socket.off("channelUserList", defineUserList);
 			socket.off("adminAdded", userChangedListener);
 			socket.off("adminRemoved", userChangedListener);
 			socket.off("userPunished", userChangedListener);
-			socket.off("chatPunishment", userPunishedListener);
+			socket.off("punishedInChannel", userPunishedListener);
+			socket.off("kickedFromChannel", userPunishedListener);
 		};
-	}, [users]);
-
-	useEffect(() => {
-		socket.emit("getChannelUserList", { channelId });
 	}, []);
 
 	/* The color of the user picture and any required icon next to the username */

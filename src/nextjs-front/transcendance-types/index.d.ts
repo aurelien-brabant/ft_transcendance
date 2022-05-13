@@ -83,6 +83,7 @@ export type Message = {
 
 export type DmChannel = {
 	id: string;
+	createdAt: Date;
 	users: User[];
 	messages: Message[];
 }

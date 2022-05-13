@@ -33,7 +33,7 @@ const Groups: React.FC<{viewParams: Object;}> = ({ viewParams }) => {
 	/* Chat groups loading */
 	const getLastMessage = (channel: Channel, isProtected = false) => {
 		let message: ChatMessagePreview = {
-			createdAt: new Date(Date.now()),
+			createdAt: channel.createdAt,
 			content: "",
 		};
 

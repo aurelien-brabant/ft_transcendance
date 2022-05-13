@@ -34,7 +34,7 @@ export const GroupAddHeader: React.FC<{ viewParams: any }> = ({ viewParams }) =>
 const GroupAdd: React.FC<{ viewParams: any }> = ({ viewParams }) => {
 	const channelId: string = viewParams.channelId;
 	const { user } = useSession();
-	const { socket, closeRightmostView } = useContext(chatContext) as ChatContextType;
+	const { socket, closeRightmostView, setChatView } = useContext(chatContext) as ChatContextType;
 	const { friends } = useContext(relationshipContext) as RelationshipContextType;
 	const [filteredFriends, setFilteredFriends] = useState<User[]>([]);
 	const searchInputRef = useRef<HTMLInputElement>(null);
@@ -77,6 +77,10 @@ const GroupAdd: React.FC<{ viewParams: any }> = ({ viewParams }) => {
 		closeRightmostView();
 	};
 
+	const userPunishedListener = (message: string) => {
+		setChatView("groups", "Group chats", {});
+	}
+
 	useEffect(() => {
 		socket.emit("getChannelData", { channelId });
 
@@ -87,6 +91,17 @@ const GroupAdd: React.FC<{ viewParams: any }> = ({ viewParams }) => {
 			socket.off("channelData", selectFriends);
 		};
 	}, [friends]);
+
+	useEffect(() => {
+		/* Listeners */
+		socket.on("punishedInChannel", userPunishedListener);
+		socket.on("kickedFromChannel", userPunishedListener);
+
+		return () => {
+			socket.off("punishedInChannel", userPunishedListener);
+			socket.off("kickedFromChannel", userPunishedListener);
+		};
+	}, []);
 
 	return (
 		<Fragment>

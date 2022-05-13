@@ -23,7 +23,7 @@ const DirectMessages: React.FC<{ viewParams: Object; }> = ({ viewParams }) => {
 	/* Direct Messages loading */
 	const getLastMessage = (channel: DmChannel) => {
 		let message: ChatMessagePreview = {
-			createdAt: new Date(Date.now()),
+			createdAt: channel.createdAt,
 			content: "",
 		};
 

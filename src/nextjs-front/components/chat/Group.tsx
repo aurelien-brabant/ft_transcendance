@@ -237,7 +237,6 @@ const Group: React.FC<{ viewParams: { [key: string]: any } }> = ({
 	};
 
 	const userPunishedListener = (message: string) => {
-		console.log('[Group] User punished');
 		setChatView("groups", "Group chats", {});
 	}
 
@@ -287,7 +286,8 @@ const Group: React.FC<{ viewParams: { [key: string]: any } }> = ({
 		socket.on("newGm", newGmListener);
 		socket.on("joinedChannel", userJoinedListener);
 		socket.on("leftChannel", userLeftListener);
-		socket.on("chatPunishment", userPunishedListener);
+		socket.on("punishedInChannel", userPunishedListener);
+		socket.on("kickedFromChannel", userPunishedListener);
 
 		return () => {
 			socket.off("channelData", updateGroupView);
@@ -295,7 +295,8 @@ const Group: React.FC<{ viewParams: { [key: string]: any } }> = ({
 			socket.off("newGm", newGmListener);
 			socket.off("joinedChannel", userJoinedListener);
 			socket.off("leftChannel", userLeftListener);
-			socket.off("chatPunishment", userPunishedListener);
+			socket.off("punishedInChannel", userPunishedListener);
+			socket.off("kickedFromChannel", userPunishedListener);
 		};
 	}, []);
 

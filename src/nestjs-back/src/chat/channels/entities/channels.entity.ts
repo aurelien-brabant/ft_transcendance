@@ -1,5 +1,6 @@
 import {
   Column,
+  CreateDateColumn,
   Entity,
   JoinTable,
   ManyToMany,
@@ -19,6 +20,12 @@ export class Channel {
 
   @Column({ unique: true })
   name: string;
+
+  @CreateDateColumn({
+    type: "timestamptz",
+    default: () => "CURRENT_TIMESTAMP(6)"
+  })
+  createdAt: Date;
 
   /* public | private | protected */
   @Column({ default: "private" })

@@ -371,7 +371,7 @@ export class ChatGateway implements OnGatewayInit, OnGatewayConnection {
 			const chatUser = this.chatUsers.getUserById(userId.toString());
 
 			if (chatUser) {
-				this.server.to(chatUser.socketId).emit('chatInfo', `You have been kicked from ${channel.name}.`);
+				this.server.to(chatUser.socketId).emit('kickedFromChannel', `You have been kicked from ${channel.name}.`);
 				this.userLeaveRoom(chatUser.socketId, roomId);
 			}
 
@@ -403,7 +403,7 @@ export class ChatGateway implements OnGatewayInit, OnGatewayConnection {
 
 			this.server.to(client.id).emit('userPunished');
 			if (chatUser) {
-				this.server.to(chatUser.socketId).emit('chatInfo', message);
+				this.server.to(chatUser.socketId).emit('punishedInChannel', message);
 			}
 		} catch (e) {
 			this.server.to(client.id).emit('chatError', e.message);
