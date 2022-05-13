@@ -19,6 +19,8 @@ type UserSummary = {
 	isMe: boolean;
 	isBlocked: boolean;
 	isAdmin: boolean;
+	isMuted?: boolean;
+	isBanned?: boolean;
 };
 
 /* Header */
@@ -131,7 +133,7 @@ const GroupUsers: React.FC<{ viewParams: any }> = ({ viewParams }) => {
 
 	/* Listeners */
 	const userChangedListener = () => {
-		socket.emit("getChannelData", { channelId });
+		socket.emit("getChannelUserList", { channelId });
 	}
 
 	const userPunishedListener = () => {
@@ -174,6 +176,12 @@ const GroupUsers: React.FC<{ viewParams: any }> = ({ viewParams }) => {
 					isMe: (chanUser.id === user.id),
 					isBlocked: !!blocked.find((user) => user.id === chanUser.id),
 					isAdmin: !!channel.admins.find((admin) => { return admin.id === chanUser.id; }),
+					isMuted: !!channel.punishments.find((punishment) =>
+						(punishment.punishedUser.id === chanUser.id) && (punishment.type === 'mute')
+					),
+					isBanned: !!channel.punishments.find((punishment) =>
+						(punishment.punishedUser.id === chanUser.id) && (punishment.type === 'ban')
+					),
 				});
 			}
 		}
@@ -200,7 +208,7 @@ const GroupUsers: React.FC<{ viewParams: any }> = ({ viewParams }) => {
 	}, [users]);
 
 	useEffect(() => {
-		socket.emit("getChannelUsers", { channelId });
+		socket.emit("getChannelUserList", { channelId });
 	}, []);
 
 	/* The color of the user picture and any required icon next to the username */
@@ -214,7 +222,7 @@ const GroupUsers: React.FC<{ viewParams: any }> = ({ viewParams }) => {
 							? "border-blue-500"
 							: "border-04dp"
 					} ${
-						user.isBlocked && "filter brightness-50"
+						(user.isBlocked || user.isMuted || user.isBanned) && "filter brightness-50"
 					} object-fill w-full h-full rounded-full` }
 				/>
 				<Link href={`/users/${user.username}`}>
@@ -222,6 +230,8 @@ const GroupUsers: React.FC<{ viewParams: any }> = ({ viewParams }) => {
 						{user.username}
 						{user.isAdmin && <BsShieldFillCheck className="text-blue-500"/>}
 						{user.isBlocked && <FaUserLock color="grey" />}
+						{user.isMuted && <MdVoiceOverOff color="grey"/>}
+						{user.isBanned && <GiThorHammer color="grey"/>}
 					</a>
 				</Link>
 			</div>
@@ -233,18 +243,18 @@ const GroupUsers: React.FC<{ viewParams: any }> = ({ viewParams }) => {
 		if (!user.isMe) {
 			return (
 				<>
-					<Tooltip className={actionTooltipStyles} content="mute">
+					{!user.isMuted && <Tooltip className={actionTooltipStyles} content="mute">
 						<button
 						onClick={() => muteUser(user.id)}
 						className="transition hover:scale-110">
 							<MdVoiceOverOff color="grey"/>
 						</button>
-					</Tooltip>
-					<Tooltip className={actionTooltipStyles} content="ban">
+					</Tooltip>}
+					{!user.isBanned && <Tooltip className={actionTooltipStyles} content="ban">
 						<button onClick={() => banUser(user.id)} className="transition hover:scale-110">
 							<GiThorHammer color="grey"/>
 						</button>
-					</Tooltip>
+					</Tooltip>}
 					<Tooltip className={actionTooltipStyles} content="kick">
 						<button onClick={() => kickUser(user.id)} className="transition hover:scale-110">
 							<FaUserMinus className="text-lg" color="grey"/>

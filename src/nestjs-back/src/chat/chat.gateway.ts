@@ -110,8 +110,8 @@ export class ChatGateway implements OnGatewayInit, OnGatewayConnection {
 		this.server.to(client.id).emit('channelData', (channel));
 	}
 
-	@SubscribeMessage('getChannelUsers')
-	async handleChannelUsers(
+	@SubscribeMessage('getChannelUserList')
+	async handleChannelUserList(
 		@ConnectedSocket() client: Socket,
 		@MessageBody() { channelId }: { channelId: number }
 	) {

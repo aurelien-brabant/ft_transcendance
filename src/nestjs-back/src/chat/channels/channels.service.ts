@@ -74,7 +74,8 @@ export class ChannelsService {
 				'users',
 				'admins',
 				'punishments',
-			]
+				'punishments.punishedUser',
+			],
 		});
 		if (!channel) {
 			throw new Error(`Channel [${id}] not found`);
