@@ -229,9 +229,9 @@ export class ChatGateway implements OnGatewayInit, OnGatewayConnection {
 			this.server.to(roomId).emit('joinedChannel', res);
 
 			/* If the channel is visible to everyone, inform every client */
-			// if (channel.privacy !== 'private') {
-			// 	this.server.emit('channelUsersUpdated', (channel));
-			// }
+			if (channel.privacy !== 'private') {
+				this.server.emit('channelUpdated', (channel));
+			}
 		} catch (e) {
 			this.server.to(client.id).emit('chatError', e.message);
 		}
@@ -251,9 +251,9 @@ export class ChatGateway implements OnGatewayInit, OnGatewayConnection {
 			this.server.to(roomId).emit('leftChannel', `${user.username} left group`);
 
 			/* If the channel is visible to everyone, inform every client */
-			// if (channel.privacy !== 'private') {
-			// 	this.server.emit('channelUsersUpdated', (channel));
-			// }
+			if (channel.privacy !== 'private') {
+				this.server.emit('channelUpdated', (channel));
+			}
 		} catch (e) {
 			this.server.to(client.id).emit('chatError', e.message);
 		}
@@ -392,9 +392,9 @@ export class ChatGateway implements OnGatewayInit, OnGatewayConnection {
 
 			this.server.to(roomId).emit('userKicked');
 			/* If the channel is visible to everyone, inform every client */
-			// if (channel.privacy !== 'private') {
-			// 	this.server.emit('channelUsersUpdated', (channel));
-			// }
+			if (channel.privacy !== 'private') {
+				this.server.emit('channelUpdated', (channel));
+			}
 			this.logger.log(`User [${userId}] was kicked from Channel [${channelId}]`);
 		} catch (e) {
 			this.server.to(client.id).emit('chatError', e.message);

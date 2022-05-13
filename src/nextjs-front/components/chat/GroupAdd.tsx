@@ -81,10 +81,10 @@ const GroupAdd: React.FC<{ viewParams: any }> = ({ viewParams }) => {
 		socket.emit("getChannelData", { channelId });
 
 		/* Listeners */
-		socket.on("updateChannel", selectFriends);
+		socket.on("channelData", selectFriends);
 
 		return () => {
-			socket.off("updateChannel", selectFriends);
+			socket.off("channelData", selectFriends);
 		};
 	}, [friends]);
 
