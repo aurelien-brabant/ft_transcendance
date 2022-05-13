@@ -83,6 +83,20 @@ export class ChatGateway implements OnGatewayInit, OnGatewayConnection {
 		console.log(this.chatUsers); // debug
 	}
 
+	@SubscribeMessage('getUserStatus')
+	async handleUserStatus(
+		@ConnectedSocket() client: Socket,
+		@MessageBody() { userId }: { userId: number }
+	) {
+		const user = this.chatUsers.getUserById(userId.toString());
+
+		if (user) {
+			this.server.to(client.id).emit('updateUserStatus', UserStatus[user.status]);
+		} else {
+			this.server.to(client.id).emit('updateUserStatus', UserStatus[UserStatus.OFFLINE]);
+		}
+	}
+
 	userJoinRoom(socketId: string, roomId: string) {
 		this.chatUsers.addRoomToUser(socketId, roomId);
 		this.server.in(socketId).socketsJoin(roomId);
@@ -458,12 +472,12 @@ export class ChatGateway implements OnGatewayInit, OnGatewayConnection {
 			const dm = await this.chatService.createDm(data);
 			const roomId = `dm_${dm.id}`;
 			const userId = this.chatUsers.getUser(client.id).id;
-			const friendId = data.users.find((user) => user.id != userId);
-			const friend = this.chatUsers.getUserById(friendId.toString());
+			const friend = data.users.find((user) => user.id != userId);
+			const friendUser = this.chatUsers.getUserById(friend.id.toString());
 
 			this.userJoinRoom(client.id, roomId);
-			if (friend) {
-				this.server.to(friend.socketId).emit('dmCreated', (dm));
+			if (friendUser) {
+				this.server.to(friendUser.socketId).emit('dmCreated', (dm));
 			}
 			this.server.to(roomId).emit('dmCreated', (dm));
 		} catch (e) {

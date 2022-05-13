@@ -13,7 +13,6 @@ import chatContext, { ChatContextType, ChatMessage } from "../../context/chat/ch
 export const DirectMessageHeader: React.FC<{ viewParams: any }> = ({
 	viewParams,
 }) => {
-	const { user } = useSession();
 	const { closeChat, setChatView } = useContext(chatContext) as ChatContextType;
 	const actionTooltipStyles = "font-bold bg-dark text-neutral-200";
 
@@ -52,8 +51,8 @@ export const DirectMessageHeader: React.FC<{ viewParams: any }> = ({
 				</Link>{" "}
 				<UserStatusItem
 					withText={false}
-					status={user.accountDeactivated ? "deactivated" : "online"}
-					id={user.id}
+					status="OFFLINE"
+					id={viewParams.friendId}
 				/>
 			</div>
 		</Fragment>

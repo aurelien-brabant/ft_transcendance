@@ -92,7 +92,7 @@ const DirectMessageNew: React.FC = () => {
 							src={`/api/users/${friend.id}/photo`}
 							className="object-fill w-full h-full rounded-full"
 						/>
-						<UserStatusItem status={(user.accountDeactivated) ? "deactivated" : "online"} withText={false} className="absolute bottom-0 right-0 z-50" id={user.id} />
+						<UserStatusItem status="OFFLINE" withText={false} className="absolute bottom-0 right-0 z-50" id={friend.id} />
 					</div>
 				{friend.username}
 				</div>

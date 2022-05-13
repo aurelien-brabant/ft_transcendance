@@ -53,8 +53,6 @@ export const GroupHeader: React.FC<{ viewParams: any }> = ({ viewParams }) => {
 	};
 
 	useEffect(() => {
-		socket.emit("getChannelData", { channelId });
-
 		/* Listeners */
 		socket.on("channelData", defineOptions);
 		socket.on("channelUpdated", channelUpdatedListener);
