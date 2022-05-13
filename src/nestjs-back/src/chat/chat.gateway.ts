@@ -110,6 +110,19 @@ export class ChatGateway implements OnGatewayInit, OnGatewayConnection {
 		this.server.to(client.id).emit('channelData', (channel));
 	}
 
+	@SubscribeMessage('getChannelUsers')
+	async handleChannelUsers(
+		@ConnectedSocket() client: Socket,
+		@MessageBody() { channelId }: { channelId: number }
+	) {
+		console.log('----- getChannelUsers');
+		const channel = await this.chatService.getChannelUserList(channelId);
+
+		console.log(channel);
+
+		this.server.to(client.id).emit('channelUserList', (channel));
+	}
+
 	/* Create/delete/update */
 	@UseFilters(new BadRequestTransformationFilter())
 	@SubscribeMessage('createChannel')
@@ -342,30 +355,6 @@ export class ChatGateway implements OnGatewayInit, OnGatewayConnection {
 		}
 	}
 
-	@SubscribeMessage('punishUser')
-	async handlePunishUser(
-		@ConnectedSocket() client: Socket,
-		@MessageBody() { channelId, adminId, userId, type }: {
-			channelId: number, adminId: number, userId: number, type: string
-		}
-	) {
-		if (adminId === userId) {
-			throw new WsException('Don\'t be so mean to yourself. :(');
-		}
-		try {
-			const channel = await this.chatService.getChannelData(channelId);
-			const message = await this.chatService.punishUser(channel, adminId, userId, type);
-			const chatUser = this.chatUsers.getUserById(userId.toString());
-
-			this.server.to(client.id).emit('userPunished');
-			if (chatUser) {
-				this.server.to(chatUser.socketId).emit('chatInfo', message);
-			}
-		} catch (e) {
-			this.server.to(client.id).emit('chatError', e.message);
-		}
-	}
-
 	@SubscribeMessage('kickUser')
 	async handleKickUser(
 		@ConnectedSocket() client: Socket,
@@ -395,6 +384,30 @@ export class ChatGateway implements OnGatewayInit, OnGatewayConnection {
 				this.server.emit('peopleCountChanged', (channel));
 			}
 			this.logger.log(`User [${userId}] was kicked from Channel [${channelId}]`);
+		} catch (e) {
+			this.server.to(client.id).emit('chatError', e.message);
+		}
+	}
+
+	@SubscribeMessage('punishUser')
+	async handlePunishUser(
+		@ConnectedSocket() client: Socket,
+		@MessageBody() { channelId, adminId, userId, type }: {
+			channelId: number, adminId: number, userId: number, type: string
+		}
+	) {
+		if (adminId === userId) {
+			throw new WsException('Don\'t be so mean to yourself. :(');
+		}
+		try {
+			const channel = await this.chatService.getChannelData(channelId);
+			const message = await this.chatService.punishUser(channel, adminId, userId, type);
+			const chatUser = this.chatUsers.getUserById(userId.toString());
+
+			this.server.to(client.id).emit('userPunished');
+			if (chatUser) {
+				this.server.to(chatUser.socketId).emit('chatInfo', message);
+			}
 		} catch (e) {
 			this.server.to(client.id).emit('chatError', e.message);
 		}

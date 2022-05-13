@@ -33,15 +33,13 @@ export const GroupUsersHeader: React.FC<{ viewParams: any }> = ({ viewParams }) 
 	};
 
 	useEffect(() => {
-		socket.emit("getChannelData", { channelId: viewParams.channelId });
-
 		/* Listeners */
-		socket.on("channelData", updatePeopleCount);
+		socket.on("channelUserList", updatePeopleCount);
 		socket.on("joinedChannel", updatePeopleCount);
 		socket.on("leftChannel", updatePeopleCount);
 
 		return () => {
-			socket.off("channelData", updatePeopleCount);
+			socket.off("channelUserList", updatePeopleCount);
 			socket.off("joinedChannel", updatePeopleCount);
 			socket.off("leftChannel", updatePeopleCount);
 		};
@@ -184,10 +182,8 @@ const GroupUsers: React.FC<{ viewParams: any }> = ({ viewParams }) => {
 	}
 
 	useEffect(() => {
-		socket.emit("getChannelData", { channelId });
-
 		/* Listeners */
-		socket.on("channelData", defineUserList);
+		socket.on("channelUserList", defineUserList);
 		socket.on("adminAdded", userChangedListener);
 		socket.on("adminRemoved", userChangedListener);
 		socket.on("userPunished", userChangedListener);
@@ -195,13 +191,17 @@ const GroupUsers: React.FC<{ viewParams: any }> = ({ viewParams }) => {
 		socket.on("chatPunishment", userPunishedListener);
 
 		return () => {
-			socket.off("channelData", defineUserList);
+			socket.off("channelUserList", defineUserList);
 			socket.off("adminAdded", userChangedListener);
 			socket.off("adminRemoved", userChangedListener);
 			socket.off("userPunished", userChangedListener);
 			socket.off("chatPunishment", userPunishedListener);
 		};
 	}, [users]);
+
+	useEffect(() => {
+		socket.emit("getChannelUsers", { channelId });
+	}, []);
 
 	/* The color of the user picture and any required icon next to the username */
 	 const getUserLine = (user: UserSummary) => {

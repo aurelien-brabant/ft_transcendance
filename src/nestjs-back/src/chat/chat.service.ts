@@ -69,10 +69,6 @@ export class ChatService {
 	}
 
 	/* Getters */
-	async getChannelData(channelId: number) {
-		return await this.channelsService.findOne(channelId.toString());
-	}
-
 	async getUserChannels(userId: number) {
 		const channels = await this.channelsService.findAll();
 
@@ -84,6 +80,14 @@ export class ChatService {
 			|| (channel.privacy !== 'private')
 		);
 		return userChannels;
+	}
+
+	async getChannelData(channelId: number) {
+		return await this.channelsService.findOne(channelId.toString());
+	}
+
+	async getChannelUserList(channelId: number) {
+		return await this.channelsService.getChannelUsers(channelId.toString());
 	}
 
 	/* Create/delete/update */
@@ -201,16 +205,6 @@ export class ChatService {
 	 */
 
 	/* Getters */
-	async getDmData(dmId: number) {
-		return await this.directMessagesService.findOne(dmId.toString());
-	}
-
-	async getFriendFromDm(dmId: number, userId: number) {
-		const dm = await this.directMessagesService.findOne(dmId.toString());
-
-		return (dm.users[0].id === userId) ? dm.users[1] : dm.users[0];
-	}
-
 	async getUserDms(userId: number) {
 		const dms = await this.directMessagesService.findAll();
 
@@ -223,6 +217,16 @@ export class ChatService {
 			})
 		);
 		return userDms;
+	}
+
+	async getDmData(dmId: number) {
+		return await this.directMessagesService.findOne(dmId.toString());
+	}
+
+	async getFriendFromDm(dmId: number, userId: number) {
+		const dm = await this.directMessagesService.findOne(dmId.toString());
+
+		return (dm.users[0].id === userId) ? dm.users[1] : dm.users[0];
 	}
 
 	/* Create/delete/update */

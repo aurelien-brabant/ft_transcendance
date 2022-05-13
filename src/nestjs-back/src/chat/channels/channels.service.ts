@@ -17,6 +17,9 @@ export class ChannelsService {
 		private readonly channelPunishmentService: PunishmentsService
 	) {}
 
+	/**
+	 * Channel punishments
+	 */
 	async findOutIfUserIsMuted(channelId: number, userId: number) {
 		return await this.channelPunishmentService.isUserCurrentlyMuted(channelId, userId);
 	}
@@ -47,6 +50,36 @@ export class ChannelsService {
 			});
 		}
 		throw new Error('User is already muted.');
+	}
+
+	/**
+	 * Used whenever a user wants to join a password-protected channel
+	 */
+	async getChannelPassword(id: string) {
+		const channel = await this.channelsRepository.createQueryBuilder('channel')
+			.select('channel.password')
+			.where('channel.id = :id', { id })
+			.getOne();
+
+		return channel.password;
+	}
+
+	/**
+	 * To display the user list of a group
+	 */
+	async getChannelUsers(id: string) {
+		const channel =	await this.channelsRepository.findOne(id, {
+			relations: [
+				'owner',
+				'users',
+				'admins',
+				'punishments',
+			]
+		});
+		if (!channel) {
+			throw new Error(`Channel [${id}] not found`);
+		}
+		return channel;
 	}
 
 	findAll() {
@@ -117,17 +150,5 @@ export class ChannelsService {
 		this.logger.log(`Remove channel [${channel.id}][${channel.name}]`);
 
 		return this.channelsRepository.remove(channel);
-	}
-
-	/**
-	 * Used whenever a user wants to join a password-protected channel
-	 */
-	async getChannelPassword(id: string) {
-		const channel = await this.channelsRepository.createQueryBuilder('channel')
-			.select('channel.password')
-			.where('channel.id = :id', { id })
-			.getOne();
-
-		return channel.password;
 	}
 }
