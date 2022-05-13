@@ -53,6 +53,16 @@ export class ChatGateway implements OnGatewayInit, OnGatewayConnection {
 		this.logger.log(`Client connected: ${client.id}`);
 	}
 
+	@SubscribeMessage('disconnect')
+	async handleDisconnect(@ConnectedSocket() client: Socket) {
+		let user = this.chatUsers.getUser(client.id);
+
+		if (user) {
+			this.logger.log(`User [${user.id}][${user.username}] disconnected`);
+			this.chatUsers.removeUser(user);
+		}
+	}
+
 	@SubscribeMessage('updateChatUser')
 	handleNewUser(
 		@ConnectedSocket() client: Socket,

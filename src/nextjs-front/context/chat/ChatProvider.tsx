@@ -269,15 +269,15 @@ const ChatProvider: React.FC = ({ children }) => {
 		socket.on("connect", () => {
 			console.log("[Chat] Client connected");
 
-			socket.on("connect_error", (err: Error) => {
-				console.log(`connect_error due to ${err.message}`);
-				socket.close();
-			});
-
 			socket.emit("updateChatUser", {
 				id: user.id,
 				username: user.username,
 			});
+		});
+
+		socket.on("connect_error", (err: Error) => {
+			console.log(`connect_error due to ${err.message}`);
+			socket.close();
 		});
 
 		return () => {
