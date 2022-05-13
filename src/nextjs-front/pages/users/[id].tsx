@@ -362,7 +362,7 @@ const UserProfilePage: NextPageWithLayout = ({}) => {
               </h1>
               <UserStatusItem
                 className={"mt-2"}
-                status={userData.accountDeactivated ? "deactivated" : "online"}
+                status="OFFLINE"
                 id={userData.id}
               />
             </div>
