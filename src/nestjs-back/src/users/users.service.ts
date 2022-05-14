@@ -244,7 +244,7 @@ export class UsersService {
       tmpDto = {
         ...tmpDto,
         pendingFriendsSent: [
-          // ...user.pendingFriendsSent,
+          ...user.pendingFriendsSent,
           ...updateUserDto.pendingFriendsSent,
         ],
       };
@@ -260,7 +260,7 @@ export class UsersService {
       tmpDto = {
         ...tmpDto,
         pendingFriendsReceived: [
-          // ...user.pendingFriendsReceived,
+          ...user.pendingFriendsReceived,
           ...updateUserDto.pendingFriendsReceived,
         ],
       };
