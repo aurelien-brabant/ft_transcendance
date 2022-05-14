@@ -1,5 +1,4 @@
-import React, { ReactElement, useState } from "react";
-import NotificationsProvider from "../context/notifications/NotificationsProvider";
+import React, { Fragment, ReactElement, useState } from "react";
 import DashboardSideNav from "./DashboardSideNav";
 import DashboardTopNav from "./DashboardTopNav";
 
@@ -7,7 +6,7 @@ const DashboardLayout: React.FC = ({ children }) => {
 	const [isSidebarOpened, setIsSidebarOpened] = useState(false);
 
 	return (
-		<NotificationsProvider>
+		<Fragment>
 			<DashboardTopNav
 				onHamburgerClick={() => {
 					setIsSidebarOpened(!isSidebarOpened);
@@ -21,7 +20,7 @@ const DashboardLayout: React.FC = ({ children }) => {
 						React.cloneElement(child, { id: "main-content" })
 				)}
 			</div>
-		</NotificationsProvider>
+		</Fragment>
 	);
 };
 

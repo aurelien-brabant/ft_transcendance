@@ -5,10 +5,8 @@ import Link from 'next/link';
 import Image from "next/image";
 import { useRouter } from 'next/router';
 import isEmail from "validator/lib/isEmail";
-import isMobilePhone from "validator/lib/isMobilePhone";
 import { NextPageWithLayout } from './_app';
 import alertContext, { AlertContextType } from "../context/alert/alertContext";
-import notificationsContext, { NotificationsContextType } from "../context/notifications/notificationsContext";
 import Tooltip from '../components/Tooltip';
 import ResponsiveSlide from '../components/ResponsiveSlide';
 import withDashboardLayout from "../components/hoc/withDashboardLayout";
@@ -73,18 +71,7 @@ const Welcome: NextPageWithLayout = () => {
       body: JSON.stringify({accountDeactivated: false})
     });
   }
-  
-  const { notifications, setNotifications } = useContext(notificationsContext) as NotificationsContextType;
 
-  const checkPendingFriendsRequests = () => {
-
-    const data = user.pendingFriendsReceived;
-    if (data.length) {
-      for (let i in data)
-        setNotifications([...notifications, {category: 'Friend request', content: `${data[i].username} wants to be you friend`, isRead: false, id: data[i].id, issuedAt: `${new Date(Date.now())}`}]);
-    }
-  }
-  
   useEffect(() => {
     if (user.accountDeactivated)
       reactivateAccount();
@@ -97,7 +84,6 @@ const Welcome: NextPageWithLayout = () => {
       tfa: user.tfa,
       pic: user.pic
     }
-    checkPendingFriendsRequests();
   }, [])
 
   // recompute this only when formData changes
