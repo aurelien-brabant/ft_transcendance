@@ -13,8 +13,21 @@ import chatContext, { ChatContextType, ChatMessage } from "../../context/chat/ch
 export const DirectMessageHeader: React.FC<{ viewParams: any }> = ({
 	viewParams,
 }) => {
-	const { closeChat, setChatView } = useContext(chatContext) as ChatContextType;
+	const { user } = useSession();
+	const { socket, closeChat, setChatView } = useContext(chatContext) as ChatContextType;
 	const actionTooltipStyles = "font-bold bg-dark text-neutral-200";
+	const pongIconStyle = "p-1 text-pink-700 bg-pink-200 rounded-full transition hover:scale-110  hover:text-pink-600";
+
+	/**
+	 * WIP: To link with Hub
+	 * Invite for a Pong game
+	 */
+		const sendPongInvite = (id: string) => {
+		socket.emit("sendPongInvite", {
+			senderId: user.id,
+			receiverId: parseInt(id)
+		});
+	};
 
 	return (
 		<Fragment>
@@ -38,7 +51,10 @@ export const DirectMessageHeader: React.FC<{ viewParams: any }> = ({
 					</button>
 				</div>
 				<Tooltip className={actionTooltipStyles} content="play">
-					<button className="p-1 text-xl text-pink-700 bg-pink-200 rounded-full transition hover:scale-105 hover:text-pink-600">
+					<button
+						className={pongIconStyle}
+						onClick={() => sendPongInvite(user.id)}
+					>
 						<RiPingPongLine />
 					</button>
 				</Tooltip>

@@ -83,9 +83,10 @@ const GroupUsers: React.FC<{ viewParams: any }> = ({ viewParams }) => {
 	const [ownerView, setOwnerView] = useState(false);
 	const [adminView, setAdminView] = useState(false);
 	const actionTooltipStyles = "font-bold bg-gray-900 text-neutral-200";
+	const pongIconStyle = "p-1 text-pink-700 bg-pink-200 rounded-full transition hover:scale-110  hover:text-pink-600";
 
 	/* Make user administrator */
-	const addAdmin = async (id: string) => {
+	const addAdmin = (id: string) => {
 		socket.emit("makeAdmin", {
 			channelId: parseInt(channelId),
 			ownerId: user.id,
@@ -94,7 +95,7 @@ const GroupUsers: React.FC<{ viewParams: any }> = ({ viewParams }) => {
 	};
 
 	/* Remove administrator rights */
-	const removeAdmin = async (id: string) => {
+	const removeAdmin = (id: string) => {
 		socket.emit("removeAdmin", {
 			channelId: parseInt(channelId),
 			ownerId: user.id,
@@ -103,7 +104,7 @@ const GroupUsers: React.FC<{ viewParams: any }> = ({ viewParams }) => {
 	};
 
 	/* Ban user from group */
-	const banUser = async (id: string) => {
+	const banUser = (id: string) => {
 		socket.emit("punishUser", {
 			channelId: parseInt(channelId),
 			adminId: user.id,
@@ -113,7 +114,7 @@ const GroupUsers: React.FC<{ viewParams: any }> = ({ viewParams }) => {
 	};
 
 	/* Mute user in group */
-	const muteUser = async (id: string) => {
+	const muteUser = (id: string) => {
 		socket.emit("punishUser", {
 			channelId: parseInt(channelId),
 			adminId: user.id,
@@ -123,11 +124,22 @@ const GroupUsers: React.FC<{ viewParams: any }> = ({ viewParams }) => {
 	};
 
 	/* Kick user from group */
-	const kickUser = async (id: string) => {
+	const kickUser = (id: string) => {
 		socket.emit("kickUser", {
 			channelId: parseInt(channelId),
 			adminId: user.id,
 			userId: parseInt(id)
+		});
+	};
+
+	/**
+	 * WIP: To link with Hub
+	 * Invite for a Pong game
+	 */
+	const sendPongInvite = (id: string) => {
+		socket.emit("sendPongInvite", {
+			senderId: user.id,
+			receiverId: parseInt(id)
 		});
 	};
 
@@ -309,7 +321,8 @@ const GroupUsers: React.FC<{ viewParams: any }> = ({ viewParams }) => {
 				<div className="flex text-xl gap-x-2">
 					{!owner.isMe && !owner.isBlocked && <Tooltip className={actionTooltipStyles} content="play">
 						<button
-							className="p-1 text-pink-700 bg-pink-200 rounded-full transition hover:scale-110  hover:text-pink-600"
+							className={pongIconStyle}
+							onClick={() => sendPongInvite(user.id)}
 						>
 							<RiPingPongLine />
 						</button>
@@ -325,7 +338,8 @@ const GroupUsers: React.FC<{ viewParams: any }> = ({ viewParams }) => {
 						{ownerView && getOwnerTools(user)}
 						{!user.isMe && !user.isBlocked && <Tooltip className={actionTooltipStyles} content="play">
 							<button
-								className="p-1 text-pink-700 bg-pink-200 rounded-full transition hover:scale-110  hover:text-pink-600"
+								className={pongIconStyle}
+								onClick={() => sendPongInvite(user.id)}
 							>
 								<RiPingPongLine />
 							</button>

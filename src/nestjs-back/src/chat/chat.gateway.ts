@@ -122,6 +122,9 @@ export class ChatGateway implements OnGatewayInit, OnGatewayConnection {
 		}
 	}
 
+	/**
+	 * Game-related
+	 */
 	@SubscribeMessage('userGameStatus')
 	async handleUserGameStatus(
 		@ConnectedSocket() client: Socket,
@@ -140,6 +143,32 @@ export class ChatGateway implements OnGatewayInit, OnGatewayConnection {
 				userId: user.id,
 				status: UserStatus[user.status]
 			});
+		}
+	}
+
+	@SubscribeMessage('sendPongInvite')
+	async handleSendPongInvite(
+		@ConnectedSocket() client: Socket,
+		@MessageBody() { senderId, receiverId }: { senderId: number, receiverId: number }
+	) {
+		const user = this.chatUsers.getUser(client.id);
+
+		if (!user) {
+			throw new WsException('Invite failed. Please, try again.');
+		}
+
+		/**
+		 * TMP: Will be replaced by actual message
+		 */
+		try {
+			const friendUser = this.chatUsers.getUserById(receiverId.toString());
+
+			if (friendUser) {
+				this.server.to(friendUser.socketId).emit('newPongInvite', `${user.username} invited you to play Pong.\nClick here to start.`);
+			}
+			this.logger.log(`User [${senderId}] invited User [${receiverId}]`);
+		} catch (e) {
+			this.server.to(client.id).emit('chatError', e.message);
 		}
 	}
 
