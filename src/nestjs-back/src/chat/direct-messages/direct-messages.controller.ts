@@ -13,17 +13,17 @@ import { DirectMessagesService } from './direct-messages.service';
 
 @Controller('direct-messages')
 export class DirectMessagesController {
-  constructor(
-    private readonly directMessagesService: DirectMessagesService
-  ) {}
+  // constructor(
+  //   private readonly directMessagesService: DirectMessagesService
+  // ) {}
 
-  @Get()
-  findAll() {
-    return this.directMessagesService.findAll();
-  }
+  // @Get()
+  // findAll() {
+  //   return this.directMessagesService.findAll();
+  // }
 
-  @Delete(':id')
-  remove(@Param('id') id: string) {
-    return this.directMessagesService.remove(id);
-  }
+  // @Delete(':id')
+  // remove(@Param('id') id: string) {
+  //   return this.directMessagesService.remove(id);
+  // }
 }

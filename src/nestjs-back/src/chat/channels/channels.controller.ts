@@ -20,37 +20,37 @@ import { UpdateChannelDto } from './dto/update-channel.dto';
 
 @Controller('channels')
 export class ChannelsController {
-  constructor(private readonly channelsService: ChannelsService) {}
+  // constructor(private readonly channelsService: ChannelsService) {}
 
-  //@UseGuards(JwtAuthGuard)
-  @Get()
-  findAll() {
-    return this.channelsService.findAll();
-  }
+  // @UseGuards(JwtAuthGuard)
+  // @Get()
+  // findAll() {
+  //   return this.channelsService.findAll();
+  // }
 
-  //@UseGuards(JwtAuthGuard)
-  @Get(':id')
-  findOne(@Param('id') id: string) {
-    return this.channelsService.findOne(id);
-  }
+  // @UseGuards(JwtAuthGuard)
+  // @Get(':id')
+  // findOne(@Param('id') id: string) {
+  //   return this.channelsService.findOne(id);
+  // }
 
-  //@UseGuards(JwtAuthGuard)
-  @Post()
-  create(@Body() createChannelDto: CreateChannelDto) {
-    return this.channelsService.create(createChannelDto);
-  }
+  // @UseGuards(JwtAuthGuard)
+  // @Post()
+  // create(@Body() createChannelDto: CreateChannelDto) {
+  //   return this.channelsService.create(createChannelDto);
+  // }
 
-  /* TODO: only for chat owner */
-  //@UseGuards(JwtAuthGuard)
-  @Patch(':id')
-  update(@Param('id') id: string, @Body() updateChannelDto: UpdateChannelDto) {
-    return this.channelsService.update(id, updateChannelDto);
-  }
+  // /* TODO: only for chat owner */
+  // @UseGuards(JwtAuthGuard)
+  // @Patch(':id')
+  // update(@Param('id') id: string, @Body() updateChannelDto: UpdateChannelDto) {
+  //   return this.channelsService.update(id, updateChannelDto);
+  // }
 
-  /* TODO: only for chat owner */
-  //@UseGuards(JwtAuthGuard)
-  @Delete(':id')
-  remove(@Param('id') id: string) {
-    return this.channelsService.remove(id);
-  }
+  // /* TODO: only for chat owner */
+  // @UseGuards(JwtAuthGuard)
+  // @Delete(':id')
+  // remove(@Param('id') id: string) {
+  //   return this.channelsService.remove(id);
+  // }
 }
