@@ -106,7 +106,7 @@ const Welcome: NextPageWithLayout = () => {
 	}
 
   const deactivateAccount = async () => {
-    const req = await fetch(`/api/users/${user.id}`, {
+    const res = await fetch(`/api/users/${user.id}`, {
       method: 'PATCH',
       headers: {
         'Content-Type': 'application/json'
@@ -114,15 +114,13 @@ const Welcome: NextPageWithLayout = () => {
       body: JSON.stringify({accountDeactivated: true})
     });
 
-    const res = await req.json();
-
-    if (req.status === 200) {
+    if (res.status === 200) {
       await handleLogout();
     }
   }
 
   const editUser = async (formData: FormData) => {
-  	const req = await fetch(`/api/users/${user.id}`, {
+  	const res = await fetch(`/api/users/${user.id}`, {
       method: 'PATCH',
       headers: {
         'Content-Type': 'application/json'
@@ -132,9 +130,7 @@ const Welcome: NextPageWithLayout = () => {
       body: JSON.stringify(formData)
     });
 
-    const res = await req.json();
-
-    if (req.status === 200) {
+    if (res.status === 200) {
       await reloadUser();
       setAlert({ type: 'success', content: 'User edited successfully' });
     }

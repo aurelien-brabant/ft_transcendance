@@ -1,9 +1,8 @@
-import { useContext, Fragment, useState, useEffect } from 'react';
+import { Fragment, useState, useEffect } from 'react';
 import Image from 'next/image';
 import { FiSearch } from 'react-icons/fi';
 import { GiHamburgerMenu } from 'react-icons/gi';
 import { useRouter } from 'next/router';
-import { BiBell } from 'react-icons/bi';
 import Link from 'next/link';
 import { dashboardNavItems } from '../constants/nav';
 import { useSession } from '../hooks/use-session';
@@ -154,7 +153,6 @@ type DashboardTopNavProps = {
 const DashboardTopNav: React.FC<DashboardTopNavProps> = ({
     onHamburgerClick,
 }) => {
-    const [hasNotificationsOpened, setHasNotificationsOpened] = useState(false);
     const [isUserMenuOpened, setIsUserMenuOpened] = useState(false);
     const { user, logout } = useSession();
 

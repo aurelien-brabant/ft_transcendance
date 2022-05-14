@@ -5,9 +5,9 @@ const OngoingGames: React.FC<{currentGamesProps: Array<string>, socketProps: Soc
     let currentGames: Array<string> = currentGamesProps;
     currentGames.push("test&Test2");
 
-	const spectate = (e: React.MouseEvent<HTMLButtonElement>) => {
-		socketProps.emit("spectateRoom", e.currentTarget.value);
-	}
+    const spectate = (e: React.MouseEvent<HTMLButtonElement>) => {
+        socketProps.emit("spectateRoom", e.currentTarget.value);
+    }
 
     return (
         <div className="flex flex-col py-3">
