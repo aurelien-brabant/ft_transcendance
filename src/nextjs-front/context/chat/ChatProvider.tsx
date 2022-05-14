@@ -178,7 +178,9 @@ const ChatProvider: React.FC = ({ children }) => {
 		if (!author) {
 			return "self-center text-gray-500";
 		}
-		if (author.id == user.id) return "self-end bg-blue-500";
+		if (author.id == user.id) {
+			return "self-end bg-blue-500";
+		}
 
 		const isBlocked = !!blocked.find(
 			blockedUser => blockedUser.id === author.id
@@ -342,6 +344,9 @@ const ChatProvider: React.FC = ({ children }) => {
 					viewStack={viewStack}
 					onClose={() => {
 						setIsChatOpened(false);
+						if (iconColor !== "text-pink-200 bg-pink-600") {
+							setIconColor("text-pink-200 bg-pink-600");
+						}
 					}}
 				/>
 				:

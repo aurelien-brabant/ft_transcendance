@@ -266,6 +266,7 @@ const Group: React.FC<{ viewParams: { [key: string]: any } }> = ({
 		socket.on("newGm", newGmListener);
 		socket.on("joinedChannel", userJoinedListener);
 		socket.on("leftChannel", userLeftListener);
+		socket.on("userKicked", userLeftListener);
 		socket.on("punishedInChannel", userPunishedListener);
 		socket.on("kickedFromChannel", userPunishedListener);
 
@@ -275,6 +276,7 @@ const Group: React.FC<{ viewParams: { [key: string]: any } }> = ({
 			socket.off("newGm", newGmListener);
 			socket.off("joinedChannel", userJoinedListener);
 			socket.off("leftChannel", userLeftListener);
+			socket.off("userKicked", userLeftListener);
 			socket.off("punishedInChannel", userPunishedListener);
 			socket.off("kickedFromChannel", userPunishedListener);
 		};

@@ -430,10 +430,13 @@ export class ChatGateway implements OnGatewayInit, OnGatewayConnection {
 			throw new WsException('If you want to leave the channel, go to Channel settings.');
 		}
 		try {
+			const admin = this.chatUsers.getUserById(adminId.toString());
 			const channel = await this.chatService.getChannelData(channelId);
-
-			await this.chatService.kickUser(channel, adminId, userId);
-
+			const user = await this.chatService.kickUser(channel, adminId, userId);
+			const message = await this.chatService.addMessageToChannel({
+				content: `${admin.username} kicked ${user.username}`,
+				channel
+			});
 			const roomId = `channel_${channelId}`;
 			const chatUser = this.chatUsers.getUserById(userId.toString());
 
@@ -442,7 +445,7 @@ export class ChatGateway implements OnGatewayInit, OnGatewayConnection {
 				this.userLeaveRoom(chatUser.socketId, roomId);
 			}
 
-			this.server.to(roomId).emit('userKicked');
+			this.server.to(roomId).emit('userKicked', message);
 			/* If the channel is visible to everyone, inform every client */
 			if (channel.privacy !== 'private') {
 				this.server.emit('peopleCountChanged', (channel));
