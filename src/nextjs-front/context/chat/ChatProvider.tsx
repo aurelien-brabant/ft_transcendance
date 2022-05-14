@@ -2,7 +2,7 @@ import { useContext, useEffect, useState } from "react";
 import { BsFillChatDotsFill } from "react-icons/bs";
 import { Bounce } from "react-awesome-reveal";
 import { io } from "socket.io-client";
-import { Channel, DmChannel } from 'transcendance-types';
+import { Channel, DmChannel, Message } from 'transcendance-types';
 import { useSession } from "../../hooks/use-session";
 import alertContext, { AlertContextType } from "../alert/alertContext";
 import authContext, { AuthContextValue } from "../auth/authContext";
@@ -116,6 +116,7 @@ const ChatProvider: React.FC = ({ children }) => {
 	const [viewStack, setViewStack] = useState<ChatViewItem[]>([]);
 	const [lastX, setLastX] = useState<number>(0);
 	const [lastY, setLastY] = useState<number>(0);
+	const [iconColor, setIconColor] = useState("text-pink-200 bg-pink-600");
 
 	/* Chat manipulation */
 	const openChat = () => {
@@ -231,6 +232,20 @@ const ChatProvider: React.FC = ({ children }) => {
 		});
 	};
 
+	const changeIconOnNewMessage = ({ message }: { message: Message }) => {
+		if (parseInt(message.author.id) === user.id) return ;
+		setIconColor("text-blue-200 bg-blue-500");
+	};
+
+	const changeIconOnInvite = (from: number) => {
+		if (from !== user.id) {
+			setIconColor("text-green-200 bg-green-500");
+			if (!isChatOpened) {
+				openChatView("dms", "Direct messages", {});
+			}
+		}
+	};
+
 	useEffect(() => {
 		if (!socket || (session.state !== "authenticated")) return;
 
@@ -247,6 +262,9 @@ const ChatProvider: React.FC = ({ children }) => {
 		socket.on("chatError", chatWarningListener);
 		socket.on("chatInfo", chatInfoListener);
 		socket.on("dmCreated", dmCreatedListener);
+		socket.on("newDm", changeIconOnNewMessage);
+		socket.on("newGm", changeIconOnNewMessage);
+		socket.on("invitedInChat", changeIconOnInvite);
 
 		return () => {
 			socket.off("exception", chatExceptionListener);
@@ -255,6 +273,9 @@ const ChatProvider: React.FC = ({ children }) => {
 			socket.off("chatError", chatWarningListener);
 			socket.off("dmCreated", dmCreatedListener);
 			socket.off("chatInfo", chatInfoListener);
+			socket.off("newDm", changeIconOnNewMessage);
+			socket.off("newGm", changeIconOnNewMessage);
+			socket.off("invitedInChat", changeIconOnInvite);
 		};
 	}, [socket]);
 
@@ -316,9 +337,12 @@ const ChatProvider: React.FC = ({ children }) => {
 				/>
 				:
 				<button
-					className="fixed z-50 flex items-center justify-center p-4 text-5xl text-pink-200 bg-pink-600 rounded-full transition hover:scale-105 text-neutral-200"
+					className={`fixed z-50 flex items-center justify-center p-4 text-5xl ${iconColor} rounded-full transition hover:scale-105 text-neutral-200`}
 					style={{ right: "10px", bottom: "10px" }}
 					onClick={() => {
+						if (iconColor !== "text-pink-200 bg-pink-600") {
+							setIconColor("text-pink-200 bg-pink-600");
+						}
 						if (viewStack.length === 0) {
 							setChatView("groups", "Group chats", {});
 						}

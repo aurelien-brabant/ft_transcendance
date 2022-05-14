@@ -11,6 +11,7 @@ import { UpdateChannelDto } from './channels/dto/update-channel.dto';
 import { CreateChannelMessageDto } from './channels/dto/create-channel-message.dto';
 import { CreateDirectMessageDto } from './direct-messages/dto/create-direct-message.dto';
 import { CreateDmMessageDto } from './direct-messages/dto/create-dm-message.dto';
+import { DirectMessage } from './direct-messages/entities/direct-messages';
 
 @Injectable()
 export class ChatService {
@@ -227,6 +228,18 @@ export class ChatService {
 		const dm = await this.directMessagesService.findOne(dmId.toString());
 
 		return (dm.users[0].id === userId) ? dm.users[1] : dm.users[0];
+	}
+
+	async checkIfDmExists(createDirectMessageDto: CreateDirectMessageDto) {
+		let existingDm: DirectMessage;
+
+		try {
+			existingDm = await this.usersService.getDirectMessage(
+				createDirectMessageDto.users[0].id.toString(),
+				createDirectMessageDto.users[1].id.toString()
+			);
+			return existingDm;
+		} catch (e) {}
 	}
 
 	/* Create/delete/update */

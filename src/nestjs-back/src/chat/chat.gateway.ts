@@ -505,18 +505,24 @@ export class ChatGateway implements OnGatewayInit, OnGatewayConnection {
 		@MessageBody() data: CreateDirectMessageDto
 	) {
 		try {
-			const dm = await this.chatService.createDm(data);
+			let dm = await this.chatService.checkIfDmExists(data);
 			const roomId = `dm_${dm.id}`;
-			const userId = this.chatUsers.getUser(client.id).id;
-			const friend = data.users.find((user) => user.id != userId);
-			const friendUser = this.chatUsers.getUserById(friend.id.toString());
 
-			this.userJoinRoom(client.id, roomId);
-			this.server.to(roomId).emit('dmCreated', (dm));
-			if (friendUser) {
-				this.userJoinRoom(friendUser.socketId, roomId);
-				this.server.to(friendUser.socketId).emit('updateDm', (dm));
+			if (!dm) {
+				dm = await this.chatService.createDm(data);
+
+				const userId = this.chatUsers.getUser(client.id).id;
+				const friend = data.users.find((user) => user.id != userId);
+				const friendUser = this.chatUsers.getUserById(friend.id.toString());
+
+				if (friendUser) {
+					this.userJoinRoom(friendUser.socketId, roomId);
+					this.server.to(friendUser.socketId).emit('updateDm', (dm));
+					this.server.to(friendUser.socketId).emit('invitedInChat', { from: userId });
+				}
 			}
+			this.userJoinRoom(client.id, roomId);
+			this.server.to(client.id).emit('dmCreated', (dm));
 		} catch (e) {
 			this.server.to(client.id).emit('chatError', e.message);
 		}
