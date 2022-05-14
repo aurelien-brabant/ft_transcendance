@@ -120,7 +120,7 @@ const Welcome: NextPageWithLayout = () => {
   }
 
   const editUser = async (formData: FormData) => {
-  	const res = await fetch(`/api/users/${user.id}`, {
+    const res = await fetch(`/api/users/${user.id}`, {
       method: 'PATCH',
       headers: {
         'Content-Type': 'application/json'
@@ -529,7 +529,8 @@ const Welcome: NextPageWithLayout = () => {
 
               <button
                 className="px-1 py-2 text-sm font-bold uppercase bg-red-600 md:px-6 md:text-lg"
-                onClick={() => {
+                onClick={(e) => {
+                  e.preventDefault();
                   if (confirm("Deactivated account?\nJust login again to reactivate your account.\n\nClick OK to proceed.") == true) {
                     deactivateAccount();
                   }
