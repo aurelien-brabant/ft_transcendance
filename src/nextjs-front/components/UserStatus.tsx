@@ -1,20 +1,23 @@
 import { useContext, useEffect, useState } from "react";
 import chatContext, { ChatContextType } from "../context/chat/chatContext";
 
-export type UserStatus = 'ONLINE' | 'OFFLINE' | 'deactivated';
+export type UserStatus = 'DEACTIVATED' | 'OFFLINE' | 'ONLINE' | 'PLAYING';
 
 const statusColors = {
-	'ONLINE': 'bg-green-500',
+	'DEACTIVATED': 'bg-gray-700',
 	'OFFLINE': 'bg-red-500',
-	'deactivated': 'bg-gray-700'
+	'ONLINE': 'bg-green-500',
+	'PLAYING': 'bg-yellow-500',
 };
 
-export const UserStatusItem: React.FC<{ status: UserStatus, withText?: boolean, className?: string, id: string }> = ({ status, withText, className, id }) => {
+export const UserStatusItem: React.FC<{ status?: UserStatus, withText?: boolean, className?: string, id: string }> = ({ status, withText, className, id }) => {
 	const [color, setColor] = useState(className || 'bg-green-500');
 	const [state, setState] = useState(status);
 	const { socket } = useContext(chatContext) as ChatContextType;
 
-	const updateUserStatusListener = (status: UserStatus) => {
+	const updateUserStatusListener = ({ userId, status }: { userId: number, status: UserStatus }) => {
+		console.log('updateUserStatus');
+		if (parseInt(id) !== userId) return ;
 		setColor(statusColors[status]);
 		setState(status);
 	}
@@ -23,7 +26,7 @@ export const UserStatusItem: React.FC<{ status: UserStatus, withText?: boolean, 
 		if (socket) {
 			socket.emit("getUserStatus", { userId: id });
 		}
-		setColor(statusColors.deactivated);
+		setColor(statusColors.DEACTIVATED);
 	}, [id]);
 
 	useEffect(() => {

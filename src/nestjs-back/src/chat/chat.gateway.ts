@@ -58,6 +58,11 @@ export class ChatGateway implements OnGatewayInit, OnGatewayConnection {
 		let user = this.chatUsers.getUser(client.id);
 
 		if (user) {
+			this.server.emit('updateUserStatus', {
+				userId: user.id,
+				status: UserStatus[UserStatus.OFFLINE]
+			});
+
 			this.logger.log(`User [${user.id}][${user.username}] disconnected`);
 			this.chatUsers.removeUser(user);
 		}
@@ -79,22 +84,12 @@ export class ChatGateway implements OnGatewayInit, OnGatewayConnection {
 			user.setSocketId(client.id);
 			user.setUsername(newUser.username);
 		}
+		this.server.emit('updateUserStatus', {
+			userId: user.id,
+			status: UserStatus[user.status]
+		});
 		this.logger.log(`Add user[${user.id}][${user.username}]`);
 		console.log(this.chatUsers); // debug
-	}
-
-	@SubscribeMessage('getUserStatus')
-	async handleUserStatus(
-		@ConnectedSocket() client: Socket,
-		@MessageBody() { userId }: { userId: number }
-	) {
-		const user = this.chatUsers.getUserById(userId.toString());
-
-		if (user) {
-			this.server.to(client.id).emit('updateUserStatus', UserStatus[user.status]);
-		} else {
-			this.server.to(client.id).emit('updateUserStatus', UserStatus[UserStatus.OFFLINE]);
-		}
 	}
 
 	userJoinRoom(socketId: string, roomId: string) {
@@ -105,6 +100,47 @@ export class ChatGateway implements OnGatewayInit, OnGatewayConnection {
 	userLeaveRoom(socketId: string, roomId: string) {
 		this.chatUsers.addRoomToUser(socketId, roomId);
 		this.server.in(socketId).socketsLeave(roomId);
+	}
+
+	@SubscribeMessage('getUserStatus')
+	async handleGetUserStatus(
+		@ConnectedSocket() client: Socket,
+		@MessageBody() { userId }: { userId: number }
+	) {
+		const user = this.chatUsers.getUserById(userId.toString());
+
+		if (user) {
+			this.server.emit('updateUserStatus', {
+				userId,
+				status: UserStatus[user.status]
+			});
+		} else {
+			this.server.emit('updateUserStatus', {
+				userId,
+				status: UserStatus[UserStatus.OFFLINE]
+			});
+		}
+	}
+
+	@SubscribeMessage('userGameStatus')
+	async handleUserGameStatus(
+		@ConnectedSocket() client: Socket,
+		@MessageBody() { isPlaying }: { isPlaying: boolean }
+	) {
+		const user = this.chatUsers.getUser(client.id);
+
+		if (user) {
+			if (isPlaying) {
+				user.setUserStatus(UserStatus.PLAYING);
+			}
+			else {
+				user.setUserStatus(UserStatus.ONLINE);
+			}
+			this.server.emit('updateUserStatus', {
+				userId: user.id,
+				status: UserStatus[user.status]
+			});
+		}
 	}
 
 	/**

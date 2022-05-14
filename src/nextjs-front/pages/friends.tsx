@@ -115,7 +115,6 @@ const FriendsPage: NextPageWithLayout = ({}) => {
             <div className="flex flex-col items-center">
               <h1 className="text-2xl text-pink-600">{user.username}</h1>
               <UserStatusItem
-                status="OFFLINE"
                 id={user.id}
               />
             </div>

@@ -362,7 +362,6 @@ const UserProfilePage: NextPageWithLayout = ({}) => {
               </h1>
               <UserStatusItem
                 className={"mt-2"}
-                status="OFFLINE"
                 id={userData.id}
               />
             </div>

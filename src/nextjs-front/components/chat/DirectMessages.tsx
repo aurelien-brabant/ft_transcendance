@@ -145,7 +145,7 @@ const DirectMessages: React.FC<{ viewParams: Object; }> = ({ viewParams }) => {
 							className="relative z-20 flex items-center justify-center w-16 h-16 text-4xl rounded-full"
 						>
 							<img src={dm.friendPic} className="object-fill w-full h-full rounded-full" />
-							<UserStatusItem withText={false} status="OFFLINE" className="absolute bottom-0 right-0 z-50" id={dm.friendId} />
+							<UserStatusItem withText={false} className="absolute bottom-0 right-0 z-50" id={dm.friendId} />
 						</div>
 					</div>
 					<div className="col-span-2">
