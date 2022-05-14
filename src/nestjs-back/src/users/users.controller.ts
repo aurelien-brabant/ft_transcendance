@@ -16,6 +16,7 @@ import {
   UseInterceptors,
   UploadedFile,
   UseGuards,
+  BadRequestException,
 } from '@nestjs/common';
 import { FileInterceptor } from '@nestjs/platform-express';
 import { createReadStream, statSync } from 'fs';
@@ -29,6 +30,7 @@ import { editFileName, imageFileFilter } from 'src/utils/upload';
 import { ValidateTfaDto } from './dto/validate-tfa-dto';
 import { IsLoggedInUserGuard } from "./guard/is-logged-in-user.guard";
 import { JwtAuthGuard } from "../auth/guard/jwt-auth.guard";
+import { QueryFailedError } from 'typeorm';
 
 @Controller('users')
 export class UsersController {
@@ -99,7 +101,9 @@ export class UsersController {
   @UseGuards(JwtAuthGuard, IsLoggedInUserGuard)
   @Patch(':userId')
   update(@Param('userId') id: string, @Body() updateUserDto: UpdateUserDto) {
-    return this.usersService.update(id, updateUserDto);
+    return this.usersService.update(id, updateUserDto).catch((err) => {
+      throw new BadRequestException(err.message);
+    });
   }
 
   @UseGuards(JwtAuthGuard, IsLoggedInUserGuard)

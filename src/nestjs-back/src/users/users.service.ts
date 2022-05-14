@@ -97,6 +97,17 @@ export class UsersService {
     return users;
   }
 
+  /* Checkers */
+  async checkUsernameIsAvailable(username: string) {
+    const duplicatedUsername = await this.usersRepository.createQueryBuilder('user')
+      .where('user.username = :username', { username })
+      .getOne();
+
+    if (duplicatedUsername) {
+      throw new Error(`Username '${username}' not available.`);
+    }
+  }
+
   /* Create */
   async createDuoQuadra(
     { email, login }: CreateDuoQuadraDto,
@@ -185,6 +196,11 @@ export class UsersService {
             });
       });
     };
+
+    /* Informations */
+    if (updateUserDto.username) {
+      await this.checkUsernameIsAvailable(updateUserDto.username);
+    }
 
     /* Games */
     if (updateUserDto.wins || updateUserDto.losses || updateUserDto.draws) {

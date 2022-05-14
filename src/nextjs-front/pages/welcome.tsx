@@ -132,10 +132,19 @@ const Welcome: NextPageWithLayout = () => {
 
     if (res.status === 200) {
       await reloadUser();
-      setAlert({ type: 'success', content: 'User edited successfully' });
+
+      setAlert({
+        type: 'success',
+        content: 'User edited successfully'
+      });
+    } else {
+      const data = await res.json();
+
+      setAlert({
+        type: 'error',
+        content: data.message
+      });
     }
-    else
-      setAlert({ type: 'error', content: 'Error while editing user!' });
   }
 
   const handleSubmit = (e: React.FormEvent<HTMLFormElement>) => {
@@ -179,8 +188,8 @@ const Welcome: NextPageWithLayout = () => {
     else {
       setAlert({ type: 'error', content: 'Wrong verification code!' });
       setTfaStatus('disabled');
-      setTfaCode(''); 
-      setCurrentStep(0);   
+      setTfaCode('');
+      setCurrentStep(0);
     }
   }
 

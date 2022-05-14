@@ -9,6 +9,7 @@ import {
   Matches,
   MaxLength,
   MinLength,
+  IsInt,
 } from 'class-validator';
 import { Transform, Type } from 'class-transformer';
 import { CreateUserDto } from './create-user.dto';
@@ -16,6 +17,8 @@ import { Achievement } from 'src/achievements/entities/achievements.entity';
 import { Channel } from 'src/chat/channels/entities/channels.entity';
 import { ChannelPunishment } from "src/chat/channels/entities/punishment.entity";
 import { DirectMessage } from 'src/chat/direct-messages/entities/direct-messages';
+import { Game } from 'src/games/entities/games.entity';
+import { User } from '../entities/users.entity';
 
 export class UpdateUserDto extends PartialType(CreateUserDto) {
     /* Informations */
@@ -48,6 +51,22 @@ export class UpdateUserDto extends PartialType(CreateUserDto) {
 
     /* Games */
     @IsOptional()
+    @IsArray()
+    readonly games: Game[];
+
+    @IsOptional()
+    @IsInt()
+    readonly wins: number;
+
+    @IsOptional()
+    @IsInt()
+    readonly losses: number;
+
+    @IsOptional()
+    @IsInt()
+    readonly draws: number;
+
+    @IsOptional()
     @IsDecimal()
     readonly ratio: number;
 
@@ -55,6 +74,27 @@ export class UpdateUserDto extends PartialType(CreateUserDto) {
     @IsArray()
     @Type(() => Achievement)
     readonly achievements: Achievement[];
+
+    /* Relationships */
+    @IsOptional()
+    @IsArray()
+    @Type(() => User)
+    readonly friends: User[];
+
+    @IsOptional()
+    @IsArray()
+    @Type(() => User)
+    readonly pendingFriendsSent: User[];
+
+    @IsOptional()
+    @IsArray()
+    @Type(() => User)
+    readonly pendingFriendsReceived: User[];
+
+    @IsOptional()
+    @IsArray()
+    @Type(() => User)
+    readonly blockedUsers: User[];
 
     /* Chat */
     @IsOptional()

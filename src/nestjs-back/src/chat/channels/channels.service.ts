@@ -68,7 +68,7 @@ export class ChannelsService {
 	 * To display the user list of a group
 	 */
 	async getChannelUsers(id: string) {
-		const channel =	await this.channelsRepository.findOne(id, {
+		const channel = await this.channelsRepository.findOne(id, {
 			relations: [
 				'owner',
 				'users',
@@ -102,7 +102,7 @@ export class ChannelsService {
 	}
 
 	async findOne(id: string) {
-		const channel =	await this.channelsRepository.findOne(id, {
+		const channel = await this.channelsRepository.findOne(id, {
 			relations: [
 				'owner',
 				'users',

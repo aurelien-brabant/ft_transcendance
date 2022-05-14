@@ -1,4 +1,4 @@
-import { Injectable, NotFoundException, OnModuleInit } from '@nestjs/common';
+import { Injectable, Logger, NotFoundException, OnModuleInit } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Repository } from 'typeorm';
 import { CreateAchievementDto } from './dto/create-achievement.dto';
@@ -8,13 +8,15 @@ import achievementsList from '../constants/achievementsList';
 
 @Injectable()
 export class AchievementsService implements OnModuleInit {
+  private logger: Logger = new Logger('Achievements Service');
+
   constructor(
     @InjectRepository(Achievement)
     private readonly achievementsRepository: Repository<Achievement>,
   ) {}
 
   async onModuleInit() {
-    console.log('Populating achievements...');
+    this.logger.log('Populating achievements...');
     for (const achievement of achievementsList) {
       await this.achievementsRepository.preload(achievement);
     }
