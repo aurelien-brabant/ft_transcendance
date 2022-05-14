@@ -34,13 +34,13 @@ import { JwtAuthGuard } from "../auth/guard/jwt-auth.guard";
 export class UsersController {
   constructor(private readonly usersService: UsersService) {}
 
-  @UseGuards(JwtAuthGuard)
+  // @UseGuards(JwtAuthGuard)
   @Get()
   findAll(@Query() paginationQuery: PaginationQueryDto) {
     return this.usersService.findAll(paginationQuery);
   }
 
-  @UseGuards(JwtAuthGuard)
+  // @UseGuards(JwtAuthGuard)
   @Get(':userId')
   findOne(@Param('userId') id: string) {
     return this.usersService.findOne(id);
@@ -60,13 +60,13 @@ export class UsersController {
     return userData;
   }
 
-  @UseGuards(JwtAuthGuard, IsLoggedInUserGuard)
+  // @UseGuards(JwtAuthGuard, IsLoggedInUserGuard)
   @Post('/:userId/stats/:status')
   async updateStats(@Param('userId') id: string, @Param('status') status: string) {
     return this.usersService.updateStats(id, status);
   }
 
-  @UseGuards(JwtAuthGuard)
+  // @UseGuards(JwtAuthGuard)
   @Get('/:userId/photo')
   async findPhoto(@Param('userId') id: string, @Response() res: any) {
     const user = await this.usersService.findOne(id);
@@ -87,7 +87,7 @@ export class UsersController {
     file.pipe(res);
   }
 
-  @UseGuards(JwtAuthGuard)
+  // @UseGuards(JwtAuthGuard)
   @Get('/:userId/rank')
   findRank(
     @Param('userId') id: string,
@@ -96,19 +96,19 @@ export class UsersController {
     return this.usersService.findRank(id, paginationQuery);
   }
 
-  @UseGuards(JwtAuthGuard, IsLoggedInUserGuard)
+  // @UseGuards(JwtAuthGuard, IsLoggedInUserGuard)
   @Patch(':userId')
   update(@Param('userId') id: string, @Body() updateUserDto: UpdateUserDto) {
     return this.usersService.update(id, updateUserDto);
   }
 
-  @UseGuards(JwtAuthGuard, IsLoggedInUserGuard)
+  // @UseGuards(JwtAuthGuard, IsLoggedInUserGuard)
   @Delete(':userId')
   remove(@Param('userId') id: string) {
     return this.usersService.remove(id);
   }
 
-  @UseGuards(JwtAuthGuard, IsLoggedInUserGuard)
+  // @UseGuards(JwtAuthGuard, IsLoggedInUserGuard)
   @Delete(':userId/:user/:action')
   removeRelation(
     @Param('userId') id: string,
@@ -118,19 +118,19 @@ export class UsersController {
     return this.usersService.removeRelation(id, userToUpdate, action);
   }
 
-  @UseGuards(JwtAuthGuard, IsLoggedInUserGuard)
+  // @UseGuards(JwtAuthGuard, IsLoggedInUserGuard)
   @Get(':userId/randomAvatar')
   async getRandomAvatar(@Param('userId') id: string) {
     return this.usersService.getRandomAvatar(id);
   }
 
-  @UseGuards(JwtAuthGuard)
+  // @UseGuards(JwtAuthGuard)
   @Get(':userId/avatar42')
   async get42Avatar(@Param('userId') id: string) {
     return this.usersService.getAvatar42(id);
   }
 
-  @UseGuards(JwtAuthGuard, IsLoggedInUserGuard)
+  // @UseGuards(JwtAuthGuard, IsLoggedInUserGuard)
   @Post(':userId/uploadAvatar')
   @UseInterceptors(
     FileInterceptor('image', {
@@ -145,7 +145,7 @@ export class UsersController {
     return this.usersService.uploadAvatar(id, file.filename);
   }
 
-  @UseGuards(JwtAuthGuard, IsLoggedInUserGuard)
+  // @UseGuards(JwtAuthGuard, IsLoggedInUserGuard)
   @Get(':userId/generateTfa')
   async register(@Param('userId') id: string, @Res() response: any) {
     const user = await this.usersService.findOne(id);
@@ -157,7 +157,7 @@ export class UsersController {
     return this.usersService.pipeQrCodeStream(response, otpauthUrl);
   }
 
-  @UseGuards(JwtAuthGuard, IsLoggedInUserGuard)
+  // @UseGuards(JwtAuthGuard, IsLoggedInUserGuard)
   @Post(':userId/enableTfa')
   @HttpCode(200)
   async enableTfa(@Param('userId') id: string, @Body() { tfaCode }) {
@@ -173,7 +173,7 @@ export class UsersController {
     await this.usersService.enableTfa(String(user.id));
   }
 
-  @UseGuards(JwtAuthGuard, IsLoggedInUserGuard)
+  // @UseGuards(JwtAuthGuard, IsLoggedInUserGuard)
   @Post(':userId/validate-tfa')
   @HttpCode(200)
   async authenticate(
