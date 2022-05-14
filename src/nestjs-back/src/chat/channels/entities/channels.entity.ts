@@ -1,5 +1,6 @@
 import {
   Column,
+  CreateDateColumn,
   Entity,
   JoinTable,
   ManyToMany,
@@ -19,6 +20,12 @@ export class Channel {
 
   @Column({ unique: true })
   name: string;
+
+  @CreateDateColumn({
+    type: "timestamptz",
+    default: () => "CURRENT_TIMESTAMP(6)"
+  })
+  createdAt: Date;
 
   /* public | private | protected */
   @Column({ default: "private" })
@@ -47,14 +54,6 @@ export class Channel {
   @ManyToMany(() => User)
   @JoinTable()
   admins: User[];
-
-  @ManyToMany(() => User)
-  @JoinTable()
-  mutedUsers: User[];
-
-  @ManyToMany(() => User)
-  @JoinTable()
-  bannedUsers: User[];
 
   @OneToMany(() => ChannelMessage, message => message.channel, {
     cascade: true

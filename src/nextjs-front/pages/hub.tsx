@@ -6,7 +6,6 @@ import Canvas from "../components/Canvas";
 import { IRoom, User } from "../gameObjects/GameObject";
 import alertContext, { AlertContextType } from "../context/alert/alertContext";
 import { useSession } from "../hooks/use-session";
-// import socketContext, { SocketContextType } from "../context/socket/socketContext";
 import OngoingGames from "../components/OngoingGames";
 import { NextPageWithLayout } from "./_app";
 
@@ -15,7 +14,6 @@ let socket: Socket;
 const Hub: NextPageWithLayout = () => {
 	const { user } = useSession();
 	const { setAlert } = useContext(alertContext) as AlertContextType;
-	// const { socket } = useContext(socketContext) as SocketContextType;
 	const [displayGame, setDisplayGame] = useState(false);
 	const [inQueue, setInQueue] = useState(false);
 	const [room, setRoom] = useState<IRoom | null>(null);

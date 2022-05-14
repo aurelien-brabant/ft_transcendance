@@ -142,8 +142,8 @@ const GroupSettings: React.FC<{ viewParams: any }> = ({ viewParams }) => {
 	 */
 	const handleUserLeaveGroup = () => {
 		socket.emit("leaveChannel", {
-			userId: user.id,
-			channelId
+			channelId,
+			userId: user.id
 		});
 		if (privacy === 'protected') {
 			closeRightmostView(3);
@@ -166,7 +166,6 @@ const GroupSettings: React.FC<{ viewParams: any }> = ({ viewParams }) => {
 	};
 
 	const userPunishedListener = (message: string) => {
-		console.log('[Group Settings] User punished');
 		setChatView("groups", "Group chats", {});
 	}
 
@@ -176,12 +175,14 @@ const GroupSettings: React.FC<{ viewParams: any }> = ({ viewParams }) => {
 		/* Listeners */
 		socket.on("channelData", defineChannelSettings);
 		socket.on("channelUpdated", updateChannelData);
-		socket.on("chatPunishment", userPunishedListener);
+		socket.on("punishedInChannel", userPunishedListener);
+		socket.on("kickedFromChannel", userPunishedListener);
 
 		return () => {
 			socket.off("channelData", defineChannelSettings);
 			socket.off("channelUpdated", updateChannelData);
-			socket.off("chatPunishment", userPunishedListener);
+			socket.off("punishedInChannel", userPunishedListener);
+			socket.off("kickedFromChannel", userPunishedListener);
 		};
 	}, []);
 

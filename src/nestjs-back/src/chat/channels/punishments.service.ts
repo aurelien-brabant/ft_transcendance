@@ -1,12 +1,12 @@
 import { Injectable } from "@nestjs/common";
 import { InjectRepository } from "@nestjs/typeorm";
 import { Repository } from "typeorm";
-import { Channel } from "diagnostics_channel";
+import { Channel } from "./entities/channels.entity";
 import { UsersService } from "src/users/users.service";
 import { ChannelPunishment, PunishmentType } from "./entities/punishment.entity";
 
 type PunishmentOptions = {
-    durationInSeconds?: number;
+    // durationInSeconds?: number;
     reason?: string;
 }
 
@@ -30,7 +30,7 @@ export class PunishmentsService {
      * @param channelId - The id of the channel the punishment applies to
      * @param punishedUserId - The id of the punishED user (the user that receives a punishment)
      * @param punisherUserId  - The id of the punishER user (the user that gives the punishment)
-     * @param options - Optional parameters such as punishment duration and reason
+     * @param options - Optional parameters such as punishment reason
      * @returns The punishment as saved in database
      */
     async punishUser(channelId: number, punishedUserId: number, punisherUserId: number, type: PunishmentType, options: PunishmentOptions = {}) {
@@ -49,16 +49,18 @@ export class PunishmentsService {
             throw new Error(`Could not punish user: no user with id ${punishedUserId}`);
         }
 
+        const durationInSeconds = channel.restrictionDuration * 60;
         const punishmentStartDate = new Date();
-        const punishmentEndDate = options.durationInSeconds ? new Date(punishmentStartDate.getTime() + options.durationInSeconds * 1000) : null;
+        const punishmentEndDate = new Date(punishmentStartDate.getTime() + durationInSeconds * 1000);
 
         const punishment = this.channelPunishmentRepository.create({
             channel,
-            durationInSeconds: options.durationInSeconds,
-            startsAt: punishmentStartDate,
-            endsAt: punishmentEndDate,
             punishedUser: punishedUser,
             punishedByUser: punisherUser,
+            startsAt: punishmentStartDate,
+            endsAt: punishmentEndDate,
+            durationInSeconds,
+            type,
             reason: options.reason
         })
 

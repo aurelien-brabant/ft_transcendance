@@ -34,9 +34,9 @@ export class ChannelPunishment {
     @Column({ unsigned: true, nullable: true })
     durationInSeconds: number;
 
-    @Column({ length: 1000, nullable: true })
-    reason: string;
-
     @Column({ default: 'ban' })
     type: PunishmentType;
+
+    @Column({ length: 1000, nullable: true })
+    reason: string;
 }

@@ -58,7 +58,7 @@ const RelationshipProvider: React.FC = ({ children }) => {
 		createSuggested(usersList, friendsList, data.blockedUsers);
 	}
 
-	const getData = async () => {
+	const getRelationshipsData = async () => {
 		const req = await fetch('/api/users/');
 		const data = await req.json()
 		setUsers(data);
@@ -68,7 +68,7 @@ const RelationshipProvider: React.FC = ({ children }) => {
 	return (
 		<relationshipContext.Provider
 			value={{
-				getData,
+				getRelationshipsData,
 				users,
 				setUsers,
 				friends,

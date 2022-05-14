@@ -57,7 +57,7 @@ const FriendsPage: NextPageWithLayout = ({}) => {
   const [selected, setSelected] = useState(0);
   const { user } = useSession();
   const {
-    getData,
+    getRelationshipsData,
     getRelationships,
     createSuggested,
     setSuggested,
@@ -72,7 +72,7 @@ const FriendsPage: NextPageWithLayout = ({}) => {
 
   useEffect(() => {
     if (user) {
-      getData();
+      getRelationshipsData();
       setIsLoading(false);
     }
   }, []);
@@ -115,7 +115,7 @@ const FriendsPage: NextPageWithLayout = ({}) => {
             <div className="flex flex-col items-center">
               <h1 className="text-2xl text-pink-600">{user.username}</h1>
               <UserStatusItem
-                status={user.accountDeactivated ? "deactivated" : "online"}
+                status="OFFLINE"
                 id={user.id}
               />
             </div>

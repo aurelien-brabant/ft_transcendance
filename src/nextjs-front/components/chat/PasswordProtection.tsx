@@ -1,4 +1,4 @@
-import { Fragment, useContext, useEffect } from "react";
+import { Fragment, useContext } from "react";
 import { AiFillLock, AiOutlineArrowLeft, AiOutlineClose } from "react-icons/ai";
 import { useSession } from "../../hooks/use-session";
 import chatContext, { ChatContextType } from "../../context/chat/chatContext";
@@ -39,24 +39,15 @@ const PasswordProtection: React.FC<{ viewParams: any }> = ({ viewParams }) => {
 		const input = (e.currentTarget.elements[0] as HTMLInputElement).value;
 
 		socket.emit("joinProtected", {
-			userId: user.id,
 			channelId: viewParams.channelId,
+			userId: user.id,
 			password: input
 		});
+
+		socket.on("joinedProtected", () => {
+			openChatView('group', viewParams.channelName, { ...viewParams });
+		});
 	};
-
-	const joinedProtectedListener = () => {
-		openChatView('group', viewParams.channelName, { ...viewParams });
-	};
-
-	useEffect(() => {
-		/* Listeners */
-		socket.on("joinedProtected", joinedProtectedListener);
-
-		return () => {
-			socket.off("joinedProtected", joinedProtectedListener);
-		};
-	}, []);
 
 	return <div className = "flex flex-col items-center justify-center p-5 gap-y-4">
 		<AiFillLock className="text-8xl" />

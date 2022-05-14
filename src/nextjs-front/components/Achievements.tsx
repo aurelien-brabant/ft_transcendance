@@ -15,21 +15,18 @@ const getAchievements = (type: string) => {
 
 const Achievements: React.FC<{}> = () => {
     const { user } = useSession();
-//    const { getUserData } = useContext(authContext) as AuthContextType;
-//    const [achievements, setAchievements] = useState(getUserData().achievements);
     const [achievements, setAchievements] = useState(user.achievements);
     const [achievementsList, setAchievementsList] = useState([]);
   
-    const getData = async () => {
+    const getRelationshipsData = async () => {
         const reqList = await fetch('/api/achievements')
         const list = await reqList.json();
         setAchievementsList(list);
         setAchievements(user.achievements);
-//        setAchievements(getUserData().achievements)
     }
 
     useEffect(() => {
-        getData();
+        getRelationshipsData();
       }, [])
 
     const getColor = (levelToReach: number, type: string) => {
