@@ -512,10 +512,11 @@ export class ChatGateway implements OnGatewayInit, OnGatewayConnection {
 			const friendUser = this.chatUsers.getUserById(friend.id.toString());
 
 			this.userJoinRoom(client.id, roomId);
-			if (friendUser) {
-				this.server.to(friendUser.socketId).emit('dmCreated', (dm));
-			}
 			this.server.to(roomId).emit('dmCreated', (dm));
+			if (friendUser) {
+				this.userJoinRoom(friendUser.socketId, roomId);
+				this.server.to(friendUser.socketId).emit('updateDm', (dm));
+			}
 		} catch (e) {
 			this.server.to(client.id).emit('chatError', e.message);
 		}

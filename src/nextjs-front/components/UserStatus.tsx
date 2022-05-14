@@ -18,15 +18,16 @@ export const UserStatusItem: React.FC<{ status?: UserStatus, withText?: boolean,
 	const updateUserStatusListener = ({ userId, status }: { userId: number, status: UserStatus }) => {
 		console.log('updateUserStatus');
 		if (parseInt(id) !== userId) return ;
+
 		setColor(statusColors[status]);
 		setState(status);
 	}
 
 	useEffect(() => {
+		setColor(statusColors.DEACTIVATED);
 		if (socket) {
 			socket.emit("getUserStatus", { userId: id });
 		}
-		setColor(statusColors.DEACTIVATED);
 	}, [id]);
 
 	useEffect(() => {
