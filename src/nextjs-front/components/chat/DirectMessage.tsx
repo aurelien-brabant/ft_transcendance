@@ -51,7 +51,6 @@ export const DirectMessageHeader: React.FC<{ viewParams: any }> = ({
 				</Link>{" "}
 				<UserStatusItem
 					withText={false}
-					status="OFFLINE"
 					id={viewParams.friendId}
 				/>
 			</div>

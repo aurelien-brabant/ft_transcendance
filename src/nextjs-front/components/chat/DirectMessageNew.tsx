@@ -44,9 +44,8 @@ const DirectMessageNew: React.FC = () => {
 		const searchTerm = term.toLowerCase();
 
 		setFilteredFriends(
-			friends.filter(
-				(friend) =>
-					friend.username.toLowerCase().includes(searchTerm)
+			friends.filter((friend) =>
+				friend.username.toLowerCase().includes(searchTerm)
 			)
 		);
 	};
@@ -92,7 +91,7 @@ const DirectMessageNew: React.FC = () => {
 							src={`/api/users/${friend.id}/photo`}
 							className="object-fill w-full h-full rounded-full"
 						/>
-						<UserStatusItem status="OFFLINE" withText={false} className="absolute bottom-0 right-0 z-50" id={friend.id} />
+						<UserStatusItem withText={false} className="absolute bottom-0 right-0 z-50" id={friend.id} />
 					</div>
 				{friend.username}
 				</div>

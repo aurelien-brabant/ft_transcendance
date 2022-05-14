@@ -58,6 +58,11 @@ export class ChatGateway implements OnGatewayInit, OnGatewayConnection {
 		let user = this.chatUsers.getUser(client.id);
 
 		if (user) {
+			this.server.emit('updateUserStatus', {
+				userId: user.id,
+				status: UserStatus[UserStatus.OFFLINE]
+			});
+
 			this.logger.log(`User [${user.id}][${user.username}] disconnected`);
 			this.chatUsers.removeUser(user);
 		}
@@ -79,22 +84,12 @@ export class ChatGateway implements OnGatewayInit, OnGatewayConnection {
 			user.setSocketId(client.id);
 			user.setUsername(newUser.username);
 		}
+		this.server.emit('updateUserStatus', {
+			userId: user.id,
+			status: UserStatus[user.status]
+		});
 		this.logger.log(`Add user[${user.id}][${user.username}]`);
 		console.log(this.chatUsers); // debug
-	}
-
-	@SubscribeMessage('getUserStatus')
-	async handleUserStatus(
-		@ConnectedSocket() client: Socket,
-		@MessageBody() { userId }: { userId: number }
-	) {
-		const user = this.chatUsers.getUserById(userId.toString());
-
-		if (user) {
-			this.server.to(client.id).emit('updateUserStatus', UserStatus[user.status]);
-		} else {
-			this.server.to(client.id).emit('updateUserStatus', UserStatus[UserStatus.OFFLINE]);
-		}
 	}
 
 	userJoinRoom(socketId: string, roomId: string) {
@@ -105,6 +100,47 @@ export class ChatGateway implements OnGatewayInit, OnGatewayConnection {
 	userLeaveRoom(socketId: string, roomId: string) {
 		this.chatUsers.addRoomToUser(socketId, roomId);
 		this.server.in(socketId).socketsLeave(roomId);
+	}
+
+	@SubscribeMessage('getUserStatus')
+	async handleGetUserStatus(
+		@ConnectedSocket() client: Socket,
+		@MessageBody() { userId }: { userId: number }
+	) {
+		const user = this.chatUsers.getUserById(userId.toString());
+
+		if (user) {
+			this.server.emit('updateUserStatus', {
+				userId,
+				status: UserStatus[user.status]
+			});
+		} else {
+			this.server.emit('updateUserStatus', {
+				userId,
+				status: UserStatus[UserStatus.OFFLINE]
+			});
+		}
+	}
+
+	@SubscribeMessage('userGameStatus')
+	async handleUserGameStatus(
+		@ConnectedSocket() client: Socket,
+		@MessageBody() { isPlaying }: { isPlaying: boolean }
+	) {
+		const user = this.chatUsers.getUser(client.id);
+
+		if (user) {
+			if (isPlaying) {
+				user.setUserStatus(UserStatus.PLAYING);
+			}
+			else {
+				user.setUserStatus(UserStatus.ONLINE);
+			}
+			this.server.emit('updateUserStatus', {
+				userId: user.id,
+				status: UserStatus[user.status]
+			});
+		}
 	}
 
 	/**
@@ -469,17 +505,23 @@ export class ChatGateway implements OnGatewayInit, OnGatewayConnection {
 		@MessageBody() data: CreateDirectMessageDto
 	) {
 		try {
-			const dm = await this.chatService.createDm(data);
-			const roomId = `dm_${dm.id}`;
-			const userId = this.chatUsers.getUser(client.id).id;
-			const friend = data.users.find((user) => user.id != userId);
-			const friendUser = this.chatUsers.getUserById(friend.id.toString());
+			let dm = await this.chatService.checkIfDmExists(data);
 
-			this.userJoinRoom(client.id, roomId);
-			if (friendUser) {
-				this.server.to(friendUser.socketId).emit('dmCreated', (dm));
+			if (!dm) {
+				dm = await this.chatService.createDm(data);
+
+				const user = this.chatUsers.getUser(client.id);
+				const friend = data.users.find((dmUser) => dmUser.id !== user.id);
+				const friendUser = this.chatUsers.getUserById(friend.id.toString());
+
+				if (friendUser) {
+					this.userJoinRoom(friendUser.socketId, `dm_${dm.id}`);
+					this.server.to(friendUser.socketId).emit('updateDm', (dm));
+					this.server.to(friendUser.socketId).emit('invitedInChat', { from: user.id });
+				}
 			}
-			this.server.to(roomId).emit('dmCreated', (dm));
+			this.userJoinRoom(client.id, `dm_${dm.id}`);
+			this.server.to(client.id).emit('dmCreated', (dm));
 		} catch (e) {
 			this.server.to(client.id).emit('chatError', e.message);
 		}

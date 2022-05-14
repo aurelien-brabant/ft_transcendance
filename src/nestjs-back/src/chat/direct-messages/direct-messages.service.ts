@@ -41,22 +41,10 @@ export class DirectMessagesService {
   }
 
   async create(createDirectMessageDto: CreateDirectMessageDto) {
-    let existingDm: DirectMessage;
+    const dm = this.directMessagesRepository.create(createDirectMessageDto);
 
-    try {
-      existingDm = await this.usersService.getDirectMessage(
-        createDirectMessageDto.users[0].id.toString(),
-        createDirectMessageDto.users[1].id.toString()
-      );
-      return existingDm;
-    } catch (e) {
-      if (e instanceof Error) {
-        const dm = this.directMessagesRepository.create(createDirectMessageDto);
-
-        this.logger.log('Create new Direct Message');
-        return this.directMessagesRepository.save(dm);
-      }
-    }
+    this.logger.log('Create new Direct Message');
+    return this.directMessagesRepository.save(dm);
   }
 
   async update(id: string, updateDirectMessageDto: UpdateDirectMessageDto) {
