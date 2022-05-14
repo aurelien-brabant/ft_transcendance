@@ -1,12 +1,10 @@
-import { useContext, Fragment, useState, useEffect } from 'react';
+import { Fragment, useState, useEffect } from 'react';
 import Image from 'next/image';
 import { FiSearch } from 'react-icons/fi';
 import { GiHamburgerMenu } from 'react-icons/gi';
 import { useRouter } from 'next/router';
-import { BiBell } from 'react-icons/bi';
 import Link from 'next/link';
 import { dashboardNavItems } from '../constants/nav';
-import notificationsContext from '../context/notifications/notificationsContext';
 import { useSession } from '../hooks/use-session';
 
 type SearchBarProps = {
@@ -155,9 +153,7 @@ type DashboardTopNavProps = {
 const DashboardTopNav: React.FC<DashboardTopNavProps> = ({
     onHamburgerClick,
 }) => {
-    const [hasNotificationsOpened, setHasNotificationsOpened] = useState(false);
     const [isUserMenuOpened, setIsUserMenuOpened] = useState(false);
-    const { notifications, markAllAsRead } = useContext(notificationsContext);
     const { user, logout } = useSession();
 
     const handleLogout = async () => {
@@ -191,57 +187,6 @@ const DashboardTopNav: React.FC<DashboardTopNavProps> = ({
             <SearchBar className="hidden text-gray-900 md:block grow" />
 
             <div className="flex items-center justify-center pr-4 md:pr-8 lg:pr-16 xl:pr-32 gap-x-8">
-                <div
-                    className="relative justify-end hidden hover:cursor-pointer md:flex"
-                    onClick={() => {
-                        // mark all as read on CLOSE
-                        if (hasNotificationsOpened) {
-                            markAllAsRead();
-                        }
-                        setHasNotificationsOpened(!hasNotificationsOpened);
-                    }}
-                >
-                    <BiBell className="text-3xl" />
-                    {(() => {
-                        let c = 0;
-                        for (const n of notifications) c += +!n.isRead;
-                        return (
-                            <div
-                                className={`absolute flex items-center justify-center px-2 text-sm ${
-                                    c !== 0 ? 'bg-red-500' : 'bg-gray-300'
-                                } rounded-full -right-2 -top-4"`}
-                            >
-                                {c}
-                            </div>
-                        );
-                    })()}
-                    {hasNotificationsOpened && (
-                        <div className="absolute left-0 w-64 py-4 -translate-x-56 translate-y-10 bg-neutral-100 max-h-[500px] overflow-y-auto">
-                            <h6 className="text-xs text-center uppercase">
-                                Recent notifications
-                            </h6>
-                            <hr />
-                            {notifications.map((notif, index, arr) => (
-                                <Fragment key={notif.id}>
-                                    <article
-                                        key={notif.issuedAt.toString()}
-                                        className={`px-2 py-3 ${
-                                            notif.isRead && 'opacity-70'
-                                        } hover:opacity-80`}
-                                    >
-                                        <h6 className="font-bold text-pink-600">
-                                            {notif.category}
-                                        </h6>
-                                        <p className="text-sm">
-                                            {notif.content}
-                                        </p>
-                                    </article>
-                                    {index !== arr.length - 1 && <hr />}
-                                </Fragment>
-                            ))}
-                        </div>
-                    )}
-                </div>
                 <div className="flex gap-x-4 md:gap-x-8">
                     <div
                         className="relative flex items-center gap-x-6 hover:cursor-pointer"

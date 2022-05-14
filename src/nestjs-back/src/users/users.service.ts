@@ -175,6 +175,7 @@ export class UsersService {
     let user: User | null = null;
     let tmpDto = {};
 
+    /* Achievements */
     const checkAchievements = async (level: number, type: string) => {
       this.achievementsService.findAchievements().then(async (list) => {
         for (let i in list)
@@ -185,6 +186,7 @@ export class UsersService {
       });
     };
 
+    /* Games */
     if (updateUserDto.wins || updateUserDto.losses || updateUserDto.draws) {
       user = await this.usersRepository.findOne(id);
       const wins = updateUserDto.wins ? updateUserDto.wins : user.wins;
@@ -207,6 +209,8 @@ export class UsersService {
       if (updated.length) checkAchievements(updated.length, 'games');
     }
     if (updateUserDto.friends) {
+      const newFriend = updateUserDto.friends[0];
+
       user = await this.usersRepository.findOne(id, {
         relations: ['friends'],
       });
@@ -214,6 +218,11 @@ export class UsersService {
       tmpDto = { ...tmpDto, friends: updated };
 
       if (updated.length) checkAchievements(updated.length, 'friends');
+
+      if (newFriend) {
+        const friend = await this.addFriend(newFriend.id.toString(), user);
+        checkAchievements(friend.friends.length, 'friends');
+      }
     }
     if (updateUserDto.blockedUsers) {
       user = await this.usersRepository.findOne(id, {
@@ -224,6 +233,26 @@ export class UsersService {
         blockedUsers: [...user.blockedUsers, ...updateUserDto.blockedUsers],
       };
     }
+
+    /* Friendship invite */
+    if (updateUserDto.pendingFriendsSent) {
+      const friend = updateUserDto.pendingFriendsSent[0];
+
+      user = await this.usersRepository.findOne(id, {
+        relations: ['pendingFriendsSent'],
+      });
+      tmpDto = {
+        ...tmpDto,
+        pendingFriendsSent: [
+          ...user.pendingFriendsSent,
+          ...updateUserDto.pendingFriendsSent,
+        ],
+      };
+      if (friend) {
+        await this.addFriendshipReceived(friend.id.toString(), user);
+      }
+    }
+
     if (updateUserDto.pendingFriendsReceived) {
       user = await this.usersRepository.findOne(id, {
         relations: ['pendingFriendsReceived'],
@@ -233,19 +262,6 @@ export class UsersService {
         pendingFriendsReceived: [
           ...user.pendingFriendsReceived,
           ...updateUserDto.pendingFriendsReceived,
-        ],
-      };
-    }
-
-    if (updateUserDto.pendingFriendsSent) {
-      user = await this.usersRepository.findOne(id, {
-        relations: ['pendingFriendsSent'],
-      });
-      tmpDto = {
-        ...tmpDto,
-        pendingFriendsSent: [
-          ...user.pendingFriendsSent,
-          ...updateUserDto.pendingFriendsSent,
         ],
       };
     }
@@ -446,50 +462,111 @@ export class UsersService {
   }
 
   /* Relationships */
-  async removeRelation(id: string, userToUpdate: string, action: string) {
-    let user = await this.findOne(id);
+  async addFriendshipReceived(id: string, from: User) {
+    let user = await this.usersRepository.findOne(id, {
+      relations: ['pendingFriendsReceived'],
+    });
+
     if (!user)
       throw new NotFoundException(`Cannot update user[${id}]: Not found`);
 
-    let oldList: any;
-    if (action === 'friend') oldList = user.friends;
-    else if (action === 'unblock') oldList = user.blockedUsers;
-    else if (action === 'removeFriendsSent') oldList = user.pendingFriendsSent;
-    else if (action === 'removeFriendsReceived')
-      oldList = user.pendingFriendsReceived;
-    let updated = [];
-    for (let i in oldList) {
-      if (String(oldList[i].id) !== userToUpdate)
-        updated.push({ id: oldList[i].id });
-    }
-    if (updated.length !== oldList.length && action === 'friend') {
-      user = await this.usersRepository.preload({
-        id: +id,
-        friends: updated,
-      });
-    } else if (updated.length !== oldList.length && action === 'unblock') {
-      user = await this.usersRepository.preload({
-        id: +id,
-        blockedUsers: updated,
-      });
-    } else if (
-      updated.length !== oldList.length &&
-      action === 'removeFriendsSent'
-    ) {
-      user = await this.usersRepository.preload({
-        id: +id,
-        pendingFriendsSent: updated,
-      });
-    } else if (
-      updated.length !== oldList.length &&
-      action === 'removeFriendsReceived'
-    ) {
-      user = await this.usersRepository.preload({
-        id: +id,
-        pendingFriendsReceived: updated,
-      });
-    }
+    user.pendingFriendsReceived.push(from);
     return this.usersRepository.save(user);
+  }
+
+  async removeFriendshipReceived(id: string, senderId: string) {
+    let user = await this.usersRepository.findOne(id, {
+      relations: ['pendingFriendsReceived'],
+    });
+
+    if (!user)
+      throw new NotFoundException(`Cannot update user[${id}]: Not found`);
+
+    const newPendingInvites = user.pendingFriendsReceived.filter((sender) => {
+      return sender.id !== parseInt(senderId);
+    });
+
+    user.pendingFriendsReceived = newPendingInvites;
+    return this.usersRepository.save(user);
+  }
+
+  async removeFriendshipSent(id: string, receiverId: string) {
+    let user = await this.usersRepository.findOne(id, {
+      relations: ['pendingFriendsSent'],
+    });
+
+    if (!user)
+      throw new NotFoundException(`Cannot update user[${id}]: Not found`);
+
+    const newPendingInvites = user.pendingFriendsSent.filter((sender) => {
+      return sender.id !== parseInt(receiverId);
+    });
+
+    user.pendingFriendsSent = newPendingInvites;
+    return this.usersRepository.save(user);
+  }
+
+  async addFriend(id: string, from: User) {
+    let user = await this.usersRepository.findOne(id, {
+      relations: ['friends'],
+    });
+
+    if (!user)
+      throw new NotFoundException(`Cannot update user[${id}]: Not found`);
+
+    user.friends.push(from);
+    return this.usersRepository.save(user);
+  }
+
+  async removeFriend(id: string, friendId: string) {
+    let user = await this.usersRepository.findOne(id, {
+      relations: ['friends'],
+    });
+
+    if (!user)
+      throw new NotFoundException(`Cannot update user[${id}]: Not found`);
+
+    const newFriends = user.friends.filter((friend) => {
+      return friend.id !== parseInt(friendId);
+    });
+
+    user.friends = newFriends;
+    return this.usersRepository.save(user);
+  }
+
+  async unblockUser(id: string, userId: string) {
+    let user = await this.usersRepository.findOne(id, {
+      relations: ['blockedUsers'],
+    });
+
+    if (!user)
+      throw new NotFoundException(`Cannot update user[${id}]: Not found`);
+
+    const newBlockedUsers = user.blockedUsers.filter((user) => {
+      return user.id !== parseInt(userId);
+    });
+
+    user.blockedUsers = newBlockedUsers;
+    return this.usersRepository.save(user);
+  }
+
+  async removeRelation(id: string, userToUpdate: string, action: string) {
+    if (action === 'friend') {
+      await this.removeFriend(userToUpdate, id);
+      return await this.removeFriend(id, userToUpdate);
+    }
+    else if (action === 'unblock') {
+      return await this.unblockUser(id, userToUpdate);
+    }
+    else if (action === 'removeFriendsSent') {
+      await this.removeFriendshipReceived(userToUpdate, id);
+      return await this.removeFriendshipSent(id, userToUpdate);
+    }
+    else if (action === 'removeFriendsReceived') {
+      await this.removeFriendshipSent(userToUpdate, id);
+      return await this.removeFriendshipReceived(id, userToUpdate);
+    }
+    throw new NotFoundException(`No corresponding action found.`);
   }
 
   /* Chat */

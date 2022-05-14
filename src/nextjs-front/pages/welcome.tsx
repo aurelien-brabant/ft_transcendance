@@ -5,10 +5,8 @@ import Link from 'next/link';
 import Image from "next/image";
 import { useRouter } from 'next/router';
 import isEmail from "validator/lib/isEmail";
-import isMobilePhone from "validator/lib/isMobilePhone";
 import { NextPageWithLayout } from './_app';
 import alertContext, { AlertContextType } from "../context/alert/alertContext";
-import notificationsContext, { NotificationsContextType } from "../context/notifications/notificationsContext";
 import Tooltip from '../components/Tooltip';
 import ResponsiveSlide from '../components/ResponsiveSlide';
 import withDashboardLayout from "../components/hoc/withDashboardLayout";
@@ -73,18 +71,7 @@ const Welcome: NextPageWithLayout = () => {
       body: JSON.stringify({accountDeactivated: false})
     });
   }
-  
-  const { notifications, setNotifications } = useContext(notificationsContext) as NotificationsContextType;
 
-  const checkPendingFriendsRequests = () => {
-
-    const data = user.pendingFriendsReceived;
-    if (data.length) {
-      for (let i in data)
-        setNotifications([...notifications, {category: 'Friend request', content: `${data[i].username} wants to be you friend`, isRead: false, id: data[i].id, issuedAt: `${new Date(Date.now())}`}]);
-    }
-  }
-  
   useEffect(() => {
     if (user.accountDeactivated)
       reactivateAccount();
@@ -97,7 +84,6 @@ const Welcome: NextPageWithLayout = () => {
       tfa: user.tfa,
       pic: user.pic
     }
-    checkPendingFriendsRequests();
   }, [])
 
   // recompute this only when formData changes
@@ -120,7 +106,7 @@ const Welcome: NextPageWithLayout = () => {
 	}
 
   const deactivateAccount = async () => {
-    const req = await fetch(`/api/users/${user.id}`, {
+    const res = await fetch(`/api/users/${user.id}`, {
       method: 'PATCH',
       headers: {
         'Content-Type': 'application/json'
@@ -128,15 +114,13 @@ const Welcome: NextPageWithLayout = () => {
       body: JSON.stringify({accountDeactivated: true})
     });
 
-    const res = await req.json();
-
-    if (req.status === 200) {
+    if (res.status === 200) {
       await handleLogout();
     }
   }
 
   const editUser = async (formData: FormData) => {
-  	const req = await fetch(`/api/users/${user.id}`, {
+    const res = await fetch(`/api/users/${user.id}`, {
       method: 'PATCH',
       headers: {
         'Content-Type': 'application/json'
@@ -146,9 +130,7 @@ const Welcome: NextPageWithLayout = () => {
       body: JSON.stringify(formData)
     });
 
-    const res = await req.json();
-
-    if (req.status === 200) {
+    if (res.status === 200) {
       await reloadUser();
       setAlert({ type: 'success', content: 'User edited successfully' });
     }
@@ -547,7 +529,8 @@ const Welcome: NextPageWithLayout = () => {
 
               <button
                 className="px-1 py-2 text-sm font-bold uppercase bg-red-600 md:px-6 md:text-lg"
-                onClick={() => {
+                onClick={(e) => {
+                  e.preventDefault();
                   if (confirm("Deactivated account?\nJust login again to reactivate your account.\n\nClick OK to proceed.") == true) {
                     deactivateAccount();
                   }

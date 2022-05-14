@@ -16,169 +16,170 @@ import relationshipContext, { RelationshipContextType } from "../context/relatio
 const FriendsTable: React.FC<{ type: string, list: User[], suggested: User[], setSuggested: any, setSelected: any }> = ({
   type, list, suggested, setSuggested, setSelected
 }) => {
-
   const { setAlert } = useContext(alertContext) as AlertContextType;
   const { user } = useSession();
-  const { friends, setFriends, friends42, setFriends42, blocked, setBlocked,
-    pendingFriendsReceived, setPendingFriendsReceived, pendingFriendsSent, setPendingFriendsSent
-   } = useContext(relationshipContext) as RelationshipContextType;
-  
+  const {
+    friends, setFriends,
+    friends42, setFriends42,
+    blocked, setBlocked,
+    pendingFriendsReceived, setPendingFriendsReceived,
+    pendingFriendsSent, setPendingFriendsSent
+  } = useContext(relationshipContext) as RelationshipContextType;
+
   const updateFriendsRequests = (id: string) => {
-    fetch (`/api/users/${user.id}/${id}/removeFriendsReceived`, {
+    fetch(`/api/users/${user.id}/${id}/removeFriendsReceived`, {
       method: "DELETE",
       headers: {
         "Content-Type": "application/json",
       },
     });
-    fetch (`/api/users/${id}/${user.id}/removeFriendsSent`, {
-      method: "DELETE",
-      headers: {
-          "Content-Type": "application/json",
-      },
-    });
   }
 
   const requestFriend = async (id: string, username: string, isDuoQuadra: boolean) => {
-    
-    const req = await fetch (`/api/users/${user.id}`);
+    const req = await fetch(`/api/users/${user.id}`);
     const data = await req.json();
     const received = data.pendingFriendsReceived;
-
     let isAsking: boolean = false;
+
     for (let i in received) {
       if (received[i].id === id)
         isAsking = true;
     }
+
     if (isAsking) {
       updateFriendsRequests(id);
-      const addFriend = await fetch (`/api/users/${user.id}`, {
-          method: "PATCH",
-          headers: {
-            "Content-Type": "application/json",
-          },
-          body: JSON.stringify({friends: [{"id": id}]}),
-        });
-      const addFriend2 = await fetch (`/api/users/${id}`, {
-          method: "PATCH",
-          headers: {
-            "Content-Type": "application/json",
-          },
-          body: JSON.stringify({friends: [{"id": user.id}]}),
-        });
-        if (addFriend.ok && addFriend2.ok) {
-          setSuggested(suggested.filter(
-            item => item.id !== id
-          ));
-          setPendingFriendsReceived(pendingFriendsReceived.filter(
-            item => item.id !== id
-          ));
-          setFriends([...friends, {"id": id, "username": username}]);
-          isDuoQuadra && setFriends42([...friends42, {"id": id, "username": username}]);
-          setAlert({ type: 'info', content: `New friend: ${username}` });
-        }
-        else
-          setAlert({ type: 'error', content: `Error while adding ${username} as friend` });  
-    }
-    else {
-      const reqSent = await fetch (`/api/users/${user.id}`, {
+
+      const addFriend = await fetch(`/api/users/${user.id}`, {
         method: "PATCH",
         headers: {
           "Content-Type": "application/json",
         },
-        body: JSON.stringify({pendingFriendsSent: [{"id": id}]}),
-      });
-      const reqReceived = await fetch (`/api/users/${id}`, {
-        method: "PATCH",
-        headers: {
-          "Content-Type": "application/json",
-        },
-        body: JSON.stringify({pendingFriendsReceived: [{"id": user.id}]}),
+        body: JSON.stringify({friends: [{"id": id}]}),
       });
 
-      if (reqSent.ok && reqReceived.ok) {
+      if (addFriend.ok) {
+        setSuggested(suggested.filter(
+          item => item.id !== id
+        ));
+        setPendingFriendsReceived(pendingFriendsReceived.filter(
+          item => item.id !== id
+        ));
+        setFriends([...friends, {"id": id, "username": username}]);
+        isDuoQuadra && setFriends42([...friends42, {"id": id, "username": username}]);
+        setAlert({ type: 'info', content: `New friend: ${username}` });
+      }
+      else
+        setAlert({ type: 'error', content: `Error while adding ${username} as friend` });  
+    }
+    else {
+      const reqSent = await fetch(`/api/users/${user.id}`, {
+        method: "PATCH",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify({ pendingFriendsSent: [{ "id": id }] }),
+      });
+
+      if (reqSent.ok) {
         //TO DO CHECK ACHIEVEMENTS FOR UPDATING
         setSuggested(suggested.filter(
           item => item.id !== id
         ));
-        setPendingFriendsSent([...pendingFriendsSent, {"id": id, "username": username}]);
-        setAlert({ type: 'info', content: `Friend request sent to ${username}` });
+        setPendingFriendsSent([ ...pendingFriendsSent, { "id": id, "username": username } ]);
+        setAlert({
+          type: 'info',
+          content: `Friend request sent to ${username}`
+        });
       }
-      else
-        setAlert({ type: 'error', content: `Error while sending friend request to ${username}` });
+      else {
+        setAlert({
+          type: 'error',
+          content: `Error while sending friend request to ${username}`
+        });
+      }
     }
   }
-  
+
   const blockUser = async (id: string, username: string) => {
     let isAsking: boolean = false;
+
     for (let i in pendingFriendsReceived) {
       if (pendingFriendsReceived[i].id === id)
-        isAsking = true;    
+        isAsking = true;
     }
     isAsking && updateFriendsRequests(id);
 
-    const block = await fetch (`/api/users/${user.id}`, {
+    const block = await fetch(`/api/users/${user.id}`, {
       method: "PATCH",
       headers: {
-          "Content-Type": "application/json",
+        "Content-Type": "application/json",
       },
       body: JSON.stringify({blockedUsers: [{"id": id}]}),
     });
+
     if (block.ok) {
-      setBlocked([...blocked, {"id": id, "username": username}]);
+      setBlocked([ ...blocked, { "id": id, "username": username } ]);
       setSuggested(suggested.filter(
         item => item.id !== id
       ));
-      setAlert({ type: 'success', content: `User ${username} blocked` });
+      setAlert({
+        type: 'success',
+        content: `User ${username} blocked`
+      });
+    } else {
+      setAlert({
+        type: 'error',
+        content: `Error while blocking ${username}`
+      });
     }
-    else
-      setAlert({ type: 'error', content: `Error while blocking ${username}` });
   }
-  
 
   const removeRelation = async (id: string, username:string, action: string, list42: boolean) => {
-    const remove = await fetch (`/api/users/${user.id}/${id}/${action}`, {
+    const remove = await fetch(`/api/users/${user.id}/${id}/${action}`, {
       method: "DELETE",
       headers: {
-          "Content-Type": "application/json",
+        "Content-Type": "application/json",
       },
     });
+
     if (remove.ok) {
       let updated: User[];
       let updated42: User[] = [];
 
-      if (action === 'unblock') 
+      if (action === 'unblock') {
         updated = blocked.filter(
           item => item.id !== id
-      )
-      else {
+        );
+      } else {
         updated = friends.filter(
           item => item.id !== id
         );
         updated42 = friends42.filter(
           item => item.id !== id
-        )
+        );
       }
+
       if (action === 'friend') {
         setFriends(updated);
         list42 && setFriends42(updated42);
-        setSuggested([...suggested, {"id": id, "username": username}]);
-        await fetch (`/api/users/${id}/${user.id}/${action}`, {
-          method: "DELETE",
-          headers: {
-              "Content-Type": "application/json",
-          },
-        });
-      }
-      else if (action === 'unblock') {
+        setSuggested([ ...suggested, { "id": id, "username": username } ]);
+      } else if (action === 'unblock') {
         setBlocked(updated);
         setSuggested(updated.filter(
           item => item.id !== id
         ));
       }
-      setAlert({ type: 'success', content: `${action === 'friend' ? `Friendship with ${username} destroyed` : `User ${username} unblocked successfully`}` });
+
+      setAlert({
+        type: 'success',
+        content: `${action === 'friend' ? `Friendship with ${username} destroyed` : `User ${username} unblocked successfully`}`
+      });
+    } else {
+      setAlert({
+        type: 'error',
+        content: `${action === 'friend' ? `Error while killing friendship with ${username}` : `Error while unblocking ${username}`}`
+      });
     }
-    else
-      setAlert({ type: 'error', content: `${action === 'friend' ? `Error while killing friendship with ${username}` : `Error while unblocking ${username}`}` });
   }
 
   const checkRelation = (id: string, list: User[]) => {
@@ -192,13 +193,13 @@ const FriendsTable: React.FC<{ type: string, list: User[], suggested: User[], se
 
   const hasAlreadyAsked = (id: string, list: any) => {
     const invites = list.pendingFriendsSent;
+
     for (let i in invites) {
       if (invites[i].id === id) {
         return true;
       }
     }
     return false
-
   }
 
   return (
@@ -269,10 +270,10 @@ const FriendsTable: React.FC<{ type: string, list: User[], suggested: User[], se
               </div>
               </div>
                 <img
-		  	        className="justify-content-center"
-	  		        src={`/api/users/${id}/photo`}
-  	        		height="100%"
-	  	  	      width="100%"
+                className="justify-content-center"
+                src={`/api/users/${id}/photo`}
+                height="100%"
+                width="100%"
                 />
               {duoquadra_login &&
               <div className="invisible md:visible absolute top-16 right-4">
