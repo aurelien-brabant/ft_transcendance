@@ -73,7 +73,10 @@ export class User {
     @Column({default: 0})
     draws: number;
 
-    @Column({type: 'decimal', default: 0})
+    @Column({
+        type: 'decimal',
+        default: 0
+    })
     ratio: number;
 
     @ManyToMany(() => Achievement, achievement => achievement.users)

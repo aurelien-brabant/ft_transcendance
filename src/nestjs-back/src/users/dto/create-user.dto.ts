@@ -1,17 +1,16 @@
 import {
-  IsArray,
   IsBoolean,
   IsEmail,
-  IsInt,
+  IsNotEmpty,
   IsOptional,
   IsString
 } from 'class-validator';
-import { Type } from 'class-transformer';
-import { Game } from 'src/games/entities/games.entity';
-import { User } from '../entities/users.entity';
+import { Transform } from 'class-transformer';
+import { PasswordValidator } from 'src/utils/patternValidator';
 
 export class CreateUserDto {
   /* Informations */
+    @Transform(({ value }) => value.trim())
     @IsEmail()
     readonly email: string;
 
@@ -20,49 +19,13 @@ export class CreateUserDto {
     readonly pic: string;
 
     /* Security */
-    @IsOptional()
+    @Transform(({ value }) => value.trim())
+    @IsNotEmpty()
     @IsString()
+    @PasswordValidator()
     readonly password: string;
 
     @IsOptional()
     @IsBoolean()
     readonly accountDeactivated: boolean;
-
-    /* Games */
-    @IsOptional()
-    @IsArray()
-    readonly games: Game[];
-
-    @IsOptional()
-    @IsInt()
-    readonly wins: number;
-
-    @IsOptional()
-    @IsInt()
-    readonly losses: number;
-
-    @IsOptional()
-    @IsInt()
-    readonly draws: number;
-
-    /* Relationships */
-    @IsOptional()
-    @IsArray()
-    @Type(() => User)
-    readonly friends: User[];
-
-    @IsOptional()
-    @IsArray()
-    @Type(() => User)
-    readonly pendingFriendsSent: User[];
-
-    @IsOptional()
-    @IsArray()
-    @Type(() => User)
-    readonly pendingFriendsReceived: User[];
-
-    @IsOptional()
-    @IsArray()
-    @Type(() => User)
-    readonly blockedUsers: User[];
 }
