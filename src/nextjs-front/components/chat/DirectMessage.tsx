@@ -3,7 +3,7 @@ import { AiOutlineArrowLeft, AiOutlineClose } from "react-icons/ai";
 import { FiSend } from "react-icons/fi";
 import { RiPingPongLine } from "react-icons/ri";
 import Link from "next/link";
-import { DmChannel, Message } from 'transcendance-types';
+import { DmChannel, DmMessage } from 'transcendance-types';
 import { UserStatusItem } from "../UserStatus";
 import { useSession } from "../../hooks/use-session";
 import Tooltip from "../../components/Tooltip";
@@ -96,7 +96,7 @@ const DirectMessage: React.FC<{ viewParams: { [key: string]: any } }> = ({
 	};
 
 	/* Receive new message */
-	const handleNewMessage = ({ message }: { message: Message }) => {
+	const handleNewMessage = ({ message }: { message: DmMessage }) => {
 		setMessages((prevMessages) => {
 			const newMessages: ChatMessage[] = [...prevMessages];
 
@@ -106,7 +106,7 @@ const DirectMessage: React.FC<{ viewParams: { [key: string]: any } }> = ({
 				content: message.content,
 				author: message.author.username,
 				displayAuthor: !(message.author.id === user.id),
-				displayStyle: getMessageStyle(message.author.id),
+				displayStyle: getMessageStyle(message.author),
 			});
 			return newMessages;
 		});
@@ -119,7 +119,7 @@ const DirectMessage: React.FC<{ viewParams: { [key: string]: any } }> = ({
 		const messages: ChatMessage[] = [];
 
 		dm.messages.sort(
-			(a: Message, b: Message) => (parseInt(a.id) - parseInt(b.id))
+			(a: DmMessage, b: DmMessage) => (parseInt(a.id) - parseInt(b.id))
 		);
 
 		for (var message of dm.messages) {
@@ -129,7 +129,7 @@ const DirectMessage: React.FC<{ viewParams: { [key: string]: any } }> = ({
 				content: message.content,
 				author: message.author.username,
 				displayAuthor: !(message.author.id === user.id),
-				displayStyle: getMessageStyle(message.author.id),
+				displayStyle: getMessageStyle(message.author),
 			});
 		}
 		setMessages(messages);

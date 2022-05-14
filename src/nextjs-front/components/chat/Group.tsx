@@ -3,7 +3,7 @@ import { AiOutlineArrowLeft, AiOutlineClose } from "react-icons/ai";
 import { FaUserFriends, FaUserPlus } from "react-icons/fa";
 import { FiSend } from 'react-icons/fi';
 import { RiSettings5Line } from "react-icons/ri";
-import { Channel, Message } from 'transcendance-types';
+import { Channel, ChannelMessage } from 'transcendance-types';
 import Tooltip from "../../components/Tooltip";
 import { useSession } from "../../hooks/use-session";
 import chatContext, { ChatContextType, ChatMessage } from "../../context/chat/chatContext";
@@ -170,6 +170,26 @@ const Group: React.FC<{ viewParams: { [key: string]: any } }> = ({
 		setCurrentMessage(e.target.value);
 	};
 
+	const addNewMessage = (message: ChannelMessage) => {
+		setMessages((prevMessages) => {
+			const newMessages: ChatMessage[] = [...prevMessages];
+
+			const author = message.author;
+			const isBlocked = author && !!blocked.find(blockedUser => blockedUser.id === author.id);
+			const isMe = author && (author.id === user.id);
+
+			newMessages.push({
+				id: prevMessages.length.toString(),
+				createdAt: message.createdAt,
+				content: isBlocked ? "Blocked message" : message.content,
+				author: author && author.username,
+				displayAuthor: (author !== null && !isMe && !isBlocked),
+				displayStyle: getMessageStyle(message.author),
+			});
+			return newMessages;
+		});
+	};
+
 	/* Listeners */
 	const channelDeletedListener = (deletedId: string) => {
 		if (deletedId === channelId) {
@@ -178,60 +198,21 @@ const Group: React.FC<{ viewParams: { [key: string]: any } }> = ({
 	};
 
 	/* Receive new message */
-	const newGmListener = ({ message }: { message: Message }) => {
+	const newGmListener = ({ message }: { message: ChannelMessage }) => {
 		console.log(`[Chat] Receive new message in [${message.channel.id}]`);
 
-		setMessages((prevMessages) => {
-			const newMessages: ChatMessage[] = [...prevMessages];
-
-			const isBlocked = !!blocked.find(blockedUser => blockedUser.id === message.author.id);
-			const isMe = (message.author.id === user.id);
-
-			newMessages.push({
-				id: prevMessages.length.toString(),
-				createdAt: message.createdAt,
-				content: isBlocked ? "Blocked message" : message.content,
-				author: message.author.username,
-				displayAuthor: (!isMe && !isBlocked),
-				displayStyle: getMessageStyle(message.author.id),
-			});
-			return newMessages;
-		});
+		addNewMessage(message);
 	};
 
-	const userJoinedListener = (res: { message: string, userId: string }) => {
-		setMessages((prevMessages) => {
-			const newMessages: ChatMessage[] = [...prevMessages];
-
-			newMessages.push({
-				id: prevMessages.length.toString(),
-				createdAt: new Date(Date.now()),
-				content: res.message,
-				author: "bot",
-				displayAuthor: false,
-				displayStyle: "self-center text-gray-500",
-			});
-			return newMessages;
-		});
-		if (res.userId === user.id) {
+	const userJoinedListener = ({ message, userId }: { message: ChannelMessage, userId: string }) => {
+		addNewMessage(message);
+		if (userId === user.id) {
 			setUserInChan(true);
 		}
 	};
 
-	const userLeftListener = (message: string) => {
-		setMessages((prevMessages) => {
-			const newMessages: ChatMessage[] = [...prevMessages];
-
-			newMessages.push({
-				id: prevMessages.length.toString(),
-				createdAt: new Date(Date.now()),
-				content: message,
-				author: "bot",
-				displayAuthor: false,
-				displayStyle: "self-center text-gray-500",
-			});
-			return newMessages;
-		});
+	const userLeftListener = ({ message }: { message: ChannelMessage }) => {
+		addNewMessage(message);
 	};
 
 	const userPunishedListener = (message: string) => {
@@ -250,20 +231,21 @@ const Group: React.FC<{ viewParams: { [key: string]: any } }> = ({
 			const messages: ChatMessage[] = [];
 
 			channel.messages.sort(
-				(a: Message, b: Message) => (parseInt(a.id) - parseInt(b.id))
+				(a: ChannelMessage, b: ChannelMessage) => (parseInt(a.id) - parseInt(b.id))
 			);
 
 			for (var message of channel.messages) {
-				const isBlocked = !!blocked.find(blockedUser => blockedUser.id === message.author.id);
-				const isMe = (message.author.id === user.id);
+				const author = message.author;
+				const isBlocked = author && !!blocked.find(blockedUser => blockedUser.id === author.id);
+				const isMe = author && (author.id === user.id);
 
 				messages.push({
 					id: messages.length.toString(),
 					createdAt: message.createdAt,
 					content: isBlocked ? "Blocked message" : message.content,
-					author: message.author.username,
-					displayAuthor: (!isMe && !isBlocked),
-					displayStyle: getMessageStyle(message.author.id),
+					author: author && author.username,
+					displayAuthor: (author !== null && !isMe && !isBlocked),
+					displayStyle: getMessageStyle(message.author),
 				});
 			}
 			setMessages(messages);

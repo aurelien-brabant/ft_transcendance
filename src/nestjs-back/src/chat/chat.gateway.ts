@@ -255,6 +255,9 @@ export class ChatGateway implements OnGatewayInit, OnGatewayConnection {
 		@MessageBody() data: CreateChannelMessageDto
 	) {
 		try {
+			if (!data.author) {
+				throw new WsException('Anonymous messages not allowed.');
+			}
 			await this.chatService.checkIfUserIsMuted(data.channel.id, data.author.id);
 			const message = await this.chatService.addMessageToChannel(data);
 			const channel = message.channel;
@@ -289,18 +292,18 @@ export class ChatGateway implements OnGatewayInit, OnGatewayConnection {
 		try {
 			const channel = await this.chatService.getChannelData(channelId);
 			const user = await this.chatService.addUserToChannel(channel, userId);
+			const message = await this.chatService.addMessageToChannel({
+				content: `${user.username} joined group`,
+				channel
+			});
 			const roomId = `channel_${channelId}`;
-			const res = {
-				message: `${user.username} joined group`,
-				userId: userId,
-			};
 
 			/* If the channel is visible to everyone, inform every client */
 			if (channel.privacy !== 'private') {
 				this.server.emit('peopleCountChanged', (channel));
 			}
 			this.userJoinRoom(client.id, roomId);
-			this.server.to(roomId).emit('joinedChannel', res);
+			this.server.to(roomId).emit('joinedChannel', { message, userId });
 		} catch (e) {
 			this.server.to(client.id).emit('chatError', e.message);
 		}
@@ -314,10 +317,14 @@ export class ChatGateway implements OnGatewayInit, OnGatewayConnection {
 		try {
 			const channel = await this.chatService.getChannelData(channelId);
 			const user = await this.chatService.removeUserFromChannel(channel, userId);
+			const message = await this.chatService.addMessageToChannel({
+				content: `${user.username} left group`,
+				channel
+			});
 			const roomId = `channel_${channelId}`;
 
 			this.userLeaveRoom(client.id, roomId);
-			this.server.to(roomId).emit('leftChannel', `${user.username} left group`);
+			this.server.to(roomId).emit('leftChannel', { message, userId });
 
 			/* If the channel is visible to everyone, inform every client */
 			if (channel.privacy !== 'private') {
