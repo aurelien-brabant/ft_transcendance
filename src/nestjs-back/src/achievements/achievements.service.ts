@@ -1,4 +1,4 @@
-import { Injectable, Logger, NotFoundException, OnModuleInit } from '@nestjs/common';
+import { Injectable, Logger, OnModuleInit } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Repository } from 'typeorm';
 import { CreateAchievementDto } from './dto/create-achievement.dto';
@@ -38,7 +38,7 @@ export class AchievementsService implements OnModuleInit {
     });
 
     if (!achievement) {
-      throw new NotFoundException(`Achievement [${id}] not found`);
+      throw new Error(`Achievement [${id}] not found`);
     }
 
     return achievement;
@@ -57,7 +57,7 @@ export class AchievementsService implements OnModuleInit {
     });
 
     if (!achievement) {
-      throw new NotFoundException(`Cannot update achievement[${id}]: Not found`);
+      throw new Error(`Cannot update achievement[${id}]: Not found`);
     }
 
     return this.achievementsRepository.save(achievement);

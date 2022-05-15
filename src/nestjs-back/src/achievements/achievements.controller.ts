@@ -1,4 +1,4 @@
-import { Body, Controller, Delete, Get, Param, Patch, Post } from '@nestjs/common';
+import { Body, Controller, Delete, Get, NotFoundException, Param, Patch, Post } from '@nestjs/common';
 import { AchievementsService } from './achievements.service';
 import { CreateAchievementDto } from './dto/create-achievement.dto';
 import { UpdateAchievementDto } from './dto/update-achievement.dto';
@@ -13,8 +13,10 @@ export class AchievementsController {
     }
 
     @Get(':id')
-    findOne(@Param('id') id: string) {
-        return this.achievementsService.findOne(id);
+    async findOne(@Param('id') id: string) {
+        return this.achievementsService.findOne(id).catch((err) => {
+            throw new NotFoundException(err.message);
+        });
     }
 
     @Post()
@@ -23,8 +25,10 @@ export class AchievementsController {
     }
 
     @Patch(':id')
-    update(@Param('id') id: string, @Body() updateAchievementDto: UpdateAchievementDto) {
-        return this.achievementsService.update(id, updateAchievementDto);
+    async update(@Param('id') id: string, @Body() updateAchievementDto: UpdateAchievementDto) {
+        return this.achievementsService.update(id, updateAchievementDto).catch((err) => {
+            throw new NotFoundException(err.message);
+        });
     }
 
     @Delete(':id')
