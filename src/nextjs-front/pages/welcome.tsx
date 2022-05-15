@@ -68,7 +68,9 @@ const Welcome: NextPageWithLayout = () => {
       headers: {
         'Content-Type': 'application/json'
       },
-      body: JSON.stringify({accountDeactivated: false})
+      body: JSON.stringify({
+        accountDeactivated: false
+      })
     });
   }
 
@@ -111,7 +113,9 @@ const Welcome: NextPageWithLayout = () => {
       headers: {
         'Content-Type': 'application/json'
       },
-      body: JSON.stringify({accountDeactivated: true})
+      body: JSON.stringify({
+        accountDeactivated: true
+      })
     });
 
     if (res.status === 200) {
@@ -202,7 +206,10 @@ const Welcome: NextPageWithLayout = () => {
       },
       redirect: 'follow',
       referrerPolicy: 'no-referrer',
-      body: JSON.stringify({tfa: false, tfaSecret: null})
+      body: JSON.stringify({
+        tfa: false,
+        tfaSecret: null
+      })
     });
 
     if (req.status === 200) {

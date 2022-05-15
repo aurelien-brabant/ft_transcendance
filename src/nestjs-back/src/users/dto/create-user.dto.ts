@@ -1,5 +1,4 @@
 import {
-  IsBoolean,
   IsEmail,
   IsNotEmpty,
   IsOptional,
@@ -9,7 +8,6 @@ import { Transform } from 'class-transformer';
 import { PasswordValidator } from 'src/utils/patternValidator';
 
 export class CreateUserDto {
-  /* Informations */
     @Transform(({ value }) => value.trim())
     @IsEmail()
     readonly email: string;
@@ -18,14 +16,9 @@ export class CreateUserDto {
     @IsString()
     readonly pic: string;
 
-    /* Security */
     @Transform(({ value }) => value.trim())
     @IsNotEmpty()
     @IsString()
     @PasswordValidator()
     readonly password: string;
-
-    @IsOptional()
-    @IsBoolean()
-    readonly accountDeactivated: boolean;
 }
