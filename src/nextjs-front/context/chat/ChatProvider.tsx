@@ -20,6 +20,7 @@ import GroupNew, { GroupNewHeader } from "../../components/chat/GroupNew";
 import GroupSettings, { GroupSettingsHeader } from "../../components/chat/GroupSettings";
 import GroupUsers, { GroupUsersHeader } from "../../components/chat/GroupUsers";
 import PasswordProtection, { PasswordProtectionHeader } from "../../components/chat/PasswordProtection";
+import { ChatIcon } from "@heroicons/react/outline";
 
 export type ChatUser = {
 	id: string;
@@ -336,9 +337,9 @@ const ChatProvider: React.FC = ({ children }) => {
 					}}
 				/>
 				:
+				<div className="right-6 rounded-md bottom-6 p-3 border-04dp border fixed z-50 bg-01dp">
 				<button
-					className={`fixed z-50 flex items-center justify-center p-4 text-5xl ${iconColor} rounded-full transition hover:scale-105 text-neutral-200`}
-					style={{ right: "10px", bottom: "10px" }}
+					className={`flex items-center justify-center  text-pink-200 text-5xl transition hover:scale-105 text-neutral-200`}
 					onClick={() => {
 						if (iconColor !== "text-pink-200 bg-pink-600") {
 							setIconColor("text-pink-200 bg-pink-600");
@@ -352,10 +353,10 @@ const ChatProvider: React.FC = ({ children }) => {
 					<div>
 						{/*TO BE REMOVED AFTER TESTING INSTANT CHAT...*/}
 						<Bounce duration={2000} triggerOnce>
-							<BsFillChatDotsFill />
+							<ChatIcon className="w-9 h-9" />
 						</Bounce>
 					</div>
-				</button> : <></>
+				</button> </div>: <></>
 			}
 			{children}
 		</chatContext.Provider>
