@@ -240,12 +240,19 @@ const UserProfilePage: NextPageWithLayout = ({}) => {
     if (!userId || !user) return;
 
     const fetchData = async () => {
-      const req = await fetch(`/api/users/${userId}`);
-      const data = await req.json();
+      /* search by username */
+      const res = await fetch(`/api/users/${userId}`);
 
-      updateUserData(data);
-      updateGamesHistory(JSON.parse(JSON.stringify(data)).games);
-      if (!data.wins && !data.losses && !data.draws) setRank("-");
+      if (!res.ok) {
+        router.push('/404');
+        return ;
+      }
+
+      const matchingUser: any = await res.json();
+
+      updateUserData(matchingUser);
+      updateGamesHistory(JSON.parse(JSON.stringify(matchingUser)).games);
+      if (!matchingUser.wins && !matchingUser.losses && !matchingUser.draws) setRank("-");
       else {
         const reqRank = await fetch(`/api/users/${userId}/rank`);
         const res = await reqRank.json();

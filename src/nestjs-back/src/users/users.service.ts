@@ -1,6 +1,6 @@
 import { Injectable, NotFoundException } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
-import { Repository } from 'typeorm';
+import { ILike, Repository } from 'typeorm';
 import { join } from 'path';
 import { faker } from '@faker-js/faker';
 import { authenticator } from 'otplib';
@@ -14,6 +14,7 @@ import { UpdateUserDto } from './dto/update-user.dto';
 import { PaginationQueryDto } from 'src/common/dto/pagination-query.dto';
 import { prefixWithRandomAdjective } from 'src/utils/prefixWithRandomAdjective';
 import { downloadResource } from 'src/utils/download';
+import { use } from 'passport';
 
 @Injectable()
 export class UsersService {
@@ -43,7 +44,9 @@ export class UsersService {
   }
 
   async findOne(id: string) {
-    const user = await this.usersRepository.findOne(id, {
+    /* if id can't be parsed as a number then it is assumed to be an username */
+    const isDatabaseId = !isNaN(Number(id))
+    const user = await this.usersRepository.findOne({
       relations: [
         'games',
         'friends',
@@ -52,8 +55,14 @@ export class UsersService {
         'pendingFriendsSent',
         'pendingFriendsReceived',
       ],
+      where: isDatabaseId ? { id } : { username: id }
     });
-    if (!user) throw new NotFoundException(`User [${id}] not found`);
+
+    /* TODO: we shouldn't use HTTP-specific exceptions inside services */
+    if (!user) {
+      throw new NotFoundException(`User [${id}] not found`);
+    }
+
     return user;
   }
 
@@ -89,10 +98,16 @@ export class UsersService {
   }
 
   async searchUsers(searchTerm: string) {
-    const users = await this.usersRepository
-      .createQueryBuilder('users')
-      .where('users.username ILIKE :search', { search: `%${searchTerm}%` })
-      .getMany();
+    const users = await this.usersRepository.find({
+      where: [
+        {
+          username: ILike(`%${searchTerm}%`)
+        },
+        {
+          duoquadra_login: ILike(`%${searchTerm}%`)
+        },
+      ]
+    })
 
     return users;
   }

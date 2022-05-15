@@ -41,6 +41,18 @@ export class UsersController {
     return this.usersService.findAll(paginationQuery);
   }
 
+
+  @UseGuards(JwtAuthGuard)
+  @Get('/search')
+  async searchUsersBy(@Query('v') searchTerm: string) {
+    if (searchTerm === undefined) {
+      throw new BadRequestException('Missing "v" query parameter')
+    }
+
+    return this.usersService.searchUsers(searchTerm);
+  }
+
+  /* NOTE: userId can be either the actual database id of the user, or, preferrably on the frontend, their username */
   @UseGuards(JwtAuthGuard)
   @Get(':userId')
   findOne(@Param('userId') id: string) {
@@ -59,6 +71,12 @@ export class UsersController {
     // exclude password from returned JSON
     const { password, ...userData } = createdUser;
     return userData;
+  }
+
+  @UseGuards(JwtAuthGuard, IsLoggedInUserGuard)
+  @Post('/:userId/stats/:status')
+  async updateStats(@Param('userId') id: string, @Param('status') status: string) {
+    return this.usersService.updateStats(id, status);
   }
 
   @UseGuards(JwtAuthGuard)
