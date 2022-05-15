@@ -137,10 +137,8 @@ const GroupUsers: React.FC<{ viewParams: any }> = ({ viewParams }) => {
 	 * Invite for a Pong game
 	 */
 	const sendPongInvite = (id: string) => {
-		socket.emit("sendPongInvite", {
-			senderId: user.id,
-			receiverId: parseInt(id)
-		});
+		// TODO
+		console.log(`[Group Users] Invite user [${id}] to play Pong`);
 	};
 
 	/* Listeners */

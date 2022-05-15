@@ -23,10 +23,8 @@ export const DirectMessageHeader: React.FC<{ viewParams: any }> = ({
 	 * Invite for a Pong game
 	 */
 		const sendPongInvite = (id: string) => {
-		socket.emit("sendPongInvite", {
-			senderId: user.id,
-			receiverId: parseInt(id)
-		});
+			// TODO
+			console.log(`[Direct Message] Invite user [${id}] to play Pong`);
 	};
 
 	return (
