@@ -3,7 +3,7 @@ import { AiOutlineArrowLeft, AiOutlineClose } from "react-icons/ai";
 import { FiSend } from "react-icons/fi";
 import { RiPingPongLine } from "react-icons/ri";
 import Link from "next/link";
-import { DmChannel, Message } from 'transcendance-types';
+import { DmChannel, DmMessage } from 'transcendance-types';
 import { UserStatusItem } from "../UserStatus";
 import { useSession } from "../../hooks/use-session";
 import Tooltip from "../../components/Tooltip";
@@ -13,8 +13,19 @@ import chatContext, { ChatContextType, ChatMessage } from "../../context/chat/ch
 export const DirectMessageHeader: React.FC<{ viewParams: any }> = ({
 	viewParams,
 }) => {
-	const { closeChat, setChatView } = useContext(chatContext) as ChatContextType;
+	const { user } = useSession();
+	const { socket, closeChat, setChatView } = useContext(chatContext) as ChatContextType;
 	const actionTooltipStyles = "font-bold bg-dark text-neutral-200";
+	const pongIconStyle = "p-1 text-pink-700 bg-pink-200 rounded-full transition hover:scale-110  hover:text-pink-600";
+
+	/**
+	 * WIP: To link with Hub
+	 * Invite for a Pong game
+	 */
+		const sendPongInvite = (id: string) => {
+			// TODO
+			console.log(`[Direct Message] Invite user [${id}] to play Pong`);
+	};
 
 	return (
 		<Fragment>
@@ -38,7 +49,10 @@ export const DirectMessageHeader: React.FC<{ viewParams: any }> = ({
 					</button>
 				</div>
 				<Tooltip className={actionTooltipStyles} content="play">
-					<button className="p-1 text-xl text-pink-700 bg-pink-200 rounded-full transition hover:scale-105 hover:text-pink-600">
+					<button
+						className={pongIconStyle}
+						onClick={() => sendPongInvite(viewParams.friendId)}
+					>
 						<RiPingPongLine />
 					</button>
 				</Tooltip>
@@ -96,7 +110,7 @@ const DirectMessage: React.FC<{ viewParams: { [key: string]: any } }> = ({
 	};
 
 	/* Receive new message */
-	const handleNewMessage = ({ message }: { message: Message }) => {
+	const handleNewMessage = ({ message }: { message: DmMessage }) => {
 		setMessages((prevMessages) => {
 			const newMessages: ChatMessage[] = [...prevMessages];
 
@@ -106,7 +120,7 @@ const DirectMessage: React.FC<{ viewParams: { [key: string]: any } }> = ({
 				content: message.content,
 				author: message.author.username,
 				displayAuthor: !(message.author.id === user.id),
-				displayStyle: getMessageStyle(message.author.id),
+				displayStyle: getMessageStyle(message.author),
 			});
 			return newMessages;
 		});
@@ -119,7 +133,7 @@ const DirectMessage: React.FC<{ viewParams: { [key: string]: any } }> = ({
 		const messages: ChatMessage[] = [];
 
 		dm.messages.sort(
-			(a: Message, b: Message) => (parseInt(a.id) - parseInt(b.id))
+			(a: DmMessage, b: DmMessage) => (parseInt(a.id) - parseInt(b.id))
 		);
 
 		for (var message of dm.messages) {
@@ -129,7 +143,7 @@ const DirectMessage: React.FC<{ viewParams: { [key: string]: any } }> = ({
 				content: message.content,
 				author: message.author.username,
 				displayAuthor: !(message.author.id === user.id),
-				displayStyle: getMessageStyle(message.author.id),
+				displayStyle: getMessageStyle(message.author),
 			});
 		}
 		setMessages(messages);

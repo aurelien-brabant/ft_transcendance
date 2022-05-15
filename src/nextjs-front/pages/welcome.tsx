@@ -317,10 +317,10 @@ const Welcome: NextPageWithLayout = () => {
         method: "POST",
         body
       });
-     
+
       if (req.ok) {
         const res = await req.json();
-        console.log(res);
+
         setPendingPic(false);
         setAlert({type: 'success', content: 'Avatar uploaded successfully'})
         router.reload();
@@ -380,7 +380,7 @@ const Welcome: NextPageWithLayout = () => {
   }, [currentStep, pendingQR]);
   
   return (
-    <div className="min-h-screen text-white grow" id="main-content">
+    <div className="text-white" id="main-content">
       <div 
         style={{ maxWidth: "800px" }}
         className="px-2 mx-auto"

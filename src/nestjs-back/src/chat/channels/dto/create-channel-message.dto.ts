@@ -1,5 +1,6 @@
 import {
   IsNotEmpty,
+  IsOptional,
   IsString,
   Length,
 } from 'class-validator';
@@ -15,8 +16,9 @@ export class CreateChannelMessageDto {
   })
   readonly content: string;
 
+  @IsOptional()
   @IsNotEmpty()
-  readonly author: User;
+  readonly author?: User;
 
   @IsNotEmpty()
   readonly channel: Channel;
