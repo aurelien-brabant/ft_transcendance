@@ -14,7 +14,6 @@ import { UpdateUserDto } from './dto/update-user.dto';
 import { PaginationQueryDto } from 'src/common/dto/pagination-query.dto';
 import { prefixWithRandomAdjective } from 'src/utils/prefixWithRandomAdjective';
 import { downloadResource } from 'src/utils/download';
-import { use } from 'passport';
 
 @Injectable()
 export class UsersService {
@@ -213,54 +212,16 @@ export class UsersService {
       await this.usernameIsAvailable(updateUserDto.username);
     }
 
-    /* Achievements */
-    const checkAchievements = async (level: number, type: string) => {
-      this.achievementsService.findAchievements().then(async (list) => {
-        for (let i in list)
-          if (list[i].levelToReach <= level && list[i].type === type)
-            await this.achievementsService.update(String(list[i].id), {
-              users: [user],
-            });
-      });
-    };
-
-    /* NOTE: achievements must be given another way
-    if (updateUserDto.wins || updateUserDto.losses || updateUserDto.draws) {
-      user = await this.usersRepository.findOne(id);
-      const wins = updateUserDto.wins ? updateUserDto.wins : user.wins;
-      const losses = updateUserDto.losses ? updateUserDto.losses : user.losses;
-      const draws = updateUserDto.draws ? updateUserDto.draws : user.draws;
-      const ratio =
-        Math.round(((wins + draws * 0.5) / (wins + draws + losses)) * 100) /
-        100;
-      tmpDto = { ...tmpDto, ratio: ratio };
-
-      if (updateUserDto.wins) checkAchievements(wins, 'wins');
-    }
-    if (updateUserDto.games) {
-      user = await this.usersRepository.findOne(id, {
-        relations: ['games'],
-      });
-      const updated = [...user.games, ...updateUserDto.games];
-      tmpDto = { ...tmpDto, games: updated };
-
-      if (updated.length) checkAchievements(updated.length, 'games');
-    }
-    */
+    /* Relationships */
     if (updateUserDto.friends) {
       const newFriend = updateUserDto.friends[0];
 
-      user = await this.usersRepository.findOne(id, {
-        relations: ['friends'],
-      });
-      const updated = [...user.friends, ...updateUserDto.friends];
-      tmpDto = { ...tmpDto, friends: updated };
-
-      if (updated.length) checkAchievements(updated.length, 'friends');
+      user = await this.addFriend(id, newFriend.id.toString());
+      await this.achievementsService.checkUserAchievement(user, 'friends', user.friends.length);
 
       if (newFriend) {
-        const friend = await this.addFriend(newFriend.id.toString(), user);
-        checkAchievements(friend.friends.length, 'friends');
+        const friend = await this.addFriend(newFriend.id.toString(), user.id.toString());
+        await this.achievementsService.checkUserAchievement(friend, 'friends', friend.friends.length);
       }
     }
     if (updateUserDto.blockedUsers) {
@@ -502,15 +463,16 @@ export class UsersService {
     return this.usersRepository.save(user);
   }
 
-  async addFriend(id: string, from: User) {
+  async addFriend(id: string, friendId: string) {
     let user = await this.usersRepository.findOne(id, {
       relations: ['friends'],
     });
+    const friend = await this.usersRepository.findOne(friendId);
 
-    if (!user)
+    if (!user || !friend)
       throw new NotFoundException(`Cannot update user[${id}]: Not found`);
 
-    user.friends.push(from);
+    user.friends.push(friend);
     return this.usersRepository.save(user);
   }
 

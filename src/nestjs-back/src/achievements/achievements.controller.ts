@@ -30,4 +30,5 @@ export class AchievementsController {
     @Delete(':id')
     remove(@Param('id') id: string) {
         return this.achievementsService.remove(id);
-    }}
+    }
+}
