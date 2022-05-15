@@ -220,32 +220,29 @@ export class UsersService {
       await this.usernameIsAvailable(updateUserDto.username);
     }
 
-    /* Relationships */
     if (updateUserDto.friends && updateUserDto.friends.length) {
-      const newFriend = updateUserDto.friends[0];
+      /* Add friend */
+      for (var newFriend of updateUserDto.friends) {
+        user = await this.addFriend(id, newFriend.id.toString());
+        await this.achievementsService.checkUserAchievement(user, 'friends', user.friends.length);
 
-      user = await this.addFriend(id, newFriend.id.toString());
-      await this.achievementsService.checkUserAchievement(user, 'friends', user.friends.length);
-
-      const friend = await this.addFriend(newFriend.id.toString(), user.id.toString());
-      await this.achievementsService.checkUserAchievement(friend, 'friends', friend.friends.length);
-
-    } else if (updateUserDto.blockedUsers && updateUserDto.blockedUsers.length) {
-
-      const toBlock = updateUserDto.blockedUsers[0];
-
-      user = await this.blockUser(id, toBlock.toString());
-
-    } else if (updateUserDto.pendingFriendsSent && updateUserDto.pendingFriendsSent.length) {
-      /* Friend invite sent */
-      const receiver = updateUserDto.pendingFriendsSent[0];
-
-      user = await this.addFriendshipSent(id, receiver.id.toString());
-      if (receiver) {
-        await this.addFriendshipReceived(receiver.id.toString(), user.id.toString());
+        const friend = await this.addFriend(newFriend.id.toString(), user.id.toString());
+        await this.achievementsService.checkUserAchievement(friend, 'friends', friend.friends.length);
       }
-    } else {
-      /* Default case */
+    } else if (updateUserDto.blockedUsers && updateUserDto.blockedUsers.length) {
+      /* Block user */
+      for (var toBlock of updateUserDto.blockedUsers) {
+        user = await this.blockUser(id, toBlock.toString());
+      }
+    } else if (updateUserDto.pendingFriendsSent && updateUserDto.pendingFriendsSent.length) {
+      /* Send frienship invite */
+      for (var receiver of updateUserDto.pendingFriendsSent) {
+        user = await this.addFriendshipSent(id, receiver.id.toString());
+        if (receiver) {
+          await this.addFriendshipReceived(receiver.id.toString(), user.id.toString());
+        }
+      }
+    } else { /* Default case */
       const user = await this.usersRepository.preload({
         id: +id,
         ...updateUserDto
