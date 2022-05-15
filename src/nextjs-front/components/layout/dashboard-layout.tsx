@@ -44,6 +44,8 @@ import { CheckIcon, SelectorIcon } from "@heroicons/react/solid";
 import { Combobox } from "@headlessui/react";
 import { useRouter } from "next/router";
 import { CircleLoader } from "react-spinners";
+import { useLiveSearch } from "../../hooks/use-live-search";
+import { SimpleSpinner } from "../simple-spinner";
 
 const navigation = [
   { name: "My profile", href: "/welcome", icon: HomeIcon, current: true },
@@ -56,36 +58,38 @@ const navigation = [
  * Implements a query caching system and make uses of the special
  * /users/search API route.
  */
+
+type SearchedUser = {
+  username: string;
+  duoquadra_login?: string;
+  id: number;
+}
+
 const SearchBar = () => {
-  const fetchUsers = async (searchTerm: string) => {
+  const fetchUsers = async (searchTerm: string): Promise<SearchedUser[]> => {
     const res = await fetch(`/api/users/search?v=${searchTerm}`);
 
-    if (res.status === 200) {
-      const matchingUsers = await res.json();
-      /* don't add users that are already in */
-      const uniqueMatchingUsers = matchingUsers.filter(
-        (matchingUser: any) =>
-          !users.find(({ username }) => username === matchingUser.username)
-      );
+    if (res.ok) {
+      const fetchedUsers: SearchedUser[] = await res.json();
 
-      setUsers([...users, ...uniqueMatchingUsers]);
+      return fetchedUsers;
     }
 
-    return res.status;
+    return []
   };
 
-  const queryCache = useRef<Set<string>>(new Set());
-  const [isFetching, setIsFetching] = useState(false);
-  const [users, setUsers] = useState<any[]>([]);
-  const [query, setQuery] = useState("");
   const [selectedPerson, setSelectedPerson] = useState();
   const router = useRouter();
 
+  const { elements: users, setSearchQuery, searchQuery, isProcessing } = useLiveSearch<SearchedUser>(fetchUsers, (user) => user.username );
+
+  console.log(users)
+
   const filteredPeople =
-    query === ""
+    searchQuery === ""
       ? users
       : users.filter((user) => {
-          return user.username.toLowerCase().includes(query.toLowerCase());
+          return user.username.toLowerCase().includes(searchQuery.toLowerCase());
         });
 
   const handleSelect = async (user: any) => {
@@ -96,20 +100,7 @@ const SearchBar = () => {
   const handleQueryChange = async ({
     target: { value },
   }: ChangeEvent<HTMLInputElement>) => {
-    const normalizedValue = value.toLowerCase();
-
-    setQuery(normalizedValue);
-    // cache hit
-    if (queryCache.current.has(normalizedValue)) {
-      return;
-    }
-    setIsFetching(true);
-    const httpStatus = await fetchUsers(value);
-    /* if request succeeded cache the query */
-    if (httpStatus === 200) {
-      queryCache.current.add(normalizedValue);
-    }
-    setIsFetching(false);
+    setSearchQuery(value)
   };
 
   return (
@@ -121,11 +112,8 @@ const SearchBar = () => {
           displayValue={(user: any) => user.username}
         />
         <Combobox.Button className="absolute inset-y-0 right-0 flex items-center rounded-r-md px-2 focus:outline-none">
-          {!isFetching ? (
-            <SearchIcon className="h-5 w-5 text-gray-400" aria-hidden="true" />
-          ) : (
-            <CircleLoader />
-          )}
+          {isProcessing && <SimpleSpinner className="mr-3 h-5 w-5 text-pink-500" />}
+          <SearchIcon className="h-5 w-5 text-gray-400" aria-hidden="true" />
         </Combobox.Button>
 
         {filteredPeople.length > 0 && (
