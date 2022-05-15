@@ -117,7 +117,6 @@ const ChatProvider: React.FC = ({ children }) => {
 	const [viewStack, setViewStack] = useState<ChatViewItem[]>([]);
 	const [lastX, setLastX] = useState<number>(0);
 	const [lastY, setLastY] = useState<number>(0);
-	const [iconColor, setIconColor] = useState("text-pink-200 bg-pink-600");
 
 	/* Chat manipulation */
 	const openChat = () => {
@@ -236,27 +235,6 @@ const ChatProvider: React.FC = ({ children }) => {
 		});
 	};
 
-	const changeIconNewDm = ({ message }: { message: DmMessage }) => {
-		if (parseInt(message.author.id) !== user.id) {
-			setIconColor("text-blue-200 bg-blue-500");
-		}
-	};
-
-	const changeIconNewGm = ({ message }: { message: ChannelMessage }) => {
-		if (message.author && parseInt(message.author.id) !== user.id) {
-			setIconColor("text-blue-200 bg-blue-500");
-		}
-	};
-
-	const changeIconOnInvite = (from: number) => {
-		if (from !== user.id) {
-			setIconColor("text-green-200 bg-green-500");
-			if (!isChatOpened) {
-				openChatView("dms", "Direct messages", {});
-			}
-		}
-	};
-
 	useEffect(() => {
 		if (!socket || (session.state !== "authenticated")) return;
 
@@ -273,9 +251,6 @@ const ChatProvider: React.FC = ({ children }) => {
 		socket.on("chatError", chatWarningListener);
 		socket.on("chatInfo", chatInfoListener);
 		socket.on("dmCreated", dmCreatedListener);
-		socket.on("newDm", changeIconNewDm);
-		socket.on("newGm", changeIconNewGm);
-		socket.on("invitedInChat", changeIconOnInvite);
 
 		return () => {
 			socket.off("exception", chatExceptionListener);
@@ -284,9 +259,6 @@ const ChatProvider: React.FC = ({ children }) => {
 			socket.off("chatError", chatWarningListener);
 			socket.off("dmCreated", dmCreatedListener);
 			socket.off("chatInfo", chatInfoListener);
-			socket.off("newDm", changeIconNewDm);
-			socket.off("newGm", changeIconNewGm);
-			socket.off("invitedInChat", changeIconOnInvite);
 		};
 	}, [socket]);
 
@@ -344,9 +316,6 @@ const ChatProvider: React.FC = ({ children }) => {
 					viewStack={viewStack}
 					onClose={() => {
 						setIsChatOpened(false);
-						if (iconColor !== "text-pink-200 bg-pink-600") {
-							setIconColor("text-pink-200 bg-pink-600");
-						}
 					}}
 				/>
 				:
@@ -354,9 +323,6 @@ const ChatProvider: React.FC = ({ children }) => {
 				<button
 					className={`flex items-center justify-center  text-pink-200 text-5xl transition hover:scale-105 text-neutral-200`}
 					onClick={() => {
-						if (iconColor !== "text-pink-200 bg-pink-600") {
-							setIconColor("text-pink-200 bg-pink-600");
-						}
 						if (viewStack.length === 0) {
 							setChatView("groups", "Group chats", {});
 						}
