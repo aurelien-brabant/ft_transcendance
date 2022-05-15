@@ -193,7 +193,7 @@ const UserProfilePage: NextPageWithLayout = ({}) => {
 
   /* Send friendship invite */
   const requestFriend = async (id: string, username: string) => {
-    const reqSent = await fetch(`/api/users/${user.id}`, {
+    const res = await fetch(`/api/users/${user.id}`, {
       method: "PATCH",
       headers: {
         "Content-Type": "application/json",
@@ -202,17 +202,8 @@ const UserProfilePage: NextPageWithLayout = ({}) => {
         pendingFriendsSent: [ { "id": id } ]
       }),
     });
-    const reqReceived = await fetch(`/api/users/${id}`, {
-      method: "PATCH",
-      headers: {
-        "Content-Type": "application/json",
-      },
-      body: JSON.stringify({
-        pendingFriendsReceived: [ { id: user.id } ]
-      }),
-    });
 
-    if (reqSent.ok && reqReceived.ok) {
+    if (res.ok) {
       setAlreadyFriend(true);
       setAlert({ type: "info", content: `Friend request sent to ${username}` });
     } else

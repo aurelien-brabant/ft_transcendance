@@ -1,4 +1,4 @@
-import { Injectable, NotFoundException } from '@nestjs/common';
+import { Injectable } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { ILike, Repository } from 'typeorm';
 import { join } from 'path';
@@ -14,7 +14,6 @@ import { UpdateUserDto } from './dto/update-user.dto';
 import { PaginationQueryDto } from 'src/common/dto/pagination-query.dto';
 import { prefixWithRandomAdjective } from 'src/utils/prefixWithRandomAdjective';
 import { downloadResource } from 'src/utils/download';
-import { use } from 'passport';
 
 @Injectable()
 export class UsersService {
@@ -58,9 +57,8 @@ export class UsersService {
       where: isDatabaseId ? { id } : { username: id }
     });
 
-    /* TODO: we shouldn't use HTTP-specific exceptions inside services */
     if (!user) {
-      throw new NotFoundException(`User [${id}] not found`);
+      throw new Error('User not found');
     }
 
     return user;
@@ -111,24 +109,6 @@ export class UsersService {
 
     return users;
   }
-
-  /* Checkers */
-  async usernameIsAvailable(username: string) {
-    const duplicatedUsername = await this.usersRepository.createQueryBuilder('user')
-      .where('user.username = :username', { username })
-      .getOne();
-
-    if (duplicatedUsername) {
-      throw new Error(`Username '${username}' not available.`);
-    }
-  }
-
-  /* Helpers */
-  updateUserRatio = (user: User) => {
-    const ratio = Math.round(((user.wins + user.draws * 0.5) / (user.wins + user.draws + user.losses)) * 100) / 100;
-
-    return ratio;
-  };
 
   /* Create */
   async createDuoQuadra(
@@ -204,117 +184,85 @@ export class UsersService {
   }
 
   /* Update */
-  async update(id: string, updateUserDto: UpdateUserDto) {
-    let user: User | null = null;
-    let tmpDto = {};
+  updateUserRatio = (user: User) => {
+    const ratio = Math.round(((user.wins + user.draws * 0.5) / (user.wins + user.draws + user.losses)) * 100) / 100;
 
-    /* Informations */
+    return ratio;
+  };
+
+  async updateStats(user: User, isDraw: boolean, isWinner: boolean) {
+    if (isDraw) {
+      user.draws += 1;
+    } else if (isWinner) {
+      user.wins += 1;
+      
+    } else {
+      user.losses += 1;
+    }
+    user.ratio = this.updateUserRatio(user);
+
+    const updatedUser = await this.usersRepository.save(user);
+
+    await this.achievementsService.checkUserAchievement(user, 'wins', user.wins);
+    await this.achievementsService.checkUserAchievement(user, 'games', (user.games.length + 1));
+
+    return updatedUser;
+  }
+
+  async usernameIsAvailable(username: string) {
+    const duplicatedUsername = await this.usersRepository.createQueryBuilder('user')
+      .where('user.username = :username', { username })
+      .getOne();
+
+    if (duplicatedUsername) {
+      throw new Error(`Username '${username}' not available.`);
+    }
+  }
+
+  async update(id: string, updateUserDto: UpdateUserDto) {
+    let user: User;
+
     if (updateUserDto.username) {
       await this.usernameIsAvailable(updateUserDto.username);
     }
 
-    /* Achievements */
-    const checkAchievements = async (level: number, type: string) => {
-      this.achievementsService.findAchievements().then(async (list) => {
-        for (let i in list)
-          if (list[i].levelToReach <= level && list[i].type === type)
-            await this.achievementsService.update(String(list[i].id), {
-              users: [user],
-            });
-      });
-    };
+    if (updateUserDto.friends && updateUserDto.friends.length) {
+      /* Add friend */
+      for (var newFriend of updateUserDto.friends) {
+        user = await this.addFriend(id, newFriend.id.toString());
+        await this.achievementsService.checkUserAchievement(user, 'friends', user.friends.length);
 
-    /* NOTE: achievements must be given another way
-    if (updateUserDto.wins || updateUserDto.losses || updateUserDto.draws) {
-      user = await this.usersRepository.findOne(id);
-      const wins = updateUserDto.wins ? updateUserDto.wins : user.wins;
-      const losses = updateUserDto.losses ? updateUserDto.losses : user.losses;
-      const draws = updateUserDto.draws ? updateUserDto.draws : user.draws;
-      const ratio =
-        Math.round(((wins + draws * 0.5) / (wins + draws + losses)) * 100) /
-        100;
-      tmpDto = { ...tmpDto, ratio: ratio };
-
-      if (updateUserDto.wins) checkAchievements(wins, 'wins');
-    }
-    if (updateUserDto.games) {
-      user = await this.usersRepository.findOne(id, {
-        relations: ['games'],
-      });
-      const updated = [...user.games, ...updateUserDto.games];
-      tmpDto = { ...tmpDto, games: updated };
-
-      if (updated.length) checkAchievements(updated.length, 'games');
-    }
-    */
-    if (updateUserDto.friends) {
-      const newFriend = updateUserDto.friends[0];
-
-      user = await this.usersRepository.findOne(id, {
-        relations: ['friends'],
-      });
-      const updated = [...user.friends, ...updateUserDto.friends];
-      tmpDto = { ...tmpDto, friends: updated };
-
-      if (updated.length) checkAchievements(updated.length, 'friends');
-
-      if (newFriend) {
-        const friend = await this.addFriend(newFriend.id.toString(), user);
-        checkAchievements(friend.friends.length, 'friends');
+        const friend = await this.addFriend(newFriend.id.toString(), user.id.toString());
+        await this.achievementsService.checkUserAchievement(friend, 'friends', friend.friends.length);
       }
-    }
-    if (updateUserDto.blockedUsers) {
-      user = await this.usersRepository.findOne(id, {
-        relations: ['blockedUsers'],
-      });
-      tmpDto = {
-        ...tmpDto,
-        blockedUsers: [...user.blockedUsers, ...updateUserDto.blockedUsers],
-      };
-    }
-
-    /* Friendship invite */
-    if (updateUserDto.pendingFriendsSent) {
-      const friend = updateUserDto.pendingFriendsSent[0];
-
-      user = await this.usersRepository.findOne(id, {
-        relations: ['pendingFriendsSent'],
-      });
-      tmpDto = {
-        ...tmpDto,
-        pendingFriendsSent: [
-          ...user.pendingFriendsSent,
-          ...updateUserDto.pendingFriendsSent,
-        ],
-      };
-      if (friend) {
-        await this.addFriendshipReceived(friend.id.toString(), user);
+    } else if (updateUserDto.blockedUsers && updateUserDto.blockedUsers.length) {
+      /* Block user */
+      for (var toBlock of updateUserDto.blockedUsers) {
+        user = await this.blockUser(id, toBlock.toString());
       }
-    }
-
-    if (updateUserDto.pendingFriendsReceived) {
-      user = await this.usersRepository.findOne(id, {
-        relations: ['pendingFriendsReceived'],
+    } else if (updateUserDto.pendingFriendsSent && updateUserDto.pendingFriendsSent.length) {
+      /* Send frienship invite */
+      for (var receiver of updateUserDto.pendingFriendsSent) {
+        user = await this.addFriendshipSent(id, receiver.id.toString());
+        if (receiver) {
+          await this.addFriendshipReceived(receiver.id.toString(), user.id.toString());
+        }
+      }
+    } else { /* Default case */
+      const user = await this.usersRepository.preload({
+        id: +id,
+        ...updateUserDto
       });
-      tmpDto = {
-        ...tmpDto,
-        pendingFriendsReceived: [
-          ...user.pendingFriendsReceived,
-          ...updateUserDto.pendingFriendsReceived,
-        ],
-      };
+  
+      if (!user) {
+        throw new Error('Cannot update user.');
+      }
+      return this.usersRepository.save(user);
     }
-
-    user = await this.usersRepository.preload({
-      id: +id,
-      ...{ ...updateUserDto, ...tmpDto },
-    });
-
-    if (!user)
-      throw new NotFoundException(`Cannot update user[${id}]: Not found`);
-    return this.usersRepository.save(user);
+    return user;
   }
 
+  /* Avatar */
   async uploadAvatar(id: string, filename: string) {
     await this.usersRepository.update(id, {
       pic: filename,
@@ -443,30 +391,18 @@ export class UsersService {
     return tfaRequestExpirationEpoch >= Date.now();
   }
 
-  /* Games */
-  async updateStats(user: User, isDraw: boolean, isWinner: boolean) {
-    if (isDraw) {
-      user.draws += 1;
-    } else if (isWinner) {
-      user.wins += 1;
-    } else {
-      user.losses += 1;
-    }
-    user.ratio = this.updateUserRatio(user);
-
-    return this.usersRepository.save(user);
-  }
-
   /* Relationships */
-  async addFriendshipReceived(id: string, from: User) {
+  async addFriendshipReceived(id: string, senderId: string) {
     let user = await this.usersRepository.findOne(id, {
       relations: ['pendingFriendsReceived'],
     });
+    const sender = await this.usersRepository.findOne(senderId);
 
-    if (!user)
-      throw new NotFoundException(`Cannot update user[${id}]: Not found`);
+    if (!user || !sender) {
+      throw new Error('Cannot update user.');
+    }
 
-    user.pendingFriendsReceived.push(from);
+    user.pendingFriendsReceived.push(sender);
     return this.usersRepository.save(user);
   }
 
@@ -475,8 +411,9 @@ export class UsersService {
       relations: ['pendingFriendsReceived'],
     });
 
-    if (!user)
-      throw new NotFoundException(`Cannot update user[${id}]: Not found`);
+    if (!user) {
+      throw new Error('Cannot update user.');
+    }
 
     const newPendingInvites = user.pendingFriendsReceived.filter((sender) => {
       return sender.id !== parseInt(senderId);
@@ -486,13 +423,28 @@ export class UsersService {
     return this.usersRepository.save(user);
   }
 
+  async addFriendshipSent(id: string, receiverId: string) {
+    let user = await this.usersRepository.findOne(id, {
+      relations: ['pendingFriendsSent'],
+    });
+    const receiver = await this.usersRepository.findOne(receiverId);
+
+    if (!user || !receiver) {
+      throw new Error('Cannot update user.');
+    }
+
+    user.pendingFriendsSent.push(receiver);
+    return this.usersRepository.save(user);
+  }
+
   async removeFriendshipSent(id: string, receiverId: string) {
     let user = await this.usersRepository.findOne(id, {
       relations: ['pendingFriendsSent'],
     });
 
-    if (!user)
-      throw new NotFoundException(`Cannot update user[${id}]: Not found`);
+    if (!user) {
+      throw new Error('Cannot update user.');
+    }
 
     const newPendingInvites = user.pendingFriendsSent.filter((sender) => {
       return sender.id !== parseInt(receiverId);
@@ -502,15 +454,17 @@ export class UsersService {
     return this.usersRepository.save(user);
   }
 
-  async addFriend(id: string, from: User) {
+  async addFriend(id: string, friendId: string) {
     let user = await this.usersRepository.findOne(id, {
       relations: ['friends'],
     });
+    const friend = await this.usersRepository.findOne(friendId);
 
-    if (!user)
-      throw new NotFoundException(`Cannot update user[${id}]: Not found`);
+    if (!user || !friend) {
+      throw new Error('Cannot update user.');
+    }
 
-    user.friends.push(from);
+    user.friends.push(friend);
     return this.usersRepository.save(user);
   }
 
@@ -519,8 +473,9 @@ export class UsersService {
       relations: ['friends'],
     });
 
-    if (!user)
-      throw new NotFoundException(`Cannot update user[${id}]: Not found`);
+    if (!user) {
+      throw new Error('Cannot update user.');
+    }
 
     const newFriends = user.friends.filter((friend) => {
       return friend.id !== parseInt(friendId);
@@ -530,13 +485,28 @@ export class UsersService {
     return this.usersRepository.save(user);
   }
 
+  async blockUser(id: string, blockedId: string) {
+    let user = await this.usersRepository.findOne(id, {
+      relations: ['blockedUsers'],
+    });
+    const blockedUser = await this.usersRepository.findOne(blockedId);
+
+    if (!user || !blockedUser) {
+      throw new Error('Cannot update user.');
+    }
+
+    user.blockedUsers.push(blockedUser);
+    return this.usersRepository.save(user);
+  }
+
   async unblockUser(id: string, userId: string) {
     let user = await this.usersRepository.findOne(id, {
       relations: ['blockedUsers'],
     });
 
-    if (!user)
-      throw new NotFoundException(`Cannot update user[${id}]: Not found`);
+    if (!user) {
+      throw new Error('Cannot update user.');
+    }
 
     const newBlockedUsers = user.blockedUsers.filter((user) => {
       return user.id !== parseInt(userId);
@@ -562,7 +532,7 @@ export class UsersService {
       await this.removeFriendshipSent(userToUpdate, id);
       return await this.removeFriendshipReceived(id, userToUpdate);
     }
-    throw new NotFoundException(`No corresponding action found.`);
+    throw new Error(`No corresponding action found.`);
   }
 
   /* Chat */
@@ -592,6 +562,6 @@ export class UsersService {
       );
       if (dm) return dm;
     }
-    throw new NotFoundException(`User [${id}] sent no DM`);
+    throw new Error('User sent no DM');
   }
 }
