@@ -73,12 +73,6 @@ export class UsersController {
     return userData;
   }
 
-  @UseGuards(JwtAuthGuard, IsLoggedInUserGuard)
-  @Post('/:userId/stats/:status')
-  async updateStats(@Param('userId') id: string, @Param('status') status: string) {
-    return this.usersService.updateStats(id, status);
-  }
-
   @UseGuards(JwtAuthGuard)
   @Get('/:userId/photo')
   async findPhoto(@Param('userId') id: string, @Response() res: any) {
