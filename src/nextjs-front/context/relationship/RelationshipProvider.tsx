@@ -4,7 +4,7 @@ import { useSession } from "../../hooks/use-session";
 import relationshipContext from "./relationshipContext";
 
 const RelationshipProvider: React.FC = ({ children }) => {
-	const { user } = useSession();
+	const { user, backend } = useSession();
 	const [users, setUsers] = useState<User[]>([]);
 	const [friends, setFriends] = useState<User[]>([]);
 	const [friends42, setFriends42] = useState<User[]>([]);
@@ -41,7 +41,7 @@ const RelationshipProvider: React.FC = ({ children }) => {
 
 	const getRelationships = async (usersList: User[], id: string) => {
 
-		const req = await fetch(`/api/users/${id}`);
+		const req = await backend.request(`/api/users/${id}`);
 		const data = await req.json();
 
 		setFriends(data.friends);
@@ -59,7 +59,7 @@ const RelationshipProvider: React.FC = ({ children }) => {
 	}
 
 	const getRelationshipsData = async () => {
-		const req = await fetch('/api/users/');
+		const req = await backend.request('/api/users/');
 		const data = await req.json()
 		setUsers(data);
 		getRelationships(data, user.id);

@@ -55,7 +55,7 @@ const HighlightItem: React.FC<Highlight> = ({ n, label, hint, nColor }) => {
 const FriendsPage: NextPageWithLayout = ({}) => {
   const [isLoading, setIsLoading] = useState(true);
   const [selected, setSelected] = useState(0);
-  const { user } = useSession();
+  const { user, backend } = useSession();
   const {
     getRelationshipsData,
     getRelationships,

@@ -42,7 +42,7 @@ const InputErrorProvider: React.FC<{ error?: string | null }> = ({
 
 
 const Welcome: NextPageWithLayout = () => {
-  const { user, logout, reloadUser } = useSession();
+  const { user, logout, reloadUser, backend } = useSession();
   const [invalidInputs, setInvalidInputs] = useState<InvalidInputs>({});
   const { setAlert } = useContext(alertContext) as AlertContextType;
   const router = useRouter();
@@ -63,7 +63,7 @@ const Welcome: NextPageWithLayout = () => {
   let baseObject: FormData;
 
   const reactivateAccount = () => {
-    fetch(`/api/users/${user.id}`, {
+    backend.request(`/api/users/${user.id}`, {
       method: 'PATCH',
       headers: {
         'Content-Type': 'application/json'
@@ -108,7 +108,7 @@ const Welcome: NextPageWithLayout = () => {
 	}
 
   const deactivateAccount = async () => {
-    const res = await fetch(`/api/users/${user.id}`, {
+    const res = await backend.request(`/api/users/${user.id}`, {
       method: 'PATCH',
       headers: {
         'Content-Type': 'application/json'
@@ -124,7 +124,7 @@ const Welcome: NextPageWithLayout = () => {
   }
 
   const editUser = async (formData: FormData) => {
-    const res = await fetch(`/api/users/${user.id}`, {
+    const res = await backend.request(`/api/users/${user.id}`, {
       method: 'PATCH',
       headers: {
         'Content-Type': 'application/json'
@@ -174,7 +174,7 @@ const Welcome: NextPageWithLayout = () => {
 
   const activateTfa = async () => {
  
-    const req = await fetch(`/api/users/${user.id}/enableTfa`, {
+    const req = await backend.request(`/api/users/${user.id}/enableTfa`, {
       method: 'POST',
       headers: {
         'Content-Type': 'application/json'
@@ -199,7 +199,7 @@ const Welcome: NextPageWithLayout = () => {
 
   const deactivateTfa = async () => {
 
-    const req = await fetch(`/api/users/${user.id}`, {
+    const req = await backend.request(`/api/users/${user.id}`, {
       method: 'PATCH',
       headers: {
         'Content-Type': 'application/json'
@@ -313,7 +313,7 @@ const Welcome: NextPageWithLayout = () => {
       const body = new FormData();
       body.append("image", image);
 
-      const req = await fetch(`/api/users/${user.id}/uploadAvatar`, {
+      const req = await backend.request(`/api/users/${user.id}/uploadAvatar`, {
         method: "POST",
         body
       });
@@ -355,7 +355,7 @@ const Welcome: NextPageWithLayout = () => {
 
     setAlert({type: 'info', content: 'New random avatar'})
 
-    const req = await fetch(`/api/users/${user.id}/randomAvatar`);
+    const req = await backend.request(`/api/users/${user.id}/randomAvatar`);
 
     if (req.ok)
       router.reload();
@@ -367,7 +367,7 @@ const Welcome: NextPageWithLayout = () => {
 
     setAlert({type: 'info', content: 'Default 42 pic requested'})
 
-    const req = await fetch(`/api/users/${user.id}/avatar42`);
+    const req = await backend.request(`/api/users/${user.id}/avatar42`);
    
     if (req.ok)
       router.reload();

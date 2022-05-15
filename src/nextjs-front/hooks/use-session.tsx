@@ -1,3 +1,4 @@
+import { useRouter } from 'next/router';
 import { useContext, useEffect, useState } from 'react';
 import AuthContext, {
     AuthContextValue,
@@ -9,7 +10,7 @@ type UseSessionParams = {
 };
 
 export const useSession = ({ waitingTime }: UseSessionParams = {}) => {
-    const { loginWithTfa, authenticateUser, session, logout, login } =
+    const { loginWithTfa, authenticateUser, session, logout, login, verify, backend } =
         useContext(AuthContext) as AuthContextValue;
     const [currentSession, setCurrentSession] = useState<UserSession>(session);
 
@@ -20,11 +21,14 @@ export const useSession = ({ waitingTime }: UseSessionParams = {}) => {
         setCurrentSession(session);
     }, [session.state, session.user]);
 
+    
     return {
         ...currentSession,
         logout,
         login,
         reloadUser: authenticateUser,
         loginWithTfa,
+        verify,
+        backend
     };
 };

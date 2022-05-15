@@ -17,7 +17,7 @@ const FriendsTable: React.FC<{ type: string, list: User[], suggested: User[], se
   type, list, suggested, setSuggested, setSelected
 }) => {
   const { setAlert } = useContext(alertContext) as AlertContextType;
-  const { user } = useSession();
+  const { user, backend } = useSession();
   const {
     friends, setFriends,
     friends42, setFriends42,
@@ -27,7 +27,7 @@ const FriendsTable: React.FC<{ type: string, list: User[], suggested: User[], se
   } = useContext(relationshipContext) as RelationshipContextType;
 
   const updateFriendsRequests = (id: string) => {
-    fetch(`/api/users/${user.id}/${id}/removeFriendsReceived`, {
+    backend.request(`/api/users/${user.id}/${id}/removeFriendsReceived`, {
       method: "DELETE",
       headers: {
         "Content-Type": "application/json",
@@ -36,7 +36,7 @@ const FriendsTable: React.FC<{ type: string, list: User[], suggested: User[], se
   }
 
   const requestFriend = async (id: string, username: string, isDuoQuadra: boolean) => {
-    const req = await fetch(`/api/users/${user.id}`);
+    const req = await backend.request(`/api/users/${user.id}`);
     const data = await req.json();
     const received = data.pendingFriendsReceived;
     let isAsking: boolean = false;
@@ -49,7 +49,7 @@ const FriendsTable: React.FC<{ type: string, list: User[], suggested: User[], se
     if (isAsking) {
       updateFriendsRequests(id);
 
-      const addFriend = await fetch(`/api/users/${user.id}`, {
+      const addFriend = await backend.request(`/api/users/${user.id}`, {
         method: "PATCH",
         headers: {
           "Content-Type": "application/json",
@@ -74,7 +74,7 @@ const FriendsTable: React.FC<{ type: string, list: User[], suggested: User[], se
         setAlert({ type: 'error', content: `Error while adding ${username} as friend` });  
     }
     else {
-      const reqSent = await fetch(`/api/users/${user.id}`, {
+      const reqSent = await backend.request(`/api/users/${user.id}`, {
         method: "PATCH",
         headers: {
           "Content-Type": "application/json",
@@ -113,7 +113,7 @@ const FriendsTable: React.FC<{ type: string, list: User[], suggested: User[], se
     }
     isAsking && updateFriendsRequests(id);
 
-    const block = await fetch(`/api/users/${user.id}`, {
+    const block = await backend.request(`/api/users/${user.id}`, {
       method: "PATCH",
       headers: {
         "Content-Type": "application/json",
@@ -141,7 +141,7 @@ const FriendsTable: React.FC<{ type: string, list: User[], suggested: User[], se
   }
 
   const removeRelation = async (id: string, username:string, action: string, list42: boolean) => {
-    const remove = await fetch(`/api/users/${user.id}/${id}/${action}`, {
+    const remove = await backend.request(`/api/users/${user.id}/${id}/${action}`, {
       method: "DELETE",
       headers: {
         "Content-Type": "application/json",
