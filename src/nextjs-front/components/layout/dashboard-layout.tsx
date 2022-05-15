@@ -399,6 +399,7 @@ export const DashboardLayout: FunctionComponent = ({ children }) => {
             style={{
               background:
                 "repeating-linear-gradient(rgba(18,18,18,0.90), rgba(18,18,18,0.90)), url('/triangles.png') repeat",
+              minHeight: 'calc(100vh - 68px)'
             }}
           >
             <div className="py-6">
