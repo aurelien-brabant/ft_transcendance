@@ -108,6 +108,13 @@ export class UsersService {
     }
   }
 
+  /* Helpers */
+  updateUserRatio = (user: User) => {
+    const ratio = Math.round(((user.wins + user.draws * 0.5) / (user.wins + user.draws + user.losses)) * 100) / 100;
+
+    return ratio;
+  };
+
   /* Create */
   async createDuoQuadra(
     { email, login }: CreateDuoQuadraDto,
@@ -186,6 +193,11 @@ export class UsersService {
     let user: User | null = null;
     let tmpDto = {};
 
+    /* Informations */
+    if (updateUserDto.username) {
+      await this.checkUsernameIsAvailable(updateUserDto.username);
+    }
+
     /* Achievements */
     const checkAchievements = async (level: number, type: string) => {
       this.achievementsService.findAchievements().then(async (list) => {
@@ -197,12 +209,6 @@ export class UsersService {
       });
     };
 
-    /* Informations */
-    if (updateUserDto.username) {
-      await this.checkUsernameIsAvailable(updateUserDto.username);
-    }
-
-    /* Games */
     /* NOTE: achievements must be given another way
     if (updateUserDto.wins || updateUserDto.losses || updateUserDto.draws) {
       user = await this.usersRepository.findOne(id);
@@ -423,58 +429,15 @@ export class UsersService {
   }
 
   /* Games */
-  async updateStats(id: string, action: string) {
-    let user = await this.findOne(id);
-    if (!user)
-      throw new NotFoundException(`Cannot update user[${id}]: Not found`);
-
-    const checkAchievements = (level: number) => {
-      this.achievementsService.findAchievements().then(async (list) => {
-        for (let i in list) {
-          if (list[i].levelToReach <= level && list[i].type === 'wins')
-            this.achievementsService.update(String(list[i].id), {
-              users: [user],
-            });
-        }
-      });
-    };
-
-    if (action === 'win') {
-      const wins = user.wins + 1;
-      const ratio =
-        Math.round(
-          ((wins + user.draws * 0.5) / (wins + user.draws + user.losses)) * 100,
-        ) / 100;
-      checkAchievements(wins);
-      user = await this.usersRepository.preload({
-        id: +id,
-        wins: wins,
-        ratio: ratio,
-      });
-    } else if (action === 'loose') {
-      const losses = user.losses + 1;
-      const ratio =
-        Math.round(
-          ((user.wins + user.draws * 0.5) / (user.wins + user.draws + losses)) *
-            100,
-        ) / 100;
-      user = await this.usersRepository.preload({
-        id: +id,
-        losses: losses,
-        ratio: ratio,
-      });
+  async updateStats(user: User, isDraw: boolean, isWinner: boolean) {
+    if (isDraw) {
+      user.draws += 1;
+    } else if (isWinner) {
+      user.wins += 1;
     } else {
-      const draws = user.draws + 1;
-      const ratio =
-        Math.round(
-          ((user.wins + draws * 0.5) / (user.wins + draws + user.losses)) * 100,
-        ) / 100;
-      user = await this.usersRepository.preload({
-        id: +id,
-        draws: draws,
-        ratio: ratio,
-      });
+      user.losses += 1;
     }
+    user.ratio = this.updateUserRatio(user);
 
     return this.usersRepository.save(user);
   }

@@ -35,13 +35,13 @@ import { JwtAuthGuard } from "../auth/guard/jwt-auth.guard";
 export class UsersController {
   constructor(private readonly usersService: UsersService) {}
 
-  @UseGuards(JwtAuthGuard)
+  // @UseGuards(JwtAuthGuard)
   @Get()
   findAll(@Query() paginationQuery: PaginationQueryDto) {
     return this.usersService.findAll(paginationQuery);
   }
 
-  @UseGuards(JwtAuthGuard)
+  // @UseGuards(JwtAuthGuard)
   @Get(':userId')
   findOne(@Param('userId') id: string) {
     return this.usersService.findOne(id);
@@ -59,12 +59,6 @@ export class UsersController {
     // exclude password from returned JSON
     const { password, ...userData } = createdUser;
     return userData;
-  }
-
-  @UseGuards(JwtAuthGuard, IsLoggedInUserGuard)
-  @Post('/:userId/stats/:status')
-  async updateStats(@Param('userId') id: string, @Param('status') status: string) {
-    return this.usersService.updateStats(id, status);
   }
 
   @UseGuards(JwtAuthGuard)
