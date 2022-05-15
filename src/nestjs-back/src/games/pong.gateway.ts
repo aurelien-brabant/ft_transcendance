@@ -20,15 +20,17 @@ import { GameState, UserStatus } from './class/Constants';
 
 @WebSocketGateway({ cors: true, namespace: "game" })
 export class PongGateway implements OnGatewayInit, OnGatewayConnection, OnGatewayDisconnect {
-	constructor(private readonly gamesService: GamesService,
-				private readonly usersService: UsersService) {}
+	constructor(
+		private readonly gamesService: GamesService,
+		private readonly usersService: UsersService
+	) {}
 
 	@WebSocketServer()
 	server: Server;
 	private logger: Logger = new Logger('gameGateway');
 
-    private readonly queue: Queue = new Queue();
-    private readonly rooms: Map<string, Room> = new Map();
+	private readonly queue: Queue = new Queue();
+	private readonly rooms: Map<string, Room> = new Map();
 	private readonly currentGames: Array<string> = new Array();
 	private readonly connectedUsers: ConnectedUsers = new ConnectedUsers();
 
@@ -219,10 +221,17 @@ export class PongGateway implements OnGatewayInit, OnGatewayConnection, OnGatewa
 			{
 				room.update();
 				if (room.isGameEnd) {
-					let playerOne = await this.usersService.findOne(String(room.players[0].id));
-					let playerTwo = await this.usersService.findOne(String(room.players[1].id));
+					let winner = await this.usersService.findOne(String(room.winnerId));
+					let loser = await this.usersService.findOne(String(room.loserId));
+
+					/* Update users wins/losses/draws and ratio */
+					const isDraw = (room.winnerScore === room.loserScore);
+					await this.usersService.updateStats(winner, isDraw, true);
+					await this.usersService.updateStats(loser, isDraw, false);
+
+					/* Save game in database */
 					await this.gamesService.create({
-						players: [playerOne, playerTwo],
+						players: [winner, loser],
 						winnerId: room.winnerId,
 						loserId: room.loserId,
 						createdAt: new Date(room.timestampStart),

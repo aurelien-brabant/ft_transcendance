@@ -30,7 +30,6 @@ import { editFileName, imageFileFilter } from 'src/utils/upload';
 import { ValidateTfaDto } from './dto/validate-tfa-dto';
 import { IsLoggedInUserGuard } from "./guard/is-logged-in-user.guard";
 import { JwtAuthGuard } from "../auth/guard/jwt-auth.guard";
-import { QueryFailedError } from 'typeorm';
 
 @Controller('users')
 export class UsersController {
@@ -72,13 +71,6 @@ export class UsersController {
     // exclude password from returned JSON
     const { password, ...userData } = createdUser;
     return userData;
-  }
-
-
-  @UseGuards(JwtAuthGuard, IsLoggedInUserGuard)
-  @Post('/:userId/stats/:status')
-  async updateStats(@Param('userId') id: string, @Param('status') status: string) {
-    return this.usersService.updateStats(id, status);
   }
 
   @UseGuards(JwtAuthGuard)
