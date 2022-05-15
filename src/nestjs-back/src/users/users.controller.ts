@@ -53,6 +53,7 @@ export class UsersController {
     return this.usersService.searchUsers(searchTerm);
   }
 
+  /* NOTE: userId can be either the actual database id of the user, or, preferrably on the frontend, their username */
   @UseGuards(JwtAuthGuard)
   @Get(':userId')
   findOne(@Param('userId') id: string) {

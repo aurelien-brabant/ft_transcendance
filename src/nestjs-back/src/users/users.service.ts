@@ -44,7 +44,9 @@ export class UsersService {
   }
 
   async findOne(id: string) {
-    const user = await this.usersRepository.findOne(id, {
+    /* if id can't be parsed as a number then it is assumed to be an username */
+    const isDatabaseId = !isNaN(Number(id))
+    const user = await this.usersRepository.findOne({
       relations: [
         'games',
         'friends',
@@ -53,8 +55,14 @@ export class UsersService {
         'pendingFriendsSent',
         'pendingFriendsReceived',
       ],
+      where: isDatabaseId ? { id } : { username: id }
     });
-    if (!user) throw new NotFoundException(`User [${id}] not found`);
+
+    /* TODO: we shouldn't use HTTP-specific exceptions inside services */
+    if (!user) {
+      throw new NotFoundException(`User [${id}] not found`);
+    }
+
     return user;
   }
 
