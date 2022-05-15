@@ -51,7 +51,7 @@ export const DirectMessageHeader: React.FC<{ viewParams: any }> = ({
 				<Tooltip className={actionTooltipStyles} content="play">
 					<button
 						className={pongIconStyle}
-						onClick={() => sendPongInvite(user.id)}
+						onClick={() => sendPongInvite(viewParams.friendId)}
 					>
 						<RiPingPongLine />
 					</button>
