@@ -94,7 +94,7 @@ const SearchBar = () => {
 
   const handleSelect = async (user: any) => {
     setSelectedPerson(user);
-    await router.push(`/users/${user.id}`);
+    await router.push(`/users/${user.username}`);
   };
 
   const handleQueryChange = async ({
