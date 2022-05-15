@@ -39,7 +39,6 @@ export class SeederService {
             email: "test" + String(i) + "@gmail.com",
             pic: null,
             password: "test",
-            accountDeactivated: false,
         });
         user = await this.usersService.update(user.id.toString(), {
             username: username,

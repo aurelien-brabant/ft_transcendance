@@ -198,14 +198,18 @@ const UserProfilePage: NextPageWithLayout = ({}) => {
       headers: {
         "Content-Type": "application/json",
       },
-      body: JSON.stringify({ pendingFriendsSent: [{ id: id }] }),
+      body: JSON.stringify({
+        pendingFriendsSent: [ { "id": id } ]
+      }),
     });
     const reqReceived = await fetch(`/api/users/${id}`, {
       method: "PATCH",
       headers: {
         "Content-Type": "application/json",
       },
-      body: JSON.stringify({ pendingFriendsReceived: [{ id: user.id }] }),
+      body: JSON.stringify({
+        pendingFriendsReceived: [ { "id": user.id } ]
+      }),
     });
 
     if (reqSent.ok && reqReceived.ok) {

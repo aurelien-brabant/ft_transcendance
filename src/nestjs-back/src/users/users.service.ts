@@ -203,6 +203,7 @@ export class UsersService {
     }
 
     /* Games */
+    /* NOTE: achievements must be given another way
     if (updateUserDto.wins || updateUserDto.losses || updateUserDto.draws) {
       user = await this.usersRepository.findOne(id);
       const wins = updateUserDto.wins ? updateUserDto.wins : user.wins;
@@ -224,6 +225,7 @@ export class UsersService {
 
       if (updated.length) checkAchievements(updated.length, 'games');
     }
+    */
     if (updateUserDto.friends) {
       const newFriend = updateUserDto.friends[0];
 

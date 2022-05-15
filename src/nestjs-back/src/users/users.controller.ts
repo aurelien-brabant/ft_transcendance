@@ -30,7 +30,6 @@ import { editFileName, imageFileFilter } from 'src/utils/upload';
 import { ValidateTfaDto } from './dto/validate-tfa-dto';
 import { IsLoggedInUserGuard } from "./guard/is-logged-in-user.guard";
 import { JwtAuthGuard } from "../auth/guard/jwt-auth.guard";
-import { QueryFailedError } from 'typeorm';
 
 @Controller('users')
 export class UsersController {
