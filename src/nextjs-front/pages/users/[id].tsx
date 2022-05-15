@@ -204,7 +204,7 @@ const UserProfilePage: NextPageWithLayout = ({}) => {
     });
 
     if (res.ok) {
-      setAlreadyFriend(true); // why?
+      setAlreadyFriend(true);
       setAlert({ type: "info", content: `Friend request sent to ${username}` });
     } else
       setAlert({
