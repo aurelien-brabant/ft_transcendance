@@ -208,7 +208,7 @@ const UserProfilePage: NextPageWithLayout = ({}) => {
         "Content-Type": "application/json",
       },
       body: JSON.stringify({
-        pendingFriendsReceived: [ { "id": user.id } ]
+        pendingFriendsReceived: [ { id: user.id } ]
       }),
     });
 

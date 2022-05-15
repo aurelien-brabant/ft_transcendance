@@ -113,7 +113,7 @@ export class UsersService {
   }
 
   /* Checkers */
-  async checkUsernameIsAvailable(username: string) {
+  async usernameIsAvailable(username: string) {
     const duplicatedUsername = await this.usersRepository.createQueryBuilder('user')
       .where('user.username = :username', { username })
       .getOne();
@@ -210,7 +210,7 @@ export class UsersService {
 
     /* Informations */
     if (updateUserDto.username) {
-      await this.checkUsernameIsAvailable(updateUserDto.username);
+      await this.usernameIsAvailable(updateUserDto.username);
     }
 
     /* Achievements */
