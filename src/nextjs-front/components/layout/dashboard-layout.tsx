@@ -18,6 +18,7 @@ import {
   ChangeEvent,
   Fragment,
   FunctionComponent,
+  useEffect,
   useRef,
   useState,
 } from "react";
@@ -165,7 +166,21 @@ const SearchBar = () => {
 
 export const DashboardLayout: FunctionComponent = ({ children }) => {
   const [sidebarOpen, setSidebarOpen] = useState(false);
+  const [selectedTabHref, setSelectedTabHref] = useState(navigation[0].href);
   const { user, logout } = useSession();
+  const router = useRouter();
+
+  useEffect(() => {
+    let currentlySelectedHref = '';
+
+    for (const { href } of navigation) {
+      if (router.asPath.startsWith(href) && href.length > currentlySelectedHref.length) {
+        currentlySelectedHref = href;
+      }
+    }
+
+    setSelectedTabHref(currentlySelectedHref)
+  }, [router.asPath])
 
   const userNavigation = [
     { name: "Settings", href: "/welcome" },
@@ -178,14 +193,6 @@ export const DashboardLayout: FunctionComponent = ({ children }) => {
 
   return (
     <>
-      {/*
-        This example requires updating your template:
-
-        ```
-        <html class="h-full bg-gray-100">
-        <body class="h-full">
-        ```
-      */}
       <div>
         <Transition.Root show={sidebarOpen} as={Fragment}>
           {/* @ts-ignore */}
@@ -251,7 +258,7 @@ export const DashboardLayout: FunctionComponent = ({ children }) => {
                       <Link href={item.href} key={item.name}>
                         <a
                           className={classNames(
-                            item.current
+                            item.href === selectedTabHref
                               ? "bg-gray-900 text-white"
                               : "text-gray-300 hover:bg-gray-700 hover:text-white",
                             "group flex items-center px-2 py-2 text-base font-medium rounded-md"
@@ -259,7 +266,7 @@ export const DashboardLayout: FunctionComponent = ({ children }) => {
                         >
                           <item.icon
                             className={classNames(
-                              item.current
+                              item.href === selectedTabHref
                                 ? "text-gray-300"
                                 : "text-gray-400 group-hover:text-gray-300",
                               "mr-4 flex-shrink-0 h-6 w-6"
@@ -293,7 +300,7 @@ export const DashboardLayout: FunctionComponent = ({ children }) => {
                   <Link href={item.href} key={item.name}>
                     <a
                       className={classNames(
-                        item.current
+                        item.href === selectedTabHref
                           ? "bg-01dp text-white"
                           : "text-gray-300 hover:bg-01dp hover:text-white",
                         "group flex items-center px-2 py-2 text-sm font-medium rounded-md"
@@ -301,7 +308,7 @@ export const DashboardLayout: FunctionComponent = ({ children }) => {
                     >
                       <item.icon
                         className={classNames(
-                          item.current
+                          item.href === selectedTabHref
                             ? "text-gray-300"
                             : "text-gray-400 group-hover:text-gray-300",
                           "mr-3 flex-shrink-0 h-6 w-6"
