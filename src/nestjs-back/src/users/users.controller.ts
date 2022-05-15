@@ -42,6 +42,17 @@ export class UsersController {
     return this.usersService.findAll(paginationQuery);
   }
 
+
+  @UseGuards(JwtAuthGuard)
+  @Get('/search')
+  async searchUsersBy(@Query('v') searchTerm: string) {
+    if (searchTerm === undefined) {
+      throw new BadRequestException('Missing "v" query parameter')
+    }
+
+    return this.usersService.searchUsers(searchTerm);
+  }
+
   @UseGuards(JwtAuthGuard)
   @Get(':userId')
   findOne(@Param('userId') id: string) {
@@ -61,6 +72,7 @@ export class UsersController {
     const { password, ...userData } = createdUser;
     return userData;
   }
+
 
   @UseGuards(JwtAuthGuard, IsLoggedInUserGuard)
   @Post('/:userId/stats/:status')
