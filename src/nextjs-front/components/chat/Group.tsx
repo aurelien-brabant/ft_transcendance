@@ -147,8 +147,6 @@ const Group: React.FC<{ viewParams: { [key: string]: any } }> = ({
 	const handleGmSubmit = async () => {
 		if (currentMessage.trim().length === 0) return;
 
-		console.log('[Chat] Submit group message');
-
 		socket.emit('gmSubmit', {
 			content: currentMessage,
 			author: { "id": user.id },
@@ -199,8 +197,6 @@ const Group: React.FC<{ viewParams: { [key: string]: any } }> = ({
 
 	/* Receive new message */
 	const newGmListener = ({ message }: { message: ChannelMessage }) => {
-		console.log(`[Chat] Receive new message in [${message.channel.id}]`);
-
 		addNewMessage(message);
 	};
 

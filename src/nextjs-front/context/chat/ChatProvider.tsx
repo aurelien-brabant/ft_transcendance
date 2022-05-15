@@ -204,7 +204,6 @@ const ChatProvider: React.FC = ({ children }) => {
 	};
 
 	const dmCreatedListener = (newDm: DmChannel) => {
-		console.log('[Chat] dmCreatedListener');
 		const friend = (newDm.users[0].id === user.id) ? newDm.users[1] : newDm.users[0];
 
 		openChatView('dm', 'direct message', {
