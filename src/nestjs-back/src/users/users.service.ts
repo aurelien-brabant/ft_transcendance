@@ -195,12 +195,18 @@ export class UsersService {
       user.draws += 1;
     } else if (isWinner) {
       user.wins += 1;
+      
     } else {
       user.losses += 1;
     }
     user.ratio = this.updateUserRatio(user);
 
-    return this.usersRepository.save(user);
+    const updatedUser = await this.usersRepository.save(user);
+
+    await this.achievementsService.checkUserAchievement(user, 'wins', user.wins);
+    await this.achievementsService.checkUserAchievement(user, 'games', (user.games.length + 1));
+
+    return updatedUser;
   }
 
   async usernameIsAvailable(username: string) {

@@ -19,7 +19,7 @@ export class AchievementsService implements OnModuleInit {
   async onModuleInit() {
     this.logger.log('Populating achievements...');
     for (const achievement of achievementsList) {
-      this.create(achievement);
+      this.achievementsRepository.preload(achievement);
     }
   }
 
