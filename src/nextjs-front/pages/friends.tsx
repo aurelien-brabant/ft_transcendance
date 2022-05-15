@@ -87,7 +87,7 @@ const FriendsPage: NextPageWithLayout = ({}) => {
   }, [selected]);
 
   return (
-    <div className="min-h-screen overflow-x-auto text-white bg-fixed bg-center bg-fill grow">
+    <div className="text-white bg-fixed bg-center bg-fill grow">
       {!isLoading ? (
         <div style={{ maxWidth: "800px" }} className="px-2 py-10 mx-auto">
           <div className="flex flex-col items-center gap-y-10">

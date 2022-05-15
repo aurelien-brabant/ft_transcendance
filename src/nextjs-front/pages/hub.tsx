@@ -103,7 +103,7 @@ const Hub: NextPageWithLayout = () => {
 					content="This is the Hub"
 				/>
 			</Head>
-			<div className="overflow-hidden text-white bg-fixed bg-center bg-fill grow" style={{ height: "calc(100vh - 3.5rem)"}}>
+			<div className="text-white">
 				<div style={{ maxWidth: "1080px" }} className="px-2 py-10 mx-auto">
 				{	
 					displayGame ?

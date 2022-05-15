@@ -47,6 +47,8 @@ const navigation = [
   { name: "Leaderboard", href: "/leaderboard", icon: BiTrophy, current: false },
 ];
 
+const TOPNAV_OFFSET = '64px';
+
 /**
  * Search bar used to search for users and go to their profile page.
  * Implements a query caching system and make uses of the special
@@ -393,6 +395,7 @@ export const DashboardLayout: FunctionComponent = ({ children }) => {
             style={{
               background:
                 "repeating-linear-gradient(rgba(18,18,18,0.90), rgba(18,18,18,0.90)), url('/triangles.png') repeat",
+              minHeight: `calc(100vh - ${TOPNAV_OFFSET})`
             }}
           >
             <div className="py-6">
