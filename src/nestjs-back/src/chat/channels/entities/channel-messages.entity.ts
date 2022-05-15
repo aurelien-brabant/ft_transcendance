@@ -23,7 +23,7 @@ export class ChannelMessage {
   content: string;
 
   @ManyToOne(() => User)
-  author: User;
+  author?: User;
 
   @ManyToOne(() => Channel, channel => channel.messages, {
     onDelete: "CASCADE"

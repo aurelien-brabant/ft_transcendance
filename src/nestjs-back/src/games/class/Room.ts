@@ -52,12 +52,12 @@ export default class Room implements IRoom {
 	// settings customisation
 	maxGoal: number;
 
-    constructor(roomId: string, users: User[], customisation: {maxGoal?: number} = {maxGoal: 3}) {
+	constructor(roomId: string, users: User[], customisation: {maxGoal?: number} = {maxGoal: 3}) {
 		this.roomId = roomId;
 		this.gameState = GameState.STARTING;
 		this.players = [];
-        this.playerOne = new Player(users[0], 10);
-        this.playerTwo = new Player(users[1], canvasWidth-40);
+		this.playerOne = new Player(users[0], 10);
+		this.playerTwo = new Player(users[1], canvasWidth-40);
 		this.ball = new Ball();
 
 		this.timestampStart = Date.now();
@@ -67,7 +67,7 @@ export default class Room implements IRoom {
 
 		this.maxGoal = customisation.maxGoal;
 		this.isGameEnd = false;
-    }
+	}
 
 	isAPlayer(user: User): boolean {
 		return (this.playerOne.user.username === user.username || this.playerTwo.user.username === user.username);

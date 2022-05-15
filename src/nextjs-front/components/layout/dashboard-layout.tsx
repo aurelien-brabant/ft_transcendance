@@ -21,37 +21,33 @@ import {
   useRef,
   useState,
 } from "react";
-import Image from "next/image";
 import Link from "next/link";
 import { Dialog, Menu, Transition } from "@headlessui/react";
 import {
-  BellIcon,
-  CalendarIcon,
-  ChartBarIcon,
   FireIcon,
-  FolderIcon,
   HomeIcon,
-  InboxIcon,
   MenuAlt2Icon,
-  UserIcon,
   UsersIcon,
   XIcon,
 } from "@heroicons/react/outline";
 import { SearchIcon } from "@heroicons/react/solid";
 import { classNames } from "../../utils/class-names";
 import { useSession } from "../../hooks/use-session";
-import { CheckIcon, SelectorIcon } from "@heroicons/react/solid";
+import { CheckIcon } from "@heroicons/react/solid";
 import { Combobox } from "@headlessui/react";
 import { useRouter } from "next/router";
-import { CircleLoader } from "react-spinners";
 import { useLiveSearch } from "../../hooks/use-live-search";
 import { SimpleSpinner } from "../simple-spinner";
+import { BiTrophy } from "react-icons/bi";
 
 const navigation = [
   { name: "My profile", href: "/welcome", icon: HomeIcon, current: true },
   { name: "Friends", href: "/friends", icon: UsersIcon, current: false },
   { name: "Play", href: "/hub", icon: FireIcon, current: false },
+  { name: "Leaderboard", href: "/leaderboard", icon: BiTrophy, current: false },
 ];
+
+const TOPNAV_OFFSET = '64px';
 
 /**
  * Search bar used to search for users and go to their profile page.
@@ -94,7 +90,7 @@ const SearchBar = () => {
 
   const handleSelect = async (user: any) => {
     setSelectedPerson(user);
-    await router.push(`/users/${user.id}`);
+    await router.push(`/users/${user.username}`);
   };
 
   const handleQueryChange = async ({
@@ -399,7 +395,7 @@ export const DashboardLayout: FunctionComponent = ({ children }) => {
             style={{
               background:
                 "repeating-linear-gradient(rgba(18,18,18,0.90), rgba(18,18,18,0.90)), url('/triangles.png') repeat",
-              minHeight: 'calc(100vh - 68px)'
+              minHeight: `calc(100vh - ${TOPNAV_OFFSET})`
             }}
           >
             <div className="py-6">

@@ -68,7 +68,9 @@ const Welcome: NextPageWithLayout = () => {
       headers: {
         'Content-Type': 'application/json'
       },
-      body: JSON.stringify({accountDeactivated: false})
+      body: JSON.stringify({
+        accountDeactivated: false
+      })
     });
   }
 
@@ -111,7 +113,9 @@ const Welcome: NextPageWithLayout = () => {
       headers: {
         'Content-Type': 'application/json'
       },
-      body: JSON.stringify({accountDeactivated: true})
+      body: JSON.stringify({
+        accountDeactivated: true
+      })
     });
 
     if (res.status === 200) {
@@ -202,7 +206,10 @@ const Welcome: NextPageWithLayout = () => {
       },
       redirect: 'follow',
       referrerPolicy: 'no-referrer',
-      body: JSON.stringify({tfa: false, tfaSecret: null})
+      body: JSON.stringify({
+        tfa: false,
+        tfaSecret: null
+      })
     });
 
     if (req.status === 200) {
@@ -310,10 +317,10 @@ const Welcome: NextPageWithLayout = () => {
         method: "POST",
         body
       });
-     
+
       if (req.ok) {
         const res = await req.json();
-        console.log(res);
+
         setPendingPic(false);
         setAlert({type: 'success', content: 'Avatar uploaded successfully'})
         router.reload();
@@ -373,7 +380,7 @@ const Welcome: NextPageWithLayout = () => {
   }, [currentStep, pendingQR]);
   
   return (
-    <div className="min-h-screen text-white grow" id="main-content">
+    <div className="text-white" id="main-content">
       <div 
         style={{ maxWidth: "800px" }}
         className="px-2 mx-auto"

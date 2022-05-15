@@ -54,7 +54,9 @@ const FriendsTable: React.FC<{ type: string, list: User[], suggested: User[], se
         headers: {
           "Content-Type": "application/json",
         },
-        body: JSON.stringify({friends: [{"id": id}]}),
+        body: JSON.stringify({
+          friends: [ { "id": id } ]
+        }),
       });
 
       if (addFriend.ok) {
@@ -77,7 +79,9 @@ const FriendsTable: React.FC<{ type: string, list: User[], suggested: User[], se
         headers: {
           "Content-Type": "application/json",
         },
-        body: JSON.stringify({ pendingFriendsSent: [{ "id": id }] }),
+        body: JSON.stringify({
+          pendingFriendsSent: [ { "id": id } ]
+        }),
       });
 
       if (reqSent.ok) {
@@ -114,7 +118,9 @@ const FriendsTable: React.FC<{ type: string, list: User[], suggested: User[], se
       headers: {
         "Content-Type": "application/json",
       },
-      body: JSON.stringify({blockedUsers: [{"id": id}]}),
+      body: JSON.stringify({
+        blockedUsers: [ { "id": id } ]
+      }),
     });
 
     if (block.ok) {
@@ -301,7 +307,7 @@ const FriendsTable: React.FC<{ type: string, list: User[], suggested: User[], se
     </ul>
     :
     (type === 'friends' || type === 'friends42' || type === 'pending') ?
-    <div className="text-center py-16">
+    <div className="text-center pt-14">
       <h1 className="m-5 uppercase text-7xl text-gray-700 tracking-widest">
         Nothing here
       </h1>

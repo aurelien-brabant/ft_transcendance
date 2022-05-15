@@ -1,6 +1,6 @@
 import { createContext } from 'react';
 import { Socket } from 'socket.io-client';
-import { Channel, DmChannel } from 'transcendance-types';
+import { BaseUserData, Channel, DmChannel } from 'transcendance-types';
 
 export type ChatView = 'dms' | 'dm' | 'dm_new' | 'groups' | 'group' | 'group_new' | 'group_add' | 'group_users' | 'group_settings' |'password_protection'; // plural form denotes the list, singular the chat itself
 
@@ -11,7 +11,7 @@ export type ChatMessagePreview = {
 
 export type ChatMessage = ChatMessagePreview & {
 	id: string;
-	author: string;
+	author?: string;
 	displayAuthor: boolean;
 	displayStyle: string;
 };
@@ -49,7 +49,7 @@ export type ChatContextType = {
 	closeRightmostView: (n?: number) => void;
 
 	createDirectMessage: (userId: string, friendId: string) => void;
-	getMessageStyle: (authorId: string) => string;
+	getMessageStyle: (author: BaseUserData | undefined) => string;
 
 	/* Event listeners */
 	channelCreatedListener: (newChannel: Channel) => void;
