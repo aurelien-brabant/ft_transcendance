@@ -19,7 +19,7 @@ export class AchievementsService implements OnModuleInit {
   async onModuleInit() {
     this.logger.log('Populating achievements...');
     for (const achievement of achievementsList) {
-      await this.achievementsRepository.preload(achievement);
+      this.create(achievement);
     }
   }
 
@@ -72,9 +72,7 @@ export class AchievementsService implements OnModuleInit {
   async addUserAchievement(id: string, updateAchievementDto: UpdateAchievementDto) {
     const achievement = await this.findOne(id);
 
-    if (!achievement) {
-      throw new NotFoundException(`Cannot update achievement[${id}]: Not found`);
-    }
+    this.logger.log(`Add Achievement [${achievement.description}] to User`);
 
     return await this.update(id, {
       users: [
@@ -87,7 +85,7 @@ export class AchievementsService implements OnModuleInit {
   async checkUserAchievement(user: User, type: string, levelReached: number) {
     const achievement = await this.achievementsRepository.createQueryBuilder('achievement')
       .where('achievement.type = :type', { type })
-      .andWhere('achievement.levelToReach = :levelToReach', { levelReached })
+      .andWhere('achievement.levelToReach = :levelReached', { levelReached })
       .getOne();
 
     if (achievement) {
