@@ -35,13 +35,13 @@ import { JwtAuthGuard } from "../auth/guard/jwt-auth.guard";
 export class UsersController {
   constructor(private readonly usersService: UsersService) {}
 
-  // @UseGuards(JwtAuthGuard)
+  @UseGuards(JwtAuthGuard)
   @Get()
   findAll(@Query() paginationQuery: PaginationQueryDto) {
     return this.usersService.findAll(paginationQuery);
   }
 
-  // @UseGuards(JwtAuthGuard)
+  @UseGuards(JwtAuthGuard)
   @Get(':userId')
   findOne(@Param('userId') id: string) {
     return this.usersService.findOne(id);
