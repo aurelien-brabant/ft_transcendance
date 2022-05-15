@@ -62,6 +62,7 @@ const navigation = [
 type SearchedUser = {
   username: string;
   duoquadra_login?: string;
+  id: number;
 }
 
 const SearchBar = () => {
