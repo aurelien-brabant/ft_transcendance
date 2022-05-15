@@ -136,4 +136,10 @@ export class AuthController {
 
     return res.sendStatus(200);
   }
+
+  @UseGuards(JwtAuthGuard)
+  @Get('/is-logged-in')
+  async isLoggedIn() {
+    return { loggedIn: true }
+  }
 }
