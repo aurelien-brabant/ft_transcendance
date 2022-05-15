@@ -1,4 +1,4 @@
-import { Injectable, NotFoundException } from '@nestjs/common';
+import { Injectable } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { ILike, Repository } from 'typeorm';
 import { join } from 'path';
@@ -57,9 +57,8 @@ export class UsersService {
       where: isDatabaseId ? { id } : { username: id }
     });
 
-    /* TODO: we shouldn't use HTTP-specific exceptions inside services */
     if (!user) {
-      throw new NotFoundException(`User [${id}] not found`);
+      throw new Error('User not found');
     }
 
     return user;
@@ -110,24 +109,6 @@ export class UsersService {
 
     return users;
   }
-
-  /* Checkers */
-  async usernameIsAvailable(username: string) {
-    const duplicatedUsername = await this.usersRepository.createQueryBuilder('user')
-      .where('user.username = :username', { username })
-      .getOne();
-
-    if (duplicatedUsername) {
-      throw new Error(`Username '${username}' not available.`);
-    }
-  }
-
-  /* Helpers */
-  updateUserRatio = (user: User) => {
-    const ratio = Math.round(((user.wins + user.draws * 0.5) / (user.wins + user.draws + user.losses)) * 100) / 100;
-
-    return ratio;
-  };
 
   /* Create */
   async createDuoQuadra(
@@ -203,79 +184,82 @@ export class UsersService {
   }
 
   /* Update */
-  async update(id: string, updateUserDto: UpdateUserDto) {
-    let user: User | null = null;
-    let tmpDto = {};
+  updateUserRatio = (user: User) => {
+    const ratio = Math.round(((user.wins + user.draws * 0.5) / (user.wins + user.draws + user.losses)) * 100) / 100;
 
-    /* Informations */
+    return ratio;
+  };
+
+  async updateStats(user: User, isDraw: boolean, isWinner: boolean) {
+    if (isDraw) {
+      user.draws += 1;
+    } else if (isWinner) {
+      user.wins += 1;
+    } else {
+      user.losses += 1;
+    }
+    user.ratio = this.updateUserRatio(user);
+
+    return this.usersRepository.save(user);
+  }
+
+  async usernameIsAvailable(username: string) {
+    const duplicatedUsername = await this.usersRepository.createQueryBuilder('user')
+      .where('user.username = :username', { username })
+      .getOne();
+
+    if (duplicatedUsername) {
+      throw new Error(`Username '${username}' not available.`);
+    }
+  }
+
+  async update(id: string, updateUserDto: UpdateUserDto) {
+    let user: User;
+
     if (updateUserDto.username) {
       await this.usernameIsAvailable(updateUserDto.username);
     }
 
     /* Relationships */
-    if (updateUserDto.friends) {
+    if (updateUserDto.friends && updateUserDto.friends.length) {
       const newFriend = updateUserDto.friends[0];
 
       user = await this.addFriend(id, newFriend.id.toString());
       await this.achievementsService.checkUserAchievement(user, 'friends', user.friends.length);
 
-      if (newFriend) {
-        const friend = await this.addFriend(newFriend.id.toString(), user.id.toString());
-        await this.achievementsService.checkUserAchievement(friend, 'friends', friend.friends.length);
+      const friend = await this.addFriend(newFriend.id.toString(), user.id.toString());
+      await this.achievementsService.checkUserAchievement(friend, 'friends', friend.friends.length);
+
+    } else if (updateUserDto.blockedUsers && updateUserDto.blockedUsers.length) {
+
+      const toBlock = updateUserDto.blockedUsers[0];
+
+      user = await this.blockUser(id, toBlock.toString());
+
+    } else if (updateUserDto.pendingFriendsSent && updateUserDto.pendingFriendsSent.length) {
+      /* Friend invite sent */
+      const receiver = updateUserDto.pendingFriendsSent[0];
+
+      user = await this.addFriendshipSent(id, receiver.id.toString());
+      if (receiver) {
+        await this.addFriendshipReceived(receiver.id.toString(), user.id.toString());
       }
-    }
-    if (updateUserDto.blockedUsers) {
-      user = await this.usersRepository.findOne(id, {
-        relations: ['blockedUsers'],
+    } else {
+      /* Default case */
+      const user = await this.usersRepository.preload({
+        id: +id,
+        ...updateUserDto
       });
-      tmpDto = {
-        ...tmpDto,
-        blockedUsers: [...user.blockedUsers, ...updateUserDto.blockedUsers],
-      };
-    }
-
-    /* Friendship invite */
-    if (updateUserDto.pendingFriendsSent) {
-      const friend = updateUserDto.pendingFriendsSent[0];
-
-      user = await this.usersRepository.findOne(id, {
-        relations: ['pendingFriendsSent'],
-      });
-      tmpDto = {
-        ...tmpDto,
-        pendingFriendsSent: [
-          ...user.pendingFriendsSent,
-          ...updateUserDto.pendingFriendsSent,
-        ],
-      };
-      if (friend) {
-        await this.addFriendshipReceived(friend.id.toString(), user);
+  
+      if (!user) {
+        throw new Error('Cannot update user.');
       }
+      return this.usersRepository.save(user);
     }
-
-    if (updateUserDto.pendingFriendsReceived) {
-      user = await this.usersRepository.findOne(id, {
-        relations: ['pendingFriendsReceived'],
-      });
-      tmpDto = {
-        ...tmpDto,
-        pendingFriendsReceived: [
-          ...user.pendingFriendsReceived,
-          ...updateUserDto.pendingFriendsReceived,
-        ],
-      };
-    }
-
-    user = await this.usersRepository.preload({
-      id: +id,
-      ...{ ...updateUserDto, ...tmpDto },
-    });
-
-    if (!user)
-      throw new NotFoundException(`Cannot update user[${id}]: Not found`);
-    return this.usersRepository.save(user);
+    return user;
   }
 
+  /* Avatar */
   async uploadAvatar(id: string, filename: string) {
     await this.usersRepository.update(id, {
       pic: filename,
@@ -404,30 +388,18 @@ export class UsersService {
     return tfaRequestExpirationEpoch >= Date.now();
   }
 
-  /* Games */
-  async updateStats(user: User, isDraw: boolean, isWinner: boolean) {
-    if (isDraw) {
-      user.draws += 1;
-    } else if (isWinner) {
-      user.wins += 1;
-    } else {
-      user.losses += 1;
-    }
-    user.ratio = this.updateUserRatio(user);
-
-    return this.usersRepository.save(user);
-  }
-
   /* Relationships */
-  async addFriendshipReceived(id: string, from: User) {
+  async addFriendshipReceived(id: string, senderId: string) {
     let user = await this.usersRepository.findOne(id, {
       relations: ['pendingFriendsReceived'],
     });
+    const sender = await this.usersRepository.findOne(senderId);
 
-    if (!user)
-      throw new NotFoundException(`Cannot update user[${id}]: Not found`);
+    if (!user || !sender) {
+      throw new Error('Cannot update user.');
+    }
 
-    user.pendingFriendsReceived.push(from);
+    user.pendingFriendsReceived.push(sender);
     return this.usersRepository.save(user);
   }
 
@@ -436,8 +408,9 @@ export class UsersService {
       relations: ['pendingFriendsReceived'],
     });
 
-    if (!user)
-      throw new NotFoundException(`Cannot update user[${id}]: Not found`);
+    if (!user) {
+      throw new Error('Cannot update user.');
+    }
 
     const newPendingInvites = user.pendingFriendsReceived.filter((sender) => {
       return sender.id !== parseInt(senderId);
@@ -447,13 +420,28 @@ export class UsersService {
     return this.usersRepository.save(user);
   }
 
+  async addFriendshipSent(id: string, receiverId: string) {
+    let user = await this.usersRepository.findOne(id, {
+      relations: ['pendingFriendsSent'],
+    });
+    const receiver = await this.usersRepository.findOne(receiverId);
+
+    if (!user || !receiver) {
+      throw new Error('Cannot update user.');
+    }
+
+    user.pendingFriendsSent.push(receiver);
+    return this.usersRepository.save(user);
+  }
+
   async removeFriendshipSent(id: string, receiverId: string) {
     let user = await this.usersRepository.findOne(id, {
       relations: ['pendingFriendsSent'],
     });
 
-    if (!user)
-      throw new NotFoundException(`Cannot update user[${id}]: Not found`);
+    if (!user) {
+      throw new Error('Cannot update user.');
+    }
 
     const newPendingInvites = user.pendingFriendsSent.filter((sender) => {
       return sender.id !== parseInt(receiverId);
@@ -469,8 +457,9 @@ export class UsersService {
     });
     const friend = await this.usersRepository.findOne(friendId);
 
-    if (!user || !friend)
-      throw new NotFoundException(`Cannot update user[${id}]: Not found`);
+    if (!user || !friend) {
+      throw new Error('Cannot update user.');
+    }
 
     user.friends.push(friend);
     return this.usersRepository.save(user);
@@ -481,8 +470,9 @@ export class UsersService {
       relations: ['friends'],
     });
 
-    if (!user)
-      throw new NotFoundException(`Cannot update user[${id}]: Not found`);
+    if (!user) {
+      throw new Error('Cannot update user.');
+    }
 
     const newFriends = user.friends.filter((friend) => {
       return friend.id !== parseInt(friendId);
@@ -492,13 +482,28 @@ export class UsersService {
     return this.usersRepository.save(user);
   }
 
+  async blockUser(id: string, blockedId: string) {
+    let user = await this.usersRepository.findOne(id, {
+      relations: ['blockedUsers'],
+    });
+    const blockedUser = await this.usersRepository.findOne(blockedId);
+
+    if (!user || !blockedUser) {
+      throw new Error('Cannot update user.');
+    }
+
+    user.blockedUsers.push(blockedUser);
+    return this.usersRepository.save(user);
+  }
+
   async unblockUser(id: string, userId: string) {
     let user = await this.usersRepository.findOne(id, {
       relations: ['blockedUsers'],
     });
 
-    if (!user)
-      throw new NotFoundException(`Cannot update user[${id}]: Not found`);
+    if (!user) {
+      throw new Error('Cannot update user.');
+    }
 
     const newBlockedUsers = user.blockedUsers.filter((user) => {
       return user.id !== parseInt(userId);
@@ -524,7 +529,7 @@ export class UsersService {
       await this.removeFriendshipSent(userToUpdate, id);
       return await this.removeFriendshipReceived(id, userToUpdate);
     }
-    throw new NotFoundException(`No corresponding action found.`);
+    throw new Error(`No corresponding action found.`);
   }
 
   /* Chat */
@@ -554,6 +559,6 @@ export class UsersService {
       );
       if (dm) return dm;
     }
-    throw new NotFoundException(`User [${id}] sent no DM`);
+    throw new Error('User sent no DM');
   }
 }

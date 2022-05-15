@@ -60,10 +60,5 @@ export class UpdateUserDto extends PartialType(CreateUserDto) {
     @IsOptional()
     @IsArray()
     @Type(() => User)
-    readonly pendingFriendsReceived: User[];
-
-    @IsOptional()
-    @IsArray()
-    @Type(() => User)
     readonly blockedUsers: User[];
 }
