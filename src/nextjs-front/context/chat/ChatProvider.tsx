@@ -2,7 +2,7 @@ import { useContext, useEffect, useState } from "react";
 import { BsFillChatDotsFill } from "react-icons/bs";
 import { Bounce } from "react-awesome-reveal";
 import { io } from "socket.io-client";
-import { Channel, DmChannel, Message } from 'transcendance-types';
+import { BaseUserData, Channel, ChannelMessage, DmChannel, DmMessage } from 'transcendance-types';
 import { useSession } from "../../hooks/use-session";
 import alertContext, { AlertContextType } from "../alert/alertContext";
 import authContext, { AuthContextValue } from "../auth/authContext";
@@ -175,12 +175,16 @@ const ChatProvider: React.FC = ({ children }) => {
 		socket.emit("createDm", data);
 	}
 
-	/* NOTE: To be updated */
-	const getMessageStyle = (authorId: string) => {
-		if (authorId === user.id) return "self-end bg-blue-500";
+	const getMessageStyle = (author: BaseUserData | undefined) => {
+		if (!author) {
+			return "self-center text-gray-500";
+		}
+		if (author.id == user.id) {
+			return "self-end bg-blue-500";
+		}
 
 		const isBlocked = !!blocked.find(
-			blockedUser => blockedUser.id === authorId
+			blockedUser => blockedUser.id === author.id
 		);
 		if (isBlocked) {
 			return "self-start text-gray-900 bg-gray-600";
@@ -201,7 +205,6 @@ const ChatProvider: React.FC = ({ children }) => {
 	};
 
 	const dmCreatedListener = (newDm: DmChannel) => {
-		console.log('[Chat] dmCreatedListener');
 		const friend = (newDm.users[0].id === user.id) ? newDm.users[1] : newDm.users[0];
 
 		openChatView('dm', 'direct message', {
@@ -233,9 +236,16 @@ const ChatProvider: React.FC = ({ children }) => {
 		});
 	};
 
-	const changeIconOnNewMessage = ({ message }: { message: Message }) => {
-		if (parseInt(message.author.id) === user.id) return ;
-		setIconColor("text-blue-200 bg-blue-500");
+	const changeIconNewDm = ({ message }: { message: DmMessage }) => {
+		if (parseInt(message.author.id) !== user.id) {
+			setIconColor("text-blue-200 bg-blue-500");
+		}
+	};
+
+	const changeIconNewGm = ({ message }: { message: ChannelMessage }) => {
+		if (message.author && parseInt(message.author.id) !== user.id) {
+			setIconColor("text-blue-200 bg-blue-500");
+		}
 	};
 
 	const changeIconOnInvite = (from: number) => {
@@ -263,8 +273,8 @@ const ChatProvider: React.FC = ({ children }) => {
 		socket.on("chatError", chatWarningListener);
 		socket.on("chatInfo", chatInfoListener);
 		socket.on("dmCreated", dmCreatedListener);
-		socket.on("newDm", changeIconOnNewMessage);
-		socket.on("newGm", changeIconOnNewMessage);
+		socket.on("newDm", changeIconNewDm);
+		socket.on("newGm", changeIconNewGm);
 		socket.on("invitedInChat", changeIconOnInvite);
 
 		return () => {
@@ -274,8 +284,8 @@ const ChatProvider: React.FC = ({ children }) => {
 			socket.off("chatError", chatWarningListener);
 			socket.off("dmCreated", dmCreatedListener);
 			socket.off("chatInfo", chatInfoListener);
-			socket.off("newDm", changeIconOnNewMessage);
-			socket.off("newGm", changeIconOnNewMessage);
+			socket.off("newDm", changeIconNewDm);
+			socket.off("newGm", changeIconNewGm);
 			socket.off("invitedInChat", changeIconOnInvite);
 		};
 	}, [socket]);
@@ -334,6 +344,9 @@ const ChatProvider: React.FC = ({ children }) => {
 					viewStack={viewStack}
 					onClose={() => {
 						setIsChatOpened(false);
+						if (iconColor !== "text-pink-200 bg-pink-600") {
+							setIconColor("text-pink-200 bg-pink-600");
+						}
 					}}
 				/>
 				:

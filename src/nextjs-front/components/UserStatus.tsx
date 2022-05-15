@@ -16,7 +16,6 @@ export const UserStatusItem: React.FC<{ status?: UserStatus, withText?: boolean,
 	const { socket } = useContext(chatContext) as ChatContextType;
 
 	const updateUserStatusListener = ({ userId, status }: { userId: number, status: UserStatus }) => {
-		console.log('updateUserStatus');
 		if (parseInt(id) !== userId) return ;
 
 		setColor(statusColors[status]);

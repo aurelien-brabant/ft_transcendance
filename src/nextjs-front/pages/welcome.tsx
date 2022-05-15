@@ -317,10 +317,10 @@ const Welcome: NextPageWithLayout = () => {
         method: "POST",
         body
       });
-     
+
       if (req.ok) {
         const res = await req.json();
-        console.log(res);
+
         setPendingPic(false);
         setAlert({type: 'success', content: 'Avatar uploaded successfully'})
         router.reload();
