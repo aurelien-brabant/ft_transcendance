@@ -18,13 +18,13 @@ export const DirectMessageHeader: React.FC<{ viewParams: any }> = ({
 	const actionTooltipStyles = "font-bold bg-dark text-neutral-200";
 	const pongIconStyle = "p-1 text-pink-700 bg-pink-200 rounded-full transition hover:scale-110  hover:text-pink-600";
 
-	/**
-	 * WIP: To link with Hub
-	 * Invite for a Pong game
-	 */
-		const sendPongInvite = (id: string) => {
-			// TODO
-			console.log(`[Direct Message] Invite user [${id}] to play Pong`);
+	/* Invite for a Pong game */
+	const sendPongInvite = (userId: string) => {
+		console.log(`[Direct Message] Invite user [${userId}] to play Pong`);
+		socket.emit("sendPongInvite", {
+			from: user.id,
+			to: parseInt(userId),
+		});
 	};
 
 	return (
@@ -90,8 +90,8 @@ const DirectMessage: React.FC<{ viewParams: { [key: string]: any } }> = ({
 
 		socket.emit("dmSubmit", {
 			content: currentMessage,
-			author: { "id": user.id },
-			dm: { "id": dmId },
+			author: { id: user.id },
+			dm: { id: dmId },
 		});
 		setCurrentMessage("");
 	};
@@ -160,10 +160,12 @@ const DirectMessage: React.FC<{ viewParams: { [key: string]: any } }> = ({
 		/* Listeners */
 		socket.on("updateDm", updateDmView);
 		socket.on("newDm", handleNewMessage);
+		socket.on("newPongInvite", handleNewMessage);
 
 		return () => {
 			socket.off("updateDm", updateDmView);
 			socket.off("newDm", handleNewMessage);
+			socket.off("newPongInvite", handleNewMessage);
 		};
 	}, []);
 

@@ -53,7 +53,7 @@ export type ChatContextType = {
 
 	/* Event listeners */
 	channelCreatedListener: (newChannel: Channel) => void;
-	dmCreatedListener: (newDm: DmChannel) => void;
+	openCreatedDmListener: (newDm: DmChannel) => void;
 	chatWarningListener: (message: string) => void;
 
 	/* Draggable */

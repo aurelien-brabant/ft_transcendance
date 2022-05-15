@@ -203,7 +203,7 @@ const ChatProvider: React.FC = ({ children }) => {
 		);
 	};
 
-	const dmCreatedListener = (newDm: DmChannel) => {
+	const openCreatedDmListener = (newDm: DmChannel) => {
 		const friend = (newDm.users[0].id === user.id) ? newDm.users[1] : newDm.users[0];
 
 		openChatView('dm', 'direct message', {
@@ -250,14 +250,14 @@ const ChatProvider: React.FC = ({ children }) => {
 		socket.on("punishedInChannel", chatWarningListener);
 		socket.on("chatError", chatWarningListener);
 		socket.on("chatInfo", chatInfoListener);
-		socket.on("dmCreated", dmCreatedListener);
+		socket.on("openCreatedDm", openCreatedDmListener);
 
 		return () => {
 			socket.off("exception", chatExceptionListener);
 			socket.off("kickedFromChannel", chatWarningListener);
 			socket.off("punishedInChannel", chatWarningListener);
 			socket.off("chatError", chatWarningListener);
-			socket.off("dmCreated", dmCreatedListener);
+			socket.off("openCreatedDm", openCreatedDmListener);
 			socket.off("chatInfo", chatInfoListener);
 		};
 	}, [socket]);
@@ -302,7 +302,7 @@ const ChatProvider: React.FC = ({ children }) => {
 				createDirectMessage,
 				getMessageStyle,
 				channelCreatedListener,
-				dmCreatedListener,
+				openCreatedDmListener,
 				chatWarningListener,
 				lastX,
 				lastY,

@@ -146,6 +146,59 @@ export class ChatGateway implements OnGatewayInit, OnGatewayConnection {
 		}
 	}
 
+	@SubscribeMessage('sendPongInvite')
+	async handleSendPongInvite(
+		@ConnectedSocket() client: Socket,
+		@MessageBody() { from, to }: { from: number, to: number }
+	) {
+		try {
+			let dm = await this.chatService.checkIfDmExists(from.toString(), to.toString());
+			const friendUser = this.chatUsers.getUserById(to.toString());
+
+			if (!dm) {
+				console.log("DM not exists");
+				dm = await this.chatService.createDm({
+					users: [
+						{ id: from },
+						{ id: to }
+					],
+				} as CreateDirectMessageDto);
+
+				if (friendUser) {
+					this.userJoinRoom(friendUser.socketId, `dm_${dm.id}`);
+					this.server.to(friendUser.socketId).emit('dmCreated');
+				}
+			}
+			if (friendUser) {
+				const sender = this.chatUsers.getUser(client.id);
+
+				this.server.to(friendUser.socketId).emit(
+					'chatInfo',
+					`${sender.username} wants to play Pong! Open your DM and accept the challenge!`
+				);
+			}
+
+			// TODO
+			// - Create game room
+			// - Add User 'from' to room
+
+			const message = await this.chatService.addMessageToDm({
+				content: 'Let\'s fight!',
+				author: { id: from },
+				dm
+			} as CreateDmMessageDto);
+
+			// TODO
+			// - Send DM to user 'to' with:
+			//   - Room link
+
+			this.server.to(`dm_${dm.id}`).emit('newPongInvite', { message });
+			this.logger.log(`New Pong invite in DM [${message.dm.id}]`);
+		} catch (e) {
+			this.server.to(client.id).emit('chatError', e.message);
+		}
+	}
+
 	/**
 	 * Channels
 	 */
@@ -518,7 +571,10 @@ export class ChatGateway implements OnGatewayInit, OnGatewayConnection {
 		@MessageBody() data: CreateDirectMessageDto
 	) {
 		try {
-			let dm = await this.chatService.checkIfDmExists(data);
+			let dm = await this.chatService.checkIfDmExists(
+				data.users[0].id.toString(),
+				data.users[1].id.toString()
+			);
 
 			if (!dm) {
 				dm = await this.chatService.createDm(data);
@@ -529,12 +585,11 @@ export class ChatGateway implements OnGatewayInit, OnGatewayConnection {
 
 				if (friendUser) {
 					this.userJoinRoom(friendUser.socketId, `dm_${dm.id}`);
-					this.server.to(friendUser.socketId).emit('updateDm', (dm));
-					this.server.to(friendUser.socketId).emit('invitedInChat', { from: user.id });
+					this.server.to(friendUser.socketId).emit('dmCreated');
 				}
 			}
 			this.userJoinRoom(client.id, `dm_${dm.id}`);
-			this.server.to(client.id).emit('dmCreated', (dm));
+			this.server.to(client.id).emit('openCreatedDm', (dm));
 		} catch (e) {
 			this.server.to(client.id).emit('chatError', e.message);
 		}
