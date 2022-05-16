@@ -209,6 +209,12 @@ const UserProfilePage: NextPageWithLayout = ({}) => {
   const updateGamesHistory = async (games: Game[], userId: string) => {
     const gameHistory: pastGame[] = [];
 
+    /* Sorts from most recent */
+    games.sort(
+      (a: Game, b: Game) =>
+      ((new Date(b.endedAt)).valueOf() - (new Date(a.endedAt)).valueOf())
+    );
+
     for (var game of games) {
       const opponentId = (game.winnerId === parseInt(userId)) ? game.loserId : game.winnerId;
       const userIsWinner = (game.winnerId === parseInt(userId));
@@ -216,8 +222,8 @@ const UserProfilePage: NextPageWithLayout = ({}) => {
       const data = await res.json();
 
       gameHistory.push({
-        id: game.id,
-        date: game.createdAt,
+        id: gameHistory.length.toString(),
+        date: new Date(game.createdAt),
         duration: game.gameDuration,
         isDraw: (game.winnerScore === game.loserScore),
         userIsWinner,

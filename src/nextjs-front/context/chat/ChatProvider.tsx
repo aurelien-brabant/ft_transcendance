@@ -263,7 +263,7 @@ const ChatProvider: React.FC = ({ children }) => {
 
 	/* Create socket when user is logged in */
 	useEffect(() => {
-		const socketIo = io("localhost:8080/chat");
+		const socketIo = io(process.env.NEXT_PUBLIC_SOCKET_URL + "/chat");
 
 		setSocket(socketIo);
 
