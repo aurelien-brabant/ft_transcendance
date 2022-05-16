@@ -230,7 +230,7 @@ export class PongGateway implements OnGatewayInit, OnGatewayConnection, OnGatewa
 					await this.usersService.updateStats(loser, isDraw, false);
 
 					/* Save game in database */
-					await this.gamesService.create({
+					let test = await this.gamesService.create({
 						players: [winner, loser],
 						winnerId: room.winnerId,
 						loserId: room.loserId,
@@ -238,9 +238,9 @@ export class PongGateway implements OnGatewayInit, OnGatewayConnection, OnGatewa
 						endedAt: new Date(currentTimestamp),
 						gameDuration: room.getDuration(),
 						winnerScore: room.winnerScore,
-						loserScore: room.loserScore
+						loserScore: room.loserScore,
+						mode: room.mode
 					});
-
 					let roomIndex: number = this.currentGames.findIndex(roomIdRm => roomIdRm === room.roomId);
 					if (roomIndex !== -1)
 						this.currentGames.splice(roomIndex, 1);

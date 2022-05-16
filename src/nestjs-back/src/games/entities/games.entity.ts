@@ -6,6 +6,7 @@ import {
     PrimaryGeneratedColumn
 } from "typeorm";
 import { User } from "src/users/entities/users.entity";
+import { GameMode } from "../class/Constants";
 
 @Entity()
 export class Game {
@@ -46,4 +47,7 @@ export class Game {
 
     @Column({ nullable: true })
     gameDuration: number;
+
+    @Column()
+    mode: GameMode;
 }
