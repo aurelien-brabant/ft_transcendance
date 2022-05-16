@@ -238,7 +238,7 @@ export class UsersService {
     } else if (updateUserDto.blockedUsers && updateUserDto.blockedUsers.length) {
       /* Block user */
       for (var toBlock of updateUserDto.blockedUsers) {
-        user = await this.blockUser(id, toBlock.toString());
+        user = await this.blockUser(id, toBlock.id.toString());
       }
     } else if (updateUserDto.pendingFriendsSent && updateUserDto.pendingFriendsSent.length) {
       /* Send frienship invite */
@@ -516,21 +516,21 @@ export class UsersService {
     return this.usersRepository.save(user);
   }
 
-  async removeRelation(id: string, userToUpdate: string, action: string) {
+  async removeRelation(id: string, otherUserId: string, action: string) {
     if (action === 'friend') {
-      await this.removeFriend(userToUpdate, id);
-      return await this.removeFriend(id, userToUpdate);
+      await this.removeFriend(otherUserId, id);
+      return await this.removeFriend(id, otherUserId);
     }
     else if (action === 'unblock') {
-      return await this.unblockUser(id, userToUpdate);
+      return await this.unblockUser(id, otherUserId);
     }
     else if (action === 'removeFriendsSent') {
-      await this.removeFriendshipReceived(userToUpdate, id);
-      return await this.removeFriendshipSent(id, userToUpdate);
+      await this.removeFriendshipReceived(otherUserId, id);
+      return await this.removeFriendshipSent(id, otherUserId);
     }
     else if (action === 'removeFriendsReceived') {
-      await this.removeFriendshipSent(userToUpdate, id);
-      return await this.removeFriendshipReceived(id, userToUpdate);
+      await this.removeFriendshipSent(otherUserId, id);
+      return await this.removeFriendshipReceived(id, otherUserId);
     }
     throw new Error(`No corresponding action found.`);
   }

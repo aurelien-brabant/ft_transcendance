@@ -1,8 +1,7 @@
 import { useContext, useEffect, useState } from "react";
-import { BsFillChatDotsFill } from "react-icons/bs";
 import { Bounce } from "react-awesome-reveal";
 import { io } from "socket.io-client";
-import { BaseUserData, Channel, ChannelMessage, DmChannel, DmMessage } from 'transcendance-types';
+import { BaseUserData, Channel, DmChannel } from 'transcendance-types';
 import { useSession } from "../../hooks/use-session";
 import alertContext, { AlertContextType } from "../alert/alertContext";
 import authContext, { AuthContextValue } from "../auth/authContext";
@@ -188,7 +187,7 @@ const ChatProvider: React.FC = ({ children }) => {
 		if (isBlocked) {
 			return "self-start text-gray-900 bg-gray-600";
 		}
-		return "self-start text-gray-900 bg-gray-300";
+		return "self-start bg-neutral-800";
 	}
 
 	/* Event listeners */
@@ -203,7 +202,7 @@ const ChatProvider: React.FC = ({ children }) => {
 		);
 	};
 
-	const dmCreatedListener = (newDm: DmChannel) => {
+	const openCreatedDmListener = (newDm: DmChannel) => {
 		const friend = (newDm.users[0].id === user.id) ? newDm.users[1] : newDm.users[0];
 
 		openChatView('dm', 'direct message', {
@@ -250,14 +249,14 @@ const ChatProvider: React.FC = ({ children }) => {
 		socket.on("punishedInChannel", chatWarningListener);
 		socket.on("chatError", chatWarningListener);
 		socket.on("chatInfo", chatInfoListener);
-		socket.on("dmCreated", dmCreatedListener);
+		socket.on("openCreatedDm", openCreatedDmListener);
 
 		return () => {
 			socket.off("exception", chatExceptionListener);
 			socket.off("kickedFromChannel", chatWarningListener);
 			socket.off("punishedInChannel", chatWarningListener);
 			socket.off("chatError", chatWarningListener);
-			socket.off("dmCreated", dmCreatedListener);
+			socket.off("openCreatedDm", openCreatedDmListener);
 			socket.off("chatInfo", chatInfoListener);
 		};
 	}, [socket]);
@@ -302,7 +301,7 @@ const ChatProvider: React.FC = ({ children }) => {
 				createDirectMessage,
 				getMessageStyle,
 				channelCreatedListener,
-				dmCreatedListener,
+				openCreatedDmListener,
 				chatWarningListener,
 				lastX,
 				lastY,

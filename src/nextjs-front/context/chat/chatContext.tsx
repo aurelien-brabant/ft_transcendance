@@ -14,6 +14,7 @@ export type ChatMessage = ChatMessagePreview & {
 	author?: string;
 	displayAuthor: boolean;
 	displayStyle: string;
+	isInvite: boolean;
 };
 
 export type ChatGroupPrivacy = 'public' | 'protected' | 'private';
@@ -53,7 +54,7 @@ export type ChatContextType = {
 
 	/* Event listeners */
 	channelCreatedListener: (newChannel: Channel) => void;
-	dmCreatedListener: (newDm: DmChannel) => void;
+	openCreatedDmListener: (newDm: DmChannel) => void;
 	chatWarningListener: (message: string) => void;
 
 	/* Draggable */
