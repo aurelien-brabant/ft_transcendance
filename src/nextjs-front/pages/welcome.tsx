@@ -5,10 +5,8 @@ import Link from 'next/link';
 import Image from "next/image";
 import { useRouter } from 'next/router';
 import isEmail from "validator/lib/isEmail";
-import isMobilePhone from "validator/lib/isMobilePhone";
 import { NextPageWithLayout } from './_app';
 import alertContext, { AlertContextType } from "../context/alert/alertContext";
-import notificationsContext, { NotificationsContextType } from "../context/notifications/notificationsContext";
 import Tooltip from '../components/Tooltip';
 import ResponsiveSlide from '../components/ResponsiveSlide';
 import withDashboardLayout from "../components/hoc/withDashboardLayout";
@@ -16,13 +14,12 @@ import { useSession } from "../hooks/use-session";
 
 const labelClassName = "grow uppercase text-neutral-400";
 const inputClassName =
-  "transition col-span-2 grow bg-transparent outline-0 border-gray-800 pb-1 border-b-2 focus:border-pink-600";
+  "transition col-span-2 grow bg-transparent outline-0 border-04dp pb-1 border-b-2 focus:border-pink-600";
 const inputGroupClassName = "grid md:grid-cols-4 grid-cols-1 items-center gap-x-8 gap-y-2";
 
 type FormData = {
   username: string;
   email: string;
-  phone: string | null;
   tfa: boolean;
   pic: string;
 };
@@ -30,7 +27,6 @@ type FormData = {
 type InvalidInputs = {
   username?: string;
   email?: string;
-  phone?: string | null;
   tfa?: string;
 };
 
@@ -44,13 +40,9 @@ const InputErrorProvider: React.FC<{ error?: string | null }> = ({
   </div>
 );
 
-const validatePhone = (phone: string | null) => {
-  if (phone && phone !== "")
-    return isMobilePhone(phone.replace(/ /g, ""));
-};
 
 const Welcome: NextPageWithLayout = () => {
-  const { user, logout, reloadUser } = useSession();
+  const { user, logout, reloadUser, backend } = useSession();
   const [invalidInputs, setInvalidInputs] = useState<InvalidInputs>({});
   const { setAlert } = useContext(alertContext) as AlertContextType;
   const router = useRouter();
@@ -60,13 +52,10 @@ const Welcome: NextPageWithLayout = () => {
   const [tfaStatus, setTfaStatus] = useState(user.tfa ? 'enabled' : 'disabled');
   const [currentStep, setCurrentStep] = useState(0);
   const inputToFocus = useRef<HTMLInputElement>(null);
-  const phoneNb = user.phone;
 
   const [formData, setFormData] = useState<FormData>({
-
     username: user.username,
     email: user.email,
-    phone: phoneNb === undefined ? null : phoneNb,
     tfa: user.tfa,
     pic: user.pic
   });
@@ -74,26 +63,17 @@ const Welcome: NextPageWithLayout = () => {
   let baseObject: FormData;
 
   const reactivateAccount = () => {
-    fetch(`/api/users/${user.id}`, {
+    backend.request(`/api/users/${user.id}`, {
       method: 'PATCH',
       headers: {
         'Content-Type': 'application/json'
       },
-      body: JSON.stringify({accountDeactivated: false})
+      body: JSON.stringify({
+        accountDeactivated: false
+      })
     });
   }
-  
-  const { notifications, setNotifications } = useContext(notificationsContext) as NotificationsContextType;
 
-  const checkPendingFriendsRequests = () => {
-
-    const data = user.pendingFriendsReceived;
-    if (data.length) {
-      for (let i in data)
-        setNotifications([...notifications, {category: 'Friend request', content: `${data[i].username} wants to be you friend`, isRead: false, id: data[i].id, issuedAt: `${new Date(Date.now())}`}]);
-    }
-  }
-  
   useEffect(() => {
     if (user.accountDeactivated)
       reactivateAccount();
@@ -103,11 +83,9 @@ const Welcome: NextPageWithLayout = () => {
     baseObject = {
       username: user.username,
       email: user.email,
-      phone: basePhoneNb === undefined ? null : basePhoneNb,
       tfa: user.tfa,
       pic: user.pic
     }
-    checkPendingFriendsRequests();
   }, [])
 
   // recompute this only when formData changes
@@ -130,23 +108,23 @@ const Welcome: NextPageWithLayout = () => {
 	}
 
   const deactivateAccount = async () => {
-    const req = await fetch(`/api/users/${user.id}`, {
+    const res = await backend.request(`/api/users/${user.id}`, {
       method: 'PATCH',
       headers: {
         'Content-Type': 'application/json'
       },
-      body: JSON.stringify({accountDeactivated: true})
+      body: JSON.stringify({
+        accountDeactivated: true
+      })
     });
 
-    const res = await req.json();
-
-    if (req.status === 200) {
+    if (res.status === 200) {
       await handleLogout();
     }
   }
 
   const editUser = async (formData: FormData) => {
-  	const req = await fetch(`/api/users/${user.id}`, {
+    const res = await backend.request(`/api/users/${user.id}`, {
       method: 'PATCH',
       headers: {
         'Content-Type': 'application/json'
@@ -156,14 +134,21 @@ const Welcome: NextPageWithLayout = () => {
       body: JSON.stringify(formData)
     });
 
-    const res = await req.json();
-
-    if (req.status === 200) {
+    if (res.status === 200) {
       await reloadUser();
-      setAlert({ type: 'success', content: 'User edited successfully' });
+
+      setAlert({
+        type: 'success',
+        content: 'User edited successfully'
+      });
+    } else {
+      const data = await res.json();
+
+      setAlert({
+        type: 'error',
+        content: data.message
+      });
     }
-    else
-      setAlert({ type: 'error', content: 'Error while editing user!' });
   }
 
   const handleSubmit = (e: React.FormEvent<HTMLFormElement>) => {
@@ -181,22 +166,15 @@ const Welcome: NextPageWithLayout = () => {
       tmp.email = "Not a valid email";
     }
 
-    if (formData.phone && !isMobilePhone(formData.phone.replace(/ /g, ""))) {
-      tmp.phone = "Not a valid phone number";
-    }
-  
     setInvalidInputs(tmp);
-    if (!tmp.username && !tmp.email && !tmp.phone) {
-      if (formData.phone === "")
-        editUser({...formData, phone: null});
-      else
+    if (!tmp.username && !tmp.email) {
         editUser(formData);
     }
   };
 
   const activateTfa = async () => {
  
-    const req = await fetch(`/api/users/${user.id}/enableTfa`, {
+    const req = await backend.request(`/api/users/${user.id}/enableTfa`, {
       method: 'POST',
       headers: {
         'Content-Type': 'application/json'
@@ -214,21 +192,24 @@ const Welcome: NextPageWithLayout = () => {
     else {
       setAlert({ type: 'error', content: 'Wrong verification code!' });
       setTfaStatus('disabled');
-      setTfaCode(''); 
-      setCurrentStep(0);   
+      setTfaCode('');
+      setCurrentStep(0);
     }
   }
 
   const deactivateTfa = async () => {
 
-    const req = await fetch(`/api/users/${user.id}`, {
+    const req = await backend.request(`/api/users/${user.id}`, {
       method: 'PATCH',
       headers: {
         'Content-Type': 'application/json'
       },
       redirect: 'follow',
       referrerPolicy: 'no-referrer',
-      body: JSON.stringify({tfa: false, tfaSecret: null})
+      body: JSON.stringify({
+        tfa: false,
+        tfaSecret: null
+      })
     });
 
     if (req.status === 200) {
@@ -251,12 +232,6 @@ const Welcome: NextPageWithLayout = () => {
     else if (tfaCode.length === 6)
         activateTfa();
   }, [tfaCode])
-
-  const hasValidPhone = validatePhone(formData.phone);
-
-  const tfaBgColor = hasValidPhone ? "bg-gray-600" : "bg-gray-800";
-
-  const tfaText = hasValidPhone ? "SMS-2FA unavailable now..." : "Valid phone number required";
 
   const handleChangeTfa = (e: React.ChangeEvent<HTMLInputElement>) => {
       e.preventDefault();
@@ -338,14 +313,14 @@ const Welcome: NextPageWithLayout = () => {
       const body = new FormData();
       body.append("image", image);
 
-      const req = await fetch(`/api/users/${user.id}/uploadAvatar`, {
+      const req = await backend.request(`/api/users/${user.id}/uploadAvatar`, {
         method: "POST",
         body
       });
-     
+
       if (req.ok) {
         const res = await req.json();
-        console.log(res);
+
         setPendingPic(false);
         setAlert({type: 'success', content: 'Avatar uploaded successfully'})
         router.reload();
@@ -380,7 +355,7 @@ const Welcome: NextPageWithLayout = () => {
 
     setAlert({type: 'info', content: 'New random avatar'})
 
-    const req = await fetch(`/api/users/${user.id}/randomAvatar`);
+    const req = await backend.request(`/api/users/${user.id}/randomAvatar`);
 
     if (req.ok)
       router.reload();
@@ -392,7 +367,7 @@ const Welcome: NextPageWithLayout = () => {
 
     setAlert({type: 'info', content: 'Default 42 pic requested'})
 
-    const req = await fetch(`/api/users/${user.id}/avatar42`);
+    const req = await backend.request(`/api/users/${user.id}/avatar42`);
    
     if (req.ok)
       router.reload();
@@ -405,10 +380,10 @@ const Welcome: NextPageWithLayout = () => {
   }, [currentStep, pendingQR]);
   
   return (
-    <div className="min-h-screen text-white bg-gray-900 grow" id="main-content">
+    <div className="text-white" id="main-content">
       <div 
-        style={{ minHeight: "300vh", maxWidth: "800px" }}
-        className="px-2 py-16 mx-auto"
+        style={{ maxWidth: "800px" }}
+        className="px-2 mx-auto"
       >
       
       {(user.duoquadra_login) ?
@@ -529,48 +504,6 @@ const Welcome: NextPageWithLayout = () => {
                   className={inputClassName}
                 />
               </InputErrorProvider>
-              <small></small>
-            </div>
-
-            <div className={inputGroupClassName}>
-              <label htmlFor="phone" className={labelClassName}>
-                Phone
-              </label>
-              <InputErrorProvider error={invalidInputs.phone}>
-                <input
-                  value={formData.phone || ""}
-                  onChange={handleChange}
-                  type="text"
-                  name="phone"
-                  className={inputClassName}
-                />
-              </InputErrorProvider>
-              <small>
-                We will use that data for two factor authentication, nothing
-                else!
-              </small>
-            </div>
-
-            <div className={inputGroupClassName}>
-              <label htmlFor="tfa" className={labelClassName}>
-                2FA - SMS
-              </label>
-              <button
-                disabled
-                type="button"
-                className={`px-6 py-2 col-span-2 ${tfaBgColor}`}
-                onClick={() => {
-                  if (hasValidPhone) {
-                  //  setFormData({ ...formData, tfa: !formData.tfa });
-                    //formData.tfa ? setPendingQR(true) : setPendingQR(false);
-                  }
-                }}
-              >
-                {tfaText}
-              </button>
-              <small>
-                Confirm each connection to your account using your phone number
-              </small>
             </div>
 
             <div className={inputGroupClassName}>
@@ -612,7 +545,8 @@ const Welcome: NextPageWithLayout = () => {
 
               <button
                 className="px-1 py-2 text-sm font-bold uppercase bg-red-600 md:px-6 md:text-lg"
-                onClick={() => {
+                onClick={(e) => {
+                  e.preventDefault();
                   if (confirm("Deactivated account?\nJust login again to reactivate your account.\n\nClick OK to proceed.") == true) {
                     deactivateAccount();
                   }

@@ -1,129 +1,170 @@
 import { Fragment, useContext, useEffect, useRef, useState } from "react";
 import { AiOutlineArrowLeft, AiOutlineClose } from "react-icons/ai";
 import { FiSend } from "react-icons/fi";
-import { RiPingPongLine } from 'react-icons/ri';
-import Link from 'next/link';
+import { RiPingPongLine } from "react-icons/ri";
+import Link from "next/link";
+import { DmChannel, DmMessage } from 'transcendance-types';
 import { UserStatusItem } from "../UserStatus";
 import { useSession } from "../../hooks/use-session";
 import Tooltip from "../../components/Tooltip";
-import alertContext, { AlertContextType } from "../../context/alert/alertContext";
 import chatContext, { ChatContextType, ChatMessage } from "../../context/chat/chatContext";
 
 /* Header */
-export const DirectMessageHeader: React.FC<{ viewParams: any }> = ({ viewParams }) => {
-	const { closeChat, setChatView } = useContext(
-		chatContext
-	) as ChatContextType;
-	const actionTooltipStyles = 'font-bold bg-gray-900 text-neutral-200';
+export const DirectMessageHeader: React.FC<{ viewParams: any }> = ({
+	viewParams,
+}) => {
 	const { user } = useSession();
+	const { socket, closeChat, setChatView } = useContext(chatContext) as ChatContextType;
+	const actionTooltipStyles = "font-bold bg-dark text-neutral-200";
+	const pongIconStyle = "p-1 text-pink-700 bg-pink-200 rounded-full transition hover:scale-110  hover:text-pink-600";
+
+	/**
+	 * WIP: To link with Hub
+	 * Invite for a Pong game
+	 */
+		const sendPongInvite = (id: string) => {
+			// TODO
+			console.log(`[Direct Message] Invite user [${id}] to play Pong`);
+	};
 
 	return (
 		<Fragment>
 			<div className="flex items-start justify-between pt-3 px-5">
 				<div className="flex gap-x-2">
-					<button className="text-2xl" onClick={() => {closeChat() }}>
+					<button
+						className="text-2xl"
+						onClick={() => {
+							closeChat();
+						}}
+					>
 						<AiOutlineClose />
 					</button>
-					<button className="text-2xl" onClick={() => {setChatView('dms', 'Direct messages', {})}}>
+					<button
+						className="text-2xl"
+						onClick={() => {
+							setChatView("dms", "Direct messages", {});
+						}}
+					>
 						<AiOutlineArrowLeft />
 					</button>
 				</div>
 				<Tooltip className={actionTooltipStyles} content="play">
 					<button
-						className="p-1 text-xl text-gray-900 bg-white rounded-full transition hover:scale-105 hover:text-pink-600"
+						className={pongIconStyle}
+						onClick={() => sendPongInvite(viewParams.friendId)}
 					>
 						<RiPingPongLine />
 					</button>
 				</Tooltip>
 			</div>
 			<div className="flex items-center justify-center gap-x-3">
-				<Link href={`/users/${viewParams.friendId}`}><h6 className="font-bold hover:text-pink-600">
+				<Link href={`/users/${viewParams.friendId}`}>
+					<h6 className="font-bold hover:text-pink-600">
 						{viewParams.friendUsername}
-					</h6></Link> <UserStatusItem withText={false} status={(user.accountDeactivated) ? "deactivated" : "online"} id={user.id} />
+					</h6>
+				</Link>{" "}
+				<UserStatusItem
+					withText={false}
+					id={viewParams.friendId}
+				/>
 			</div>
 		</Fragment>
 	);
-}
+};
 
 /* Conversation */
 const DirectMessage: React.FC<{ viewParams: { [key: string]: any } }> = ({
 	viewParams,
 }) => {
+	const dmId: string = viewParams.channelId;
 	const { user } = useSession();
-	const { setAlert } = useContext(alertContext) as AlertContextType;
-	const { fetchChannelData } = useContext(chatContext) as ChatContextType;
+	const { socket, getMessageStyle } = useContext(chatContext) as ChatContextType;
 	const [messages, setMessages] = useState<ChatMessage[]>([]);
 	const [currentMessage, setCurrentMessage] = useState("");
+	const [sendingEnabled, setSendingEnabled] = useState(false);
 	const chatBottom = useRef<HTMLDivElement>(null);
-	const dmId = viewParams.dmId;
-
-	const addMessage = (message: any) => {
-		setMessages([
-			...messages, {
-				id: message.id,
-				author: message.author.username,
-				content: message.content,
-				isMe: (message.author.id === user.id),
-				isBlocked: false
-			}
-		]);
-	}
 
 	/* Send new message */
 	const handleDmSubmit = async () => {
-		if (currentMessage.length === 0) return;
+		if (currentMessage.trim().length === 0) return ;
 
-		const channelData = await fetchChannelData(dmId).catch(console.error);
-		const res = await fetch("/api/messages", {
-			method: "POST",
-			headers: {
-				"Content-Type": "application/json",
-			},
-			body: JSON.stringify({
-				author: user,
-				content: currentMessage,
-				channel: channelData
-			}),
+		socket.emit("dmSubmit", {
+			content: currentMessage,
+			author: { "id": user.id },
+			dm: { "id": dmId },
 		});
-		const data = await res.json();
-
-		if (res.status === 201) {
-			addMessage(data);
-			setCurrentMessage("");
-			return;
-		} else {
-			setAlert({
-				type: "error",
-				content: "Failed to send message"
-			});
-		}
+		setCurrentMessage("");
 	};
 
-	/* Scroll to bottom if new message is sent */
+	const handleChange = (
+		e: React.ChangeEvent<HTMLTextAreaElement>
+	) => {
+		const len = e.target.value.trim().length;
+
+		if ((len === 0) || (len > 640)) {
+			setSendingEnabled(false);
+		} else {
+			setSendingEnabled(true);
+		}
+		setCurrentMessage(e.target.value);
+	};
+
+	/* Receive new message */
+	const handleNewMessage = ({ message }: { message: DmMessage }) => {
+		setMessages((prevMessages) => {
+			const newMessages: ChatMessage[] = [...prevMessages];
+
+			newMessages.push({
+				id: prevMessages.length.toString(),
+				createdAt: message.createdAt,
+				content: message.content,
+				author: message.author.username,
+				displayAuthor: !(message.author.id === user.id),
+				displayStyle: getMessageStyle(message.author),
+			});
+			return newMessages;
+		});
+	};
+
+	/* Load all messages in channel */
+	const updateDmView = async (dm: DmChannel) => {
+		if ((dm.id !== dmId) || !dm.messages) return ;
+
+		const messages: ChatMessage[] = [];
+
+		dm.messages.sort(
+			(a: DmMessage, b: DmMessage) => (parseInt(a.id) - parseInt(b.id))
+		);
+
+		for (var message of dm.messages) {
+			messages.push({
+				id: messages.length.toString(),
+				createdAt: message.createdAt,
+				content: message.content,
+				author: message.author.username,
+				displayAuthor: !(message.author.id === user.id),
+				displayStyle: getMessageStyle(message.author),
+			});
+		}
+		setMessages(messages);
+	};
+
+	/* Scroll to bottom if a new message is sent */
 	useEffect(() => {
 		chatBottom.current?.scrollIntoView();
 	}, [messages]);
 
-	/* Load all messages on mount */
-	const loadDmsOnMount = async () => {
-		const data = await fetchChannelData(dmId).catch(console.error);
-		const dms = JSON.parse(JSON.stringify(data)).messages;
-		const messages: ChatMessage[] = [];
-
-		for (var i in dms) {
-			messages.push({
-				id: dms[i].id,
-				author: dms[i].author.username,
-				content: dms[i].content,
-				isMe: (dms[i].author.id === user.id),
-				isBlocked: false
-			});
-		}
-		setMessages(messages);
-	}
-
 	useEffect(() => {
-		loadDmsOnMount();
+		socket.emit("getDmData", { dmId });
+
+		/* Listeners */
+		socket.on("updateDm", updateDmView);
+		socket.on("newDm", handleNewMessage);
+
+		return () => {
+			socket.off("updateDm", updateDmView);
+			socket.off("newDm", handleNewMessage);
+		};
 	}, []);
 
 	return (
@@ -132,31 +173,37 @@ const DirectMessage: React.FC<{ viewParams: { [key: string]: any } }> = ({
 				{messages.map((msg: ChatMessage) => (
 					<div
 						key={msg.id}
-						className={`${
-							msg.isMe
-									? "self-end bg-green-600"
-									: "self-start text-gray-900 bg-gray-300"
-						} max-w-[80%] p-2 my-2 rounded whitespace-wrap break-all`}
+						className={`
+							${msg.displayStyle}
+							max-w-[80%] p-2 my-2 rounded whitespace-wrap break-all`
+						}
 					>
-						<p>
-						{msg.content}
-						</p>
+						<p>{msg.content}</p>
 					</div>
 				))}
 				<div ref={chatBottom} />
 			</div>
-			<div className="absolute inset-x-0 bottom-0 border-t-2 border-gray-800 min-h-[13%] flex gap-x-2 items-center px-8 py-2 bg-gray-900 drop-shadow-md">
+			<div className="absolute inset-x-0 bottom-0 border-t-2 border-04dp min-h-[13%] flex gap-x-2 items-center px-8 py-2 bg-dark drop-shadow-md">
 				<textarea
 					placeholder="Your message"
 					className="p-2 bg-transparent border border-pink-600 resize-none grow outline-0"
 					value={currentMessage}
-					onChange={(e) => {
-						setCurrentMessage(e.target.value);
-					}}
+					onChange={handleChange}
 				/>
-				<button onClick={handleDmSubmit} className="self-stretch px-3 py-2 text-lg text-white uppercase bg-pink-600 rounded">
+				{sendingEnabled ?
+				<button
+					onClick={handleDmSubmit}
+					className="self-stretch px-3 py-2 text-lg text-white uppercase bg-pink-600 rounded"
+					>
 					<FiSend />
 				</button>
+				:
+				<button
+					className="self-stretch px-3 py-2 text-lg text-white uppercase bg-pink-900 rounded"
+				>
+					<FiSend />
+				</button>
+				}
 			</div>
 		</div>
 	);

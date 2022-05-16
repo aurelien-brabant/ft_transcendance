@@ -16,20 +16,22 @@ import { UsersService } from 'src/users/users.service';
 import Queue from './class/Queue';
 import Room from './class/Room';
 import { ConnectedUsers, User } from './class/ConnectedUsers';
-import { GameMode, GameState, userStatus } from './class/Constants';
+import { GameMode, GameState, UserStatus } from './class/Constants';
 
 @WebSocketGateway({ cors: true, namespace: "game" })
 export class PongGateway implements OnGatewayInit, OnGatewayConnection, OnGatewayDisconnect {
-	constructor(private readonly gamesService: GamesService,
-				private readonly usersService: UsersService) {}
+	constructor(
+		private readonly gamesService: GamesService,
+		private readonly usersService: UsersService
+	) {}
 
 	@WebSocketServer()
 	server: Server;
 
 	private logger: Logger = new Logger('gameGateway');
 
-    private readonly queue: Queue = new Queue();
-    private readonly rooms: Map<string, Room> = new Map();
+	private readonly queue: Queue = new Queue();
+	private readonly rooms: Map<string, Room> = new Map();
 	private readonly currentGames: Array<string> = new Array();
 	private readonly connectedUsers: ConnectedUsers = new ConnectedUsers();
 
@@ -40,12 +42,8 @@ export class PongGateway implements OnGatewayInit, OnGatewayConnection, OnGatewa
 				let roomId: string;
 				let room: Room;
 
-				players.push(this.queue.dequeue());
-				// Match players based on ratio, etc...
-				players.push(this.queue.dequeue());
+				players = this.queue.matchPlayers();
 
-				// emit rooms change event for spectator or create a game in DB
-				
 				roomId = `${players[0].username}&${players[1].username}`;
 				
 				// room = new Room(roomId, players, {maxGoal: 1, mode: GameMode.DEFAULT});
@@ -62,20 +60,20 @@ export class PongGateway implements OnGatewayInit, OnGatewayConnection, OnGatewa
 	}
 
 	async handleConnection(@ConnectedSocket() client: Socket) {
-		this.logger.log(`Client connected: ${client.id}`);
+		// this.logger.log(`Client connected: ${client.id}`);
 	}
 
 	@SubscribeMessage('handleUserConnect')
 	async handleUserConnect(@ConnectedSocket() client: Socket, @MessageBody() user: User) {
-		let newUser: User = new User(user.id, user.username, client.id);
+		let newUser: User = new User(user.id, user.username, client.id, user.ratio);
 		newUser.setSocketId(client.id);
-		newUser.setUserStatus(userStatus.INHUB);
+		newUser.setUserStatus(UserStatus.INHUB);
 
 		// Verify that player is not already in a game
 		this.rooms.forEach((room: Room) => {
 			if (room.isAPlayer(newUser) && room.gameState !== GameState.END)
 			{
-				newUser.setUserStatus(userStatus.PLAYING);
+				newUser.setUserStatus(UserStatus.PLAYING);
 				newUser.setRoomId(room.roomId);
 				this.server.to(client.id).emit("newRoom", room);
 				if (room.gameState === GameState.PAUSED)
@@ -131,7 +129,7 @@ export class PongGateway implements OnGatewayInit, OnGatewayConnection, OnGatewa
 
 		if (user && !this.queue.isInQueue(user))
 		{
-			this.connectedUsers.changeUserStatus(client.id, userStatus.INQUEUE);
+			this.connectedUsers.changeUserStatus(client.id, UserStatus.INQUEUE);
 			this.queue.enqueue(user);
 			this.server.to(client.id).emit('joinedQueue');
 			this.logger.log(`Client ${user.username}: ${client.id} was added to queue !`);
@@ -170,8 +168,8 @@ export class PongGateway implements OnGatewayInit, OnGatewayConnection, OnGatewa
 		if (room) {
 			let user = this.connectedUsers.getUser(client.id);
 			client.join(roomId);
-			if (user.status === userStatus.INHUB) {
-				this.connectedUsers.changeUserStatus(client.id, userStatus.SPECTATING);
+			if (user.status === UserStatus.INHUB) {
+				this.connectedUsers.changeUserStatus(client.id, UserStatus.SPECTATING);
 			}
 			else if (room.isAPlayer(user))
 				room.addUser(user);
@@ -200,7 +198,7 @@ export class PongGateway implements OnGatewayInit, OnGatewayConnection, OnGatewa
 			if (room.isAPlayer(user) && room.gameState !== GameState.END)
 				room.pause();
 			client.leave(room.roomId);
-			this.connectedUsers.changeUserStatus(client.id, userStatus.INHUB);
+			this.connectedUsers.changeUserStatus(client.id, UserStatus.INHUB);
 		}
 		this.server.to(client.id).emit("leavedRoom");
 	}
@@ -221,10 +219,17 @@ export class PongGateway implements OnGatewayInit, OnGatewayConnection, OnGatewa
 			{
 				room.update();
 				if (room.isGameEnd) {
-					let playerOne = await this.usersService.findOne(String(room.players[0].id));
-					let playerTwo = await this.usersService.findOne(String(room.players[1].id));
+					let winner = await this.usersService.findOne(String(room.winnerId));
+					let loser = await this.usersService.findOne(String(room.loserId));
+
+					/* Update users wins/losses/draws and ratio */
+					const isDraw = (room.winnerScore === room.loserScore);
+					await this.usersService.updateStats(winner, isDraw, true);
+					await this.usersService.updateStats(loser, isDraw, false);
+
+					/* Save game in database */
 					await this.gamesService.create({
-						players: [playerOne, playerTwo],
+						players: [winner, loser],
 						winnerId: room.winnerId,
 						loserId: room.loserId,
 						createdAt: new Date(room.timestampStart),

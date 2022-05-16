@@ -1,30 +1,36 @@
 import {
+  ArrayMinSize,
+  IsArray,
   IsIn,
   IsNotEmpty,
   IsNumber,
   IsOptional,
   IsString,
-  MaxLength,
-  MinLength
+  Matches,
+  Length,
 } from 'class-validator';
-import { Message } from 'src/chat/messages/entities/messages.entity';
+import { PasswordValidator } from 'src/utils/patternValidator';
+import { Transform, Type } from 'class-transformer';
 import { User } from 'src/users/entities/users.entity';
 
 export class CreateChannelDto {
-  @IsNotEmpty()
+  @Transform(({ value }) => value.trim())
   @IsString()
-  @MaxLength(50)
-  @MinLength(2)
+  @Matches(/^[a-zA-Z0-9_ ]+$/, {
+    message: 'The channel name must contain alphanumeric characters, underscores and spaces only.',
+  })
+  @Length(3, 20)
   readonly name: string;
 
   @IsString()
-  @IsIn(["public", "private", "protected", "dm"])
+  @IsIn(["public", "private", "protected"])
   readonly privacy: string;
 
   @IsOptional()
+  @IsNotEmpty()
   @IsString()
-  @MinLength(8)
-  readonly password?: string;
+  @PasswordValidator()
+  password?: string;
 
   @IsOptional()
   @IsNumber()
@@ -35,8 +41,8 @@ export class CreateChannelDto {
   readonly owner: User;
 
   @IsNotEmpty()
+  @IsArray()
+  @Type(() => User)
+  @ArrayMinSize(1)
   readonly users: User[];
-
-  @IsOptional()
-  readonly messages: Message[];
 }

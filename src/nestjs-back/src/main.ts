@@ -1,11 +1,11 @@
 import { NestFactory } from '@nestjs/core';
-import {NestExpressApplication} from '@nestjs/platform-express';
+import { NestExpressApplication } from '@nestjs/platform-express';
 import { DocumentBuilder, SwaggerCustomOptions, SwaggerModule } from '@nestjs/swagger';
 import { AppModule } from './app.module';
 import { join } from 'path';
 import { ValidationPipe } from '@nestjs/common';
-//import seeder from './seeder';
-import * as cookieParser from 'cookie-parser'
+import * as cookieParser from 'cookie-parser';
+// import seeder from './seeder';
 
 async function bootstrap() {
   const app = await NestFactory.create<NestExpressApplication>(AppModule, {
@@ -43,7 +43,7 @@ async function bootstrap() {
     }),
   );
 
-  //seeder();
+  // seeder();
 
   app.use(cookieParser())
 

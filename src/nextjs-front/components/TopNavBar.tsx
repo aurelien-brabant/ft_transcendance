@@ -98,7 +98,7 @@ const TopNavBar: React.FC<TopNavBarProps> = ({ items }) => {
 						)}
 						<Link href="/">
 							<a className="flex">
-								<Image src="/logo.svg" alt="transcendance top logo" height={70} width={70} />
+								<Image src="/logo_pink.svg" alt="transcendance top logo" height={70} width={70} />
 							</a>
 						</Link>
 					</div>

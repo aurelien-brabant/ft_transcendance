@@ -55,3 +55,49 @@ export type Achievement = {
 	levelToReach: number;
 	users: User[];
 }
+
+/* CHAT */
+
+export type PunishmentType = 'mute' | 'ban';
+
+export type ChannelPunishment = {
+	id: string;
+	startsAt: Date;
+	endsAt: Date;
+	durationInSeconds: number;
+	type: PunishmentType;
+	reason: string;
+	punishedUser: User;
+}
+
+export type DmMessage = {
+	id: string;
+	createdAt: Date;
+	content: string;
+	author: User;
+	channel: Channel;
+};
+
+export type DmChannel = {
+	id: string;
+	createdAt: Date;
+	users: User[];
+	messages: Message[];
+}
+
+export type ChannelMessage = {
+	id: string;
+	createdAt: Date;
+	content: string;
+	author?: User;
+	channel: Channel;
+};
+
+export type Channel = DmChannel & {
+	name: string;
+	privacy: string;
+	restrictionDuration: number;
+	owner: User;
+	admins: User[];
+	punishments: ChannelPunishment[];
+}

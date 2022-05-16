@@ -21,6 +21,7 @@ const formConfig: ProgressiveFormConfig = {
           placeholder: "example@gmail.com",
           validate: (value) =>
             isEmail(value) ? undefined : "Invalid e-mail address format",
+
         },
       ],
       submitCta: "Continue with email",
@@ -37,7 +38,10 @@ const formConfig: ProgressiveFormConfig = {
           name: "password2",
           inputType: "password",
           validate: (password2, { password }) =>
-            password !== password2 ? "Passwords do not match" : undefined,
+            password.match('^(?=.*[A-Za-z])(?=.*[0-9])(?=.*[@$!%#?&])[A-Za-z0-9@$!%#?&]{8,30}$')
+              ? (password !== password2)
+                ? "Passwords do not match" : undefined
+              : "Password must contain at least one letter, one number, one special character (@$!%#?&) and be between 8 and 30 characters long.",
         },
       ],
       submitCta: "Continue with password",

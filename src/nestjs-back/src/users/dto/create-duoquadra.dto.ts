@@ -1,7 +1,5 @@
 import {
     IsEmail,
-    IsOptional,
-    IsPhoneNumber,
     IsString,
     IsUrl
 } from "class-validator";
@@ -23,8 +21,4 @@ export class CreateDuoQuadraDto {
 
     @IsEmail()
     email: string;
-
-    @IsOptional()
-    @IsPhoneNumber()
-    phone?: string;
 }

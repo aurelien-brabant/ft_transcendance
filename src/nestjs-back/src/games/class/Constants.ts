@@ -24,12 +24,13 @@ export enum GameState {
 	END
 }
 
-export enum userStatus {
-	// DISCONNECTED,
+export enum UserStatus {
 	INHUB,
 	INQUEUE,
+	OFFLINE,
+	ONLINE,
+	PLAYING,
 	SPECTATING,
-	PLAYING
 }
 
 export enum GameMode {

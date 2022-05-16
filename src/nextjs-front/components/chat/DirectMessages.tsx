@@ -1,21 +1,71 @@
 import { Fragment, useContext, useEffect, useRef, useState } from "react";
+import { DmChannel } from 'transcendance-types';
 import { UserStatusItem } from "../UserStatus";
 import { useSession } from "../../hooks/use-session";
-import chatContext, { ChatContextType, ChatGroupPrivacy, DirectMessage } from "../../context/chat/chatContext";
+import chatContext, {
+	ChatContextType,
+	ChatGroupPrivacy,
+	ChatMessagePreview,
+	DirectMessage
+} from "../../context/chat/chatContext";
+import relationshipContext, { RelationshipContextType } from "../../context/relationship/relationshipContext";
 
 /* All DM conversations tab */
 const DirectMessages: React.FC<{ viewParams: Object; }> = ({ viewParams }) => {
 	const { user } = useSession();
-	const {
-		openChatView,
-		directMessages,
-		fetchChannelData,
-		getLastMessage,
-		updateDirectMessages
-	} = useContext(chatContext) as ChatContextType;
+	const { socket, openChatView } = useContext(chatContext) as ChatContextType;
+	const { blocked } = useContext(relationshipContext) as RelationshipContextType;
+	const [directMessages, setDirectMessages] = useState<DirectMessage[]>([]);
 	const [filteredDms, setFilteredDms] = useState(directMessages);
 	const [visiblityFilter, setVisiblityFilter] = useState<ChatGroupPrivacy | null>(null);
 	const searchInputRef = useRef<HTMLInputElement>(null);
+
+	/* Direct Messages loading */
+	const getLastMessage = (channel: DmChannel) => {
+		let message: ChatMessagePreview = {
+			createdAt: channel.createdAt,
+			content: "",
+		};
+
+		if (channel.messages && channel.messages.length > 0) {
+			const lastMessage = channel.messages.reduce(function(prev, current) {
+				return (prev.id > current.id) ? prev : current;
+			});
+
+			message.createdAt = new Date(lastMessage.createdAt);
+			message.content = lastMessage.content;
+		}
+		return message;
+	}
+
+	const updateDmsListener = (channels: DmChannel[]) => {
+		const dms: DirectMessage[] = [];
+
+		for (var channel of Array.from(channels)) {
+			const friend = (channel.users[0].id === user.id) ? channel.users[1] : channel.users[0];
+			const isBlocked = !!blocked.find(user => user.id === friend.id);
+
+			/* Don't display DMs from blocked users */
+			if (!isBlocked) {
+				const lastMessage: ChatMessagePreview = getLastMessage(channel);
+
+				dms.push({
+					id: channel.id,
+					friendId: friend.id,
+					friendUsername: friend.username,
+					friendPic: `/api/users/${friend.id}/photo`,
+					lastMessage: lastMessage.content,
+					updatedAt: lastMessage.createdAt
+				});
+			}
+		}
+		/* Sorts from most recent */
+		dms.sort(
+			(a: DirectMessage, b: DirectMessage) =>
+			(b.updatedAt.valueOf() - a.updatedAt.valueOf())
+		);
+		setDirectMessages(dms);
+	}
 
 	/* Search a user */
 	const handleSearch = (term: string) => {
@@ -32,26 +82,31 @@ const DirectMessages: React.FC<{ viewParams: Object; }> = ({ viewParams }) => {
 		handleSearch((searchInputRef.current as HTMLInputElement).value);
 	}, [visiblityFilter]);
 
-	/* Update last message for all conversations */
-	const updateLastMessage = async (channel: DirectMessage) => {
-		const data = await fetchChannelData(channel.id).catch(console.error);
-		const message = getLastMessage(JSON.parse(JSON.stringify(data)));
+	/* Update filtered direct messages */
+	useEffect(() => {
+		setFilteredDms(directMessages);
+	}, [directMessages]);
 
-		channel.lastMessage = message.content;
-		channel.updatedAt = message.createdAt;
-		updateDirectMessages();
-	}
+	const dmsChangeListener = () => {
+		socket.emit("getUserDms", { userId: user.id });
+	};
 
 	useEffect(() => {
-		const updatePreviews = async () => {
-			await Promise.all(directMessages.map((dm) => updateLastMessage(dm)));
+		socket.emit("getUserDms", { userId: user.id });
+
+		/* Listeners */
+		socket.on("updateUserDms", updateDmsListener);
+		socket.on("newDm", dmsChangeListener);
+
+		return () => {
+			socket.off("updateUserDms", updateDmsListener);
+			socket.off("newDm", dmsChangeListener);
 		};
-		updatePreviews();
 	}, []);
 
 	return (
 		<Fragment>
-			<div className="h-[15%] gap-x-2 flex items-center p-4 bg-gray-900/90 border-b-4 border-gray-800 justify-between">
+			<div className="h-[15%] gap-x-2 flex items-center p-4 bg-dark/90 border-b-4 border-04dp justify-between">
 				<input
 					ref={searchInputRef}
 					type="text"
@@ -74,13 +129,13 @@ const DirectMessages: React.FC<{ viewParams: Object; }> = ({ viewParams }) => {
 				{filteredDms.map((dm) => (
 					<div
 						key={dm.friendUsername}
-						className="relative items-center px-10 py-5 grid grid-cols-3 border-b border-gray-800 hover:bg-gray-800/90 transition"
+						className="relative items-center px-10 py-5 grid grid-cols-3 border-b border-04dp hover:bg-04dp/90 transition"
 						onClick={() => {
 							openChatView(
 								'dm', 'dm', {
-									dmId: dm.id,
-									friendUsername: dm.friendUsername,
-									friendId: dm.friendId
+									channelId: dm.id,
+									friendId: dm.friendId,
+									friendUsername: dm.friendUsername
 								}
 							)
 						}}
@@ -90,7 +145,7 @@ const DirectMessages: React.FC<{ viewParams: Object; }> = ({ viewParams }) => {
 							className="relative z-20 flex items-center justify-center w-16 h-16 text-4xl rounded-full"
 						>
 							<img src={dm.friendPic} className="object-fill w-full h-full rounded-full" />
-							<UserStatusItem withText={false} status={Math.random() > 0.3 ? 'offline' : 'online'} className="absolute bottom-0 right-0 z-50" id={user.id} />
+							<UserStatusItem withText={false} className="absolute bottom-0 right-0 z-50" id={dm.friendId} />
 						</div>
 					</div>
 					<div className="col-span-2">

@@ -34,35 +34,34 @@ export const DirectMessageNewHeader: React.FC = () => {
 /* Search bar and friend list */
 const DirectMessageNew: React.FC = () => {
 	const { user } = useSession();
-	const { openDirectMessage } = useContext(chatContext) as ChatContextType;
-	const { getData, friends } = useContext(relationshipContext) as RelationshipContextType;
+	const { createDirectMessage } = useContext(chatContext) as ChatContextType;
+	const { friends } = useContext(relationshipContext) as RelationshipContextType;
 	const [filteredFriends, setFilteredFriends] = useState<User[]>([]);
 	const searchInputRef = useRef<HTMLInputElement>(null);
 
 	/* Search a friend */
 	const handleSearch = (term: string) => {
 		const searchTerm = term.toLowerCase();
+
 		setFilteredFriends(
-			friends.filter(
-				(friend) =>
-					friend.username.toLowerCase().includes(searchTerm)
+			friends.filter((friend) =>
+				friend.username.toLowerCase().includes(searchTerm)
 			)
 		);
 	};
 
+	useEffect(() => {
+		setFilteredFriends(friends);
+	}, [friends]);
+
 	/* Find existing DM or create a new one */
 	const handleSelect = async (friend: User) => {
-		await openDirectMessage(user.id, friend);
+		createDirectMessage(user.id, friend.id);
 	}
-
-	useEffect(() => {
-		getData();
-		setFilteredFriends(friends);
-	}, []);
 
 	return (
 		<Fragment>
-			<div className="h-[15%] gap-x-2 flex items-center p-4 bg-gray-900/90 border-gray-800 border-b-4">
+			<div className="h-[15%] gap-x-2 flex items-center p-4 bg-dark/90 border-04dp border-b-4">
 				<input
 						ref={searchInputRef}
 						type="text"
@@ -80,7 +79,7 @@ const DirectMessageNew: React.FC = () => {
 				{filteredFriends.map((friend) => (
 					<div
 						key={friend.username}
-						className="flex items-center px-4 py-3 hover:bg-gray-800/90 transition gap-x-4"
+						className="flex items-center px-4 py-3 hover:bg-04dp/90 transition gap-x-4"
 						onClick={() => {
 							handleSelect(friend)
 						}}
@@ -92,7 +91,7 @@ const DirectMessageNew: React.FC = () => {
 							src={`/api/users/${friend.id}/photo`}
 							className="object-fill w-full h-full rounded-full"
 						/>
-						<UserStatusItem status={(user.accountDeactivated) ? "deactivated" : "online"} withText={false} className="absolute bottom-0 right-0 z-50" id={user.id} />
+						<UserStatusItem withText={false} className="absolute bottom-0 right-0 z-50" id={friend.id} />
 					</div>
 				{friend.username}
 				</div>

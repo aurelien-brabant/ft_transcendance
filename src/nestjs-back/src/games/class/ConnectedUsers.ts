@@ -1,30 +1,35 @@
-import { userStatus } from "./Constants";
+import { UserStatus } from "./Constants";
 
 export class User {
-    id: number;
+	id: number;
 	username: string;
-	status?: userStatus;
+	ratio?: number;
+	status?: UserStatus;
 	socketId?: string;
 	roomId?: string;
 
-	constructor(id: number, username: string, socketId: string) {
+	constructor(id: number, username: string, socketId: string, ratio?: number) {
 		this.id = id;
 		this.username = username;
+		this.ratio = ratio;
 		this.socketId = socketId
+	}
+
+	setUsername(username: string) {
+		this.username = username;
+	}
+
+	setUserStatus(status: UserStatus) {
+		this.status = status;
 	}
 
 	setSocketId(socketId: string) {
 		this.socketId = socketId;
 	}
 
-	setUserStatus(status: userStatus) {
-		this.status = status;
-	}
-
 	setRoomId(roomId: string | undefined) {
 		this.roomId = roomId;
 	}
-
 }
 
 export class ConnectedUsers {
@@ -33,7 +38,8 @@ export class ConnectedUsers {
 	constructor(private maxUser: number = Infinity) {}
 
 	addUser(user: User) {
-		this.users.push(user);
+		if (this.maxUser !== this.users.length)
+			this.users.push(user);
 	}
 
 	removeUser(userRm: User) {
@@ -49,7 +55,7 @@ export class ConnectedUsers {
 		return this.users[userIndex];
 	}
 
-	changeUserStatus(socketId: string, status: userStatus) {
+	changeUserStatus(socketId: string, status: UserStatus) {
 		let user: User = this.getUser(socketId);
 		user.setUserStatus(status);
 	}

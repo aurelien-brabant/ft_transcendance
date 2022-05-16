@@ -1,6 +1,7 @@
 import { Fragment, useContext, useEffect, useState } from "react";
 import { useRouter } from "next/router";
-import authContext, { AuthContextType } from "../../context/auth/authContext";
+import { useSession } from "../../hooks/use-session";
+import authContext, { AuthContextValue } from "../../context/auth/authContext";
 import LoadingScreen from "../LoadingScreen";
 
 export type AuthConfig = {
@@ -23,16 +24,15 @@ const Authenticator: React.FC<{ authConfig?: Partial<AuthConfig> }> = ({
 		...(authConfig ? { ...authConfig } : {}),
 	};
 
-	const { authenticateUser, isAuthenticated } = useContext(
-		authContext
-	) as AuthContextType;
+	const session = useSession();
+	const isAuthenticated = (session.state === 'authenticated');
+	const { authenticateUser } = useContext(authContext) as AuthContextValue;
 	const [isLoading, setIsLoading] = useState(!isAuthenticated);
 	const router = useRouter();
 
 	useEffect(() => {
 		const checkAuth = async () => {
 			if (!isAuthenticated) {
-				console.log('Authenticating...');
 				const success = await authenticateUser();
 	
 				/* could not authenticate, try to sign in again */

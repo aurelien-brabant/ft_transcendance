@@ -20,7 +20,7 @@ export const team: TeamMember[] = [
 		firstname: "Mathilde",
 		lastname: "Boivin",
 		login42: "mboivin",
-		role: "Developer",
+		role: "Typescript Developer",
 		imageSrc: mboivinPic,
 		githubLink: 'https://github.com/matboivin'
 	},

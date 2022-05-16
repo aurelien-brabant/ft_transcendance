@@ -18,6 +18,10 @@ export type AuthContextValue = {
     loginWithTfa: (userId: string, tfaCode: string) => Promise<User | null>;
     isChatOpened: boolean;
     setIsChatOpened: (chatIsOpen: boolean) => void;
+    verify: () => Promise<boolean>
+    backend: {
+        request: (path: string, init?: RequestInit) => Promise<Response>
+    }
 };
 
 type LoginAction = 'tfa_required' | 'login' | 'logout' | 'none';

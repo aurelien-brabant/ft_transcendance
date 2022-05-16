@@ -1,24 +1,17 @@
-import {
-	Fragment,
-	useContext,
-	useEffect,
-	useMemo,
-	useRef,
-	useState,
-} from "react";
+import { Fragment, useContext, useEffect, useMemo, useRef, useState } from "react";
 import { AiFillLock, AiFillUnlock, AiOutlineEyeInvisible } from "react-icons/ai";
 import { FaUserFriends } from "react-icons/fa";
-import chatContext, { ChatContextType, ChatGroup, ChatGroupPrivacy } from "../../context/chat/chatContext";
+import { BaseUserData, Channel } from 'transcendance-types';
+import { useSession } from "../../hooks/use-session";
+import chatContext, { ChatContextType, ChatGroup, ChatGroupPrivacy, ChatMessagePreview } from "../../context/chat/chatContext";
+import relationshipContext, { RelationshipContextType } from "../../context/relationship/relationshipContext";
 
 /* All group conversations tab */
 const Groups: React.FC<{viewParams: Object;}> = ({ viewParams }) => {
-	const {
-		openChatView,
-		chatGroups,
-		fetchChannelData,
-		getLastMessage,
-		updateChatGroups
-	} = useContext(chatContext) as ChatContextType;
+	const { user } = useSession();
+	const { socket, openChatView } = useContext(chatContext) as ChatContextType;
+	const { blocked } = useContext(relationshipContext) as RelationshipContextType;
+	const [chatGroups, setChatGroups] = useState<ChatGroup[]>([]);
 
 	const baseChatGroups = useMemo(() =>
 		chatGroups
@@ -29,13 +22,85 @@ const Groups: React.FC<{viewParams: Object;}> = ({ viewParams }) => {
 			)
 			.sort(
 				(a: ChatGroup, b: ChatGroup) =>
-				(b.updatedAt.valueOf() - a.updatedAt.valueOf()
+					(b.updatedAt.valueOf() - a.updatedAt.valueOf()
 			)
-	), []);
+	), [chatGroups]);
 
 	const [filteredGroups, setFilteredGroups] = useState(baseChatGroups);
 	const [visiblityFilter, setVisiblityFilter] = useState<ChatGroupPrivacy | null>(null);
 	const searchInputRef = useRef<HTMLInputElement>(null);
+
+	/* Chat groups loading */
+	const getLastMessage = (channel: Channel, isProtected = false) => {
+		let message: ChatMessagePreview = {
+			createdAt: channel.createdAt,
+			content: "",
+		};
+
+		if (channel.messages && channel.messages.length > 0) {
+			const lastMessage = channel.messages.reduce(function(prev, current) {
+				return (prev.id > current.id) ? prev : current;
+			})
+
+			message.createdAt = new Date(lastMessage.createdAt);
+
+			if (!isProtected) {
+				if (!!blocked.find((user) => { return user.id == lastMessage.author.id; })) {
+					message.content = "Blocked message";
+				} else {
+					message.content = lastMessage.content;
+				}
+			}
+		}
+		return message;
+	}
+
+	const updateChannelsListener = (channels: Channel[]) => {
+		const groups: ChatGroup[] = [];
+
+		for (var channel of Array.from(channels)) {
+			const lastMessage: ChatMessagePreview = getLastMessage(channel, (channel.privacy === "protected"));
+
+			groups.push({
+				id: channel.id,
+				label: channel.name,
+				lastMessage: lastMessage.content,
+				in: !!channel.users.find((chanUser: BaseUserData) => {
+					return chanUser.id === user.id;
+				}),
+				peopleCount: channel.users.length,
+				privacy: channel.privacy as ChatGroupPrivacy,
+				updatedAt: lastMessage.createdAt
+			});
+		}
+		/* Sorts from most recent */
+		groups.sort(
+			(a: ChatGroup, b: ChatGroup) =>
+			(b.updatedAt.valueOf() - a.updatedAt.valueOf())
+		);
+		setChatGroups(groups);
+	}
+
+	/* Open a group if user is not banned */
+	const handleOpenGroup = (gm: ChatGroup) => {
+		socket.emit("openChannel", {
+			channelId: gm.id,
+			userId: user.id
+		});
+
+		socket.on("canOpenChannel", (channelId: string) => {
+			if (channelId != gm.id) return ;
+
+			openChatView(
+				gm.privacy === 'protected' ? 'password_protection' : 'group',
+				gm.label, {
+					channelId: gm.id,
+					channelName: gm.label,
+					privacy: gm.privacy
+				}
+			);
+		})
+	};
 
 	/* Select all | private | public | protected */
 	const handleSelect = (e: React.ChangeEvent<HTMLSelectElement>) => {
@@ -49,6 +114,7 @@ const Groups: React.FC<{viewParams: Object;}> = ({ viewParams }) => {
 	/* Search a group */
 	const handleSearch = (term: string) => {
 		const searchTerm = term.toLowerCase();
+
 		setFilteredGroups(
 			baseChatGroups.filter(
 				(grp) =>
@@ -62,38 +128,49 @@ const Groups: React.FC<{viewParams: Object;}> = ({ viewParams }) => {
 		handleSearch((searchInputRef.current as HTMLInputElement).value);
 	}, [visiblityFilter]);
 
-	/* Update last message for all conversations */
-	const updateLastMessage = async (channel: ChatGroup) => {
-		const data = await fetchChannelData(channel.id).catch(console.error);
-		const gm = await JSON.parse(JSON.stringify(data));
+	useEffect(() => {
+		setFilteredGroups(baseChatGroups);
+	}, [baseChatGroups]);
 
-		const message = getLastMessage(gm);
-		channel.lastMessage = message.content;
-		channel.updatedAt = message.createdAt;
-		updateChatGroups();
-	}
+	const channelsChangeListener = () => {
+		socket.emit("getUserChannels", { userId: user.id });
+	};
 
 	useEffect(() => {
-		const updatePreviews = async () => {
-			await Promise.all(chatGroups.map((gm) => updateLastMessage(gm)));
+		socket.emit("getUserChannels", { userId: user.id });
+
+		/* Listeners */
+		socket.on("updateUserChannels", updateChannelsListener);
+		socket.on("channelCreated", channelsChangeListener);
+		socket.on("channelUpdated", channelsChangeListener);
+		socket.on("channelDeleted", channelsChangeListener);
+		socket.on("peopleCountChanged", channelsChangeListener);
+		socket.on("newGm", channelsChangeListener);
+
+		return () => {
+			socket.off("updateUserChannels", updateChannelsListener);
+			socket.off("channelCreated", channelsChangeListener);
+			socket.off("channelUpdated", channelsChangeListener);
+			socket.off("channelDeleted", channelsChangeListener);
+			socket.on("peopleCountChanged", channelsChangeListener);
+			socket.on("newGm", channelsChangeListener);
 		};
-		updatePreviews();
 	}, []);
 
 	return (
 		<Fragment>
-			<div className="h-[15%] gap-x-2 flex items-center p-4 bg-gray-900/90 border-gray-800 border-b-4 justify-between">
+			<div className="h-[15%] gap-x-2 flex items-center p-4 bg-dark/90 border-04dp border-b-4 justify-between">
 				<input
 					ref={searchInputRef}
 					type="text"
 					className="py-1 bg-transparent border-b-2 border-pink-600 text-md outline-0 max-w-[45%]"
 					placeholder="search for a group"
-					onChange={(e: React.ChangeEvent<HTMLInputElement>) => { // BUG: this event is sometimes confused with the DraggableEvent in components/Chat.tsx l.53
+					onChange={(e) => {
 						handleSearch(e.target.value);
 					}}
 				/>
 				<select
-					className="drag-cancellable px-2 py-1 text-sm bg-gray-900 outline-none"
+					className="drag-cancellable px-2 py-1 text-sm bg-dark outline-none"
 					onChange={handleSelect}
 				>
 					<option value="all">all</option>
@@ -111,19 +188,12 @@ const Groups: React.FC<{viewParams: Object;}> = ({ viewParams }) => {
 				{filteredGroups.map((gm) => (
 					<div
 						key={gm.label}
-						className="relative items-center px-10 py-5 grid grid-cols-3 border-b border-gray-800 bg-gray-900/90 hover:bg-gray-800/90 transition"
+						className="relative items-center px-10 py-5 grid grid-cols-3 border-b border-04dp bg-dark/90 hover:bg-04dp/90 transition"
 						onClick={() => {
-							openChatView(gm.privacy === 'protected' ? 'password_protection' : 'group', gm.label, {
-									groupName: gm.label,
-									groupId: gm.id,
-									groupOwnerId: gm.ownerId,
-									peopleCount: gm.peopleCount,
-									groupPrivacy: gm.privacy
-								}
-							);
+							handleOpenGroup(gm);
 						}}
 					>
-						<div className="absolute bottom-0 left-0 flex items-center px-3 py-1 text-sm text-white bg-gray-800 drop-shadow-md gap-x-1">
+						<div className="absolute bottom-0 left-0 flex items-center px-3 py-1 text-sm text-white bg-04dp drop-shadow-md gap-x-1">
 							<div className="flex items-center gap-x-1">
 								<FaUserFriends />
 								{gm.peopleCount}
@@ -136,8 +206,9 @@ const Groups: React.FC<{viewParams: Object;}> = ({ viewParams }) => {
 							<div
 								style={
 									{
-										backgroundColor: gm.privacy === 'public' ? "#48bb78"
-										: gm.privacy === 'private' ? "#3182ce" : "#805ad5"
+										backgroundColor: gm.privacy === 'public'
+											? "#0d9488"
+											: gm.privacy === 'private' ? "#db2777" : "#0c4a6e"
 									}
 								}
 								className="flex items-center justify-center w-16 h-16 text-4xl rounded-full"

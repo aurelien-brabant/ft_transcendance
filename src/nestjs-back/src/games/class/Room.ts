@@ -32,7 +32,7 @@ export interface IRoom {
 
 export default class Room implements IRoom {
 	roomId: string;
-    gameState: GameState;
+	gameState: GameState;
 	players: User[];
 	playerOne: Player;
 	playerTwo: Player;
@@ -64,8 +64,8 @@ export default class Room implements IRoom {
 		this.roomId = roomId;
 		this.gameState = GameState.STARTING;
 		this.players = [];
-        this.playerOne = new Player(users[0], 10);
-        this.playerTwo = new Player(users[1], canvasWidth-40);
+		this.playerOne = new Player(users[0], 10);
+		this.playerTwo = new Player(users[1], canvasWidth-40);
 		this.ball = new Ball();
 
 		this.timestampStart = Date.now();

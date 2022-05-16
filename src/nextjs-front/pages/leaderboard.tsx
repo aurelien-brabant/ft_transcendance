@@ -30,7 +30,7 @@ const HistoryTable: React.FC<{ ranking: RankingList[] }> = ({
     className="w-full my-4 text-left"
   >
     <thead>
-      <tr className="text-pink-600 bg-gray-800">
+      <tr className="text-pink-600 bg-01dp">
         <th className="p-3 uppercase">Rank</th>
         <th className="p-3 uppercase">Username</th>
         <th className="p-3 uppercase">Wins</th>
@@ -44,7 +44,7 @@ const HistoryTable: React.FC<{ ranking: RankingList[] }> = ({
         .map((user, index) => (
           <tr
             key={user.id}
-            className={`py-6 ${index % 2 ? "bg-gray-800" : "bg-gray-700"} ${user.accountDeactivated ? "line-through": "no-underline"}`}
+            className={`py-6 ${index % 2 ? "bg-03dp" : "bg-04dp"} ${user.accountDeactivated ? "line-through": "no-underline"}`}
           >
             <td className={`p-3 ${(String(index) === "0") ? "text-yellow-500 font-extrabold" :
                                 (String(index) === "1") ? "text-zinc-400 font-extrabold" : 
@@ -192,8 +192,7 @@ const LeaderboardPage: NextPageWithLayout = ({}) => {
   }, [selected])
 
   return (
-    <div className="min-h-screen overflow-x-auto text-white bg-fixed bg-center bg-fill grow" style={{
-      backgroundImage: "url('/triangles.png')"
+    <div className="overflow-x-auto text-white bg-fixed bg-center bg-fill grow" style={{
     }}>
       { !isLoading ?
       <div style={{ maxWidth: "800px" }} className="px-2 py-10 mx-auto">
@@ -201,7 +200,7 @@ const LeaderboardPage: NextPageWithLayout = ({}) => {
           <div className="relative w-48 h-48 flex justify-center items-center text-center">
             <GiLaurelsTrophy className="text-9xl text-yellow-500"/>
           </div>
-          <div className="w-full p-5 bg-gray-800 border-2 border-gray-800 rounded drop-shadow-md grid lg:grid-cols-3">
+          <div className="w-full p-5 bg-01dp border-2 border-02dp rounded drop-shadow-md grid lg:grid-cols-3">
             {mobileScreen ?
             <HighlightItem
               label="second"
@@ -255,7 +254,7 @@ const LeaderboardPage: NextPageWithLayout = ({}) => {
         </div>
       </div>
       :
-      <div className="relative flex flex-col items-center justify-center min-h-screen bg-gray-900 gap-y-4">
+      <div className="relative flex flex-col items-center justify-center min-h-screen bg-01dp gap-y-4">
         <div className="absolute inset-0 z-50 flex items-center justify-center">
 			    <Image src="/logo.svg" height="200" width="200" />
 		    </div>
@@ -267,6 +266,6 @@ const LeaderboardPage: NextPageWithLayout = ({}) => {
 }
 
 LeaderboardPage.getLayout = withDashboardLayout;
-LeaderboardPage.isAuthRestricted = true;
+LeaderboardPage.authConfig = true;
 
 export default LeaderboardPage;

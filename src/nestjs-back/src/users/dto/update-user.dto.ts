@@ -1,23 +1,39 @@
 import { PartialType } from '@nestjs/mapped-types';
 import {
+  IsArray,
   IsBoolean,
-  IsDecimal,
   IsOptional,
-  IsPhoneNumber,
-  IsString
+  IsNotEmpty,
+  IsString,
+  Matches,
+  MaxLength,
+  MinLength,
 } from 'class-validator';
-import { Achievement } from 'src/achievements/entities/achievements.entity';
+import { Transform, Type } from 'class-transformer';
 import { CreateUserDto } from './create-user.dto';
+import { User } from '../entities/users.entity';
 
 export class UpdateUserDto extends PartialType(CreateUserDto) {
+    /* Informations */
     @IsOptional()
+    @Transform(({ value }) => value.trim())
+    @IsNotEmpty()
     @IsString()
+    @Matches(/^[^0-9][a-zA-Z0-9_]+$/, {
+      message:
+        'The username must not start with a number and contain alphanumeric characters and underscores only.',
+    })
+    @MaxLength(30)
+    @MinLength(2)
     readonly username: string;
 
     @IsOptional()
-    @IsPhoneNumber()
-    readonly phone: string;
+    @Transform(({ value }) => value.trim())
+    @IsNotEmpty()
+    @IsString()
+    readonly duoquadra_login: string;
 
+    /* Security */
     @IsOptional()
     @IsBoolean()
     readonly tfa: boolean;
@@ -27,13 +43,22 @@ export class UpdateUserDto extends PartialType(CreateUserDto) {
     readonly tfaSecret: string;
 
     @IsOptional()
-    @IsString()
-    readonly duoquadra_login: string;
+    @IsBoolean()
+    readonly accountDeactivated: boolean;
+
+    /* Relationships */
+    @IsOptional()
+    @IsArray()
+    @Type(() => User)
+    readonly friends: User[];
 
     @IsOptional()
-    @IsDecimal()
-    readonly ratio: number;
+    @IsArray()
+    @Type(() => User)
+    readonly pendingFriendsSent: User[];
 
     @IsOptional()
-    readonly achievements: Achievement[];
+    @IsArray()
+    @Type(() => User)
+    readonly blockedUsers: User[];
 }

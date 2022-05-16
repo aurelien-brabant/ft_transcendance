@@ -3,18 +3,69 @@ import { AiOutlineArrowLeft, AiOutlineClose } from "react-icons/ai";
 import { FaUserFriends, FaUserPlus } from "react-icons/fa";
 import { FiSend } from 'react-icons/fi';
 import { RiSettings5Line } from "react-icons/ri";
+import { Channel, ChannelMessage } from 'transcendance-types';
 import Tooltip from "../../components/Tooltip";
 import { useSession } from "../../hooks/use-session";
 import chatContext, { ChatContextType, ChatMessage } from "../../context/chat/chatContext";
-import alertContext, { AlertContextType } from "../../context/alert/alertContext";
 import relationshipContext, { RelationshipContextType } from "../../context/relationship/relationshipContext";
 
 /* Header */
 export const GroupHeader: React.FC<{ viewParams: any }> = ({ viewParams }) => {
+	const channelId: string = viewParams.channelId;
 	const { user } = useSession();
-	const { closeChat, openChatView, setChatView } = useContext(chatContext) as ChatContextType;
-	const ownerView = (viewParams.groupOwnerId === user.id);
-	const actionTooltipStyles = "font-bold bg-gray-900 text-neutral-200";
+	const {
+		socket,
+		closeChat,
+		openChatView,
+		setChatView,
+		closeRightmostView
+	} = useContext(chatContext) as ChatContextType;
+	const [channelName, setChannelName] = useState(viewParams.channelName);
+	const [privacy, setChannelPrivacy] = useState(viewParams.privacy);
+	const [userInChan, setUserInChan] = useState((privacy === 'protected') ? true : false);
+	const actionTooltipStyles = "font-bold bg-dark text-neutral-200";
+
+	const defineOptions = (channel: Channel) => {
+		setUserInChan(!!channel.users.find(
+			(chanUser) => { return chanUser.id === user.id;}
+		));
+	};
+
+	const channelUpdatedListener = (channel: Channel) => {
+		setChannelName(channel.name);
+		setChannelPrivacy(channel.privacy);
+
+		if (!userInChan && (channel.privacy !== 'public')) {
+			closeRightmostView();
+		}
+	};
+
+	const channelDeletedListener = (deletedId: string) => {
+		if (deletedId === channelId) {
+			setChatView("groups", "Group chats", {});
+		}
+	};
+
+	const userJoinedListener = (res: { message: string, userId: string }) => {
+		if (res.userId === user.id) {
+			setUserInChan(true);
+		}
+	};
+
+	useEffect(() => {
+		/* Listeners */
+		socket.on("channelData", defineOptions);
+		socket.on("channelUpdated", channelUpdatedListener);
+		socket.on("channelDeleted", channelDeletedListener);
+		socket.on("joinedChannel", userJoinedListener);
+
+		return () => {
+			socket.off("channelData", defineOptions);
+			socket.off("channelUpdated", channelUpdatedListener);
+			socket.off("channelDeleted", channelDeletedListener);
+			socket.off("joinedChannel", userJoinedListener);
+		};
+	}, []);
 
 	return (
 		<Fragment>
@@ -27,47 +78,44 @@ export const GroupHeader: React.FC<{ viewParams: any }> = ({ viewParams }) => {
 						<AiOutlineArrowLeft />
 					</button>
 				</div>
-				<div className="flex items-right gap-x-3">
-					<Tooltip className={actionTooltipStyles} content="users">
-						<button onClick={() => {
-							openChatView('group_users', 'group users', {
-									groupId: viewParams.groupId,
-									groupName: viewParams.groupName,
-									peopleCount: viewParams.peopleCount,
-									ownerView: ownerView
-								}
-							)}}
-						>
-							<FaUserFriends />
-						</button>
-					</Tooltip>
+				{(userInChan === true) && <div className="flex items-right gap-x-3">
 					<Tooltip className={actionTooltipStyles} content="add user">
 						<button onClick={() => {
 							openChatView('group_add', 'Add a user to group', {
-									groupId: viewParams.groupId
+									channelId: viewParams.channelId
 								}
 							)}}
 						>
 							<FaUserPlus className="text-lg" />
 						</button>
 					</Tooltip>
+					<Tooltip className={actionTooltipStyles} content="users">
+						<button onClick={() => {
+							openChatView('group_users', 'group users', {
+									channelId: viewParams.channelId,
+									channelName,
+								}
+							)}}
+						>
+							<FaUserFriends />
+						</button>
+					</Tooltip>
 					<button onClick={() => {
 						openChatView('group_settings', 'group settings', {
-								groupId: viewParams.groupId,
-								groupName: viewParams.groupName,
-								groupPrivacy: viewParams.groupPrivacy,
-								peopleCount: viewParams.peopleCount,
-								ownerView: ownerView
+								channelId: viewParams.channelId,
+								channelName,
+								privacy,
 							}
 						)}}
 						>
 						<RiSettings5Line />
 					</button>
 				</div>
+			}
 			</div>
 			<div className="flex flex-col items-center justify-center">
 				<h6 className="text-lg font-bold text-pink-600">
-					{viewParams.groupName}
+					{channelName}
 				</h6>
 			</div>
 		</Fragment>
@@ -78,58 +126,125 @@ export const GroupHeader: React.FC<{ viewParams: any }> = ({ viewParams }) => {
 const Group: React.FC<{ viewParams: { [key: string]: any } }> = ({
 	viewParams,
 }) => {
+	const channelId: string = viewParams.channelId;
 	const { user } = useSession();
-	const { setAlert } = useContext(alertContext) as AlertContextType;
-	const { fetchChannelData } = useContext(chatContext) as ChatContextType;
-	const { blocked, getData } = useContext(relationshipContext) as RelationshipContextType;
+	const { socket, setChatView, getMessageStyle } = useContext(chatContext) as ChatContextType;
+	const { blocked } = useContext(relationshipContext) as RelationshipContextType;
 	const [messages, setMessages] = useState<ChatMessage[]>([]);
 	const [currentMessage, setCurrentMessage] = useState("");
+	const [sendingEnabled, setSendingEnabled] = useState(false);
+	const [userInChan, setUserInChan] = useState(false);
 	const chatBottom = useRef<HTMLDivElement>(null);
-	const channelId = viewParams.groupId;
 
-	const addMessage = (message: any) => {
-		// const isBlocked = !!blocked.find(user => user.id === message.author.id);
-		const isBlocked = false; // to be removed
-
-		setMessages([
-			...messages, {
-				id: message.id,
-				author: message.author.username,
-				content: isBlocked ? "Blocked message" : message.content,
-				isMe: (message.author.id === user.id),
-				isBlocked: isBlocked
-			}
-		]);
-	}
+	const joinGroup = async () => {
+		socket.emit("joinChannel", {
+			channelId: viewParams.channelId,
+			userId: user.id,
+		});
+	};
 
 	/* Send new message */
-	const handleGroupMessageSubmit = async () => {
-		if (currentMessage.length === 0) return;
+	const handleGmSubmit = async () => {
+		if (currentMessage.trim().length === 0) return;
 
-		const channelData = await fetchChannelData(channelId).catch(console.error);
-
-		const res = await fetch("/api/messages", {
-			method: "POST",
-			headers: {
-				"Content-Type": "application/json",
-			},
-			body: JSON.stringify({
-				author: user,
-				content: currentMessage,
-				channel: channelData
-			}),
+		socket.emit('gmSubmit', {
+			content: currentMessage,
+			author: { "id": user.id },
+			channel: { "id": channelId },
 		});
-		const data = await res.json();
+		setCurrentMessage("");
+	};
 
-		if (res.status === 201) {
-			addMessage(data);
-			setCurrentMessage('');
-			return;
+	const handleChange = (
+		e: React.ChangeEvent<HTMLTextAreaElement>
+	) => {
+		const len = e.target.value.trim().length;
+
+		if ((len === 0) || (len > 640)) {
+			setSendingEnabled(false);
 		} else {
-			setAlert({
-				type: "error",
-				content: "Failed to send message"
+			setSendingEnabled(true);
+		}
+		setCurrentMessage(e.target.value);
+	};
+
+	const addNewMessage = (message: ChannelMessage) => {
+		setMessages((prevMessages) => {
+			const newMessages: ChatMessage[] = [...prevMessages];
+
+			const author = message.author;
+			const isBlocked = author && !!blocked.find(blockedUser => blockedUser.id === author.id);
+			const isMe = author && (author.id === user.id);
+
+			newMessages.push({
+				id: prevMessages.length.toString(),
+				createdAt: message.createdAt,
+				content: isBlocked ? "Blocked message" : message.content,
+				author: author && author.username,
+				displayAuthor: (author !== null && !isMe && !isBlocked),
+				displayStyle: getMessageStyle(message.author),
 			});
+			return newMessages;
+		});
+	};
+
+	/* Listeners */
+	const channelDeletedListener = (deletedId: string) => {
+		if (deletedId === channelId) {
+			setChatView("groups", "Group chats", {});
+		}
+	};
+
+	/* Receive new message */
+	const newGmListener = ({ message }: { message: ChannelMessage }) => {
+		addNewMessage(message);
+	};
+
+	const userJoinedListener = ({ message, userId }: { message: ChannelMessage, userId: string }) => {
+		addNewMessage(message);
+		if (userId === user.id) {
+			setUserInChan(true);
+		}
+	};
+
+	const userLeftListener = ({ message }: { message: ChannelMessage }) => {
+		addNewMessage(message);
+	};
+
+	const userPunishedListener = (message: string) => {
+		setChatView("groups", "Group chats", {});
+	}
+
+	/* Load all messages in channel */
+	const updateGroupView = (channel: Channel) => {
+		if (channel.id !== channelId) return ;
+
+		setUserInChan(!!channel.users.find(
+			(chanUser) => { return chanUser.id === user.id;}
+		));
+
+		if (channel.messages) {
+			const messages: ChatMessage[] = [];
+
+			channel.messages.sort(
+				(a: ChannelMessage, b: ChannelMessage) => (parseInt(a.id) - parseInt(b.id))
+			);
+
+			for (var message of channel.messages) {
+				const author = message.author;
+				const isBlocked = author && !!blocked.find(blockedUser => blockedUser.id === author.id);
+				const isMe = author && (author.id === user.id);
+
+				messages.push({
+					id: messages.length.toString(),
+					createdAt: message.createdAt,
+					content: isBlocked ? "Blocked message" : message.content,
+					author: author && author.username,
+					displayAuthor: (author !== null && !isMe && !isBlocked),
+					displayStyle: getMessageStyle(message.author),
+				});
+			}
+			setMessages(messages);
 		}
 	};
 
@@ -138,68 +253,82 @@ const Group: React.FC<{ viewParams: { [key: string]: any } }> = ({
 		chatBottom.current?.scrollIntoView();
 	}, [messages]);
 
-	/* Load all messages on mount */
-	const loadGroupOnMount = async () => {
-		const data = await fetchChannelData(channelId).catch(console.error);
-		const gms = JSON.parse(JSON.stringify(data)).messages;
-		const messages: ChatMessage[] = [];
-
-		for (var i in gms) {
-			const isBlocked = !!blocked.find(user => user.id == gms[i].author.id);
-
-			messages.push({
-				id: gms[i].id,
-				author: gms[i].author.username,
-				content: isBlocked ? "Blocked message" : gms[i].content,
-				isMe: (gms[i].author.id === user.id),
-				isBlocked: isBlocked
-			});
-		}
-		setMessages(messages);
-	}
-
 	useEffect(() => {
-		loadGroupOnMount();
-		// getData();
+		socket.emit("getChannelData", { channelId });
+
+		/* Listeners */
+		socket.on("channelData", updateGroupView);
+		socket.on("channelDeleted", channelDeletedListener);
+		socket.on("newGm", newGmListener);
+		socket.on("joinedChannel", userJoinedListener);
+		socket.on("leftChannel", userLeftListener);
+		socket.on("userKicked", userLeftListener);
+		socket.on("punishedInChannel", userPunishedListener);
+		socket.on("kickedFromChannel", userPunishedListener);
+
+		return () => {
+			socket.off("channelData", updateGroupView);
+			socket.off("channelDeleted", channelDeletedListener);
+			socket.off("newGm", newGmListener);
+			socket.off("joinedChannel", userJoinedListener);
+			socket.off("leftChannel", userLeftListener);
+			socket.off("userKicked", userLeftListener);
+			socket.off("punishedInChannel", userPunishedListener);
+			socket.off("kickedFromChannel", userPunishedListener);
+		};
 	}, []);
 
 	return (
 		<div className="h-full">
 			<div className="flex flex-col items-start max-h-[87%] h-auto px-5 pb-5 overflow-auto">
-				{messages.map((msg: ChatMessage) => (
+				{messages.map((message: ChatMessage) => (
 					<div
-						key={msg.id}
-						className={`${
-							msg.isBlocked
-								? "self-start text-gray-900 bg-gray-600"
-								: msg.isMe
-									? "self-end bg-green-600"
-									: "self-start text-gray-900 bg-gray-300"
-						} max-w-[80%] p-2 my-2 rounded whitespace-wrap break-all`}
+						key={message.id}
+						className={`
+							${message.displayStyle} 
+							max-w-[80%] p-2 my-2 rounded whitespace-wrap break-all`
+						}
 					>
-						{!msg.isMe && !msg.isBlocked && (
+						{message.displayAuthor && (
 							<span className="text-xs text-gray-900 uppercase">
-								{msg.author}
+								{message.author}
 							</span>
 						)}
-						<p>{msg.content}</p>
+						<p>{message.content}</p>
 					</div>
 				))}
 				<div ref={chatBottom} />
 			</div>
-			<div className="absolute inset-x-0 bottom-0 border-t-2 border-gray-800 min-h-[13%] flex gap-x-2 items-center px-8 py-2 bg-gray-900 drop-shadow-md">
-				<textarea
-					placeholder="Your message"
-					className="p-2 bg-transparent border border-pink-600 resize-none grow outline-0"
-					value={currentMessage}
-					onChange={(e) => {
-						setCurrentMessage(e.target.value);
-					}}
-				/>
-				<button onClick={handleGroupMessageSubmit} className="self-stretch px-3 py-2 text-lg text-white uppercase bg-pink-600 rounded">
-					<FiSend />
-				</button>
-			</div>
+				{userInChan ?
+				<div className="absolute inset-x-0 bottom-0 border-t-2 border-gray-800 min-h-[13%] flex gap-x-2 items-center px-8 py-2 bg-dark drop-shadow-md">
+					<textarea
+						placeholder="Your message"
+						className="p-2 bg-transparent border border-pink-600 resize-none grow outline-0"
+						value={currentMessage}
+						onChange={handleChange}
+					/>
+					{sendingEnabled ?
+					<button
+						onClick={handleGmSubmit}
+						className="self-stretch px-3 py-2 text-lg text-white uppercase bg-pink-600 rounded"
+						>
+						<FiSend />
+					</button>
+					:
+					<button
+						className="self-stretch px-3 py-2 text-lg text-white uppercase bg-pink-900 rounded"
+					>
+						<FiSend />
+					</button>
+					}
+				</div>
+				:
+				<div className="absolute inset-x-0 bottom-0 border-t-2 border-gray-800 min-h-[13%] flex gap-x-2 items-center justify-center px-8 py-2 bg-dark drop-shadow-md">
+					<button className="px-2 py-1 text-sm font-bold uppercase bg-pink-600 rounded" onClick={() => { joinGroup(); }}>
+						Join Group
+					</button>
+				</div>
+				}
 		</div>
 	);
 };

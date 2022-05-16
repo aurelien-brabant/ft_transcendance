@@ -7,29 +7,40 @@ import { UpdateGameDto } from './dto/update-game.dto';
 export class GamesController {
     constructor(private readonly gamesService: GamesService) {}
 
+    /* NOTE: Deleted because this is handled by the websocket */
+
+    /*
     @Get()
     findAll() {
         return this.gamesService.findAll();
     }
+    */
  
+    /*
     @Get(':id')
     findOne(@Param('id') id: string) {
         return this.gamesService.findOne(id);
     }
+    */
 
+    /*
     @Post()
     create(@Body() createGameDto: CreateGameDto) {
-        console.log(createGameDto instanceof CreateGameDto);
         return this.gamesService.create(createGameDto);
     }
+    */
 
+    /*
     @Patch(':id')
     update(@Param('id') id: string, @Body() updateGameDto: UpdateGameDto) {
         return this.gamesService.update(id, updateGameDto);
     }
+    */
 
+    /*
     @Delete(':id')
     remove(@Param('id') id: string) {
         return this.gamesService.remove(id);
     }
+    */
 }

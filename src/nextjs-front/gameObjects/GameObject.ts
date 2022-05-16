@@ -23,6 +23,7 @@ export enum GameMode {
 export type User = {
 	id: number;
 	username: string;
+	ratio?: number;
 }
 
 export interface IPlayer {

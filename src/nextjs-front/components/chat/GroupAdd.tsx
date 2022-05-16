@@ -1,9 +1,8 @@
 import { Fragment, useContext, useEffect, useRef, useState } from "react";
 import { AiOutlineArrowLeft, AiOutlineClose } from "react-icons/ai";
-import { BaseUserData, User } from "transcendance-types";
+import { BaseUserData, Channel, User } from "transcendance-types";
 import { UserStatusItem } from "../UserStatus";
 import { useSession } from "../../hooks/use-session";
-import alertContext, { AlertContextType } from "../../context/alert/alertContext";
 import chatContext, { ChatContextType } from "../../context/chat/chatContext";
 import relationshipContext, { RelationshipContextType } from "../../context/relationship/relationshipContext";
 
@@ -33,42 +32,17 @@ export const GroupAddHeader: React.FC<{ viewParams: any }> = ({ viewParams }) =>
 };
 
 const GroupAdd: React.FC<{ viewParams: any }> = ({ viewParams }) => {
+	const channelId: string = viewParams.channelId;
 	const { user } = useSession();
-	const { setAlert } = useContext(alertContext) as AlertContextType;
-	const { closeRightmostView, fetchChannelData } = useContext(chatContext) as ChatContextType;
-	const { getData, friends } = useContext(relationshipContext) as RelationshipContextType;
-	const groupId = viewParams.groupId;
+	const { socket, closeRightmostView, setChatView } = useContext(chatContext) as ChatContextType;
+	const { friends } = useContext(relationshipContext) as RelationshipContextType;
 	const [filteredFriends, setFilteredFriends] = useState<User[]>([]);
 	const searchInputRef = useRef<HTMLInputElement>(null);
-
-	const addUserToGroup = async (id: string) => {
-		const channelData = await fetchChannelData(groupId).catch(console.error);
-		const users = JSON.parse(JSON.stringify(channelData)).users;
-
-		const res = await fetch(`/api/channels/${groupId}`, {
-			method: "PATCH",
-			headers: {
-				"Content-Type": "application/json",
-			},
-			body: JSON.stringify({
-				users: [ ...users, { "id": id } ]
-			}),
-		});
-
-		if (res.status === 200) {
-			closeRightmostView();
-			return;
-		} else {
-			setAlert({
-				type: "error",
-				content: "Failed to add user to group"
-			});
-		}
-	};
 
 	/* Search a friend */
 	const handleSearch = (term: string) => {
 		const searchTerm = term.toLowerCase();
+
 		setFilteredFriends(
 			filteredFriends.filter(
 				(friend) =>
@@ -82,30 +56,56 @@ const GroupAdd: React.FC<{ viewParams: any }> = ({ viewParams }) => {
 		await addUserToGroup(friend.id);
 	}
 
-	useEffect(() => {
-		getData();
-		/* Select friends that didn't already join the group */
-		const selectFriends = async () => {
-			const channelData = await fetchChannelData(groupId).catch(console.error);
-			const users = await JSON.parse(JSON.stringify(channelData)).users;
-			const selectedFriends: User[] = [];
+	/* Select friends that didn't already join the group */
+	const selectFriends = async (channel: Channel) => {
+		const selectedFriends: User[] = [];
 
-			for (var i in friends) {
-				const isInChan = !!users.find((user: BaseUserData) => {
-					return user.id === friends[i].id;
-				})
-				if (!isInChan) {
-					selectedFriends.push(friends[i]);
-				}
+		for (var friend of friends) {
+			const isInChan = !!channel.users.find((user: BaseUserData) => {
+				return user.id === friend.id;
+			})
+			if (!isInChan && (friend.id !== user.id)) {
+				selectedFriends.push(friend);
 			}
-			setFilteredFriends(selectedFriends);
+		}
+		setFilteredFriends(selectedFriends);
+	};
+
+	/* Add a friend to group */
+	const addUserToGroup = async (id: string) => {
+		socket.emit("joinChannel", { userId: id, channelId });
+		closeRightmostView();
+	};
+
+	const userPunishedListener = (message: string) => {
+		setChatView("groups", "Group chats", {});
+	}
+
+	useEffect(() => {
+		socket.emit("getChannelData", { channelId });
+
+		/* Listeners */
+		socket.on("channelData", selectFriends);
+
+		return () => {
+			socket.off("channelData", selectFriends);
 		};
-		selectFriends();
+	}, [friends]);
+
+	useEffect(() => {
+		/* Listeners */
+		socket.on("punishedInChannel", userPunishedListener);
+		socket.on("kickedFromChannel", userPunishedListener);
+
+		return () => {
+			socket.off("punishedInChannel", userPunishedListener);
+			socket.off("kickedFromChannel", userPunishedListener);
+		};
 	}, []);
 
 	return (
 		<Fragment>
-			<div className="h-[15%] gap-x-2 flex items-center p-4 bg-gray-900/90 border-gray-800 border-b-4">
+			<div className="h-[15%] gap-x-2 flex items-center p-4 bg-dark/90 border-04dp border-b-4 justify-between">
 				<input
 						ref={searchInputRef}
 						type="text"
@@ -126,7 +126,7 @@ const GroupAdd: React.FC<{ viewParams: any }> = ({ viewParams }) => {
 				{filteredFriends.map((friend) => (
 					<div
 						key={friend.username}
-						className="flex items-center px-4 py-3 hover:bg-gray-800/90 transition gap-x-4"
+						className="flex items-center px-4 py-3 hover:bg-04dp/90 transition gap-x-4"
 						onClick={() => {
 							handleSelect(friend)
 						}}
@@ -138,7 +138,7 @@ const GroupAdd: React.FC<{ viewParams: any }> = ({ viewParams }) => {
 							src={`/api/users/${friend.id}/photo`}
 							className="object-fill w-full h-full rounded-full"
 						/>
-						<UserStatusItem status={(user.accountDeactivated) ? "deactivated" : "online"} withText={false} className="absolute bottom-0 right-0 z-50" id={user.id} />
+						<UserStatusItem withText={false} className="absolute bottom-0 right-0 z-50" id={friend.id} />
 					</div>
 					{friend.username}
 				</div>

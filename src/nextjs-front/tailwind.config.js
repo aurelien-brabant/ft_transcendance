@@ -27,7 +27,7 @@ module.exports = {
         bounceForward: {
           from: { transform: "translateX(0)" },
           to: { transform: "translateX(.5em)" },
-        }
+        },
       },
       animation: {
         slowRotateFull: "rotateFull 10s infinite linear",
@@ -36,8 +36,16 @@ module.exports = {
         upAndDown: "upAndDown .7s infinite alternate",
         bounceBack: "bounceBack 1s ease-in infinite",
         bounceForward: "bounceForward 1s ease-in infinite",
-        'ping-3': 'ping 0.5s ease-in 3',
-        },
+        "ping-3": "ping 0.5s ease-in 3",
+      },
+      colors: {
+        dark: "#121212",
+        primary: "#fb923c",
+        "01dp": "#1e1e1e",
+        "02dp": "#222222",
+        "03dp": "#242424",
+        "04dp": "#272727",
+      },
     },
   },
   plugins: [],

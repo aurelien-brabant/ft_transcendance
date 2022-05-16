@@ -1,25 +1,32 @@
-import { useContext, useState } from "react";
+import { useContext, useEffect, useState } from "react";
 import { BsFillChatDotsFill } from "react-icons/bs";
-import { BaseUserData } from 'transcendance-types';
+import { Bounce } from "react-awesome-reveal";
+import { io } from "socket.io-client";
+import { BaseUserData, Channel, ChannelMessage, DmChannel, DmMessage } from 'transcendance-types';
+import { useSession } from "../../hooks/use-session";
 import alertContext, { AlertContextType } from "../alert/alertContext";
 import authContext, { AuthContextValue } from "../auth/authContext";
 import relationshipContext, { RelationshipContextType } from "../relationship/relationshipContext";
-import { Bounce } from "react-awesome-reveal";
-import { useSession } from "../../hooks/use-session";
 /* Chat */
+import chatContext, { ChatView } from "./chatContext";
 import Chat from "../../components/Chat";
-import ChatGroupsView from "../../components/chat/Groups";
-import ChatGroupView, { GroupHeader } from "../../components/chat/Group";
 import ChatDirectMessagesView from "../../components/chat/DirectMessages";
 import ChatDirectMessageView, { DirectMessageHeader } from "../../components/chat/DirectMessage";
-import chatContext, { ChatGroup, ChatMessagePreview, ChatView, DirectMessage } from "./chatContext";
+import ChatGroupsView from "../../components/chat/Groups";
+import ChatGroupView, { GroupHeader } from "../../components/chat/Group";
 import DirectMessageNew, { DirectMessageNewHeader } from "../../components/chat/DirectMessageNew";
 import GroupAdd, { GroupAddHeader } from "../../components/chat/GroupAdd";
 import GroupNew, { GroupNewHeader } from "../../components/chat/GroupNew";
 import GroupSettings, { GroupSettingsHeader } from "../../components/chat/GroupSettings";
 import GroupUsers, { GroupUsersHeader } from "../../components/chat/GroupUsers";
 import PasswordProtection, { PasswordProtectionHeader } from "../../components/chat/PasswordProtection";
-import socketContext, { SocketContextType } from "../../context/socket/socketContext";
+import { ChatIcon } from "@heroicons/react/outline";
+
+export type ChatUser = {
+	id: string;
+	username: string;
+	socketId: string;
+};
 
 export type ChatViewItem = {
 	label: string;
@@ -101,15 +108,15 @@ const views: { [key: string]: ChatViewItem } = {
 };
 
 const ChatProvider: React.FC = ({ children }) => {
-	const [viewStack, setViewStack] = useState<ChatViewItem[]>([]);
-	const [chatGroups, setChatGroups] = useState<ChatGroup[]>([]);
-	const [directMessages, setDirectMessages] = useState<DirectMessage[]>([]);
-	const [lastX, setLastX] = useState<number>(0);
-	const [lastY, setLastY] = useState<number>(0);
 	const session = useSession();
+	const { user } = useSession();
+	const { setAlert } = useContext(alertContext) as AlertContextType;
 	const { isChatOpened, setIsChatOpened } = useContext(authContext) as AuthContextValue;
 	const { blocked } = useContext(relationshipContext) as RelationshipContextType;
-	const { chatRoomLen } = useContext(socketContext) as SocketContextType;
+	const [socket, setSocket] = useState<any>(null);
+	const [viewStack, setViewStack] = useState<ChatViewItem[]>([]);
+	const [lastX, setLastX] = useState<number>(0);
+	const [lastY, setLastY] = useState<number>(0);
 
 	/* Chat manipulation */
 	const openChat = () => {
@@ -155,194 +162,148 @@ const ChatProvider: React.FC = ({ children }) => {
 		setViewStack(viewStack.slice(0, -n));
 	};
 
-	/* Message utils */
-	const getLastMessage = (channel: any) => {
-		let message: ChatMessagePreview = {
-			content: "",
-			createdAt: new Date(Date.now())
+	/* To be accessed from outside the chat (i.e. pages/users/[id]) */
+	const createDirectMessage = (userId: string, friendId: string) => {
+		const data = {
+			users: [
+				{ id: userId },
+				{ id: friendId }
+			],
 		};
 
-		if (channel.messages) {
-			const i = channel.messages.length - 1;
+		socket.emit("createDm", data);
+	}
 
-			if (i >= 0) {
-				const lastMessage = channel.messages[i];
-				message.createdAt = new Date(lastMessage.createdAt);
+	const getMessageStyle = (author: BaseUserData | undefined) => {
+		if (!author) {
+			return "self-center text-gray-500";
+		}
+		if (author.id == user.id) {
+			return "self-end bg-blue-500";
+		}
 
-				if (channel.privacy !== "protected") {
-					if (!!blocked.find(user => user.id == lastMessage.author.id)) {
-						message.content = "Blocked message";
-					} else {
-						message.content = lastMessage.content;
-					}
-				}
+		const isBlocked = !!blocked.find(
+			blockedUser => blockedUser.id === author.id
+		);
+		if (isBlocked) {
+			return "self-start text-gray-900 bg-gray-600";
+		}
+		return "self-start text-gray-900 bg-gray-300";
+	}
+
+	/* Event listeners */
+	const channelCreatedListener = (newChannel: Channel) => {
+		openChatView(
+			newChannel.privacy === "protected" ? "password_protection" : "group",
+			newChannel.name, {
+				channelId: newChannel.id,
+				channelName: newChannel.name,
+				privacy: newChannel.privacy
 			}
-		}
-		return message;
-	}
-
-	/* Chat groups utils */
-	const updateChatGroups = () => {
-		chatGroups.sort(
-			(a: ChatGroup, b: ChatGroup) =>
-			(b.updatedAt.valueOf() - a.updatedAt.valueOf())
 		);
-		setChatGroups([...chatGroups]);
-	}
+	};
 
-	const removeChatGroup = (groupId: string) => {
-		setChatGroups(chatGroups.filter((group: ChatGroup) => {
-			return group.id != groupId
-		}));
-	}
+	const dmCreatedListener = (newDm: DmChannel) => {
+		const friend = (newDm.users[0].id === user.id) ? newDm.users[1] : newDm.users[0];
 
-	const setChatGroupData = (channel: any, userId: string) => {
-		const lastMessage: ChatMessagePreview = getLastMessage(channel);
-
-		const group: ChatGroup = {
-			id: channel.id,
-			label: channel.name,
-			lastMessage: lastMessage.content,
-			in: !!channel.users.find((user: BaseUserData) => {
-				return user.id === userId;
-			}),
-			ownerId: channel.owner.id,
-			peopleCount: channel.users.length,
-			privacy: channel.privacy,
-			updatedAt: lastMessage.createdAt
-		}
-		return group;
-	}
-
-	/* Direct messages utils */
-	const updateDirectMessages = () => {
-		directMessages.sort(
-			(a: DirectMessage, b: DirectMessage) =>
-			(b.updatedAt.valueOf() - a.updatedAt.valueOf())
-		);
-		setDirectMessages([...directMessages]);
-	}
-
-	const setDirectMessageData = (channel: any, friend: BaseUserData) => {
-		const lastMessage: ChatMessagePreview = getLastMessage(channel);
-
-		const dm: DirectMessage = {
-			id: channel.id,
-			friendId: friend.id,
+		openChatView('dm', 'direct message', {
+			channelId: newDm.id,
 			friendUsername: friend.username,
-			friendPic: `/api/users/${friend.id}/photo`,
-			lastMessage: lastMessage.content,
-			updatedAt: lastMessage.createdAt
-		}
-		return dm;
+			friendId: friend.id
+		});
+		openChat();
+	};
+
+	const chatInfoListener = (message: string) => {
+		setAlert({
+			type: "info",
+			content: message
+		});
 	}
 
-	const createDirectMessage = async (userId: string, friendId: string) => {
-		const userData = await (await fetch(`/api/users/${userId}`)).json();
-		const friendData = await (await fetch(`/api/users/${friendId}`)).json();
-		const { setAlert } = useContext(alertContext) as AlertContextType;
-  
-		const res = await fetch("/api/channels", {
-			method: "POST",
-			headers: {
-				"Content-Type": "application/json",
-			},
-			body: JSON.stringify({
-				name: friendData.username,
-				owner: userData,
-				privacy: "dm",
-				users: [ userData, friendData ]
-			}),
+	const chatWarningListener = (message: string) => {
+		setAlert({
+			type: "warning",
+			content: message
+		});
+	};
+
+	const chatExceptionListener = (e: { statusCode: number, message: string, error: string }) => {
+		setAlert({
+			type: "warning",
+			content: e.message
+		});
+	};
+
+	useEffect(() => {
+		if (!socket || (session.state !== "authenticated")) return;
+
+		/* Update the socket Id */
+		socket.emit("updateChatUser", {
+			id: user.id,
+			username: user.username,
 		});
 
-		if (res.status === 201) {
-			const data = await res.json();
-			setDirectMessageData(JSON.parse(JSON.stringify(data)), friendData);
-			updateDirectMessages();
-		} else {
-			setAlert({
-				type: "error",
-				content: "Failed to send DM"
+		/* Listeners */
+		socket.on("exception", chatExceptionListener);
+		socket.on("kickedFromChannel", chatWarningListener);
+		socket.on("punishedInChannel", chatWarningListener);
+		socket.on("chatError", chatWarningListener);
+		socket.on("chatInfo", chatInfoListener);
+		socket.on("dmCreated", dmCreatedListener);
+
+		return () => {
+			socket.off("exception", chatExceptionListener);
+			socket.off("kickedFromChannel", chatWarningListener);
+			socket.off("punishedInChannel", chatWarningListener);
+			socket.off("chatError", chatWarningListener);
+			socket.off("dmCreated", dmCreatedListener);
+			socket.off("chatInfo", chatInfoListener);
+		};
+	}, [socket]);
+
+	/* Create socket when user is logged in */
+	useEffect(() => {
+		const socketIo = io("localhost:8080/chat");
+
+		setSocket(socketIo);
+
+		if (!socket || (session.state !== "authenticated")) return;
+
+		socket.on("connect", () => {
+			console.log("[Chat] Client connected");
+
+			socket.emit("updateChatUser", {
+				id: user.id,
+				username: user.username,
 			});
-		}
-	}
+		});
 
-	/* Find existing DM or create a new one */
-		const openDirectMessage = async (userId: string, friend: any) => {
-			const res = await fetch(`/api/users/${userId}/directmessages?friendId=${friend.id}`);
-			const data = await res.json();
-	
-			if (res.status !== 200) {
-				createDirectMessage(userId.toString(), friend.id.toString());
-			}
-			openChatView('dm', 'direct message', {
-				dmId: JSON.parse(JSON.stringify(data)).id,
-				friendUsername: friend.username,
-				friendId: friend.id
-			});
-		}
+		socket.on("connect_error", (err: Error) => {
+			console.log(`connect_error due to ${err.message}`);
+			socket.close();
+		});
 
-	/* Channels */
+		return () => {
+			socketIo.disconnect();
+		};
+	}, [user, setSocket]);
 
-	/* Fetch the data of a specific channel */
-	const fetchChannelData = async (id: string) => {
-		const res = await fetch(`/api/channels/${id}`);
-		const data = await res.json();
-		return data;
-	}
-
-	/* Load all channels on mount */
-	const loadChannelsOnMount = (channels: any, userId: string) => {
-		const groups: ChatGroup[] = [];
-		const dms: DirectMessage[] = [];
-
-		for (var i in channels) {
-			const channel = channels[i];
-
-			if (channel.privacy === "dm") {
-				const friend = (channel.users[0].id === userId) ? channel.users[1] : channel.users[0];
-				/* Don't display DMs from blocked users */
-				const isBlocked = !!blocked.find(user => user.id == friend.id);
-				if (!isBlocked) {
-					dms.push(setDirectMessageData(channel, friend));
-				}
-			} else {
-				groups.push(setChatGroupData(channel, userId));
-			}
-		}
-		groups.sort(
-			(a: ChatGroup, b: ChatGroup) =>
-			(b.updatedAt.valueOf() - a.updatedAt.valueOf())
-		);
-		dms.sort(
-			(a: DirectMessage, b: DirectMessage) =>
-			(b.updatedAt.valueOf() - a.updatedAt.valueOf())
-		);
-		setChatGroups(groups);
-		setDirectMessages(dms);
-	}
-
-  return (
+	return (
 		<chatContext.Provider
 			value={{
+				isChatOpened,
+				socket,
 				openChat,
 				closeChat,
-				isChatOpened,
 				openChatView,
 				setChatView,
 				closeRightmostView,
-				chatGroups,
-				directMessages,
-				getLastMessage,
-				updateChatGroups,
-				removeChatGroup,
-				setChatGroupData,
-				updateDirectMessages,
-				setDirectMessageData,
 				createDirectMessage,
-				openDirectMessage,
-				fetchChannelData,
-				loadChannelsOnMount,
+				getMessageStyle,
+				channelCreatedListener,
+				dmCreatedListener,
+				chatWarningListener,
 				lastX,
 				lastY,
 				setLastX,
@@ -358,24 +319,23 @@ const ChatProvider: React.FC = ({ children }) => {
 					}}
 				/>
 				:
+				<div className="right-6 rounded-md bottom-6 p-3 border-04dp border fixed z-50 bg-01dp">
 				<button
-					className="fixed z-50 flex items-center justify-center p-4 text-5xl bg-orange-500 rounded-full transition hover:scale-105 text-neutral-200"
-					style={{ right: "10px", bottom: "10px" }}
+					className={`flex items-center justify-center  text-pink-200 text-5xl transition hover:scale-105 text-neutral-200`}
 					onClick={() => {
-						setChatView("groups", "Group chats", {});
+						if (viewStack.length === 0) {
+							setChatView("groups", "Group chats", {});
+						}
 						setIsChatOpened(true);
 					}}
 				>
 					<div>
 						{/*TO BE REMOVED AFTER TESTING INSTANT CHAT...*/}
-						<div>
-							{chatRoomLen}
-						</div>
 						<Bounce duration={2000} triggerOnce>
-							<BsFillChatDotsFill />
+							<ChatIcon className="w-9 h-9" />
 						</Bounce>
 					</div>
-				</button> : <></>
+				</button> </div>: <></>
 			}
 			{children}
 		</chatContext.Provider>

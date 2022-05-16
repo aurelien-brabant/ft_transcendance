@@ -1,25 +1,24 @@
 import {
-  IsDate,
   IsNotEmpty,
   IsOptional,
   IsString,
-  MaxLength
+  Length,
 } from 'class-validator';
+import { Transform } from 'class-transformer';
 import { Channel } from "src/chat/channels/entities/channels.entity";
 import { User } from "src/users/entities/users.entity";
 
-export class CreateMessageDto {
-  @IsOptional()
-  @IsDate()
-  readonly createdAt?: Date;
-
-  @IsNotEmpty()
+export class CreateChannelMessageDto {
+  @Transform(({ value }) => value.trim())
   @IsString()
-  @MaxLength(640)
+  @Length(1, 640, {
+    message: 'Empty messages are not allowed.'
+  })
   readonly content: string;
 
+  @IsOptional()
   @IsNotEmpty()
-  readonly author: User;
+  readonly author?: User;
 
   @IsNotEmpty()
   readonly channel: Channel;

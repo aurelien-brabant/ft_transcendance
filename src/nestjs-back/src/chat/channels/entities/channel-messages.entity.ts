@@ -9,7 +9,7 @@ import { Channel } from "src/chat/channels/entities/channels.entity";
 import { User } from "src/users/entities/users.entity";
 
 @Entity()
-export class Message {
+export class ChannelMessage {
   @PrimaryGeneratedColumn()
   id: number;
 
@@ -23,7 +23,7 @@ export class Message {
   content: string;
 
   @ManyToOne(() => User)
-  author: User;
+  author?: User;
 
   @ManyToOne(() => Channel, channel => channel.messages, {
     onDelete: "CASCADE"
