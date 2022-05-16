@@ -107,7 +107,13 @@ export class ChatService {
 	}
 
 	async addMessageToChannel(createChannelMessageDto: CreateChannelMessageDto) {
-		return await this.channelMessagesService.create(createChannelMessageDto);
+		const message = await this.channelMessagesService.create(createChannelMessageDto);
+
+		if (createChannelMessageDto.author) {
+			const user = await this.usersService.findOne(createChannelMessageDto.author.id.toString());
+			message.author = user;
+		}
+		return message;
 	}
 
 	async addUserToChannel(channel: Channel, userId: number) {
@@ -247,6 +253,12 @@ export class ChatService {
 	}
 
 	async addMessageToDm(createDmMessageDto: CreateDmMessageDto) {
-		return await this.dmMessagesService.create(createDmMessageDto);
+		const message = await this.dmMessagesService.create(createDmMessageDto);
+
+		if (createDmMessageDto.author) {
+			const user = await this.usersService.findOne(createDmMessageDto.author.id.toString());
+			message.author = user;
+		}
+		return message;
 	}
 }

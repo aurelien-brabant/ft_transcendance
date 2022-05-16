@@ -40,6 +40,7 @@ services:
       - NODE_ENV=production
       - NEXT_PUBLIC_FT_CLIENT_ID=${FT_CLIENT_ID}
       - NEXT_PUBLIC_FT_REDIRECT_URI=${FT_REDIRECT_URI}
+      #- NEXT_PUBLIC_SOCKET_URL=https://transcendance.aurelienbrabant.fr
 
   # backend
 
@@ -65,7 +66,6 @@ services:
       - FT_REDIRECT_URI=${FT_REDIRECT_URI}
       - JWT_SECRET=${JWT_SECRET}
       - JWT_LIFETIME=${JWT_LIFETIME}
-      
 
   postgres:
     image: postgres:14-alpine3.15
