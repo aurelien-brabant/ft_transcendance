@@ -96,11 +96,15 @@ const DirectMessages: React.FC<{ viewParams: Object; }> = ({ viewParams }) => {
 
 		/* Listeners */
 		socket.on("updateUserDms", updateDmsListener);
+		socket.on("dmCreated", dmsChangeListener);
 		socket.on("newDm", dmsChangeListener);
+		socket.on("newPongInvite", dmsChangeListener);
 
 		return () => {
 			socket.off("updateUserDms", updateDmsListener);
+			socket.off("dmCreated", dmsChangeListener);
 			socket.off("newDm", dmsChangeListener);
+			socket.off("newPongInvite", dmsChangeListener);
 		};
 	}, []);
 

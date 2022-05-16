@@ -230,14 +230,11 @@ export class ChatService {
 		return (dm.users[0].id === userId) ? dm.users[1] : dm.users[0];
 	}
 
-	async checkIfDmExists(createDirectMessageDto: CreateDirectMessageDto) {
+	async checkIfDmExists(userId1: string, userId2: string) {
 		let existingDm: DirectMessage;
 
 		try {
-			existingDm = await this.usersService.getDirectMessage(
-				createDirectMessageDto.users[0].id.toString(),
-				createDirectMessageDto.users[1].id.toString()
-			);
+			existingDm = await this.usersService.getDirectMessage(userId1, userId2);
 			return existingDm;
 		} catch (e) {}
 	}

@@ -1,7 +1,7 @@
 import { Fragment, useContext, useEffect, useRef, useState } from "react";
 import { AiOutlineArrowLeft, AiOutlineClose } from "react-icons/ai";
 import { FiSend } from "react-icons/fi";
-import { RiPingPongLine } from "react-icons/ri";
+import { RiPingPongLine, RiGhostLine } from "react-icons/ri";
 import Link from "next/link";
 import { DmChannel, DmMessage } from 'transcendance-types';
 import { UserStatusItem } from "../UserStatus";
@@ -18,13 +18,13 @@ export const DirectMessageHeader: React.FC<{ viewParams: any }> = ({
 	const actionTooltipStyles = "font-bold bg-dark text-neutral-200";
 	const pongIconStyle = "p-1 text-pink-700 bg-pink-200 rounded-full transition hover:scale-110  hover:text-pink-600";
 
-	/**
-	 * WIP: To link with Hub
-	 * Invite for a Pong game
-	 */
-		const sendPongInvite = (id: string) => {
-			// TODO
-			console.log(`[Direct Message] Invite user [${id}] to play Pong`);
+	/* Invite for a Pong game */
+	const sendPongInvite = (userId: string) => {
+		console.log(`[Direct Message] Invite user [${userId}] to play Pong`);
+		socket.emit("sendPongInvite", {
+			from: user.id,
+			to: parseInt(userId),
+		});
 	};
 
 	return (
@@ -83,6 +83,8 @@ const DirectMessage: React.FC<{ viewParams: { [key: string]: any } }> = ({
 	const [currentMessage, setCurrentMessage] = useState("");
 	const [sendingEnabled, setSendingEnabled] = useState(false);
 	const chatBottom = useRef<HTMLDivElement>(null);
+	const pongAcceptIconStyle = "p-1 text-green-800 bg-green-300 rounded-full hover:text-green-600";
+	const pongDeclineIconStyle = "p-1 text-red-800 bg-red-300 rounded-full hover:text-red-600";
 
 	/* Send new message */
 	const handleDmSubmit = async () => {
@@ -90,8 +92,8 @@ const DirectMessage: React.FC<{ viewParams: { [key: string]: any } }> = ({
 
 		socket.emit("dmSubmit", {
 			content: currentMessage,
-			author: { "id": user.id },
-			dm: { "id": dmId },
+			author: { id: user.id },
+			dm: { id: dmId },
 		});
 		setCurrentMessage("");
 	};
@@ -121,6 +123,7 @@ const DirectMessage: React.FC<{ viewParams: { [key: string]: any } }> = ({
 				author: message.author.username,
 				displayAuthor: !(message.author.id === user.id),
 				displayStyle: getMessageStyle(message.author),
+				isInvite: (message.type === 'invite'),
 			});
 			return newMessages;
 		});
@@ -144,6 +147,7 @@ const DirectMessage: React.FC<{ viewParams: { [key: string]: any } }> = ({
 				author: message.author.username,
 				displayAuthor: !(message.author.id === user.id),
 				displayStyle: getMessageStyle(message.author),
+				isInvite: (message.type === 'invite'),
 			});
 		}
 		setMessages(messages);
@@ -160,10 +164,12 @@ const DirectMessage: React.FC<{ viewParams: { [key: string]: any } }> = ({
 		/* Listeners */
 		socket.on("updateDm", updateDmView);
 		socket.on("newDm", handleNewMessage);
+		socket.on("newPongInvite", handleNewMessage);
 
 		return () => {
 			socket.off("updateDm", updateDmView);
 			socket.off("newDm", handleNewMessage);
+			socket.off("newPongInvite", handleNewMessage);
 		};
 	}, []);
 
@@ -179,6 +185,22 @@ const DirectMessage: React.FC<{ viewParams: { [key: string]: any } }> = ({
 						}
 					>
 						<p>{msg.content}</p>
+						{msg.isInvite &&
+						<p>
+							<div className="flex justify-around">
+								<button
+									className={pongAcceptIconStyle}
+								>
+									<RiPingPongLine />
+								</button>
+							<button
+								className={pongDeclineIconStyle}
+							>
+								<RiGhostLine />
+							</button>
+							</div>
+							Accept or Decline
+						</p>}
 					</div>
 				))}
 				<div ref={chatBottom} />
