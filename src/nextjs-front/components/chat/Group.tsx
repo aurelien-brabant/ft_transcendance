@@ -183,6 +183,7 @@ const Group: React.FC<{ viewParams: { [key: string]: any } }> = ({
 				author: author && author.username,
 				displayAuthor: (author !== null && !isMe && !isBlocked),
 				displayStyle: getMessageStyle(message.author),
+				isInvite: false,
 			});
 			return newMessages;
 		});
@@ -242,6 +243,7 @@ const Group: React.FC<{ viewParams: { [key: string]: any } }> = ({
 					author: author && author.username,
 					displayAuthor: (author !== null && !isMe && !isBlocked),
 					displayStyle: getMessageStyle(message.author),
+					isInvite: false,
 				});
 			}
 			setMessages(messages);
