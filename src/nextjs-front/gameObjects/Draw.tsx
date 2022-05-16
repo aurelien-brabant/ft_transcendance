@@ -232,7 +232,6 @@ export class Draw {
 	}
 
 	drawTimer(room: IRoom) {
-		console.log("test");
 		
 		if (room.gameDuration - room.timer > 0) {
 			let timer: Date = new Date(room.gameDuration - room.timer);
@@ -244,7 +243,6 @@ export class Draw {
 			let time: string = timer.toLocaleString().substring(12, 18);
 			this.drawCenteredText("+" + time, canvasWidth - 100, 60, 50, 'red');
 		}
-
 	}
 
 	/* Neon effect */

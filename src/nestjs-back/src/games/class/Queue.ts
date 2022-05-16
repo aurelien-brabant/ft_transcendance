@@ -40,8 +40,13 @@ export default class Queue {
         let difference: number = Math.abs(firstPlayer.ratio - this.storage[0].ratio);
 
         for (let i = 1; i < this.size(); i++) {
-            if (Math.abs(firstPlayer.ratio - this.storage[i].ratio) < difference)
+            if (firstPlayer.mode === this.storage[i].mode && Math.abs(firstPlayer.ratio - this.storage[i].ratio) < difference)
                 secondPlayerId = i;
+        }
+
+        if (firstPlayer.mode !== this.storage[secondPlayerId].mode) {
+            this.storage.splice(1, 0, firstPlayer);
+            return players;
         }
 
         players.push(firstPlayer);

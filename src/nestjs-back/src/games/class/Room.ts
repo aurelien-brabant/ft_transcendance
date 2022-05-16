@@ -60,7 +60,7 @@ export default class Room implements IRoom {
 	timer: number;
 	gameDuration: number;
 
-    constructor(roomId: string, users: User[], customisation: {maxGoal?: number, mode?: GameMode} = {maxGoal: 3, mode: GameMode.DEFAULT}) {
+    constructor(roomId: string, users: User[], customisation: {mode?: GameMode} = {mode: GameMode.DEFAULT}) {
 		this.roomId = roomId;
 		this.gameState = GameState.STARTING;
 		this.players = [];
@@ -74,16 +74,12 @@ export default class Room implements IRoom {
 		this.pauseTime = [];
 
 		this.mode = customisation.mode;		
-		this.maxGoal = customisation.maxGoal;
+		this.maxGoal = 11;
 
-		console.log(this.mode, this.maxGoal);
-		// if (this.mode === GameMode.DEFAULT)
-		// else if (this.mode === GameMode.LIFE)
-		// 	this.maxGoal = 5;
 		this.isGameEnd = false;
 
 		this.timer = 0;
-		this.gameDuration = 30000;
+		this.gameDuration = 60000 * 5; // 1min * num of minutes
     }
 
 	isAPlayer(user: User): boolean {
@@ -165,22 +161,14 @@ export default class Room implements IRoom {
 	}
 
 	updateTimer() {
-		let time: number = ((this.lastUpdate - this.timestampStart));
+		let time: number = ((Date.now() - this.timestampStart));
 		this.pauseTime.forEach((pause) => {
 			time += (pause.pause - pause.resume) - 3500;
 		});
 		this.timer = time;
 	}
 
-	update(): void {
-		let secondPassed: number = (Date.now() - this.lastUpdate) / 1000;
-		this.lastUpdate = Date.now();
-
-		this.playerOne.update(secondPassed);
-		this.playerTwo.update(secondPassed);
-		this.ball.update(secondPassed, this.playerOne, this.playerTwo);
-
-
+	checkGoal() {
 		if (this.ball.goal === true) {
 			this.goalTimestamp = Date.now();
 			if (this.mode === GameMode.DEFAULT && (this.playerOne.goal === this.maxGoal || this.playerTwo.goal === this.maxGoal))
@@ -199,10 +187,20 @@ export default class Room implements IRoom {
 			this.ball.goal = false;
 		}
 
-		if (this.mode === GameMode.TIMER && (this.playerOne.goal !== this.playerTwo.goal) && (Date.now() - this.timestampStart) >= this.gameDuration) {
+		if (this.mode === GameMode.TIMER && (this.playerOne.goal !== this.playerTwo.goal) && this.timer >= this.gameDuration) {
 			this.timerGameMode();
 			this.changeGameState(GameState.END);
 			this.isGameEnd = true;
 		}
+	}
+
+	update(): void {
+		let secondPassed: number = (Date.now() - this.lastUpdate) / 1000;
+		this.lastUpdate = Date.now();
+
+		this.playerOne.update(secondPassed);
+		this.playerTwo.update(secondPassed);
+		this.ball.update(secondPassed, this.playerOne, this.playerTwo);
+		this.checkGoal();
 	}
 }

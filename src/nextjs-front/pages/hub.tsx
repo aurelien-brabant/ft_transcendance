@@ -25,8 +25,8 @@ const Hub: NextPageWithLayout = () => {
 	let roomId: string | undefined;
 	let userData: User = {id: user.id, username: user.username, ratio: user.ratio};
 
-	const joinQueue = () => {
-		socket.emit("joinQueue", userData.username);
+	const joinQueue = (e: React.MouseEvent<HTMLButtonElement>) => {
+		socket.emit("joinQueue", e.currentTarget.value);
 	}
 
 	const leaveQueue = () => {
@@ -119,9 +119,20 @@ const Hub: NextPageWithLayout = () => {
 									Cancel
 								</button>
 								:
-								<button onClick={joinQueue} className="px-6 py-2 mx-auto text-xl uppercase bg-pink-600 drop-shadow-md text-bold text-neutral-200">
-									Find a match
-								</button>
+								<div className="flex flex-row">
+									<div className="flex flex-col items-center px-6">
+										<div>Classic Mode :</div>
+										<button onClick={joinQueue} value="default" className="px-6 py-2 mx-auto text-xl uppercase bg-pink-600 drop-shadow-md text-bold text-neutral-200">
+											Find a match
+										</button>
+									</div>
+									<div className="flex flex-col items-center px-6">
+										<div>Timer Mode :</div>
+										<button onClick={joinQueue} value="timer" className="px-6 py-2 mx-auto text-xl uppercase bg-pink-600 drop-shadow-md text-bold text-neutral-200">
+											Find a match
+										</button>
+									</div>
+								</div>
 							}
 						</div>
 					)				

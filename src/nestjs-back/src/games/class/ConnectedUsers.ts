@@ -1,4 +1,4 @@
-import { UserStatus } from "./Constants";
+import { GameMode, UserStatus } from "./Constants";
 
 export class User {
 	id: number;
@@ -7,6 +7,8 @@ export class User {
 	status?: UserStatus;
 	socketId?: string;
 	roomId?: string;
+
+	mode?: GameMode;
 
 	constructor(id: number, username: string, socketId: string, ratio?: number) {
 		this.id = id;
@@ -29,6 +31,13 @@ export class User {
 
 	setRoomId(roomId: string | undefined) {
 		this.roomId = roomId;
+	}
+
+	setMode(mode: string) {
+		if (mode === "timer")
+			this.mode = GameMode.TIMER;
+		else
+			this.mode = GameMode.DEFAULT;
 	}
 }
 
@@ -59,4 +68,10 @@ export class ConnectedUsers {
 		let user: User = this.getUser(socketId);
 		user.setUserStatus(status);
 	}
+
+	setGameMode(socketId: string, mode: string) {
+		let user: User = this.getUser(socketId);
+		user.setMode(mode);
+	}
+
 }

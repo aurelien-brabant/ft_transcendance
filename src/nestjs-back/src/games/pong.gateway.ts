@@ -43,11 +43,12 @@ export class PongGateway implements OnGatewayInit, OnGatewayConnection, OnGatewa
 				let room: Room;
 
 				players = this.queue.matchPlayers();
+				if (players.length === 0)
+					return ;
 
 				roomId = `${players[0].username}&${players[1].username}`;
 				
-				// room = new Room(roomId, players, {maxGoal: 1, mode: GameMode.DEFAULT});
-				room = new Room(roomId, players, {mode: GameMode.TIMER});
+				room = new Room(roomId, players, {mode: players[0].mode});
 				
 				this.server.to(players[0].socketId).emit("newRoom", room);
 				this.server.to(players[1].socketId).emit("newRoom",  room);
@@ -124,12 +125,13 @@ export class PongGateway implements OnGatewayInit, OnGatewayConnection, OnGatewa
 
 	// Etape 1 : Player JoinQueue
 	@SubscribeMessage('joinQueue')
-	handleJoinQueue(@ConnectedSocket() client: Socket) {
+	handleJoinQueue(@ConnectedSocket() client: Socket, @MessageBody() mode: string) {
 		let user: User = this.connectedUsers.getUser(client.id);
 
 		if (user && !this.queue.isInQueue(user))
 		{
 			this.connectedUsers.changeUserStatus(client.id, UserStatus.INQUEUE);
+			this.connectedUsers.setGameMode(client.id, mode);
 			this.queue.enqueue(user);
 			this.server.to(client.id).emit('joinedQueue');
 			this.logger.log(`Client ${user.username}: ${client.id} was added to queue !`);
@@ -256,7 +258,6 @@ export class PongGateway implements OnGatewayInit, OnGatewayConnection, OnGatewa
 
 			if (room.mode === GameMode.TIMER && (room.gameState === GameState.GOAL || room.gameState === GameState.PLAYING))
 			{
-				console.log("NTM");
 				room.updateTimer();
 			}
 
