@@ -16,7 +16,7 @@ import { UsersService } from 'src/users/users.service';
 import Queue from './class/Queue';
 import Room from './class/Room';
 import { ConnectedUsers, User } from './class/ConnectedUsers';
-import { GameState, UserStatus } from './class/Constants';
+import { GameMode, GameState, UserStatus } from './class/Constants';
 
 @WebSocketGateway({ cors: true, namespace: "game" })
 export class PongGateway implements OnGatewayInit, OnGatewayConnection, OnGatewayDisconnect {
@@ -27,6 +27,7 @@ export class PongGateway implements OnGatewayInit, OnGatewayConnection, OnGatewa
 
 	@WebSocketServer()
 	server: Server;
+
 	private logger: Logger = new Logger('gameGateway');
 
 	private readonly queue: Queue = new Queue();
@@ -41,15 +42,13 @@ export class PongGateway implements OnGatewayInit, OnGatewayConnection, OnGatewa
 				let roomId: string;
 				let room: Room;
 
-				players.push(this.queue.dequeue());
-				// Match players based on ratio, etc...
-				players.push(this.queue.dequeue());
+				players = this.queue.matchPlayers();
+				if (players.length === 0)
+					return ;
 
-				// emit rooms change event for spectator or create a game in DB
-				
 				roomId = `${players[0].username}&${players[1].username}`;
 				
-				room = new Room(roomId, players, {maxGoal: 1});
+				room = new Room(roomId, players, {mode: players[0].mode});
 				
 				this.server.to(players[0].socketId).emit("newRoom", room);
 				this.server.to(players[1].socketId).emit("newRoom",  room);
@@ -67,7 +66,7 @@ export class PongGateway implements OnGatewayInit, OnGatewayConnection, OnGatewa
 
 	@SubscribeMessage('handleUserConnect')
 	async handleUserConnect(@ConnectedSocket() client: Socket, @MessageBody() user: User) {
-		let newUser: User = new User(user.id, user.username, client.id);
+		let newUser: User = new User(user.id, user.username, client.id, user.ratio);
 		newUser.setSocketId(client.id);
 		newUser.setUserStatus(UserStatus.INHUB);
 
@@ -126,12 +125,13 @@ export class PongGateway implements OnGatewayInit, OnGatewayConnection, OnGatewa
 
 	// Etape 1 : Player JoinQueue
 	@SubscribeMessage('joinQueue')
-	handleJoinQueue(@ConnectedSocket() client: Socket) {
+	handleJoinQueue(@ConnectedSocket() client: Socket, @MessageBody() mode: string) {
 		let user: User = this.connectedUsers.getUser(client.id);
 
 		if (user && !this.queue.isInQueue(user))
 		{
 			this.connectedUsers.changeUserStatus(client.id, UserStatus.INQUEUE);
+			this.connectedUsers.setGameMode(client.id, mode);
 			this.queue.enqueue(user);
 			this.server.to(client.id).emit('joinedQueue');
 			this.logger.log(`Client ${user.username}: ${client.id} was added to queue !`);
@@ -230,7 +230,7 @@ export class PongGateway implements OnGatewayInit, OnGatewayConnection, OnGatewa
 					await this.usersService.updateStats(loser, isDraw, false);
 
 					/* Save game in database */
-					await this.gamesService.create({
+					let test = await this.gamesService.create({
 						players: [winner, loser],
 						winnerId: room.winnerId,
 						loserId: room.loserId,
@@ -238,9 +238,9 @@ export class PongGateway implements OnGatewayInit, OnGatewayConnection, OnGatewa
 						endedAt: new Date(currentTimestamp),
 						gameDuration: room.getDuration(),
 						winnerScore: room.winnerScore,
-						loserScore: room.loserScore
+						loserScore: room.loserScore,
+						mode: room.mode
 					});
-
 					let roomIndex: number = this.currentGames.findIndex(roomIdRm => roomIdRm === room.roomId);
 					if (roomIndex !== -1)
 						this.currentGames.splice(roomIndex, 1);
@@ -254,6 +254,11 @@ export class PongGateway implements OnGatewayInit, OnGatewayConnection, OnGatewa
 			} else if (room.gameState === GameState.RESUMED && (currentTimestamp - room.pauseTime[room.pauseTime.length - 1].resume) >= 3500) {
 				room.lastUpdate = Date.now();
 				room.changeGameState(GameState.PLAYING);
+			}
+
+			if (room.mode === GameMode.TIMER && (room.gameState === GameState.GOAL || room.gameState === GameState.PLAYING))
+			{
+				room.updateTimer();
 			}
 
 			this.server.to(room.roomId).emit("updateRoom", room);

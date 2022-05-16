@@ -32,3 +32,9 @@ export enum UserStatus {
 	PLAYING,
 	SPECTATING,
 }
+
+export enum GameMode {
+	DEFAULT,
+	TIMER,
+	LIFE
+}

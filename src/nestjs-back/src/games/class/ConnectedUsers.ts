@@ -1,15 +1,19 @@
-import { UserStatus } from "./Constants";
+import { GameMode, UserStatus } from "./Constants";
 
 export class User {
 	id: number;
 	username: string;
+	ratio?: number;
 	status?: UserStatus;
 	socketId?: string;
 	roomId?: string;
 
-	constructor(id: number, username: string, socketId: string) {
+	mode?: GameMode;
+
+	constructor(id: number, username: string, socketId: string, ratio?: number) {
 		this.id = id;
 		this.username = username;
+		this.ratio = ratio;
 		this.socketId = socketId
 	}
 
@@ -28,6 +32,13 @@ export class User {
 	setRoomId(roomId: string | undefined) {
 		this.roomId = roomId;
 	}
+
+	setMode(mode: string) {
+		if (mode === "timer")
+			this.mode = GameMode.TIMER;
+		else
+			this.mode = GameMode.DEFAULT;
+	}
 }
 
 export class ConnectedUsers {
@@ -36,7 +47,8 @@ export class ConnectedUsers {
 	constructor(private maxUser: number = Infinity) {}
 
 	addUser(user: User) {
-		this.users.push(user);
+		if (this.maxUser !== this.users.length)
+			this.users.push(user);
 	}
 
 	removeUser(userRm: User) {
@@ -56,4 +68,10 @@ export class ConnectedUsers {
 		let user: User = this.getUser(socketId);
 		user.setUserStatus(status);
 	}
+
+	setGameMode(socketId: string, mode: string) {
+		let user: User = this.getUser(socketId);
+		user.setMode(mode);
+	}
+
 }

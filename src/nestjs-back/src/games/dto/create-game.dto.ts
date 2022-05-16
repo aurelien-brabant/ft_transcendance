@@ -1,5 +1,6 @@
 import { IsString, IsOptional, IsInt } from 'class-validator';
 import { User } from 'src/users/entities/users.entity';
+import { GameMode } from '../class/Constants';
 
 export class CreateGameDto {
     
@@ -32,4 +33,8 @@ export class CreateGameDto {
     @IsOptional()
     @IsInt()
     readonly gameDuration: number;
+
+    @IsOptional()
+    @IsInt()
+    readonly mode: GameMode;
 }

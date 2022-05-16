@@ -20,12 +20,13 @@ import { classNames } from "../../utils/class-names";
 export type GameSummary = {
   id: string;
   winnerScore: number;
-  looserScore: number;
+  loserScore: number;
   createdAt: string;
   endedAt: string;
   winnerId: string;
-  looserId: string;
+  loserId: string;
   opponent: string;
+  gameDuration: number;
 };
 
 const renderScore = (score: [number, number]) => {
@@ -46,10 +47,10 @@ const renderScore = (score: [number, number]) => {
   );
 };
 
-const getDuration = (begin: number, end: number) => {
-  const diff = end - begin;
-  const minutes = Math.floor(diff / 60);
-  const seconds = Math.floor(diff - minutes * 60);
+const getDuration = (gameDuration: number) => {
+  const duration: Date = new Date(gameDuration);
+  const minutes = duration.getMinutes();
+  const seconds = duration.getSeconds();
 
   return `${minutes}` + " min " + (seconds < 10 ? "0" : "") + `${seconds} sec`;
 };
@@ -77,22 +78,22 @@ const HistoryTable: React.FC<{ history: GameSummary[]; userId: string }> = ({
           <td className="p-3 font-bold">
             <Link
               href={`/users/${
-                game.winnerId === userId ? game.looserId : game.winnerId
+                game.winnerId === userId ? game.loserId : game.winnerId
               }`}
             >
               <a>{game.opponent}</a>
             </Link>
           </td>
           <td className="p-3 text-neutral-200">
-            {`${getDuration(parseInt(game.createdAt), parseInt(game.endedAt))}`}
+            {`${getDuration(game.gameDuration)}`}
           </td>
           <td className="p-3">
             {game.winnerId === userId
-              ? renderScore([game.winnerScore, game.looserScore])
-              : renderScore([game.looserScore, game.winnerScore])}
+              ? renderScore([game.winnerScore, game.loserScore])
+              : renderScore([game.loserScore, game.winnerScore])}
           </td>
           <td className="p-3 text-3xl">
-            {game.winnerScore === game.looserScore ? (
+            {game.winnerScore === game.loserScore ? (
               <FaEquals className="text-gray-400" />
             ) : game.winnerId === userId ? (
               <GiPodiumWinner className="text-green-400" />
@@ -101,7 +102,7 @@ const HistoryTable: React.FC<{ history: GameSummary[]; userId: string }> = ({
             )}
           </td>
           <td className="p-3">
-            {new Date(parseInt(game.endedAt)).toLocaleDateString()}
+            {new Date(game.endedAt).toLocaleDateString()}
           </td>
         </tr>
       ))}
@@ -166,8 +167,7 @@ const UserProfilePage: NextPageWithLayout = ({}) => {
   /* Update user's information */
   const updateGamesHistory = async (games: any) => {
     for (var i in games) {
-      const opponentId =
-        games[i].winnerId === userId ? games[i].looserId : games[i].winnerId;
+      const opponentId = String(games[i].winnerId) === userId ? games[i].loserId : games[i].winnerId;
       const req = await fetch(`/api/users/${opponentId}`);
       const res = await req.json();
       games[i].opponent = res.username;
