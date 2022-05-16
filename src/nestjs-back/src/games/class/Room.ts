@@ -52,7 +52,7 @@ export default class Room implements IRoom {
 	// settings customisation
 	maxGoal: number;
 
-	constructor(roomId: string, users: User[], customisation: {maxGoal?: number} = {maxGoal: 3}) {
+	constructor(roomId: string, users: User[], customisation: {maxGoal?: number} = {maxGoal: 11}) {
 		this.roomId = roomId;
 		this.gameState = GameState.STARTING;
 		this.players = [];

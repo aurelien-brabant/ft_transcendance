@@ -3,7 +3,6 @@ import React from "react";
 
 const OngoingGames: React.FC<{currentGamesProps: Array<string>, socketProps: Socket}> = ({currentGamesProps, socketProps}) => {  
     let currentGames: Array<string> = currentGamesProps;
-    currentGames.push("test&Test2");
 
     const spectate = (e: React.MouseEvent<HTMLButtonElement>) => {
         socketProps.emit("spectateRoom", e.currentTarget.value);
