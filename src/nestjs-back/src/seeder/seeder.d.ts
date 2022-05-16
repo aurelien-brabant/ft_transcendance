@@ -67,8 +67,6 @@ export type SeedChannel = {
   owner: SeedUser;
   users: SeedUser[];
   admins: SeedUser[];
-  mutedUsers: SeedUser[];
-  bannedUsers: SeedUser[];
   messages: SeedChanMessage[];
 };
 

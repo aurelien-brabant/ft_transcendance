@@ -193,22 +193,17 @@ const UserProfilePage: NextPageWithLayout = ({}) => {
 
   /* Send friendship invite */
   const requestFriend = async (id: string, username: string) => {
-    const reqSent = await fetch(`/api/users/${user.id}`, {
+    const res = await fetch(`/api/users/${user.id}`, {
       method: "PATCH",
       headers: {
         "Content-Type": "application/json",
       },
-      body: JSON.stringify({ pendingFriendsSent: [{ id: id }] }),
-    });
-    const reqReceived = await fetch(`/api/users/${id}`, {
-      method: "PATCH",
-      headers: {
-        "Content-Type": "application/json",
-      },
-      body: JSON.stringify({ pendingFriendsReceived: [{ id: user.id }] }),
+      body: JSON.stringify({
+        pendingFriendsSent: [ { "id": id } ]
+      }),
     });
 
-    if (reqSent.ok && reqReceived.ok) {
+    if (res.ok) {
       setAlreadyFriend(true);
       setAlert({ type: "info", content: `Friend request sent to ${username}` });
     } else
@@ -236,12 +231,19 @@ const UserProfilePage: NextPageWithLayout = ({}) => {
     if (!userId || !user) return;
 
     const fetchData = async () => {
-      const req = await fetch(`/api/users/${userId}`);
-      const data = await req.json();
+      /* search by username */
+      const res = await fetch(`/api/users/${userId}`);
 
-      updateUserData(data);
-      updateGamesHistory(JSON.parse(JSON.stringify(data)).games);
-      if (!data.wins && !data.losses && !data.draws) setRank("-");
+      if (!res.ok) {
+        router.push('/404');
+        return ;
+      }
+
+      const matchingUser: any = await res.json();
+
+      updateUserData(matchingUser);
+      updateGamesHistory(JSON.parse(JSON.stringify(matchingUser)).games);
+      if (!matchingUser.wins && !matchingUser.losses && !matchingUser.draws) setRank("-");
       else {
         const reqRank = await fetch(`/api/users/${userId}/rank`);
         const res = await reqRank.json();
@@ -362,7 +364,6 @@ const UserProfilePage: NextPageWithLayout = ({}) => {
               </h1>
               <UserStatusItem
                 className={"mt-2"}
-                status={userData.accountDeactivated ? "deactivated" : "online"}
                 id={userData.id}
               />
             </div>

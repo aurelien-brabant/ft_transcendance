@@ -1,156 +1,162 @@
 import { Injectable, Logger } from '@nestjs/common';
-import { SchedulerRegistry } from '@nestjs/schedule';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Repository } from 'typeorm';
-import { CronJob } from 'cron';
 import { hash as hashPassword } from 'bcryptjs';
 import { Channel } from './entities/channels.entity';
 import { CreateChannelDto } from './dto/create-channel.dto';
 import { UpdateChannelDto } from './dto/update-channel.dto';
+import { PunishmentsService } from "./punishments.service";
 
 @Injectable()
 export class ChannelsService {
-  private logger: Logger = new Logger('Channels Service');
+	private logger: Logger = new Logger('Channels Service');
 
-  constructor(
-    @InjectRepository(Channel)
-    private readonly channelsRepository: Repository<Channel>,
-    private schedulerRegistry: SchedulerRegistry
-  ) {}
+	constructor(
+		@InjectRepository(Channel)
+		private readonly channelsRepository: Repository<Channel>,
+		private readonly channelPunishmentService: PunishmentsService
+	) {}
 
-  /**
-   * NOTE: to be updated
-   * A user is unban after a limited time
-   */
-  scheduleUnban(channelId: string, userId: string, duration: number) {
-    const unbanTime = new Date(Date.now() + duration * 60000);
+	/**
+	 * Channel punishments
+	 */
+	async findOutIfUserIsMuted(channelId: number, userId: number) {
+		return await this.channelPunishmentService.isUserCurrentlyMuted(channelId, userId);
+	}
 
-    const job = new CronJob(unbanTime, async () => {
-      const channel = await this.channelsRepository.findOne(channelId, {
-        relations: ['bannedUsers']
-      });
-      channel.bannedUsers = channel.bannedUsers.filter(
-        (user) => user.id.toString() !== userId
-      );
-      this.channelsRepository.save(channel);
-      this.logger.log(`Unban user [${userId}] on channel [${channel.id}][${channel.name}]`);
-    });
+	async findOutIfUserIsBanned(channelId: number, userId: number) {
+		return await this.channelPunishmentService.isUserCurrentlyBanned(channelId, userId);
+	}
 
-    this.schedulerRegistry.addCronJob(`unban_user${userId}_${unbanTime}_chan${channelId}`, job);
-    job.start();
-  }
+	async banUser(channelId: number, punishedId: number, punisherId: number) {
+		const isBanned = await this.channelPunishmentService.isUserCurrentlyBanned(channelId, punishedId);
 
-  /**
-   * NOTE: to be updated
-   * A user is unmute after a limited time
-   */
-  scheduleUnmute(channelId: string, userId: string, duration: number) {
-    const unmuteTime = new Date(Date.now() + duration * 60000);
+		if (!isBanned) {
+			return this.channelPunishmentService.punishUser(
+				channelId, punishedId, punisherId, 'ban', {
+				reason: 'Un méchant garçon, à n\'en point douter.'
+			});
+		}
+		throw new Error('User is already banned.');
+	}
 
-    const job = new CronJob(unmuteTime, async () => {
-      const channel =  await this.channelsRepository.findOne(channelId, {
-        relations: ['mutedUsers']
-      });
-      channel.mutedUsers = channel.mutedUsers.filter(
-        (user) => user.id.toString() !== userId
-      );
-      this.channelsRepository.save(channel);
-      this.logger.log(`Unmute user [${userId}] on channel [${channel.id}][${channel.name}]`);
-    });
+	async muteUser(channelId: number, punishedId: number, punisherId: number) {
+		const isMuted = await this.channelPunishmentService.isUserCurrentlyMuted(channelId, punishedId);
 
-    this.schedulerRegistry.addCronJob(`unmute_user${userId}_${unmuteTime}_chan${channelId}`, job);
-    job.start();
-  }
+		if (!isMuted) {
+			return this.channelPunishmentService.punishUser(
+				channelId, punishedId, punisherId, 'mute', {
+				reason: 'Un méchant garçon, à n\'en point douter.'
+			});
+		}
+		throw new Error('User is already muted.');
+	}
 
-  findAll() {
-    return this.channelsRepository.find({
-      relations: [
-        'owner',
-        'users',
-        'messages',
-        'messages.author'
-      ]
-    });
-  }
+	/**
+	 * Used whenever a user wants to join a password-protected channel
+	 */
+	async getChannelPassword(id: string) {
+		const channel = await this.channelsRepository.createQueryBuilder('channel')
+			.select('channel.password')
+			.where('channel.id = :id', { id })
+			.getOne();
 
-  async findOne(id: string) {
-    const channel =  await this.channelsRepository.findOne(id, {
-      relations: [
-        'owner',
-        'users',
-        'admins',
-        'mutedUsers',
-        'bannedUsers',
-        'messages',
-        'messages.author'
-      ]
-    });
-    if (!channel) {
-      throw new Error(`Channel [${id}] not found`);
-    }
+		return channel.password;
+	}
 
-    return channel;
-  }
+	/**
+	 * To display the user list of a group
+	 */
+	async getChannelUsers(id: string) {
+		const channel = await this.channelsRepository.findOne(id, {
+			relations: [
+				'owner',
+				'users',
+				'admins',
+				'punishments',
+				'punishments.punishedUser',
+			],
+		});
+		if (!channel) {
+			throw new Error(`Channel [${id}] not found`);
+		}
 
-  async create(createChannelDto: CreateChannelDto) {
-    if (createChannelDto.password) {
-      createChannelDto.password = await hashPassword(createChannelDto.password, 10);
-    }
-    const channel = this.channelsRepository.create(createChannelDto);
+		const timeNow = new Date(Date.now());
+		const activePunishements = channel.punishments.filter((punishment) => {
+			return !punishment.endsAt || (punishment.endsAt > timeNow);
+		});
 
-    this.logger.log(`Create new channel [${channel.name}]`);
+		channel.punishments = activePunishements;
+		return channel;
+	}
 
-    return await this.channelsRepository.save(channel).catch(() => {
-      throw new Error(`Group '${createChannelDto.name}' already exists. Choose another name.`);
-    });
-  }
+	findAll() {
+		return this.channelsRepository.find({
+			relations: [
+				'owner',
+				'users',
+				'messages',
+				'messages.author'
+			]
+		});
+	}
 
-  async update(id: string, updateChannelDto: UpdateChannelDto) {
-    if (updateChannelDto.password) {
-      updateChannelDto.password = await hashPassword(updateChannelDto.password, 10);
-    }
+	async findOne(id: string) {
+		const channel = await this.channelsRepository.findOne(id, {
+			relations: [
+				'owner',
+				'users',
+				'admins',
+				'messages',
+				'messages.author'
+			]
+		});
+		if (!channel) {
+			throw new Error(`Channel [${id}] not found`);
+		}
 
-    const channel = await this.channelsRepository.preload({
-      id: +id,
-      ...updateChannelDto
-    });
+		return channel;
+	}
 
-    if (!channel) {
-      throw new Error(`Cannot update Channel [${id}]: Not found`);
-    }
-    if (updateChannelDto.bannedUsers) {
-      const userId = updateChannelDto.bannedUsers[updateChannelDto.bannedUsers.length -1].id.toString();
-      this.scheduleUnban(id, userId, channel.restrictionDuration);
-    }
-    if (updateChannelDto.mutedUsers) {
-      const userId = updateChannelDto.mutedUsers[updateChannelDto.mutedUsers.length -1].id.toString();
-      this.scheduleUnmute(id, userId, channel.restrictionDuration);
-    }
-    this.logger.log(`Update channel [${channel.id}][${channel.name}]`);
+	async create(createChannelDto: CreateChannelDto) {
+		if (createChannelDto.password) {
+			createChannelDto.password = await hashPassword(createChannelDto.password, 10);
+		}
+		const channel = this.channelsRepository.create(createChannelDto);
 
-    return this.channelsRepository.save(channel);
-  }
+		this.logger.log(`Create new channel [${channel.name}]`);
 
-  async remove(id: string) { 
-    const channel = await this.channelsRepository.findOne(id);
+		return await this.channelsRepository.save(channel).catch(() => {
+			throw new Error(`Group '${createChannelDto.name}' already exists. Choose another name.`);
+		});
+	}
 
-    if (!channel) {
-      throw new Error(`Channel [${id}] not found`);
-    }
-    this.logger.log(`Remove channel [${channel.id}][${channel.name}]`);
+	async update(id: string, updateChannelDto: UpdateChannelDto) {
+		if (updateChannelDto.password) {
+			updateChannelDto.password = await hashPassword(updateChannelDto.password, 10);
+		}
 
-    return this.channelsRepository.remove(channel);
-  }
+		const channel = await this.channelsRepository.preload({
+			id: +id,
+			...updateChannelDto
+		});
 
-  /**
-   * Used whenever a user wants to join a password-protected channel
-   */
-  async getChannelPassword(id: string) {
-    const channel = await this.channelsRepository.createQueryBuilder('channel')
-      .select('channel.password')
-      .where('channel.id = :id', { id })
-      .getOne();
+		if (!channel) {
+			throw new Error(`Cannot update Channel [${id}]: Not found`);
+		}
+		this.logger.log(`Update channel [${channel.id}][${channel.name}]`);
 
-    return channel.password;
-  }
+		return this.channelsRepository.save(channel);
+	}
+
+	async remove(id: string) { 
+		const channel = await this.channelsRepository.findOne(id);
+
+		if (!channel) {
+			throw new Error(`Channel [${id}] not found`);
+		}
+		this.logger.log(`Remove channel [${channel.id}][${channel.name}]`);
+
+		return this.channelsRepository.remove(channel);
+	}
 }

@@ -2,7 +2,7 @@ import { createContext } from 'react';
 import { User } from 'transcendance-types';
 
 export type RelationshipContextType = {
-	getData: () => any;
+	getRelationshipsData: () => any;
 	users: User[];
 	setUsers: (data: any) => any;
 	friends: User[];

@@ -16,6 +16,7 @@ import {
   UseInterceptors,
   UploadedFile,
   UseGuards,
+  BadRequestException,
 } from '@nestjs/common';
 import { FileInterceptor } from '@nestjs/platform-express';
 import { createReadStream, statSync } from 'fs';
@@ -40,10 +41,24 @@ export class UsersController {
     return this.usersService.findAll(paginationQuery);
   }
 
+
+  @UseGuards(JwtAuthGuard)
+  @Get('/search')
+  async searchUsersBy(@Query('v') searchTerm: string) {
+    if (searchTerm === undefined) {
+      throw new BadRequestException('Missing "v" query parameter')
+    }
+
+    return this.usersService.searchUsers(searchTerm);
+  }
+
+  /* NOTE: userId can be either the actual database id of the user, or, preferrably on the frontend, their username */
   @UseGuards(JwtAuthGuard)
   @Get(':userId')
-  findOne(@Param('userId') id: string) {
-    return this.usersService.findOne(id);
+  async findOne(@Param('userId') id: string) {
+    return await this.usersService.findOne(id).catch((err) => {
+      throw new NotFoundException(err.message);
+    });
   }
 
   /* anyone can create a new user to begin the authentication process */
@@ -58,12 +73,6 @@ export class UsersController {
     // exclude password from returned JSON
     const { password, ...userData } = createdUser;
     return userData;
-  }
-
-  @UseGuards(JwtAuthGuard, IsLoggedInUserGuard)
-  @Post('/:userId/stats/:status')
-  async updateStats(@Param('userId') id: string, @Param('status') status: string) {
-    return this.usersService.updateStats(id, status);
   }
 
   @UseGuards(JwtAuthGuard)
@@ -98,8 +107,10 @@ export class UsersController {
 
   @UseGuards(JwtAuthGuard, IsLoggedInUserGuard)
   @Patch(':userId')
-  update(@Param('userId') id: string, @Body() updateUserDto: UpdateUserDto) {
-    return this.usersService.update(id, updateUserDto);
+  async update(@Param('userId') id: string, @Body() updateUserDto: UpdateUserDto) {
+    return await this.usersService.update(id, updateUserDto).catch((err) => {
+      throw new BadRequestException(err.message);
+    });
   }
 
   @UseGuards(JwtAuthGuard, IsLoggedInUserGuard)
@@ -110,12 +121,14 @@ export class UsersController {
 
   @UseGuards(JwtAuthGuard, IsLoggedInUserGuard)
   @Delete(':userId/:user/:action')
-  removeRelation(
+  async removeRelation(
     @Param('userId') id: string,
     @Param('user') userToUpdate: string,
     @Param('action') action: string,
   ) {
-    return this.usersService.removeRelation(id, userToUpdate, action);
+    return await this.usersService.removeRelation(id, userToUpdate, action).catch((err) => {
+      throw new BadRequestException(err.message);
+    });
   }
 
   @UseGuards(JwtAuthGuard, IsLoggedInUserGuard)

@@ -22,7 +22,7 @@ const Chat: React.FC<ChatProps> = ({ viewStack, onClose }) => {
 		setLastX,
 		setLastY
 	} = useContext(chatContext) as ChatContextType;
-	const { getData } = useContext(relationshipContext) as RelationshipContextType;
+	const { getRelationshipsData } = useContext(relationshipContext) as RelationshipContextType;
 	const currentView = viewStack[viewStack.length - 1];
 	const buttonTooltipClassName = "p-3 font-bold bg-dark";
 	const buttonClassName = "hover:scale-105 transition text-2xl";
@@ -35,7 +35,7 @@ const Chat: React.FC<ChatProps> = ({ viewStack, onClose }) => {
 	}
 
 	useEffect(() => {
-		getData();
+		getRelationshipsData();
 	}, [])
 
 	return (

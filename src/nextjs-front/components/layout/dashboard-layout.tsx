@@ -18,98 +18,86 @@ import {
   ChangeEvent,
   Fragment,
   FunctionComponent,
+  useEffect,
   useRef,
   useState,
 } from "react";
-import Image from "next/image";
 import Link from "next/link";
 import { Dialog, Menu, Transition } from "@headlessui/react";
 import {
-  BellIcon,
-  CalendarIcon,
-  ChartBarIcon,
   FireIcon,
-  FolderIcon,
   HomeIcon,
-  InboxIcon,
   MenuAlt2Icon,
-  UserIcon,
   UsersIcon,
   XIcon,
 } from "@heroicons/react/outline";
 import { SearchIcon } from "@heroicons/react/solid";
 import { classNames } from "../../utils/class-names";
 import { useSession } from "../../hooks/use-session";
-import { CheckIcon, SelectorIcon } from "@heroicons/react/solid";
+import { CheckIcon } from "@heroicons/react/solid";
 import { Combobox } from "@headlessui/react";
 import { useRouter } from "next/router";
-import { CircleLoader } from "react-spinners";
+import { useLiveSearch } from "../../hooks/use-live-search";
+import { SimpleSpinner } from "../simple-spinner";
+import { BiTrophy } from "react-icons/bi";
 
 const navigation = [
   { name: "My profile", href: "/welcome", icon: HomeIcon, current: true },
   { name: "Friends", href: "/friends", icon: UsersIcon, current: false },
   { name: "Play", href: "/hub", icon: FireIcon, current: false },
+  { name: "Leaderboard", href: "/leaderboard", icon: BiTrophy, current: false },
 ];
+
+const TOPNAV_OFFSET = '64px';
 
 /**
  * Search bar used to search for users and go to their profile page.
  * Implements a query caching system and make uses of the special
  * /users/search API route.
  */
+
+type SearchedUser = {
+  username: string;
+  duoquadra_login?: string;
+  id: number;
+}
+
 const SearchBar = () => {
-  const fetchUsers = async (searchTerm: string) => {
+  const fetchUsers = async (searchTerm: string): Promise<SearchedUser[]> => {
     const res = await fetch(`/api/users/search?v=${searchTerm}`);
 
-    if (res.status === 200) {
-      const matchingUsers = await res.json();
-      /* don't add users that are already in */
-      const uniqueMatchingUsers = matchingUsers.filter(
-        (matchingUser: any) =>
-          !users.find(({ username }) => username === matchingUser.username)
-      );
+    if (res.ok) {
+      const fetchedUsers: SearchedUser[] = await res.json();
 
-      setUsers([...users, ...uniqueMatchingUsers]);
+      return fetchedUsers;
     }
 
-    return res.status;
+    return []
   };
 
-  const queryCache = useRef<Set<string>>(new Set());
-  const [isFetching, setIsFetching] = useState(false);
-  const [users, setUsers] = useState<any[]>([]);
-  const [query, setQuery] = useState("");
   const [selectedPerson, setSelectedPerson] = useState();
   const router = useRouter();
 
+  const { elements: users, setSearchQuery, searchQuery, isProcessing } = useLiveSearch<SearchedUser>(fetchUsers, (user) => user.username );
+
+  console.log(users)
+
   const filteredPeople =
-    query === ""
+    searchQuery === ""
       ? users
       : users.filter((user) => {
-          return user.username.toLowerCase().includes(query.toLowerCase());
+          return user.username.toLowerCase().includes(searchQuery.toLowerCase());
         });
 
   const handleSelect = async (user: any) => {
     setSelectedPerson(user);
-    await router.push(`/users/${user.id}`);
+    await router.push(`/users/${user.username}`);
   };
 
   const handleQueryChange = async ({
     target: { value },
   }: ChangeEvent<HTMLInputElement>) => {
-    const normalizedValue = value.toLowerCase();
-
-    setQuery(normalizedValue);
-    // cache hit
-    if (queryCache.current.has(normalizedValue)) {
-      return;
-    }
-    setIsFetching(true);
-    const httpStatus = await fetchUsers(value);
-    /* if request succeeded cache the query */
-    if (httpStatus === 200) {
-      queryCache.current.add(normalizedValue);
-    }
-    setIsFetching(false);
+    setSearchQuery(value)
   };
 
   return (
@@ -121,11 +109,8 @@ const SearchBar = () => {
           displayValue={(user: any) => user.username}
         />
         <Combobox.Button className="absolute inset-y-0 right-0 flex items-center rounded-r-md px-2 focus:outline-none">
-          {!isFetching ? (
-            <SearchIcon className="h-5 w-5 text-gray-400" aria-hidden="true" />
-          ) : (
-            <CircleLoader />
-          )}
+          {isProcessing && <SimpleSpinner className="mr-3 h-5 w-5 text-pink-500" />}
+          <SearchIcon className="h-5 w-5 text-gray-400" aria-hidden="true" />
         </Combobox.Button>
 
         {filteredPeople.length > 0 && (
@@ -181,7 +166,21 @@ const SearchBar = () => {
 
 export const DashboardLayout: FunctionComponent = ({ children }) => {
   const [sidebarOpen, setSidebarOpen] = useState(false);
+  const [selectedTabHref, setSelectedTabHref] = useState(navigation[0].href);
   const { user, logout } = useSession();
+  const router = useRouter();
+
+  useEffect(() => {
+    let currentlySelectedHref = '';
+
+    for (const { href } of navigation) {
+      if (router.asPath.startsWith(href) && href.length > currentlySelectedHref.length) {
+        currentlySelectedHref = href;
+      }
+    }
+
+    setSelectedTabHref(currentlySelectedHref)
+  }, [router.asPath])
 
   const userNavigation = [
     { name: "Settings", href: "/welcome" },
@@ -194,14 +193,6 @@ export const DashboardLayout: FunctionComponent = ({ children }) => {
 
   return (
     <>
-      {/*
-        This example requires updating your template:
-
-        ```
-        <html class="h-full bg-gray-100">
-        <body class="h-full">
-        ```
-      */}
       <div>
         <Transition.Root show={sidebarOpen} as={Fragment}>
           {/* @ts-ignore */}
@@ -267,7 +258,7 @@ export const DashboardLayout: FunctionComponent = ({ children }) => {
                       <Link href={item.href} key={item.name}>
                         <a
                           className={classNames(
-                            item.current
+                            item.href === selectedTabHref
                               ? "bg-gray-900 text-white"
                               : "text-gray-300 hover:bg-gray-700 hover:text-white",
                             "group flex items-center px-2 py-2 text-base font-medium rounded-md"
@@ -275,7 +266,7 @@ export const DashboardLayout: FunctionComponent = ({ children }) => {
                         >
                           <item.icon
                             className={classNames(
-                              item.current
+                              item.href === selectedTabHref
                                 ? "text-gray-300"
                                 : "text-gray-400 group-hover:text-gray-300",
                               "mr-4 flex-shrink-0 h-6 w-6"
@@ -309,7 +300,7 @@ export const DashboardLayout: FunctionComponent = ({ children }) => {
                   <Link href={item.href} key={item.name}>
                     <a
                       className={classNames(
-                        item.current
+                        item.href === selectedTabHref
                           ? "bg-01dp text-white"
                           : "text-gray-300 hover:bg-01dp hover:text-white",
                         "group flex items-center px-2 py-2 text-sm font-medium rounded-md"
@@ -317,7 +308,7 @@ export const DashboardLayout: FunctionComponent = ({ children }) => {
                     >
                       <item.icon
                         className={classNames(
-                          item.current
+                          item.href === selectedTabHref
                             ? "text-gray-300"
                             : "text-gray-400 group-hover:text-gray-300",
                           "mr-3 flex-shrink-0 h-6 w-6"
@@ -411,6 +402,7 @@ export const DashboardLayout: FunctionComponent = ({ children }) => {
             style={{
               background:
                 "repeating-linear-gradient(rgba(18,18,18,0.90), rgba(18,18,18,0.90)), url('/triangles.png') repeat",
+              minHeight: `calc(100vh - ${TOPNAV_OFFSET})`
             }}
           >
             <div className="py-6">

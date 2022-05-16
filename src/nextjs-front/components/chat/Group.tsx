@@ -3,7 +3,7 @@ import { AiOutlineArrowLeft, AiOutlineClose } from "react-icons/ai";
 import { FaUserFriends, FaUserPlus } from "react-icons/fa";
 import { FiSend } from 'react-icons/fi';
 import { RiSettings5Line } from "react-icons/ri";
-import { Channel, Message } from 'transcendance-types';
+import { Channel, ChannelMessage } from 'transcendance-types';
 import Tooltip from "../../components/Tooltip";
 import { useSession } from "../../hooks/use-session";
 import chatContext, { ChatContextType, ChatMessage } from "../../context/chat/chatContext";
@@ -22,7 +22,7 @@ export const GroupHeader: React.FC<{ viewParams: any }> = ({ viewParams }) => {
 	} = useContext(chatContext) as ChatContextType;
 	const [channelName, setChannelName] = useState(viewParams.channelName);
 	const [privacy, setChannelPrivacy] = useState(viewParams.privacy);
-	const [userInChan, setUserInChan] = useState(false);
+	const [userInChan, setUserInChan] = useState((privacy === 'protected') ? true : false);
 	const actionTooltipStyles = "font-bold bg-dark text-neutral-200";
 
 	const defineOptions = (channel: Channel) => {
@@ -53,8 +53,6 @@ export const GroupHeader: React.FC<{ viewParams: any }> = ({ viewParams }) => {
 	};
 
 	useEffect(() => {
-		socket.emit("getChannelData", { channelId });
-
 		/* Listeners */
 		socket.on("channelData", defineOptions);
 		socket.on("channelUpdated", channelUpdatedListener);
@@ -80,7 +78,7 @@ export const GroupHeader: React.FC<{ viewParams: any }> = ({ viewParams }) => {
 						<AiOutlineArrowLeft />
 					</button>
 				</div>
-				{userInChan && <div className="flex items-right gap-x-3">
+				{(userInChan === true) && <div className="flex items-right gap-x-3">
 					<Tooltip className={actionTooltipStyles} content="add user">
 						<button onClick={() => {
 							openChatView('group_add', 'Add a user to group', {
@@ -140,16 +138,14 @@ const Group: React.FC<{ viewParams: { [key: string]: any } }> = ({
 
 	const joinGroup = async () => {
 		socket.emit("joinChannel", {
+			channelId: viewParams.channelId,
 			userId: user.id,
-			channelId: viewParams.channelId
 		});
 	};
 
 	/* Send new message */
 	const handleGmSubmit = async () => {
 		if (currentMessage.trim().length === 0) return;
-
-		console.log('[Chat] Submit group message');
 
 		socket.emit('gmSubmit', {
 			content: currentMessage,
@@ -172,6 +168,26 @@ const Group: React.FC<{ viewParams: { [key: string]: any } }> = ({
 		setCurrentMessage(e.target.value);
 	};
 
+	const addNewMessage = (message: ChannelMessage) => {
+		setMessages((prevMessages) => {
+			const newMessages: ChatMessage[] = [...prevMessages];
+
+			const author = message.author;
+			const isBlocked = author && !!blocked.find(blockedUser => blockedUser.id === author.id);
+			const isMe = author && (author.id === user.id);
+
+			newMessages.push({
+				id: prevMessages.length.toString(),
+				createdAt: message.createdAt,
+				content: isBlocked ? "Blocked message" : message.content,
+				author: author && author.username,
+				displayAuthor: (author !== null && !isMe && !isBlocked),
+				displayStyle: getMessageStyle(message.author),
+			});
+			return newMessages;
+		});
+	};
+
 	/* Listeners */
 	const channelDeletedListener = (deletedId: string) => {
 		if (deletedId === channelId) {
@@ -180,96 +196,56 @@ const Group: React.FC<{ viewParams: { [key: string]: any } }> = ({
 	};
 
 	/* Receive new message */
-	const newGmListener = ({ message }: { message: Message }) => {
-		console.log(`[Chat] Receive new message in [${message.channel.name}]`);
-
-		setMessages((prevMessages) => {
-			const newMessages: ChatMessage[] = [...prevMessages];
-
-			const isBlocked = !!blocked.find(blockedUser => blockedUser.id === message.author.id);
-			const isMe = (message.author.id === user.id);
-
-			newMessages.push({
-				id: prevMessages.length.toString(),
-				createdAt: message.createdAt,
-				content: isBlocked ? "Blocked message" : message.content,
-				author: message.author.username,
-				displayAuthor: (!isMe && !isBlocked),
-				displayStyle: getMessageStyle(message.author.id),
-			});
-			return newMessages;
-		});
+	const newGmListener = ({ message }: { message: ChannelMessage }) => {
+		addNewMessage(message);
 	};
 
-	const userJoinedListener = (res: { message: string, userId: string }) => {
-		setMessages((prevMessages) => {
-			const newMessages: ChatMessage[] = [...prevMessages];
-
-			newMessages.push({
-				id: prevMessages.length.toString(),
-				createdAt: new Date(Date.now()),
-				content: res.message,
-				author: "bot",
-				displayAuthor: false,
-				displayStyle: "self-center text-gray-500",
-			});
-			return newMessages;
-		});
-		if (res.userId === user.id) {
+	const userJoinedListener = ({ message, userId }: { message: ChannelMessage, userId: string }) => {
+		addNewMessage(message);
+		if (userId === user.id) {
 			setUserInChan(true);
 		}
 	};
 
-	const userLeftListener = (message: string) => {
-		setMessages((prevMessages) => {
-			const newMessages: ChatMessage[] = [...prevMessages];
-
-			newMessages.push({
-				id: prevMessages.length.toString(),
-				createdAt: new Date(Date.now()),
-				content: message,
-				author: "bot",
-				displayAuthor: false,
-				displayStyle: "self-center text-gray-500",
-			});
-			return newMessages;
-		});
+	const userLeftListener = ({ message }: { message: ChannelMessage }) => {
+		addNewMessage(message);
 	};
 
 	const userPunishedListener = (message: string) => {
-		console.log('[Group] User punished');
 		setChatView("groups", "Group chats", {});
 	}
 
 	/* Load all messages in channel */
 	const updateGroupView = (channel: Channel) => {
-		if ((channel.id !== channelId) || !channel.messages) return ;
-		console.log('[Group] Update view');
+		if (channel.id !== channelId) return ;
 
 		setUserInChan(!!channel.users.find(
 			(chanUser) => { return chanUser.id === user.id;}
 		));
 
-		const messages: ChatMessage[] = [];
+		if (channel.messages) {
+			const messages: ChatMessage[] = [];
 
-		channel.messages.sort(
-			(a: Message, b: Message) => (parseInt(a.id) - parseInt(b.id))
-		);
+			channel.messages.sort(
+				(a: ChannelMessage, b: ChannelMessage) => (parseInt(a.id) - parseInt(b.id))
+			);
 
-		for (var message of channel.messages) {
-			const isBlocked = !!blocked.find(blockedUser => blockedUser.id === message.author.id);
-			const isMe = (message.author.id === user.id);
+			for (var message of channel.messages) {
+				const author = message.author;
+				const isBlocked = author && !!blocked.find(blockedUser => blockedUser.id === author.id);
+				const isMe = author && (author.id === user.id);
 
-			messages.push({
-				id: messages.length.toString(),
-				createdAt: message.createdAt,
-				content: isBlocked ? "Blocked message" : message.content,
-				author: message.author.username,
-				displayAuthor: (!isMe && !isBlocked),
-				displayStyle: getMessageStyle(message.author.id),
-			});
+				messages.push({
+					id: messages.length.toString(),
+					createdAt: message.createdAt,
+					content: isBlocked ? "Blocked message" : message.content,
+					author: author && author.username,
+					displayAuthor: (author !== null && !isMe && !isBlocked),
+					displayStyle: getMessageStyle(message.author),
+				});
+			}
+			setMessages(messages);
 		}
-		setMessages(messages);
 	};
 
 	/* Scroll to bottom if new message is sent */
@@ -286,7 +262,9 @@ const Group: React.FC<{ viewParams: { [key: string]: any } }> = ({
 		socket.on("newGm", newGmListener);
 		socket.on("joinedChannel", userJoinedListener);
 		socket.on("leftChannel", userLeftListener);
-		socket.on("chatPunishment", userPunishedListener);
+		socket.on("userKicked", userLeftListener);
+		socket.on("punishedInChannel", userPunishedListener);
+		socket.on("kickedFromChannel", userPunishedListener);
 
 		return () => {
 			socket.off("channelData", updateGroupView);
@@ -294,7 +272,9 @@ const Group: React.FC<{ viewParams: { [key: string]: any } }> = ({
 			socket.off("newGm", newGmListener);
 			socket.off("joinedChannel", userJoinedListener);
 			socket.off("leftChannel", userLeftListener);
-			socket.off("chatPunishment", userPunishedListener);
+			socket.off("userKicked", userLeftListener);
+			socket.off("punishedInChannel", userPunishedListener);
+			socket.off("kickedFromChannel", userPunishedListener);
 		};
 	}, []);
 

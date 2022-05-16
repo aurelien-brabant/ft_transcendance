@@ -34,7 +34,7 @@ export const GroupAddHeader: React.FC<{ viewParams: any }> = ({ viewParams }) =>
 const GroupAdd: React.FC<{ viewParams: any }> = ({ viewParams }) => {
 	const channelId: string = viewParams.channelId;
 	const { user } = useSession();
-	const { socket, closeRightmostView } = useContext(chatContext) as ChatContextType;
+	const { socket, closeRightmostView, setChatView } = useContext(chatContext) as ChatContextType;
 	const { friends } = useContext(relationshipContext) as RelationshipContextType;
 	const [filteredFriends, setFilteredFriends] = useState<User[]>([]);
 	const searchInputRef = useRef<HTMLInputElement>(null);
@@ -77,16 +77,31 @@ const GroupAdd: React.FC<{ viewParams: any }> = ({ viewParams }) => {
 		closeRightmostView();
 	};
 
+	const userPunishedListener = (message: string) => {
+		setChatView("groups", "Group chats", {});
+	}
+
 	useEffect(() => {
 		socket.emit("getChannelData", { channelId });
 
 		/* Listeners */
-		socket.on("updateChannel", selectFriends);
+		socket.on("channelData", selectFriends);
 
 		return () => {
-			socket.off("updateChannel", selectFriends);
+			socket.off("channelData", selectFriends);
 		};
 	}, [friends]);
+
+	useEffect(() => {
+		/* Listeners */
+		socket.on("punishedInChannel", userPunishedListener);
+		socket.on("kickedFromChannel", userPunishedListener);
+
+		return () => {
+			socket.off("punishedInChannel", userPunishedListener);
+			socket.off("kickedFromChannel", userPunishedListener);
+		};
+	}, []);
 
 	return (
 		<Fragment>
@@ -123,7 +138,7 @@ const GroupAdd: React.FC<{ viewParams: any }> = ({ viewParams }) => {
 							src={`/api/users/${friend.id}/photo`}
 							className="object-fill w-full h-full rounded-full"
 						/>
-						<UserStatusItem status={(user.accountDeactivated) ? "deactivated" : "online"} withText={false} className="absolute bottom-0 right-0 z-50" id={user.id} />
+						<UserStatusItem withText={false} className="absolute bottom-0 right-0 z-50" id={friend.id} />
 					</div>
 					{friend.username}
 				</div>

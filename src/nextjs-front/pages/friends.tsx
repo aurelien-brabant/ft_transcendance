@@ -55,9 +55,9 @@ const HighlightItem: React.FC<Highlight> = ({ n, label, hint, nColor }) => {
 const FriendsPage: NextPageWithLayout = ({}) => {
   const [isLoading, setIsLoading] = useState(true);
   const [selected, setSelected] = useState(0);
-  const { user } = useSession();
+  const { user, backend } = useSession();
   const {
-    getData,
+    getRelationshipsData,
     getRelationships,
     createSuggested,
     setSuggested,
@@ -72,7 +72,7 @@ const FriendsPage: NextPageWithLayout = ({}) => {
 
   useEffect(() => {
     if (user) {
-      getData();
+      getRelationshipsData();
       setIsLoading(false);
     }
   }, []);
@@ -87,7 +87,7 @@ const FriendsPage: NextPageWithLayout = ({}) => {
   }, [selected]);
 
   return (
-    <div className="min-h-screen overflow-x-auto text-white bg-fixed bg-center bg-fill grow">
+    <div className="text-white bg-fixed bg-center bg-fill grow">
       {!isLoading ? (
         <div style={{ maxWidth: "800px" }} className="px-2 py-10 mx-auto">
           <div className="flex flex-col items-center gap-y-10">
@@ -115,7 +115,6 @@ const FriendsPage: NextPageWithLayout = ({}) => {
             <div className="flex flex-col items-center">
               <h1 className="text-2xl text-pink-600">{user.username}</h1>
               <UserStatusItem
-                status={user.accountDeactivated ? "deactivated" : "online"}
                 id={user.id}
               />
             </div>

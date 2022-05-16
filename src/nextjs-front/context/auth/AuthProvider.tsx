@@ -130,6 +130,23 @@ const AuthProvider: React.FC = ({ children }) => {
         return user;
     };
 
+    /**
+     * Call this each time a logged in user needs to access API resources
+     */
+
+    const requestBackend = async (path: string, init?: RequestInit) => {
+        const res = await fetch(path, init);
+
+        /* user token has probably expired, so we need to force them to log out */
+        if (res.status === 401) {
+            await logout();
+            /* wait for the session lastAction to update and redirect automatically. Do not let the call end until then */
+            await new Promise(() => {})
+        }
+
+        return res;
+    }
+
     const logout = async (): Promise<void> => {
         const res = await fetch('/api/auth/log-out');
 
@@ -142,6 +159,22 @@ const AuthProvider: React.FC = ({ children }) => {
         });
         setIsChatOpened(false);
     };
+
+    const verify = async (): Promise<boolean> => {
+        const res = await fetch('/api/auth/is-logged-in')
+
+        if (!res.ok) {
+            setSession({
+                lastLoginAction: {
+                    action: 'logout',
+                },
+                state: 'unauthenticated',
+                user: null
+            })
+        }
+
+        return res.ok;
+    }
 
     const authenticateUser = async (): Promise<null | User> => {
         const res = await fetch('/api/auth/login');
@@ -176,7 +209,11 @@ const AuthProvider: React.FC = ({ children }) => {
                 logout,
                 login,
                 isChatOpened,
-                setIsChatOpened
+                setIsChatOpened,
+                verify,
+                backend: {
+                    request: requestBackend
+                }
             }}
         >
             {children}

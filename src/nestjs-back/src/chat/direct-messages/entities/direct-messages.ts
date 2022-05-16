@@ -1,4 +1,5 @@
 import {
+  CreateDateColumn,
   Entity,
   JoinTable,
   ManyToMany,
@@ -12,6 +13,12 @@ import { User } from "src/users/entities/users.entity";
 export class DirectMessage {
   @PrimaryGeneratedColumn()
   id: number;
+
+  @CreateDateColumn({
+    type: "timestamptz",
+    default: () => "CURRENT_TIMESTAMP(6)"
+  })
+  createdAt: Date;
 
   @ManyToMany(() => User, user => user.directMessages)
   @JoinTable()

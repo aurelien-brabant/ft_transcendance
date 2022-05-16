@@ -24,6 +24,7 @@ export class Game {
 
     @Column({ nullable: true })
     loserId: number;
+
     @Column({ nullable: true })
     winnerScore: number;
 
@@ -34,7 +35,7 @@ export class Game {
         type: "timestamptz",
         default: () => "CURRENT_TIMESTAMP(6)"
     })
-    createdAt: Date;    
+    createdAt: Date;
 
     @Column({
         type: "timestamptz",

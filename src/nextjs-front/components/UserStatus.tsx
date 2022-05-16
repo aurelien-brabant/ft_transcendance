@@ -1,42 +1,42 @@
 import { useContext, useEffect, useState } from "react";
-import socketContext, { SocketContextType } from "../context/socket/socketContext";
+import chatContext, { ChatContextType } from "../context/chat/chatContext";
 
-export type UserStatus = 'online' | 'offline' | 'deactivated';
+export type UserStatus = 'DEACTIVATED' | 'OFFLINE' | 'ONLINE' | 'PLAYING';
 
 const statusColors = {
-	'online': 'bg-green-500',
-	'offline': 'bg-red-500',
-	'deactivated': 'bg-gray-700'
+	'DEACTIVATED': 'bg-gray-700',
+	'OFFLINE': 'bg-red-500',
+	'ONLINE': 'bg-green-500',
+	'PLAYING': 'bg-yellow-500',
 };
 
-export const UserStatusItem: React.FC<{ status: UserStatus, withText?: boolean, className?: string, id: string }> = ({ status, withText, className, id }) => {
+export const UserStatusItem: React.FC<{ status?: UserStatus, withText?: boolean, className?: string, id: string }> = ({ status, withText, className, id }) => {
 	const [color, setColor] = useState(className || 'bg-green-500');
 	const [state, setState] = useState(status);
+	const { socket } = useContext(chatContext) as ChatContextType;
 
-	const { chatRoom } = useContext(socketContext) as SocketContextType;
-	
+	const updateUserStatusListener = ({ userId, status }: { userId: number, status: UserStatus }) => {
+		if (parseInt(id) !== userId) return ;
+
+		setColor(statusColors[status]);
+		setState(status);
+	}
+
 	useEffect(() => {
-		const checkConnected = () => {
-			let found = false;
-			for (let i in chatRoom.users) {
-				if (chatRoom.users[i].id === id) {
-					found = true;
-					setColor(statusColors.online);
-					setState('online');
-					break;
-				}
-			}
-			if (!found) {
-				setColor(statusColors.offline);
-				setState('offline');
-			}
+		setColor(statusColors.DEACTIVATED);
+		if (socket) {
+			socket.emit("getUserStatus", { userId: id });
 		}
-		
-		if (status === "deactivated")
-			setColor(statusColors.deactivated);
-		else
-			checkConnected();
-	}, [id, chatRoom]);
+	}, [id]);
+
+	useEffect(() => {
+		/* Listeners */
+		socket.on("updateUserStatus", updateUserStatusListener);
+
+		return () => {
+			socket.off("updateUserStatus", updateUserStatusListener);
+		};
+	}, []);
 
 	return (
 	<div className={`flex items-center gap-x-2 ${className}`}>

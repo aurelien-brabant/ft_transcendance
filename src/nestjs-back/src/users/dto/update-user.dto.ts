@@ -2,7 +2,6 @@ import { PartialType } from '@nestjs/mapped-types';
 import {
   IsArray,
   IsBoolean,
-  IsDecimal,
   IsOptional,
   IsNotEmpty,
   IsString,
@@ -12,10 +11,7 @@ import {
 } from 'class-validator';
 import { Transform, Type } from 'class-transformer';
 import { CreateUserDto } from './create-user.dto';
-import { Achievement } from 'src/achievements/entities/achievements.entity';
-import { Channel } from 'src/chat/channels/entities/channels.entity';
-import { ChannelPunishment } from "src/chat/channels/entities/punishment.entity";
-import { DirectMessage } from 'src/chat/direct-messages/entities/direct-messages';
+import { User } from '../entities/users.entity';
 
 export class UpdateUserDto extends PartialType(CreateUserDto) {
     /* Informations */
@@ -46,39 +42,23 @@ export class UpdateUserDto extends PartialType(CreateUserDto) {
     @IsString()
     readonly tfaSecret: string;
 
-    /* Games */
     @IsOptional()
-    @IsDecimal()
-    readonly ratio: number;
+    @IsBoolean()
+    readonly accountDeactivated: boolean;
+
+    /* Relationships */
+    @IsOptional()
+    @IsArray()
+    @Type(() => User)
+    readonly friends: User[];
 
     @IsOptional()
     @IsArray()
-    @Type(() => Achievement)
-    readonly achievements: Achievement[];
-
-    /* Chat */
-    @IsOptional()
-    @IsArray()
-    @Type(() => Channel)
-    readonly ownedChannels: Channel[];
+    @Type(() => User)
+    readonly pendingFriendsSent: User[];
 
     @IsOptional()
     @IsArray()
-    @Type(() => Channel)
-    readonly joinedChannels: Channel[];
-
-    @IsOptional()
-    @IsArray()
-    @Type(() => DirectMessage)
-    readonly directMessages: DirectMessage[];
-
-    @IsOptional()
-    @IsArray()
-    @Type(() => ChannelPunishment)
-    receivedChannelPunishments: ChannelPunishment[];
-
-    @IsOptional()
-    @IsArray()
-    @Type(() => ChannelPunishment)
-    givenChannelPunishments: ChannelPunishment[];
+    @Type(() => User)
+    readonly blockedUsers: User[];
 }

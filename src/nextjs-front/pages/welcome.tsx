@@ -5,10 +5,8 @@ import Link from 'next/link';
 import Image from "next/image";
 import { useRouter } from 'next/router';
 import isEmail from "validator/lib/isEmail";
-import isMobilePhone from "validator/lib/isMobilePhone";
 import { NextPageWithLayout } from './_app';
 import alertContext, { AlertContextType } from "../context/alert/alertContext";
-import notificationsContext, { NotificationsContextType } from "../context/notifications/notificationsContext";
 import Tooltip from '../components/Tooltip';
 import ResponsiveSlide from '../components/ResponsiveSlide';
 import withDashboardLayout from "../components/hoc/withDashboardLayout";
@@ -44,7 +42,7 @@ const InputErrorProvider: React.FC<{ error?: string | null }> = ({
 
 
 const Welcome: NextPageWithLayout = () => {
-  const { user, logout, reloadUser } = useSession();
+  const { user, logout, reloadUser, backend } = useSession();
   const [invalidInputs, setInvalidInputs] = useState<InvalidInputs>({});
   const { setAlert } = useContext(alertContext) as AlertContextType;
   const router = useRouter();
@@ -65,26 +63,17 @@ const Welcome: NextPageWithLayout = () => {
   let baseObject: FormData;
 
   const reactivateAccount = () => {
-    fetch(`/api/users/${user.id}`, {
+    backend.request(`/api/users/${user.id}`, {
       method: 'PATCH',
       headers: {
         'Content-Type': 'application/json'
       },
-      body: JSON.stringify({accountDeactivated: false})
+      body: JSON.stringify({
+        accountDeactivated: false
+      })
     });
   }
-  
-  const { notifications, setNotifications } = useContext(notificationsContext) as NotificationsContextType;
 
-  const checkPendingFriendsRequests = () => {
-
-    const data = user.pendingFriendsReceived;
-    if (data.length) {
-      for (let i in data)
-        setNotifications([...notifications, {category: 'Friend request', content: `${data[i].username} wants to be you friend`, isRead: false, id: data[i].id, issuedAt: `${new Date(Date.now())}`}]);
-    }
-  }
-  
   useEffect(() => {
     if (user.accountDeactivated)
       reactivateAccount();
@@ -97,7 +86,6 @@ const Welcome: NextPageWithLayout = () => {
       tfa: user.tfa,
       pic: user.pic
     }
-    checkPendingFriendsRequests();
   }, [])
 
   // recompute this only when formData changes
@@ -120,23 +108,23 @@ const Welcome: NextPageWithLayout = () => {
 	}
 
   const deactivateAccount = async () => {
-    const req = await fetch(`/api/users/${user.id}`, {
+    const res = await backend.request(`/api/users/${user.id}`, {
       method: 'PATCH',
       headers: {
         'Content-Type': 'application/json'
       },
-      body: JSON.stringify({accountDeactivated: true})
+      body: JSON.stringify({
+        accountDeactivated: true
+      })
     });
 
-    const res = await req.json();
-
-    if (req.status === 200) {
+    if (res.status === 200) {
       await handleLogout();
     }
   }
 
   const editUser = async (formData: FormData) => {
-  	const req = await fetch(`/api/users/${user.id}`, {
+    const res = await backend.request(`/api/users/${user.id}`, {
       method: 'PATCH',
       headers: {
         'Content-Type': 'application/json'
@@ -146,14 +134,21 @@ const Welcome: NextPageWithLayout = () => {
       body: JSON.stringify(formData)
     });
 
-    const res = await req.json();
-
-    if (req.status === 200) {
+    if (res.status === 200) {
       await reloadUser();
-      setAlert({ type: 'success', content: 'User edited successfully' });
+
+      setAlert({
+        type: 'success',
+        content: 'User edited successfully'
+      });
+    } else {
+      const data = await res.json();
+
+      setAlert({
+        type: 'error',
+        content: data.message
+      });
     }
-    else
-      setAlert({ type: 'error', content: 'Error while editing user!' });
   }
 
   const handleSubmit = (e: React.FormEvent<HTMLFormElement>) => {
@@ -179,7 +174,7 @@ const Welcome: NextPageWithLayout = () => {
 
   const activateTfa = async () => {
  
-    const req = await fetch(`/api/users/${user.id}/enableTfa`, {
+    const req = await backend.request(`/api/users/${user.id}/enableTfa`, {
       method: 'POST',
       headers: {
         'Content-Type': 'application/json'
@@ -197,21 +192,24 @@ const Welcome: NextPageWithLayout = () => {
     else {
       setAlert({ type: 'error', content: 'Wrong verification code!' });
       setTfaStatus('disabled');
-      setTfaCode(''); 
-      setCurrentStep(0);   
+      setTfaCode('');
+      setCurrentStep(0);
     }
   }
 
   const deactivateTfa = async () => {
 
-    const req = await fetch(`/api/users/${user.id}`, {
+    const req = await backend.request(`/api/users/${user.id}`, {
       method: 'PATCH',
       headers: {
         'Content-Type': 'application/json'
       },
       redirect: 'follow',
       referrerPolicy: 'no-referrer',
-      body: JSON.stringify({tfa: false, tfaSecret: null})
+      body: JSON.stringify({
+        tfa: false,
+        tfaSecret: null
+      })
     });
 
     if (req.status === 200) {
@@ -315,14 +313,14 @@ const Welcome: NextPageWithLayout = () => {
       const body = new FormData();
       body.append("image", image);
 
-      const req = await fetch(`/api/users/${user.id}/uploadAvatar`, {
+      const req = await backend.request(`/api/users/${user.id}/uploadAvatar`, {
         method: "POST",
         body
       });
-     
+
       if (req.ok) {
         const res = await req.json();
-        console.log(res);
+
         setPendingPic(false);
         setAlert({type: 'success', content: 'Avatar uploaded successfully'})
         router.reload();
@@ -357,7 +355,7 @@ const Welcome: NextPageWithLayout = () => {
 
     setAlert({type: 'info', content: 'New random avatar'})
 
-    const req = await fetch(`/api/users/${user.id}/randomAvatar`);
+    const req = await backend.request(`/api/users/${user.id}/randomAvatar`);
 
     if (req.ok)
       router.reload();
@@ -369,7 +367,7 @@ const Welcome: NextPageWithLayout = () => {
 
     setAlert({type: 'info', content: 'Default 42 pic requested'})
 
-    const req = await fetch(`/api/users/${user.id}/avatar42`);
+    const req = await backend.request(`/api/users/${user.id}/avatar42`);
    
     if (req.ok)
       router.reload();
@@ -382,7 +380,7 @@ const Welcome: NextPageWithLayout = () => {
   }, [currentStep, pendingQR]);
   
   return (
-    <div className="min-h-screen text-white grow" id="main-content">
+    <div className="text-white" id="main-content">
       <div 
         style={{ maxWidth: "800px" }}
         className="px-2 mx-auto"
@@ -547,7 +545,8 @@ const Welcome: NextPageWithLayout = () => {
 
               <button
                 className="px-1 py-2 text-sm font-bold uppercase bg-red-600 md:px-6 md:text-lg"
-                onClick={() => {
+                onClick={(e) => {
+                  e.preventDefault();
                   if (confirm("Deactivated account?\nJust login again to reactivate your account.\n\nClick OK to proceed.") == true) {
                     deactivateAccount();
                   }

@@ -58,10 +58,19 @@ export type Achievement = {
 
 /* CHAT */
 
-/**
- * GET /api/messages/:id
- */
-export type Message = {
+export type PunishmentType = 'mute' | 'ban';
+
+export type ChannelPunishment = {
+	id: string;
+	startsAt: Date;
+	endsAt: Date;
+	durationInSeconds: number;
+	type: PunishmentType;
+	reason: string;
+	punishedUser: User;
+}
+
+export type DmMessage = {
 	id: string;
 	createdAt: Date;
 	content: string;
@@ -71,19 +80,24 @@ export type Message = {
 
 export type DmChannel = {
 	id: string;
+	createdAt: Date;
 	users: User[];
 	messages: Message[];
 }
 
-/**
- * GET /api/channels/:id
- */
+export type ChannelMessage = {
+	id: string;
+	createdAt: Date;
+	content: string;
+	author?: User;
+	channel: Channel;
+};
+
 export type Channel = DmChannel & {
 	name: string;
 	privacy: string;
 	restrictionDuration: number;
 	owner: User;
 	admins: User[];
-	mutedUsers: User[];
-	bannedUsers: User[];
+	punishments: ChannelPunishment[];
 }
