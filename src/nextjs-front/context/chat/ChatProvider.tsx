@@ -187,7 +187,7 @@ const ChatProvider: React.FC = ({ children }) => {
 		if (isBlocked) {
 			return "self-start text-gray-900 bg-gray-600";
 		}
-		return "self-start text-gray-900 bg-gray-300";
+		return "self-start bg-neutral-800";
 	}
 
 	/* Event listeners */

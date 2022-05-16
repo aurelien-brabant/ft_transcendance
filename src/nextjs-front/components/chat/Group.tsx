@@ -292,7 +292,7 @@ const Group: React.FC<{ viewParams: { [key: string]: any } }> = ({
 						}
 					>
 						{message.displayAuthor && (
-							<span className="text-xs text-gray-900 uppercase">
+							<span className="text-xs uppercase">
 								{message.author}
 							</span>
 						)}
