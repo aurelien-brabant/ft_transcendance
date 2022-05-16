@@ -31,4 +31,28 @@ export default class Queue {
     isInQueue(user: User): boolean {
         return (this.find(user.username) !== undefined);
     }
+
+    matchPlayers(): User[] {
+        let players: User[] = Array();
+        let firstPlayer: User = this.dequeue();
+
+        let secondPlayerId: number = 0;
+        let difference: number = Math.abs(firstPlayer.ratio - this.storage[0].ratio);
+
+        for (let i = 1; i < this.size(); i++) {
+            if (firstPlayer.mode === this.storage[i].mode && Math.abs(firstPlayer.ratio - this.storage[i].ratio) < difference)
+                secondPlayerId = i;
+        }
+
+        if (firstPlayer.mode !== this.storage[secondPlayerId].mode) {
+            this.storage.splice(1, 0, firstPlayer);
+            return players;
+        }
+
+        players.push(firstPlayer);
+        players.push(this.storage[secondPlayerId]);
+        this.storage.splice(secondPlayerId, 1);
+        
+        return players;
+    }
 }

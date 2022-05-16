@@ -231,6 +231,20 @@ export class Draw {
 		this.drawCountDown(countDown[Math.floor(count)]);
 	}
 
+	drawTimer(room: IRoom) {
+		
+		if (room.gameDuration - room.timer > 0) {
+			let timer: Date = new Date(room.gameDuration - room.timer);
+			let time: string = timer.toLocaleString().substring(12, 18);
+			this.drawCenteredText(time, canvasWidth - 100, 60, 50, 'white');
+		}
+		else {
+			let timer: Date = new Date(room.timer - room.gameDuration);
+			let time: string = timer.toLocaleString().substring(12, 18);
+			this.drawCenteredText("+" + time, canvasWidth - 100, 60, 50, 'red');
+		}
+	}
+
 	/* Neon effect */
 	animateNeon(canvas: HTMLCanvasElement) {
 		canvas.style.boxShadow = "inset 0 0 2px #fff,\

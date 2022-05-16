@@ -14,9 +14,16 @@ export enum GameState {
 	END
 }
 
+export enum GameMode {
+	DEFAULT,
+	TIMER,
+	LIFE
+}
+
 export type User = {
 	id: number;
 	username: string;
+	ratio?: number;
 }
 
 export interface IPlayer {
@@ -34,7 +41,6 @@ export interface IBall {
 	y: number;
 	r: number;
 	color: string;
-	// color: string;
 }
 
 export interface IRoom {
@@ -51,4 +57,9 @@ export interface IRoom {
 
 	winner: string;
 	loser: string;
+
+	mode: GameMode;
+
+	timer: number;
+	gameDuration: number;
 }
