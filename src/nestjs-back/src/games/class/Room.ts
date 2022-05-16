@@ -74,7 +74,7 @@ export default class Room implements IRoom {
 		this.pauseTime = [];
 
 		this.mode = customisation.mode;		
-		this.maxGoal = 11;
+		this.maxGoal = 1;
 
 		this.isGameEnd = false;
 

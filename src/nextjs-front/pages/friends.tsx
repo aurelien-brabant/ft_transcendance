@@ -57,6 +57,7 @@ const FriendsPage: NextPageWithLayout = ({}) => {
   const [selected, setSelected] = useState(0);
   const { user } = useSession();
   const {
+    getRelationshipsData,
     getUserRelationships,
     createSuggested,
     setSuggested,
@@ -72,6 +73,7 @@ const FriendsPage: NextPageWithLayout = ({}) => {
   useEffect(() => {
     setIsLoading(true);
     if (user) {
+      getRelationshipsData();
       getUserRelationships(users, user.id);
       createSuggested(users, friends, blocked);
       setIsLoading(false);

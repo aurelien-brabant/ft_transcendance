@@ -10,19 +10,20 @@ import Achievements from "../components/Achievements";
 import Selector from "../components/Selector";
 import withDashboardLayout from "../components/hoc/withDashboardLayout";
 import relationshipContext, { RelationshipContextType } from "../context/relationship/relationshipContext";
+import { User } from "transcendance-types";
 
-export type RankingList = {
+export type rankedUser = {
   id: string;
   username: string;
   avatar: string;
-  losses: number,
-  wins: number,
-  draws: number,
-  accountDeactivated: boolean,
-  ratio: number,
+  accountDeactivated: boolean;
+  wins: number;
+  losses: number;
+  draws: number;
+  ratio: number;
 };
 
-const HistoryTable: React.FC<{ ranking: RankingList[] }> = ({
+const HistoryTable: React.FC<{ ranking: rankedUser[] }> = ({
   ranking
 }) => (
 
@@ -79,7 +80,7 @@ export type Highlight = {
   label: string;
   hint: string;
   nColor: string;
-  ranking: RankingList[];
+  ranking: rankedUser[];
 };
 
 const HighlightItem: React.FC<Highlight> = ({ label, hint, nColor, ranking }) => {
@@ -128,69 +129,64 @@ const HighlightItem: React.FC<Highlight> = ({ label, hint, nColor, ranking }) =>
 
 const LeaderboardPage: NextPageWithLayout = ({}) => {
 
-  const [ranking, setRanking] = useState<RankingList[]>([]);
-  const [ranking42, setRanking42] = useState<RankingList[]>([]);
+  const [ranking, setRanking] = useState<rankedUser[]>([]);
+  const [ranking42, setRanking42] = useState<rankedUser[]>([]);
   const [isLoading, setIsLoading] = useState(true);
-  const [activeRank, setActiveRank] = useState<RankingList[]>([]);
+  const [activeRank, setActiveRank] = useState<rankedUser[]>([]);
   const [selected, setSelected] = useState(0);
   const [mobileScreen] = useState(useMediaQuery({ query: "(min-width: 1280px)"}));
-  const {users} = useContext(relationshipContext) as RelationshipContextType;
+  const { users, getRelationshipsData } = useContext(relationshipContext) as RelationshipContextType;
 
-  const createRankingLists = (data: any) => {
+  const createrankedUsers = (users: User[]) => {
+    let rank: rankedUser[] = [];
+    let rank42: rankedUser[] = [];
 
-    let rank: RankingList[] = [];
-    let rank42: RankingList[] = [];
+    for (var user of users) {
 
-    for (var i in data) {
+      if (user.duoquadra_login) {
+        rank42 = [...rank42, {
+          id: user.id,
+          username: user.username,
+          avatar: `/api/users/${user.id}/photo`,
+          losses: user.losses,
+          wins: user.wins,
+          draws: user.draws,
+          accountDeactivated: user.accountDeactivated,
+          ratio: user.ratio,
+        }];
+      }
 
-      if (data[i].duoquadra_login)
-          rank42 = [...rank42, {
-            id: data[i].id,
-            username: data[i].username,
-            avatar: `/api/users/${data[i].id}/photo`,
-            losses: data[i].losses,
-            wins: data[i].wins,
-            draws: data[i].draws,
-            accountDeactivated: data[i].accountDeactivated,
-            ratio: data[i].ratio,
-          }];
-  
       rank = [...rank, {
-          id: data[i].id,
-          username: data[i].username,
-          avatar: `/api/users/${data[i].id}/photo`,
-          losses: data[i].losses,
-          wins: data[i].wins,
-          draws: data[i].draws,
-          accountDeactivated: data[i].accountDeactivated,
-          ratio: data[i].ratio,
+        id: user.id,
+        username: user.username,
+        avatar: `/api/users/${user.id}/photo`,
+        losses: user.losses,
+        wins: user.wins,
+        draws: user.draws,
+        accountDeactivated: user.accountDeactivated,
+        ratio: user.ratio,
       }];
     }
+
     setRanking42(rank42);
     setRanking(rank);
     setActiveRank(rank);
   }
 
   useEffect(() => {
-    const fetchData = async () => {
+    (!selected) ? setActiveRank(ranking) : setActiveRank(ranking42);
+  }, [selected])
+
+  useEffect(() => {
+    const fetchUsersData = async () => {
       setIsLoading(true);
-      
-      //const req = await fetch('/api/users');
-      //const data = await req.json();
-      
-      //createRankingLists(data);
-      console.log(users);
-      createRankingLists(users);
+      await getRelationshipsData();
+      createrankedUsers(users);
       setIsLoading(false);
     }
 
-    fetchData()
-    .catch(console.error);
-  }, [])
-
-  useEffect(() => {
-    (!selected) ? setActiveRank(ranking) : setActiveRank(ranking42);
-  }, [selected])
+    fetchUsersData().catch(console.error);
+  }, [users])
 
   return (
     <div className="overflow-x-auto text-white bg-fixed bg-center bg-fill grow" style={{
@@ -255,7 +251,7 @@ const LeaderboardPage: NextPageWithLayout = ({}) => {
         </div>
       </div>
       :
-      <div className="relative flex flex-col items-center justify-center min-h-screen bg-01dp gap-y-4">
+      <div className="relative flex flex-col items-center justify-center min-h-screen gap-y-4">
         <div className="absolute inset-0 z-50 flex items-center justify-center">
 			    <Image src="/logo.svg" height="200" width="200" />
 		    </div>

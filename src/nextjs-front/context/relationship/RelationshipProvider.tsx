@@ -1,10 +1,10 @@
-import { useEffect, useState } from "react";
+import { useState } from "react";
 import { User } from 'transcendance-types';
 import { useSession } from "../../hooks/use-session";
 import relationshipContext from "./relationshipContext";
 
 const RelationshipProvider: React.FC = ({ children }) => {
-	const { state: sessionState, user, backend } = useSession();
+	const { user, backend } = useSession();
 	const [users, setUsers] = useState<User[]>([]);
 	const [friends, setFriends] = useState<User[]>([]);
 	const [friends42, setFriends42] = useState<User[]>([]);
@@ -66,12 +66,6 @@ const RelationshipProvider: React.FC = ({ children }) => {
 		setUsers(data);
 		getUserRelationships(data, user.id);
 	}
-
-	useEffect(() => {
-		if (user && sessionState === 'authenticated') {
-			getRelationshipsData();
-		}
-	}, [user])
 
 	return (
 		<relationshipContext.Provider
