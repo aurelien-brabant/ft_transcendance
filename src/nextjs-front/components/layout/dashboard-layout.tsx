@@ -78,9 +78,12 @@ const SearchBar = () => {
   const [selectedPerson, setSelectedPerson] = useState();
   const router = useRouter();
 
-  const { elements: users, setSearchQuery, searchQuery, isProcessing } = useLiveSearch<SearchedUser>(fetchUsers, (user) => user.username );
-
-  console.log(users)
+  const {
+    elements: users,
+    setSearchQuery,
+    searchQuery,
+    isProcessing
+  } = useLiveSearch<SearchedUser>(fetchUsers, (user) => user.username );
 
   const filteredPeople =
     searchQuery === ""

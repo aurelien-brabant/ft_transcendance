@@ -137,9 +137,7 @@ const UserProfilePage: NextPageWithLayout = ({}) => {
   const { user } = useSession();
   const actionTooltipStyles = "font-bold bg-gray-900 text-neutral-200";
   const { setAlert } = useContext(alertContext) as AlertContextType;
-  const { createDirectMessage } = useContext(
-    chatContext
-  ) as ChatContextType;
+  const { socket: chatSocket, createDirectMessage } = useContext(chatContext) as ChatContextType;
   const [gamesHistory, setGamesHistory] = useState([]);
   const [isLoading, setIsLoading] = useState(true);
   const [alreadyFriend, setAlreadyFriend] = useState(false);
@@ -155,6 +153,15 @@ const UserProfilePage: NextPageWithLayout = ({}) => {
     if (from !== to) {
       createDirectMessage(from, to);
     }
+  };
+
+  /* Invite for a Pong game */
+  const sendPongInvite = (userId: string) => {
+    console.log(`[users/:id] Invite user [${userId}] to play Pong`);
+    chatSocket.emit("sendPongInvite", {
+      from: user.id,
+      to: parseInt(userId),
+    });
   };
 
   /* Update user's information */
@@ -312,7 +319,10 @@ const UserProfilePage: NextPageWithLayout = ({}) => {
               ) : (
                 <div className="absolute left-0 right-0 flex items-center justify-center -bottom-4 gap-x-2">
                   <Tooltip className={actionTooltipStyles} content="challenge">
-                    <button className="p-2 text-2xl text-gray-900 bg-pink-200 text-pink-700 rounded-full transition hover:scale-105">
+                    <button
+                      className="p-2 text-2xl text-gray-900 bg-pink-200 text-pink-700 rounded-full transition hover:scale-105"
+                      onClick={() => sendPongInvite(userData.id)}
+                    >
                       <RiPingPongLine />
                     </button>
                   </Tooltip>

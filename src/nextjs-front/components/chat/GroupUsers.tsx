@@ -132,13 +132,13 @@ const GroupUsers: React.FC<{ viewParams: any }> = ({ viewParams }) => {
 		});
 	};
 
-	/**
-	 * WIP: To link with Hub
-	 * Invite for a Pong game
-	 */
-	const sendPongInvite = (id: string) => {
-		// TODO
-		console.log(`[Group Users] Invite user [${id}] to play Pong`);
+	/* Invite for a Pong game */
+	const sendPongInvite = (userId: string) => {
+		console.log(`[Group Users] Invite user [${userId}] to play Pong`);
+		socket.emit("sendPongInvite", {
+			from: user.id,
+			to: parseInt(userId),
+		});
 	};
 
 	/* Listeners */

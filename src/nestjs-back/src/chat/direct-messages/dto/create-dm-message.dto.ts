@@ -1,4 +1,5 @@
 import {
+  IsIn,
   IsNotEmpty,
   IsString,
   Length,
@@ -17,6 +18,10 @@ export class CreateDmMessageDto {
 
   @IsNotEmpty()
   readonly author: User;
+
+  @IsString()
+  @IsIn(["regular", "invite"])
+  readonly type: string;
 
   @IsNotEmpty()
   readonly dm: DirectMessage;

@@ -25,6 +25,10 @@ export class DmMessage {
   @ManyToOne(() => User)
   author: User;
 
+  /* regular | invite */
+  @Column({ default: "regular" })
+  type: string;
+
   @ManyToOne(() => DirectMessage, dm => dm.messages, {
     onDelete: "CASCADE"
   })

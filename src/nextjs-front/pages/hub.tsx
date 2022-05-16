@@ -15,11 +15,11 @@ let socket: Socket;
 const Hub: NextPageWithLayout = () => {
 	const { user } = useSession();
 	const { setAlert } = useContext(alertContext) as AlertContextType;
+	const { socket: chatSocket } = useContext(chatContext) as ChatContextType;
 	const [displayGame, setDisplayGame] = useState(false);
 	const [inQueue, setInQueue] = useState(false);
 	const [room, setRoom] = useState<IRoom | null>(null);
 	const [currentGames, setCurrentGames] = useState<Array<string>>(new Array());
-	const { socket: chatSocket } = useContext(chatContext) as ChatContextType;
 
 	let roomData: IRoom;
 	let roomId: string | undefined;
@@ -89,8 +89,12 @@ const Hub: NextPageWithLayout = () => {
 		});
 
 	return () => {
-			if (socket)
-			socket.disconnect();
+			if (chatSocket) {
+				chatSocket.emit("userGameStatus", { isPlaying: false });
+			}
+			if (socket) {
+				socket.disconnect();
+			}
 		}
 	}, []);
 
@@ -99,19 +103,16 @@ const Hub: NextPageWithLayout = () => {
 			<Head>
 				<title>Hub | ft_transcendance</title>
 				<meta
-					name="description"
-					content="This is the Hub"
+					name="Hub"
+					content="Play online or watch live games"
 				/>
 			</Head>
 			<div className="text-white">
 				<div style={{ maxWidth: "1080px" }} className="px-2 py-10 mx-auto">
-				{	
+				{
 					displayGame ?
-							<Canvas socketProps={socket} roomProps={room}></Canvas>
-							
-					:
-					(
-						<div className="flex flex-col items-center">
+						<Canvas socketProps={socket} roomProps={room}></Canvas>
+					: (<div className="flex flex-col items-center">
 							<OngoingGames currentGamesProps={currentGames} socketProps={socket}></OngoingGames>
 							{
 								inQueue ? 
@@ -134,8 +135,7 @@ const Hub: NextPageWithLayout = () => {
 									</div>
 								</div>
 							}
-						</div>
-					)				
+						</div>)
 				}
 				</div>
 			</div>
@@ -143,7 +143,6 @@ const Hub: NextPageWithLayout = () => {
 		
 	);
 }
-
 
 Hub.getLayout = withDashboardLayout;
 Hub.authConfig = true;
