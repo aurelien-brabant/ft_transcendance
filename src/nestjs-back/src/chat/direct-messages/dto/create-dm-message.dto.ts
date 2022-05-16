@@ -1,6 +1,7 @@
 import {
   IsIn,
   IsNotEmpty,
+  IsOptional,
   IsString,
   Length,
 } from 'class-validator';
@@ -19,9 +20,10 @@ export class CreateDmMessageDto {
   @IsNotEmpty()
   readonly author: User;
 
+  @IsOptional()
   @IsString()
   @IsIn(["regular", "invite"])
-  readonly type: string;
+  readonly type?: string;
 
   @IsNotEmpty()
   readonly dm: DirectMessage;
