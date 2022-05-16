@@ -1,11 +1,11 @@
 import Link from "next/link";
 import { useRouter } from "next/router";
-import { Fragment, useContext, useEffect, useState } from "react";
+import { useContext, useEffect, useState } from "react";
 import { FaEquals } from "react-icons/fa";
 import { IoMdPersonAdd } from "react-icons/io";
 import { GiFalling, GiPodiumWinner } from "react-icons/gi";
 import { RiPingPongLine, RiMessage2Line, RiUserSettingsLine } from "react-icons/ri";
-import { ActiveUser } from "transcendance-types";
+import { ActiveUser, Game } from "transcendance-types";
 import { NextPageWithLayout } from "../_app";
 import alertContext, { AlertContextType } from "../../context/alert/alertContext";
 import chatContext, { ChatContextType } from "../../context/chat/chatContext";
@@ -17,47 +17,75 @@ import withDashboardLayout from "../../components/hoc/withDashboardLayout";
 import { useSession } from "../../hooks/use-session";
 import { classNames } from "../../utils/class-names";
 
-export type GameSummary = {
+/**
+ * Game history
+ */
+
+export type pastGame = {
   id: string;
-  winnerScore: number;
-  loserScore: number;
-  createdAt: string;
-  endedAt: string;
-  winnerId: string;
-  loserId: string;
-  opponent: string;
-  gameDuration: number;
+  date: Date;
+  duration: number;
+  isDraw: boolean;
+  userIsWinner: boolean;
+  opponentId: number;
+  opponentUsername: string;
+  opponentScore: number;
+  userScore: number;
 };
 
-const renderScore = (score: [number, number]) => {
-  const getColor = (n1: number, n2: number) =>
-    n1 === n2 ? "text-gray-400" : n1 < n2 ? "text-red-400" : "text-green-400";
-  const spanClassName = "text-lg";
+const convertDuration = (durationInMs: number) => {
+  const minutes = Math.floor(durationInMs / 60000);
+  const seconds = ((durationInMs % 60000) / 1000).toFixed(0);
+
+  return `${minutes} mn ${(parseInt(seconds) < 10 ? "0" : "")}${seconds} sec`;
+}
+
+const renderScore = (game: pastGame) => {
+  if (game.isDraw) {
+    return (
+      <div className="text-lg flex gap-x-2">
+        <span className="text-gray-400">{game.opponentScore}</span>
+        <span className="text-gray-400">{game.userScore}</span>
+      </div>
+    );
+  }
+  if (game.userIsWinner) {
+    return (
+      <div className="text-lg flex gap-x-2">
+        <span className="text-red-400">{game.opponentScore}</span>
+        -
+        <span className="text-green-400">{game.userScore}</span>
+      </div>
+    );
+  }
 
   return (
-    <Fragment>
-      <span className={`${spanClassName} ${getColor(score[0], score[1])}`}>
-        {score[0]}
-      </span>
-      {" - "}
-      <span className={`${spanClassName} ${getColor(score[1], score[0])}`}>
-        {score[1]}
-      </span>
-    </Fragment>
+    <div className="text-lg flex gap-x-2">
+      <span className="text-green-400">{game.opponentScore}</span>
+      -
+      <span className="text-red-400">{game.userScore}</span>
+    </div>
   );
 };
 
-const getDuration = (gameDuration: number) => {
-  const duration: Date = new Date(gameDuration);
-  const minutes = duration.getMinutes();
-  const seconds = duration.getSeconds();
-
-  return `${minutes}` + " min " + (seconds < 10 ? "0" : "") + `${seconds} sec`;
+const getResultIcon = (game: pastGame) => {
+  if (game.isDraw) {
+    return (
+      <FaEquals className="text-gray-400" />
+    );
+  }
+  if (game.userIsWinner) {
+    return (
+      <GiPodiumWinner className="text-green-400" />
+    );
+  }
+  return (
+    <GiFalling className="text-red-400" />
+  );
 };
 
-const HistoryTable: React.FC<{ history: GameSummary[]; userId: string }> = ({
+const HistoryTable: React.FC<{ history: pastGame[] }> = ({
   history,
-  userId,
 }) => (
   <table className="w-full my-4 text-left">
     <thead>
@@ -76,33 +104,21 @@ const HistoryTable: React.FC<{ history: GameSummary[]; userId: string }> = ({
           className={`py-6 ${index % 2 ? "bg-02dp" : "bg-03dp"}`}
         >
           <td className="p-3 font-bold">
-            <Link
-              href={`/users/${
-                game.winnerId === userId ? game.loserId : game.winnerId
-              }`}
-            >
-              <a>{game.opponent}</a>
+            <Link href={`/users/${game.opponentId}`} >
+              <a>{game.opponentUsername}</a>
             </Link>
           </td>
           <td className="p-3 text-neutral-200">
-            {`${getDuration(game.gameDuration)}`}
+            {`${convertDuration(game.duration)}`}
           </td>
           <td className="p-3">
-            {game.winnerId === userId
-              ? renderScore([game.winnerScore, game.loserScore])
-              : renderScore([game.loserScore, game.winnerScore])}
+            {renderScore(game)}
           </td>
           <td className="p-3 text-3xl">
-            {game.winnerScore === game.loserScore ? (
-              <FaEquals className="text-gray-400" />
-            ) : game.winnerId === userId ? (
-              <GiPodiumWinner className="text-green-400" />
-            ) : (
-              <GiFalling className="text-red-400" />
-            )}
+            {getResultIcon(game)}
           </td>
           <td className="p-3">
-            {new Date(game.endedAt).toLocaleDateString()}
+            {new Date(game.date).toLocaleDateString()}
           </td>
         </tr>
       ))}
@@ -127,18 +143,21 @@ const HighlightItem: React.FC<Highlight> = ({ n, label, hint, nColor }) => (
 
 const UserProfilePage: NextPageWithLayout = ({}) => {
   const router = useRouter();
-  const [userId, setUserId] = useState<string | string[]>();
+  const [userId, setUserId] = useState<string>();
 
   useEffect(() => {
     const query = router.query;
-    setUserId(query.id);
+
+    if (query.id) {
+      setUserId(query.id.toString());
+    }
   }, [router.query]);
 
   const { user } = useSession();
   const actionTooltipStyles = "font-bold bg-gray-900 text-neutral-200";
   const { setAlert } = useContext(alertContext) as AlertContextType;
   const { socket: chatSocket, createDirectMessage } = useContext(chatContext) as ChatContextType;
-  const [gamesHistory, setGamesHistory] = useState([]);
+  const [gamesHistory, setGamesHistory] = useState<pastGame[]>([]);
   const [isLoading, setIsLoading] = useState(true);
   const [alreadyFriend, setAlreadyFriend] = useState(false);
   const [selected, setSelected] = useState(0);
@@ -155,46 +174,12 @@ const UserProfilePage: NextPageWithLayout = ({}) => {
     }
   };
 
-  /* Invite for a Pong game */
+  /* Send Pong invite */
   const sendPongInvite = (userId: string) => {
     console.log(`[users/:id] Invite user [${userId}] to play Pong`);
     chatSocket.emit("sendPongInvite", {
       from: user.id,
       to: parseInt(userId),
-    });
-  };
-
-  /* Update user's information */
-  const updateGamesHistory = async (games: any) => {
-    for (var i in games) {
-      const opponentId = String(games[i].winnerId) === userId ? games[i].loserId : games[i].winnerId;
-      const req = await fetch(`/api/users/${opponentId}`);
-      const res = await req.json();
-      games[i].opponent = res.username;
-    }
-    setGamesHistory(games);
-  };
-
-  const updateUserData = async (data: any) => {
-    setUserData({
-      id: data.id,
-      username: data.username,
-      pic: !data.pic
-        ? ""
-        : data.pic.startsWith("https://")
-        ? data.pic
-        : `/api/users/${data.id}/photo`,
-      accountDeactivated: data.accountDeactivated,
-      games: data.games,
-      wins: data.wins,
-      losses: data.losses,
-      draws: data.draws,
-      ratio: !data.wins && !data.losses && !data.draws ? "-" : data.ratio,
-      achievements: data.achievements,
-      friends: data.friends,
-      blockedUsers: data.blockedUsers,
-      pendingFriendsSent: data.pendingFriendsSent,
-      pendingFriendsReceived: data.pendingFriendsReceived,
     });
   };
 
@@ -218,6 +203,60 @@ const UserProfilePage: NextPageWithLayout = ({}) => {
         type: "error",
         content: `Error while sending friend request to ${username}`,
       });
+  };
+
+  /* Update user's information */
+  const updateGamesHistory = async (games: Game[], userId: string) => {
+    const gameHistory: pastGame[] = [];
+
+    /* Sorts from most recent */
+    games.sort(
+      (a: Game, b: Game) =>
+      ((new Date(b.endedAt)).valueOf() - (new Date(a.endedAt)).valueOf())
+    );
+
+    for (var game of games) {
+      const opponentId = (game.winnerId === parseInt(userId)) ? game.loserId : game.winnerId;
+      const userIsWinner = (game.winnerId === parseInt(userId));
+      const res = await fetch(`/api/users/${opponentId}`);
+      const data = await res.json();
+
+      gameHistory.push({
+        id: gameHistory.length.toString(),
+        date: new Date(game.createdAt),
+        duration: game.gameDuration,
+        isDraw: (game.winnerScore === game.loserScore),
+        userIsWinner,
+        opponentId,
+        opponentUsername: data.username,
+        opponentScore: !userIsWinner ? game.winnerScore : game.loserScore,
+        userScore: userIsWinner ? game.winnerScore : game.loserScore,
+      });
+    }
+    setGamesHistory(gameHistory);
+  };
+
+  const updateUserData = async (data: any) => {
+    setUserData({
+      id: data.id,
+      username: data.username,
+      pic: !data.pic
+        ? ""
+        : data.pic.startsWith("https://")
+        ? data.pic
+        : `/api/users/${data.id}/photo`,
+      accountDeactivated: data.accountDeactivated,
+      games: data.games,
+      wins: data.wins,
+      losses: data.losses,
+      draws: data.draws,
+      ratio: !data.wins && !data.losses && !data.draws ? "-" : data.ratio,
+      achievements: data.achievements,
+      friends: data.friends,
+      blockedUsers: data.blockedUsers,
+      pendingFriendsSent: data.pendingFriendsSent,
+      pendingFriendsReceived: data.pendingFriendsReceived,
+    });
   };
 
   const alreadyFriendOrAsked = (
@@ -247,11 +286,15 @@ const UserProfilePage: NextPageWithLayout = ({}) => {
       }
 
       const matchingUser: any = await res.json();
+      const gamesData: Game[] = JSON.parse(JSON.stringify(matchingUser)).games;
 
       updateUserData(matchingUser);
-      updateGamesHistory(JSON.parse(JSON.stringify(matchingUser)).games);
-      if (!matchingUser.wins && !matchingUser.losses && !matchingUser.draws) setRank("-");
-      else {
+      updateGamesHistory(gamesData, userId);
+
+      /* Didn't play yet */
+      if (!matchingUser.wins && !matchingUser.losses && !matchingUser.draws) {
+        setRank("-");
+      } else { /* Else set rank */
         const reqRank = await fetch(`/api/users/${userId}/rank`);
         const res = await reqRank.json();
         setRank(res);
@@ -261,8 +304,8 @@ const UserProfilePage: NextPageWithLayout = ({}) => {
         user.pendingFriendsSent,
         user.friends
       );
-      setAlreadyFriend(already);
 
+      setAlreadyFriend(already);
       setIsLoading(false);
     };
 
@@ -404,7 +447,7 @@ const UserProfilePage: NextPageWithLayout = ({}) => {
                 {
                   label: "Games history",
                   component: (
-                    <HistoryTable history={gamesHistory} userId={userData.id} />
+                    <HistoryTable history={gamesHistory} />
                   ),
                 },
                 {

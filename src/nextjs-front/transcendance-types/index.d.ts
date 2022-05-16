@@ -56,6 +56,19 @@ export type Achievement = {
 	users: User[];
 }
 
+/* GAMES */
+
+export type Game = {
+  id: string;
+  winnerId: number;
+  loserId: number;
+  winnerScore: number;
+  loserScore: number;
+  createdAt: Date;
+  endedAt: Date;
+  gameDuration: number;
+};
+
 /* CHAT */
 
 export type PunishmentType = 'mute' | 'ban';
