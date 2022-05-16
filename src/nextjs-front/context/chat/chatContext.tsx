@@ -14,6 +14,7 @@ export type ChatMessage = ChatMessagePreview & {
 	author?: string;
 	displayAuthor: boolean;
 	displayStyle: string;
+	isInvite: boolean;
 };
 
 export type ChatGroupPrivacy = 'public' | 'protected' | 'private';

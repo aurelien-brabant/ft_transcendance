@@ -1,8 +1,7 @@
 import { useContext, useEffect, useState } from "react";
-import { BsFillChatDotsFill } from "react-icons/bs";
 import { Bounce } from "react-awesome-reveal";
 import { io } from "socket.io-client";
-import { BaseUserData, Channel, ChannelMessage, DmChannel, DmMessage } from 'transcendance-types';
+import { BaseUserData, Channel, DmChannel } from 'transcendance-types';
 import { useSession } from "../../hooks/use-session";
 import alertContext, { AlertContextType } from "../alert/alertContext";
 import authContext, { AuthContextValue } from "../auth/authContext";

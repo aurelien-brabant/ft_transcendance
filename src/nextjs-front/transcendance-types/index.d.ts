@@ -75,6 +75,7 @@ export type DmMessage = {
 	createdAt: Date;
 	content: string;
 	author: User;
+	type: string;
 	channel: Channel;
 };
 

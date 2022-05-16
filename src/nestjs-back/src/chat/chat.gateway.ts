@@ -185,6 +185,7 @@ export class ChatGateway implements OnGatewayInit, OnGatewayConnection {
 			const message = await this.chatService.addMessageToDm({
 				content: 'Let\'s fight!',
 				author: { id: from },
+				type: 'invite',
 				dm
 			} as CreateDmMessageDto);
 
@@ -602,6 +603,9 @@ export class ChatGateway implements OnGatewayInit, OnGatewayConnection {
 		@ConnectedSocket() client: Socket,
 		@MessageBody() data: CreateDmMessageDto
 	) {
+		if (data.type) {
+			throw new WsException('Unauthorized operation.');
+		}
 		try {
 			const message = await this.chatService.addMessageToDm(data);
 
