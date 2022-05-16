@@ -18,7 +18,7 @@ const Achievements: React.FC<{}> = () => {
     const [achievements, setAchievements] = useState(user.achievements);
     const [achievementsList, setAchievementsList] = useState([]);
   
-    const getRelationshipsData = async () => {
+    const getAchievementsData = async () => {
         const reqList = await fetch('/api/achievements')
         const list = await reqList.json();
         setAchievementsList(list);
@@ -26,7 +26,7 @@ const Achievements: React.FC<{}> = () => {
     }
 
     useEffect(() => {
-        getRelationshipsData();
+        getAchievementsData();
       }, [])
 
     const getColor = (levelToReach: number, type: string) => {

@@ -179,6 +179,7 @@ const LeaderboardPage: NextPageWithLayout = ({}) => {
       //const data = await req.json();
       
       //createRankingLists(data);
+      console.log(users);
       createRankingLists(users);
       setIsLoading(false);
     }

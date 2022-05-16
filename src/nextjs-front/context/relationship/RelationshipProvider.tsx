@@ -1,10 +1,10 @@
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { User } from 'transcendance-types';
 import { useSession } from "../../hooks/use-session";
 import relationshipContext from "./relationshipContext";
 
 const RelationshipProvider: React.FC = ({ children }) => {
-	const { user, backend } = useSession();
+	const { state: sessionState, user, backend } = useSession();
 	const [users, setUsers] = useState<User[]>([]);
 	const [friends, setFriends] = useState<User[]>([]);
 	const [friends42, setFriends42] = useState<User[]>([]);
@@ -39,8 +39,8 @@ const RelationshipProvider: React.FC = ({ children }) => {
 		}));
 	}
 
-	const getRelationships = async (usersList: User[], id: string) => {
-
+	/* Get relationships specific to one user */
+	const getUserRelationships = async (usersList: User[], id: string) => {
 		const req = await backend.request(`/api/users/${id}`);
 		const data = await req.json();
 
@@ -58,17 +58,24 @@ const RelationshipProvider: React.FC = ({ children }) => {
 		createSuggested(usersList, friendsList, data.blockedUsers);
 	}
 
+	/* Get all users and set relationships */
 	const getRelationshipsData = async () => {
 		const req = await backend.request('/api/users/');
 		const data = await req.json()
+
 		setUsers(data);
-		getRelationships(data, user.id);
+		getUserRelationships(data, user.id);
 	}
+
+	useEffect(() => {
+		if (user && sessionState === 'authenticated') {
+			getRelationshipsData();
+		}
+	}, [user])
 
 	return (
 		<relationshipContext.Provider
 			value={{
-				getRelationshipsData,
 				users,
 				setUsers,
 				friends,
@@ -81,10 +88,11 @@ const RelationshipProvider: React.FC = ({ children }) => {
 				setPendingFriendsReceived,
 				pendingFriendsSent,
 				setPendingFriendsSent,
-				getRelationships,
-				createSuggested,
 				suggested,
-				setSuggested
+				setSuggested,
+				createSuggested,
+				getUserRelationships,
+				getRelationshipsData,
 			}}
 		>
 			{children}

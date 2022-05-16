@@ -6,7 +6,6 @@ import { FaUserFriends, FaUser } from "react-icons/fa";
 import Tooltip from "./Tooltip";
 import { ChatViewItem } from "../context/chat/ChatProvider";
 import chatContext, { ChatContextType } from "../context/chat/chatContext";
-import relationshipContext, { RelationshipContextType } from "../context/relationship/relationshipContext";
 
 type ChatProps = {
 	onClose: () => void;
@@ -22,7 +21,6 @@ const Chat: React.FC<ChatProps> = ({ viewStack, onClose }) => {
 		setLastX,
 		setLastY
 	} = useContext(chatContext) as ChatContextType;
-	const { getRelationshipsData } = useContext(relationshipContext) as RelationshipContextType;
 	const currentView = viewStack[viewStack.length - 1];
 	const buttonTooltipClassName = "p-3 font-bold bg-dark";
 	const buttonClassName = "hover:scale-105 transition text-2xl";
@@ -33,10 +31,6 @@ const Chat: React.FC<ChatProps> = ({ viewStack, onClose }) => {
 			"No chat view to show. You need to call setChatView or openChatView before calling the openChat function."
 		);
 	}
-
-	useEffect(() => {
-		getRelationshipsData();
-	}, [])
 
 	return (
 

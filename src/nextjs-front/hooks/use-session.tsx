@@ -1,4 +1,3 @@
-import { useRouter } from 'next/router';
 import { useContext, useEffect, useState } from 'react';
 import AuthContext, {
     AuthContextValue,
@@ -21,7 +20,6 @@ export const useSession = ({ waitingTime }: UseSessionParams = {}) => {
         setCurrentSession(session);
     }, [session.state, session.user]);
 
-    
     return {
         ...currentSession,
         logout,
