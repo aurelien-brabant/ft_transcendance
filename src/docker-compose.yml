@@ -66,7 +66,6 @@ services:
       - FT_REDIRECT_URI=${FT_REDIRECT_URI}
       - JWT_SECRET=${JWT_SECRET}
       - JWT_LIFETIME=${JWT_LIFETIME}
-      
 
   postgres:
     image: postgres:14-alpine3.15
