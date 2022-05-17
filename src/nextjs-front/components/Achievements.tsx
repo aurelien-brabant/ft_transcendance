@@ -47,11 +47,11 @@ const Achievements: React.FC<{}> = () => {
     const getAchievementColor = (levelToReach: number, type: string) => {
         for (var achievement of userAchievements) {
             if (achievement.levelReached === levelToReach && achievement.type === type && levelToReach === 10)
-                return "text-yellow-500"
+                return "text-yellow-400"
             else if (achievement.levelReached === levelToReach && achievement.type === type && levelToReach === 3)
-                return "text-zinc-400"
+                return "text-stone-400"
             else if (achievement.levelReached === levelToReach && achievement.type === type && levelToReach === 1)
-                return "text-orange-800"
+                return "text-amber-700"
         }
         return "text-gray-500/50"
     }
@@ -59,11 +59,11 @@ const Achievements: React.FC<{}> = () => {
     const getBorderColor = (levelToReach: number, type: string) => {
         for (var achievement of userAchievements) {
             if (achievement.levelReached === levelToReach && achievement.type === type && levelToReach === 10)
-                return "ring-4 ring-yellow-500/20 border border-yellow-500 border-8"
+                return "ring-4 ring-yellow-400/20 border border-yellow-400 border-8"
             else if (achievement.levelReached === levelToReach && achievement.type === type && levelToReach === 3)
-                return "ring-2 ring-zinc-400/20 border border-zinc-400  border-4"
+                return "ring-2 ring-stone-400/20 border border-stone-400 border-4"
             else if (achievement.levelReached === levelToReach && achievement.type === type && levelToReach === 1)
-                return "ring ring-orange-800/20 border border-orange-800 border-2"
+                return "ring ring-amber-700/20 border border-amber-700 border-2"
         }
         return "border border-dashed border-gray-500"
     }
