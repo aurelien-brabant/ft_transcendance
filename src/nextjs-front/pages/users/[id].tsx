@@ -3,9 +3,9 @@ import { useRouter } from "next/router";
 import { useContext, useEffect, useState } from "react";
 import { FaEquals } from "react-icons/fa";
 import { IoMdPersonAdd } from "react-icons/io";
-import { GiFalling, GiPodiumWinner } from "react-icons/gi";
+import { GiAlarmClock, GiFalling, GiPingPongBat, GiPodiumWinner } from "react-icons/gi";
 import { RiPingPongLine, RiMessage2Line, RiUserSettingsLine } from "react-icons/ri";
-import { ActiveUser, Game } from "transcendance-types";
+import { ActiveUser } from "transcendance-types";
 import { NextPageWithLayout } from "../_app";
 import alertContext, { AlertContextType } from "../../context/alert/alertContext";
 import chatContext, { ChatContextType } from "../../context/chat/chatContext";
@@ -16,6 +16,8 @@ import { UserStatusItem } from "../../components/UserStatus";
 import withDashboardLayout from "../../components/hoc/withDashboardLayout";
 import { useSession } from "../../hooks/use-session";
 import { classNames } from "../../utils/class-names";
+import { Game } from "../../transcendance-types";
+import { GameMode } from "../../gameObjects/GameObject";
 
 /**
  * Game history
@@ -31,6 +33,7 @@ type PastGame = {
   opponentUsername: string;
   opponentScore: number;
   userScore: number;
+  mode: GameMode
 };
 
 const convertDuration = (durationInMs: number) => {
@@ -95,6 +98,7 @@ const HistoryTable: React.FC<{ history: PastGame[] }> = ({
         <th className="p-3 uppercase">Score</th>
         <th className="p-3 uppercase">Result</th>
         <th className="p-3 uppercase">Date</th>
+        <th className="p-3 uppercase">Mode</th>
       </tr>
     </thead>
     <tbody>
@@ -119,6 +123,9 @@ const HistoryTable: React.FC<{ history: PastGame[] }> = ({
           </td>
           <td className="p-3">
             {new Date(game.date).toLocaleDateString()}
+          </td>
+          <td className="p-3 text-3xl">
+            {game.mode === GameMode.DEFAULT ? (<GiPingPongBat className="text-blue-400"/>) : (<GiAlarmClock className="text-blue-400"/>)}
           </td>
         </tr>
       ))}
@@ -225,12 +232,14 @@ const UserProfilePage: NextPageWithLayout = ({}) => {
         id: gameHistory.length.toString(),
         date: new Date(game.createdAt),
         duration: game.gameDuration,
-        isDraw: (game.winnerScore === game.loserScore),
+        // isDraw: (game.winnerScore === game.loserScore), // not used for now
+        isDraw: false,
         userIsWinner,
         opponentId,
         opponentUsername: data.username,
         opponentScore: !userIsWinner ? game.winnerScore : game.loserScore,
         userScore: userIsWinner ? game.winnerScore : game.loserScore,
+        mode: game.mode
       });
     }
     setGamesHistory(gameHistory);
@@ -436,7 +445,7 @@ const UserProfilePage: NextPageWithLayout = ({}) => {
               <HighlightItem
                 n={userData.ratio}
                 label="Ratio"
-                hint="Wins divided by looses"
+                hint="Wins divided by total played games"
                 nColor="text-blue-500"
               />
             </div>
