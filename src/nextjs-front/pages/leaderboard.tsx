@@ -145,12 +145,12 @@ const TopPlayerItem: React.FC<TopPlayer> = (
       <h3 className="text-4xl font-bold">
         { (userUrl !== "") ?
           <a href={userUrl}>
-            <img
-              className="object-cover object-center rounded-full drop-shadow-md"
-              src={pic}
-              width={150}
-              height={150}
-            />
+            <div className="relative w-32 h-32">
+              <img
+                className="object-cover object-center w-full h-full rounded-full"
+                src={pic}
+              />
+            </div>
           </a>
           :
           <AiOutlineQuestionCircle className="text-9xl"/>
