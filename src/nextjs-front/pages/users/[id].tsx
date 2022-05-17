@@ -3,7 +3,7 @@ import { useRouter } from "next/router";
 import { useContext, useEffect, useState } from "react";
 import { FaEquals } from "react-icons/fa";
 import { IoMdPersonAdd } from "react-icons/io";
-import { GiFalling, GiPodiumWinner } from "react-icons/gi";
+import { GiAlarmClock, GiFalling, GiPingPongBat, GiPodiumWinner } from "react-icons/gi";
 import { RiPingPongLine, RiMessage2Line, RiUserSettingsLine } from "react-icons/ri";
 import { ActiveUser } from "transcendance-types";
 import { NextPageWithLayout } from "../_app";
@@ -17,6 +17,7 @@ import withDashboardLayout from "../../components/hoc/withDashboardLayout";
 import { useSession } from "../../hooks/use-session";
 import { classNames } from "../../utils/class-names";
 import { Game } from "../../transcendance-types";
+import { GameMode } from "../../gameObjects/GameObject";
 
 /**
  * Game history
@@ -32,6 +33,7 @@ export type pastGame = {
   opponentUsername: string;
   opponentScore: number;
   userScore: number;
+  mode: GameMode
 };
 
 const convertDuration = (durationInMs: number) => {
@@ -96,6 +98,7 @@ const HistoryTable: React.FC<{ history: pastGame[] }> = ({
         <th className="p-3 uppercase">Score</th>
         <th className="p-3 uppercase">Result</th>
         <th className="p-3 uppercase">Date</th>
+        <th className="p-3 uppercase">Mode</th>
       </tr>
     </thead>
     <tbody>
@@ -120,6 +123,9 @@ const HistoryTable: React.FC<{ history: pastGame[] }> = ({
           </td>
           <td className="p-3">
             {new Date(game.date).toLocaleDateString()}
+          </td>
+          <td className="p-3 text-3xl">
+            {game.mode === GameMode.DEFAULT ? (<GiPingPongBat className="text-blue-400"/>) : (<GiAlarmClock className="text-blue-400"/>)}
           </td>
         </tr>
       ))}
@@ -233,6 +239,7 @@ const UserProfilePage: NextPageWithLayout = ({}) => {
         opponentUsername: data.username,
         opponentScore: !userIsWinner ? game.winnerScore : game.loserScore,
         userScore: userIsWinner ? game.winnerScore : game.loserScore,
+        mode: game.mode
       });
     }
     setGamesHistory(gameHistory);
