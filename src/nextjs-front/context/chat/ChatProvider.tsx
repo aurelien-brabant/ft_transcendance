@@ -234,14 +234,25 @@ const ChatProvider: React.FC = ({ children }) => {
 		});
 	};
 
+	/* Update the socket Id and set listeners */
 	useEffect(() => {
 		if (!socket || (session.state !== "authenticated")) return;
 
-		/* Update the socket Id */
-		socket.emit("updateChatUser", {
-			id: user.id,
-			username: user.username,
-		});
+		if (socket.connected === false) {
+			socket.on("connect", () => {
+				console.log("[Chat] Client connected");
+
+				socket.emit("updateChatUser", {
+					id: user.id,
+					username: user.username,
+				});
+			});
+
+			socket.on("connect_error", (err: Error) => {
+				console.log(`connect_error due to ${err.message}`);
+				socket.close();
+			});
+		}
 
 		/* Listeners */
 		socket.on("exception", chatExceptionListener);
@@ -261,32 +272,20 @@ const ChatProvider: React.FC = ({ children }) => {
 		};
 	}, [socket]);
 
-	/* Create socket when user is logged in */
+	/* Set socket when user is logged in */
 	useEffect(() => {
-		const socketIo = io(process.env.NEXT_PUBLIC_SOCKET_URL + "/chat");
+		if (session.state !== "authenticated") return ;
+
+		const socketIo = io(process.env.NEXT_PUBLIC_SOCKET_URL + "/chat", {
+			transports: ['websocket', 'polling']
+		});
 
 		setSocket(socketIo);
-
-		if (!socket || (session.state !== "authenticated")) return;
-
-		socket.on("connect", () => {
-			console.log("[Chat] Client connected");
-
-			socket.emit("updateChatUser", {
-				id: user.id,
-				username: user.username,
-			});
-		});
-
-		socket.on("connect_error", (err: Error) => {
-			console.log(`connect_error due to ${err.message}`);
-			socket.close();
-		});
 
 		return () => {
 			socketIo.disconnect();
 		};
-	}, [user, setSocket]);
+	}, [session.state, setSocket]);
 
 	return (
 		<chatContext.Provider
