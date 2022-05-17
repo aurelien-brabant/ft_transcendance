@@ -55,10 +55,10 @@ const HighlightItem: React.FC<Highlight> = ({ n, label, hint, nColor }) => {
 const FriendsPage: NextPageWithLayout = ({}) => {
   const [isLoading, setIsLoading] = useState(true);
   const [selected, setSelected] = useState(0);
-  const { user, backend } = useSession();
+  const { user } = useSession();
   const {
     getRelationshipsData,
-    getRelationships,
+    getUserRelationships,
     createSuggested,
     setSuggested,
     suggested,
@@ -71,20 +71,20 @@ const FriendsPage: NextPageWithLayout = ({}) => {
   const router = useRouter();
 
   useEffect(() => {
-    if (user) {
-      getRelationshipsData();
-      setIsLoading(false);
-    }
-  }, []);
-
-  useEffect(() => {
     setIsLoading(true);
     if (user) {
-      getRelationships(users, user.id);
+      getRelationshipsData();
+      getUserRelationships(users, user.id);
       createSuggested(users, friends, blocked);
       setIsLoading(false);
     }
   }, [selected]);
+
+  useEffect(() => {
+    if (user) {
+      setIsLoading(false);
+    }
+  }, []);
 
   return (
     <div className="text-white bg-fixed bg-center bg-fill grow">

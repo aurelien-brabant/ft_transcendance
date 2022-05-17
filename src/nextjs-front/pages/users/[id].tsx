@@ -21,7 +21,7 @@ import { classNames } from "../../utils/class-names";
  * Game history
  */
 
-export type pastGame = {
+type PastGame = {
   id: string;
   date: Date;
   duration: number;
@@ -40,7 +40,7 @@ const convertDuration = (durationInMs: number) => {
   return `${minutes} mn ${(parseInt(seconds) < 10 ? "0" : "")}${seconds} sec`;
 }
 
-const renderScore = (game: pastGame) => {
+const renderScore = (game: PastGame) => {
   if (game.isDraw) {
     return (
       <div className="text-lg flex gap-x-2">
@@ -68,7 +68,7 @@ const renderScore = (game: pastGame) => {
   );
 };
 
-const getResultIcon = (game: pastGame) => {
+const getResultIcon = (game: PastGame) => {
   if (game.isDraw) {
     return (
       <FaEquals className="text-gray-400" />
@@ -84,7 +84,7 @@ const getResultIcon = (game: pastGame) => {
   );
 };
 
-const HistoryTable: React.FC<{ history: pastGame[] }> = ({
+const HistoryTable: React.FC<{ history: PastGame[] }> = ({
   history,
 }) => (
   <table className="w-full my-4 text-left">
@@ -157,7 +157,7 @@ const UserProfilePage: NextPageWithLayout = ({}) => {
   const actionTooltipStyles = "font-bold bg-gray-900 text-neutral-200";
   const { setAlert } = useContext(alertContext) as AlertContextType;
   const { socket: chatSocket, createDirectMessage } = useContext(chatContext) as ChatContextType;
-  const [gamesHistory, setGamesHistory] = useState<pastGame[]>([]);
+  const [gamesHistory, setGamesHistory] = useState<PastGame[]>([]);
   const [isLoading, setIsLoading] = useState(true);
   const [alreadyFriend, setAlreadyFriend] = useState(false);
   const [selected, setSelected] = useState(0);
@@ -207,7 +207,7 @@ const UserProfilePage: NextPageWithLayout = ({}) => {
 
   /* Update user's information */
   const updateGamesHistory = async (games: Game[], userId: string) => {
-    const gameHistory: pastGame[] = [];
+    const gameHistory: PastGame[] = [];
 
     /* Sorts from most recent */
     games.sort(
