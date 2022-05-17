@@ -225,7 +225,7 @@ export class PongGateway implements OnGatewayInit, OnGatewayConnection, OnGatewa
 					let loser = await this.usersService.findOne(String(room.loserId));
 
 					/* Update users wins/losses/draws and ratio */
-					const isDraw = (room.winnerScore === room.loserScore);
+					const isDraw = false; // This is not used but may be one day
 					await this.usersService.updateStats(winner, isDraw, true);
 					await this.usersService.updateStats(loser, isDraw, false);
 
@@ -254,6 +254,37 @@ export class PongGateway implements OnGatewayInit, OnGatewayConnection, OnGatewa
 			} else if (room.gameState === GameState.RESUMED && (currentTimestamp - room.pauseTime[room.pauseTime.length - 1].resume) >= 3500) {
 				room.lastUpdate = Date.now();
 				room.changeGameState(GameState.PLAYING);
+			} else if (room.gameState === GameState.PAUSED && (currentTimestamp - room.pauseTime[room.pauseTime.length - 1].pause) >= 30000) {
+				room.pauseForfait();
+				
+				room.changeGameState(GameState.END);
+				room.pauseTime[room.pauseTime.length - 1].resume = Date.now();
+
+				let winner = await this.usersService.findOne(String(room.winnerId));
+				let loser = await this.usersService.findOne(String(room.loserId));
+
+				/* Update users wins/losses/draws and ratio */
+				const isDraw = false; // This is not used but may be one day
+				await this.usersService.updateStats(winner, isDraw, true);
+				await this.usersService.updateStats(loser, isDraw, false);
+
+				/* Save game in database */
+				let test = await this.gamesService.create({
+					players: [winner, loser],
+					winnerId: room.winnerId,
+					loserId: room.loserId,
+					createdAt: new Date(room.timestampStart),
+					endedAt: new Date(currentTimestamp),
+					gameDuration: room.getDuration(),
+					winnerScore: room.winnerScore,
+					loserScore: room.loserScore,
+					mode: room.mode
+				});
+				let roomIndex: number = this.currentGames.findIndex(roomIdRm => roomIdRm === room.roomId);
+				if (roomIndex !== -1)
+					this.currentGames.splice(roomIndex, 1);
+				this.server.emit("updateCurrentGames", this.currentGames);
+
 			}
 
 			if (room.mode === GameMode.TIMER && (room.gameState === GameState.GOAL || room.gameState === GameState.PLAYING))
