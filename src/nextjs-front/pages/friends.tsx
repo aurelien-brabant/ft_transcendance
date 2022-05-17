@@ -57,13 +57,12 @@ const FriendsPage: NextPageWithLayout = ({}) => {
   const [selected, setSelected] = useState(0);
   const { user } = useSession();
   const {
-    suggested,
     users,
     friends,
     friends42,
     blocked,
     pendingFriendsReceived,
-    setSuggested,
+    suggested,
     getRelationshipsData,
     getUserRelationships,
     createSuggestedFriends,
@@ -95,7 +94,7 @@ const FriendsPage: NextPageWithLayout = ({}) => {
           <div className="flex flex-col items-center gap-y-10">
             <div className="relative w-48 h-48 flex justify-center items-center text-center">
               <img
-                className="object-cover object-center w-full h-full rounded drop-shadow-md"
+                className="object-cover object-center w-full h-full rounded-full ring-pink-500 p-2 ring drop-shadow-md"
                 src={`/api/users/${user.id}/photo`}
               />
               <div className="absolute left-0 right-0 flex items-center justify-center -bottom-4 gap-x-2">
@@ -103,7 +102,7 @@ const FriendsPage: NextPageWithLayout = ({}) => {
                   className="font-bold bg-gray-900 text-neutral-200"
                   content="Edit user"
                 >
-                  <button className="p-2 text-2xl text-gray-900 bg-white rounded-full transition hover:scale-105">
+                  <button className="p-2 text-2xl text-white/90 bg-01dp rounded-full transition hover:scale-105">
                     <RiUserSettingsLine
                       onClick={() => {
                         router.push("/welcome");
@@ -156,10 +155,8 @@ const FriendsPage: NextPageWithLayout = ({}) => {
                   label: "Friends",
                   component: (
                     <FriendsTable
-                      type={"friends"}
+                      category="friends"
                       list={friends}
-                      suggested={suggested}
-                      setSuggested={setSuggested}
                       setSelected={setSelected}
                     />
                   ),
@@ -168,10 +165,8 @@ const FriendsPage: NextPageWithLayout = ({}) => {
                   label: "Friends @42",
                   component: (
                     <FriendsTable
-                      type={"friends42"}
+                      category="friends"
                       list={friends42}
-                      suggested={suggested}
-                      setSuggested={setSuggested}
                       setSelected={setSelected}
                     />
                   ),
@@ -180,10 +175,8 @@ const FriendsPage: NextPageWithLayout = ({}) => {
                   label: "Pending Requests",
                   component: (
                     <FriendsTable
-                      type={"pending"}
+                      category="pending"
                       list={pendingFriendsReceived}
-                      suggested={suggested}
-                      setSuggested={setSuggested}
                       setSelected={setSelected}
                     />
                   ),
@@ -192,23 +185,18 @@ const FriendsPage: NextPageWithLayout = ({}) => {
                   label: "Blocked Users",
                   component: (
                     <FriendsTable
-                      type={"blocked"}
+                      category="blocked"
                       list={blocked}
-                      suggested={suggested}
-                      setSuggested={setSuggested}
                       setSelected={setSelected}
                     />
                   ),
                 },
-
                 {
                   label: "Suggested Friends",
                   component: (
                     <FriendsTable
-                      type={"suggested"}
+                      category="suggested"
                       list={suggested}
-                      suggested={suggested}
-                      setSuggested={setSuggested}
                       setSelected={setSelected}
                     />
                   ),

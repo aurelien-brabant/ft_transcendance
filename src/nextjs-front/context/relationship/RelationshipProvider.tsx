@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { User } from 'transcendance-types';
 import { useSession } from "../../hooks/use-session";
 import relationshipContext from "./relationshipContext";
@@ -28,9 +28,10 @@ const RelationshipProvider: React.FC = ({ children }) => {
 				}
 			}
 		}
-		return suggestedUsers;
+		setSuggested(suggestedUsers);
 	}
 
+	/* Get relationships specific to the current user */
 	const getUserRelationships = async (users: User[], id: string) => {
 		const res = await backend.request(`/api/users/${id}`);
 		const data = await res.json();
@@ -50,13 +51,25 @@ const RelationshipProvider: React.FC = ({ children }) => {
 		createSuggestedFriends(users, data.friends, data.blockedUsers);
 	}
 
-	/* Get all users and set relationships */
+	/* Fetch all users and set current user relationships */
 	const getRelationshipsData = async () => {
 		const res = await backend.request('/api/users/');
-		const data = await res.json();
+		const allUsers: User[] = await res.json();
 
-		setUsers(data);
-		getUserRelationships(data, currentUser.id);
+		setUsers(allUsers);
+
+		// debug
+		setFriends(allUsers);
+		setFriends42(allUsers);
+		setBlocked(allUsers);
+		setPendingFriendsReceived(allUsers);
+		setSuggested(allUsers);
+
+		// const filteredUsers = allUsers.filter((user) => {
+		// 	return user.id !== currentUser.id;
+		// });
+
+		// getUserRelationships(filteredUsers, currentUser.id);
 	}
 
 	return (
