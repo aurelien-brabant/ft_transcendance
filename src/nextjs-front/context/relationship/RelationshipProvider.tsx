@@ -4,7 +4,7 @@ import { useSession } from "../../hooks/use-session";
 import relationshipContext from "./relationshipContext";
 
 const RelationshipProvider: React.FC = ({ children }) => {
-	const { user, backend } = useSession();
+	const { user: currentUser, backend } = useSession();
 	const [users, setUsers] = useState<User[]>([]);
 	const [friends, setFriends] = useState<User[]>([]);
 	const [friends42, setFriends42] = useState<User[]>([]);
@@ -13,62 +13,54 @@ const RelationshipProvider: React.FC = ({ children }) => {
 	const [pendingFriendsSent, setPendingFriendsSent] = useState<User[]>([]);
 	const [suggested, setSuggested] = useState<User[]>([]);
 
-	const createSuggested = (
-		users: User[], friends: User[], blocked: User[]
-		) => {
-		const checkSuggested = (list: User[], id: String) => {
-			for (var i in list) {
-				if (list[i].id === id) {
-					return false;
+	/* Set a list of suggested new friends */
+	const createSuggestedFriends = (users: User[], friends: User[], blocked: User[]) => {
+		const suggestedUsers: User[] = [];
+		const userId: string = currentUser.id;
+
+		for (var user of users) {
+			if (user.id !== userId && user.accountDeactivated) {
+				const isNotFriend = !!friends.find((friend) => friend.id === userId);
+				const isNotBlocked = !!blocked.find((blockedUser) => blockedUser.id === userId);
+
+				if (isNotFriend && isNotBlocked) {
+					suggestedUsers.push(user);
 				}
 			}
-			return true;
 		}
-
-		let suggestedList: User[] = [];
-		for (var i in users) {
-			if (users[i].id !== user.id
-				&& checkSuggested(blocked, users[i].id)
-				&& checkSuggested(friends, users[i].id)
-				&& !users[i].accountDeactivated)
-					suggestedList = [...suggestedList, users[i]]
-		}
-
-		setSuggested(suggestedList.filter(function(ele , pos){
-			return suggestedList.indexOf(ele) == pos;
-		}));
+		return suggestedUsers;
 	}
 
-	const getRelationships = async (usersList: User[], id: string) => {
-
-		const req = await backend.request(`/api/users/${id}`);
-		const data = await req.json();
+	const getRelationships = async (users: User[], id: string) => {
+		const res = await backend.request(`/api/users/${id}`);
+		const data = await res.json();
+		const duoquadraFriends: User[] = [];
 
 		setFriends(data.friends);
 		setBlocked(data.blockedUsers);
 		setPendingFriendsReceived(data.pendingFriendsReceived);
 		setPendingFriendsSent(data.pendingFriendsSent);
 
-		let friendsList: User[] = [];
-		for (var i in data.friends) {
-			if (data.friends[i].duoquadra_login)
-				friendsList = [...friendsList, data.friends[i]];
+		for (var friend of data.friends) {
+			if (friend.duoquadra_login) {
+				duoquadraFriends.push(friend);
+			}
 		}
-		setFriends42(friendsList);
-		createSuggested(usersList, friendsList, data.blockedUsers);
+		setFriends42(duoquadraFriends);
+		createSuggestedFriends(users, data.friends, data.blockedUsers);
 	}
 
 	const getRelationshipsData = async () => {
-		const req = await backend.request('/api/users/');
-		const data = await req.json()
+		const res = await backend.request('/api/users/');
+		const data = await res.json();
+
 		setUsers(data);
-		getRelationships(data, user.id);
+		getRelationships(data, currentUser.id);
 	}
 
 	return (
 		<relationshipContext.Provider
 			value={{
-				getRelationshipsData,
 				users,
 				setUsers,
 				friends,
@@ -81,10 +73,11 @@ const RelationshipProvider: React.FC = ({ children }) => {
 				setPendingFriendsReceived,
 				pendingFriendsSent,
 				setPendingFriendsSent,
-				getRelationships,
-				createSuggested,
 				suggested,
-				setSuggested
+				setSuggested,
+				createSuggestedFriends,
+				getRelationships,
+				getRelationshipsData,
 			}}
 		>
 			{children}

@@ -7,17 +7,17 @@ import { IoIosArrowForward } from "react-icons/io";
 import { MdCancel } from "react-icons/md";
 import { RiUserHeartLine } from "react-icons/ri";
 import { User } from 'transcendance-types';
-import alertContext, { AlertContextType } from "../context/alert/alertContext";
 import ResponsiveFade from "./ResponsiveFade";
 import Tooltip from "./Tooltip";
 import { useSession } from "../hooks/use-session";
+import alertContext, { AlertContextType } from "../context/alert/alertContext";
 import relationshipContext, { RelationshipContextType } from "../context/relationship/relationshipContext";
 
 const FriendsTable: React.FC<{ type: string, list: User[], suggested: User[], setSuggested: any, setSelected: any }> = ({
   type, list, suggested, setSuggested, setSelected
 }) => {
-  const { setAlert } = useContext(alertContext) as AlertContextType;
   const { user, backend } = useSession();
+  const { setAlert } = useContext(alertContext) as AlertContextType;
   const {
     friends, setFriends,
     friends42, setFriends42,

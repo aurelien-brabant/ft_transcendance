@@ -55,18 +55,18 @@ const HighlightItem: React.FC<Highlight> = ({ n, label, hint, nColor }) => {
 const FriendsPage: NextPageWithLayout = ({}) => {
   const [isLoading, setIsLoading] = useState(true);
   const [selected, setSelected] = useState(0);
-  const { user, backend } = useSession();
+  const { user } = useSession();
   const {
-    getRelationshipsData,
-    getRelationships,
-    createSuggested,
-    setSuggested,
     suggested,
     users,
     friends,
     friends42,
     blocked,
     pendingFriendsReceived,
+    setSuggested,
+    getRelationshipsData,
+    getRelationships,
+    createSuggestedFriends,
   } = useContext(relationshipContext) as RelationshipContextType;
   const router = useRouter();
 
@@ -81,7 +81,7 @@ const FriendsPage: NextPageWithLayout = ({}) => {
     setIsLoading(true);
     if (user) {
       getRelationships(users, user.id);
-      createSuggested(users, friends, blocked);
+      createSuggestedFriends(users, friends, blocked);
       setIsLoading(false);
     }
   }, [selected]);

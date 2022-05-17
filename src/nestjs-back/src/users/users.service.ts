@@ -393,6 +393,9 @@ export class UsersService {
 
   /* Relationships */
   async addFriendshipReceived(id: string, senderId: string) {
+    if (id === senderId) {
+      throw new Error('Operation not allowed.');
+    }
     let user = await this.usersRepository.findOne(id, {
       relations: ['pendingFriendsReceived'],
     });
@@ -424,6 +427,9 @@ export class UsersService {
   }
 
   async addFriendshipSent(id: string, receiverId: string) {
+    if (id === receiverId) {
+      throw new Error('Operation not allowed.');
+    }
     let user = await this.usersRepository.findOne(id, {
       relations: ['pendingFriendsSent'],
     });
@@ -455,6 +461,9 @@ export class UsersService {
   }
 
   async addFriend(id: string, friendId: string) {
+    if (id === friendId) {
+      throw new Error('Operation not allowed.');
+    }
     let user = await this.usersRepository.findOne(id, {
       relations: ['friends'],
     });
@@ -486,6 +495,9 @@ export class UsersService {
   }
 
   async blockUser(id: string, blockedId: string) {
+    if (id === blockedId) {
+      throw new Error('Don\'t be so mean to yourself. :(');
+    }
     let user = await this.usersRepository.findOne(id, {
       relations: ['blockedUsers'],
     });

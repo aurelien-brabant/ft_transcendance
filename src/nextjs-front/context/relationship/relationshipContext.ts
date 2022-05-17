@@ -2,7 +2,6 @@ import { createContext } from 'react';
 import { User } from 'transcendance-types';
 
 export type RelationshipContextType = {
-	getRelationshipsData: () => any;
 	users: User[];
 	setUsers: (data: any) => any;
 	friends: User[];
@@ -15,10 +14,12 @@ export type RelationshipContextType = {
 	setPendingFriendsReceived: (data: any) => any;
 	pendingFriendsSent: User[];
 	setPendingFriendsSent: (data: any) => any;
-	getRelationships: (users: User[], id: string) => any;
-	createSuggested: (users: User[], friends: User[], blocked: User[]) => any;
 	suggested: User[]
 	setSuggested: (data: any) => any;
+
+	createSuggestedFriends: (users: User[], friends: User[], blocked: User[]) => any;
+	getRelationships: (users: User[], id: string) => any;
+	getRelationshipsData: () => any;
 }
 
 const relationshipContext = createContext<RelationshipContextType | null>(null);
