@@ -188,8 +188,6 @@ const LeaderboardPage: NextPageWithLayout = ({}) => {
         ((b.wins + b.ratio) - (a.wins + a.ratio))
     );
 
-    console.log(activeUsers);
-
     for (var user of activeUsers) {
       if (user.duoquadra_login) {
         ranking42.push({
