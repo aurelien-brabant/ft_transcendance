@@ -363,7 +363,7 @@ const UserProfilePage: NextPageWithLayout = ({}) => {
                 <div className="absolute left-0 right-0 flex items-center justify-center -bottom-4 gap-x-2">
                   <Tooltip className={actionTooltipStyles} content="challenge">
                     <button
-                      className="p-2 text-2xl text-gray-900 bg-pink-200 text-pink-700 rounded-full transition hover:scale-105"
+                      className="p-2 text-2xl text-pink-700 bg-pink-200 rounded-full transition hover:scale-105"
                       onClick={() => sendPongInvite(userData.id)}
                     >
                       <RiPingPongLine />

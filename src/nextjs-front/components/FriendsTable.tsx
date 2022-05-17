@@ -25,31 +25,30 @@ const FriendsTable: React.FC<{ category: string, list: User[], setSelected: any 
   //   pendingFriendsReceived, setPendingFriendsReceived,
   //   pendingFriendsSent, setPendingFriendsSent
   // } = useContext(relationshipContext) as RelationshipContextType;
-  const gridStyle = "place-items-stretch grid md:grid grid-cols-2 md:grid-cols-3 gap-10 text-center pt-10 pb-10"; // ${category === 'suggested' && "pr-0 md:pr-3"}
-  const userCardStyle = "text-pink-600 justity-items-center px-5 pt-2 pb-7 bg-01dp border border-pink-600 rounded  hover:bg-03dp hover:text-inherit md:transition md:transform md:ease-in md:hover:-translate-y-2";
+  const gridStyle = "place-items-stretch grid md:grid grid-cols-2 md:grid-cols-3 gap-10 text-center pt-10 pb-10";
+  const userCardStyle = "text-pink-600 justity-items-center px-5 pt-2 pb-7 bg-01dp border border-pink-500 rounded hover:bg-03dp hover:text-inherit md:transition md:transform md:ease-in md:hover:-translate-y-1";
   const actionTooltipStyles = "font-bold bg-dark text-neutral-200";
-  const neutralIconStyle = "p-2 text-2xl text-gray-900 bg-white rounded-full transition hover:scale-105";
 
   const getUserCard = (user: User) => {
     return (
       <Link href={`/users/${user.id}`}>
       <a>
         <div className="grid grid-cols-2 m-2 space-x-3">
-          <div className="grid grid-cols-1 text-center place-items-center text-yellow-500 border-pink-600 bg-inherit">
+          <div className="grid grid-cols-1 text-center place-items-center text-yellow-400 border-pink-600 bg-inherit">
             <FaMedal/> {user.wins}
           </div>
           <div className="grid grid-cols-1 text-center place-items-center text-red-500 bg-inherit">
             <AiOutlineFall className="text-xl font-bold"/> {user.losses}
           </div>
         </div>
-  
+
+        <div className="relative w-48 h-48 flex justify-center items-center text-center">
         <img
-        className="justify-content-center"
-        src={`/api/users/${user.id}/photo`}
-        height="100%"
-        width="100%"
+          className="object-cover object-center w-full h-full rounded-full"
+          src={`/api/users/${user.id}/photo`}
         />
-  
+        </div>
+
         {user.duoquadra_login &&
         <div className="invisible md:visible absolute top-16 right-4">
           <div className="flex flex-col items-center p-2">
@@ -81,7 +80,7 @@ const FriendsTable: React.FC<{ category: string, list: User[], setSelected: any 
         <div className="relative md:absolute left-0 right-0 flex items-center justify-center -bottom-4 gap-x-6">
   
           <Tooltip className={actionTooltipStyles} content="Unblock">
-            <button className={neutralIconStyle}>
+            <button className="p-2 text-2xl bg-pink-200 text-pink-700 rounded-full">
               <RiUserHeartLine />
             </button>
           </Tooltip>
@@ -93,13 +92,13 @@ const FriendsTable: React.FC<{ category: string, list: User[], setSelected: any 
         <div className="relative md:absolute left-0 right-0 flex items-center justify-center -bottom-4 gap-x-6">
   
           <Tooltip className={actionTooltipStyles} content="Accept friend">
-            <button className={neutralIconStyle}>
+            <button className="p-2 text-2xl bg-green-200 text-green-700 rounded-full">
               <AiOutlineCheck />
             </button>
           </Tooltip>
 
           <Tooltip className={actionTooltipStyles} content="Decline invite">
-            <button className={neutralIconStyle}>
+            <button className="p-2 text-2xl bg-red-200 text-red-700 rounded-full">
               <AiOutlineClose />
             </button>
           </Tooltip>
@@ -113,20 +112,20 @@ const FriendsTable: React.FC<{ category: string, list: User[], setSelected: any 
 
         {(category === "friends") &&
         <Tooltip className={actionTooltipStyles} content="Remove friend">
-          <button className={neutralIconStyle}>
+          <button className="p-2 text-2xl bg-pink-200 text-pink-700 rounded-full">
             <AiOutlineUserDelete />
           </button>
         </Tooltip>}
 
         {(category === "suggested") &&
         <Tooltip className={actionTooltipStyles} content="Add friend">
-          <button className={neutralIconStyle}>
+          <button className="p-2 text-2xl bg-pink-200 text-pink-700 rounded-full">
             <AiOutlineUserAdd />
           </button>
         </Tooltip>}
 
         <Tooltip className={actionTooltipStyles} content="Block">
-          <button className={neutralIconStyle}>
+          <button className="p-2 text-2xl bg-neutral-400 text-neutral-900 rounded-full">
             <FaUserSlash />
           </button>
         </Tooltip>

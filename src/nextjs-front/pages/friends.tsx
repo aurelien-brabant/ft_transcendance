@@ -99,7 +99,7 @@ const FriendsPage: NextPageWithLayout = ({}) => {
               />
               <div className="absolute left-0 right-0 flex items-center justify-center -bottom-4 gap-x-2">
                 <Tooltip
-                  className="font-bold bg-gray-900 text-neutral-200"
+                  className="font-bold bg-dark text-neutral-200"
                   content="Edit user"
                 >
                   <button className="p-2 text-2xl text-white/90 bg-01dp rounded-full transition hover:scale-105">
@@ -125,7 +125,7 @@ const FriendsPage: NextPageWithLayout = ({}) => {
                 n={friends.length}
                 label="friends"
                 hint="Friends"
-                nColor="text-blue-600"
+                nColor="text-blue-500"
               />
               <HighlightItem
                 n={friends42.length}
@@ -137,13 +137,13 @@ const FriendsPage: NextPageWithLayout = ({}) => {
                 n={pendingFriendsReceived.length}
                 label="pending"
                 hint="Pending Requests"
-                nColor="text-purple-600"
+                nColor="text-purple-500"
               />
               <HighlightItem
                 n={blocked.length}
                 label="blocked"
                 hint="Blocked Users"
-                nColor="text-red-600"
+                nColor="text-red-500"
               />
             </div>
 
