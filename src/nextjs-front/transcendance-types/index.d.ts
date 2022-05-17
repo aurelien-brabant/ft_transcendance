@@ -1,5 +1,7 @@
 /* USERS */
 
+import { GameMode } from "../gameObjects/GameObject";
+
 type BaseUserData = {
 	id: string;
 	username: string;
@@ -67,6 +69,7 @@ export type Game = {
   createdAt: Date;
   endedAt: Date;
   gameDuration: number;
+  mode: GameMode;
 };
 
 /* CHAT */
