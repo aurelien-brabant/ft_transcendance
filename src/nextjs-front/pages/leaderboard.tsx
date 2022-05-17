@@ -183,6 +183,11 @@ const LeaderboardPage: NextPageWithLayout = ({}) => {
       return user.accountDeactivated == false;
     });
 
+    activeUsers.sort(
+      (a: User, b: User) =>
+        ((b.wins + b.ratio) - (a.wins + a.ratio))
+    );
+
     console.log(activeUsers);
 
     for (var user of activeUsers) {
