@@ -227,17 +227,19 @@ const GroupUsers: React.FC<{ viewParams: any }> = ({ viewParams }) => {
 	/* The color of the user picture and any required icon next to the username */
 	 const getUserLine = (user: UserSummary) => {
 		return (
-			<div className="flex items-center gap-x-2 w-12 h-12">
-				<img
-					src={user.pic}
-					className={`border-4 ${
-						user.isAdmin
-							? "border-blue-500"
-							: "border-04dp"
-					} ${
-						(user.isBlocked || user.isMuted || user.isBanned) && "filter brightness-50"
-					} object-fill w-full h-full rounded-full` }
-				/>
+			<div className="flex items-center gap-x-2">
+				<div className="relative w-12 h-12">
+					<img
+						src={user.pic}
+						className={`border-4 ${
+							user.isAdmin
+								? "border-blue-500"
+								: "border-04dp"
+						} ${
+							(user.isBlocked || user.isMuted || user.isBanned) && "filter brightness-50"
+						} object-center w-full h-full rounded-full` }
+					/>
+				</div>
 				<Link href={`/users/${user.username}`}>
 					<a className="flex items-center gap-x-2">
 						{user.username}
@@ -303,11 +305,13 @@ const GroupUsers: React.FC<{ viewParams: any }> = ({ viewParams }) => {
 		<div className="flex flex-col h-full py-4 overflow-auto ">
 
 			{owner && <div className="flex items-center justify-between px-4 py-3 hover:bg-04dp/90 transition">
-				<div className="flex items-center gap-x-2 w-12 h-12">
-					<img
-						src={owner.pic}
-						className="border-4 border-pink-600 object-fill w-full h-full rounded-full"
-					/>
+				<div className="flex items-center gap-x-2">
+					<div className="relative w-12 h-12">
+						<img
+							src={owner.pic}
+							className="border-4 border-pink-600 object-center w-full h-full rounded-full"
+						/>
+					</div>
 					<Link href={`/users/${owner.username}`}>
 						<a className="flex items-center gap-x-2">
 							{owner.username}

@@ -219,11 +219,24 @@ export class UsersService {
     }
   }
 
+  async emailIsUnique(email: string) {
+    const duplicatedEmail = await this.usersRepository.createQueryBuilder('user')
+      .where('user.email = :email', { email })
+      .getOne();
+
+    if (duplicatedEmail) {
+      throw new Error("Email address already in use.");
+    }
+  }
+
   async update(id: string, updateUserDto: UpdateUserDto) {
     let user: User;
 
     if (updateUserDto.username) {
       await this.usernameIsAvailable(updateUserDto.username);
+    }
+    if (updateUserDto.email) {
+      await this.emailIsUnique(updateUserDto.email);
     }
 
     if (updateUserDto.friends && updateUserDto.friends.length) {
