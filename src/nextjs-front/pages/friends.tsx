@@ -65,26 +65,28 @@ const FriendsPage: NextPageWithLayout = ({}) => {
     pendingFriendsReceived,
     setSuggested,
     getRelationshipsData,
-    getRelationships,
+    getUserRelationships,
     createSuggestedFriends,
   } = useContext(relationshipContext) as RelationshipContextType;
   const router = useRouter();
 
   useEffect(() => {
-    if (user) {
-      getRelationshipsData();
-      setIsLoading(false);
-    }
-  }, []);
-
-  useEffect(() => {
     setIsLoading(true);
     if (user) {
-      getRelationships(users, user.id);
+      getRelationshipsData();
+      getUserRelationships(users, user.id);
       createSuggestedFriends(users, friends, blocked);
       setIsLoading(false);
     }
   }, [selected]);
+
+  useEffect(() => {
+    if (user) {
+      getUserRelationships(users, user.id);
+      createSuggestedFriends(users, friends, blocked);
+      setIsLoading(false);
+    }
+  }, []);
 
   return (
     <div className="text-white bg-fixed bg-center bg-fill grow">

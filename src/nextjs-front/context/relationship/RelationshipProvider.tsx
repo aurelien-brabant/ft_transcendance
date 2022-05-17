@@ -31,7 +31,7 @@ const RelationshipProvider: React.FC = ({ children }) => {
 		return suggestedUsers;
 	}
 
-	const getRelationships = async (users: User[], id: string) => {
+	const getUserRelationships = async (users: User[], id: string) => {
 		const res = await backend.request(`/api/users/${id}`);
 		const data = await res.json();
 		const duoquadraFriends: User[] = [];
@@ -50,12 +50,13 @@ const RelationshipProvider: React.FC = ({ children }) => {
 		createSuggestedFriends(users, data.friends, data.blockedUsers);
 	}
 
+	/* Get all users and set relationships */
 	const getRelationshipsData = async () => {
 		const res = await backend.request('/api/users/');
 		const data = await res.json();
 
 		setUsers(data);
-		getRelationships(data, currentUser.id);
+		getUserRelationships(data, currentUser.id);
 	}
 
 	return (
@@ -76,7 +77,7 @@ const RelationshipProvider: React.FC = ({ children }) => {
 				suggested,
 				setSuggested,
 				createSuggestedFriends,
-				getRelationships,
+				getUserRelationships,
 				getRelationshipsData,
 			}}
 		>

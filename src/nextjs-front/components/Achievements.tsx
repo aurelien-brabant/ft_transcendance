@@ -2,70 +2,93 @@ import { useEffect, useState } from "react";
 import { FaUserFriends, FaGamepad } from "react-icons/fa";
 import { RiMedalLine } from "react-icons/ri";
 import { useSession } from "../hooks/use-session";
+import { Achievement } from "transcendance-types";
 
-const getAchievements = (type: string) => {
-    return (
-        <div className="flex justify-center">
-            {type === 'friends' && <FaUserFriends className="text-7xl"/>}
-            {type === 'wins' && <RiMedalLine className="text-7xl"/>}
-            {type === 'games' && <FaGamepad className="text-7xl"/>}
-        </div>
-    );
-}
+type UserAchievement = {
+    id: string;
+    type: string;
+    levelReached: number;
+};
 
 const Achievements: React.FC<{}> = () => {
     const { user } = useSession();
-    const [achievements, setAchievements] = useState(user.achievements);
-    const [achievementsList, setAchievementsList] = useState([]);
-  
-    const getRelationshipsData = async () => {
-        const reqList = await fetch('/api/achievements')
-        const list = await reqList.json();
-        setAchievementsList(list);
-        setAchievements(user.achievements);
+    const [userAchievements, setUserAchievements] = useState<UserAchievement[]>([]);
+    const [achievementsList, setAchievementsList] = useState<Achievement[]>([]);
+
+    /* Update user's information on mount */
+    const updateUserAchievements = async (achievements: Achievement[]) => {
+        const userAchievements: UserAchievement[] = [];
+
+        for (var achievement of achievements) {
+            userAchievements.push({
+                id: userAchievements.length.toString(),
+                type: achievement.type,
+                levelReached: achievement.levelToReach,
+            });
+        }
+        setUserAchievements(userAchievements);
+    };
+
+    /* Fetch achievements data on mount */
+    const getAchievementsData = async () => {
+        const res = await fetch('/api/achievements')
+        const data = await res.json();
+
+        setAchievementsList(data);
+        updateUserAchievements(user.achievements);
     }
 
     useEffect(() => {
-        getRelationshipsData();
-      }, [])
+        console.log('[Achievements] getAchievementsData');
+        getAchievementsData();
+    }, [])
 
-    const getColor = (levelToReach: number, type: string) => {
-
-        for (let i in achievements) {
-            if (achievements[i].levelToReach === levelToReach && achievements[i].type === type  && levelToReach === 10)
-                return "text-yellow-500"
-            else if (achievements[i].levelToReach === levelToReach && achievements[i].type === type && levelToReach === 3)
-                return "text-zinc-400"
-            else if (achievements[i].levelToReach === levelToReach && achievements[i].type === type && levelToReach === 1)
-                return "text-orange-800"
+    /* Set list */
+    const getAchievementColor = (levelToReach: number, type: string) => {
+        for (var achievement of userAchievements) {
+            if (achievement.levelReached === levelToReach && achievement.type === type && levelToReach === 10)
+                return "text-yellow-400"
+            else if (achievement.levelReached === levelToReach && achievement.type === type && levelToReach === 3)
+                return "text-stone-400"
+            else if (achievement.levelReached === levelToReach && achievement.type === type && levelToReach === 1)
+                return "text-amber-700"
         }
         return "text-gray-500/50"
     }
 
     const getBorderColor = (levelToReach: number, type: string) => {
-
-        for (let i in achievements) {
-            if (achievements[i].levelToReach === levelToReach && achievements[i].type === type  && levelToReach === 10)
-                return "ring-4 ring-yellow-500/20 border border-yellow-500 border-8"
-            else if (achievements[i].levelToReach === levelToReach && achievements[i].type === type && levelToReach === 3)
-                return "ring-2 ring-zinc-400/20 border border-zinc-400  border-4"
-            else if (achievements[i].levelToReach === levelToReach && achievements[i].type === type && levelToReach === 1)
-                return "ring ring-orange-800/20 border border-orange-800 border-2"
+        for (var achievement of userAchievements) {
+            if (achievement.levelReached === levelToReach && achievement.type === type && levelToReach === 10)
+                return "ring-4 ring-yellow-400/20 border border-yellow-400 border-8"
+            else if (achievement.levelReached === levelToReach && achievement.type === type && levelToReach === 3)
+                return "ring-2 ring-stone-400/20 border border-stone-400 border-4"
+            else if (achievement.levelReached === levelToReach && achievement.type === type && levelToReach === 1)
+                return "ring ring-amber-700/20 border border-amber-700 border-2"
         }
         return "border border-dashed border-gray-500"
     }
+
+    const getAchievementIcon = (type: string) => {
+        return (
+            <div className="flex justify-center">
+                {type === 'friends' && <FaUserFriends className="text-7xl"/>}
+                {type === 'wins' && <RiMedalLine className="text-7xl"/>}
+                {type === 'games' && <FaGamepad className="text-7xl"/>}
+            </div>
+        );
+    }
+
     return (
         <ul className="text-gray-500 place-items-stretch grid grid-cols-3 text-center my-10">
             {achievementsList.map(({id, type, description, levelToReach}) => (
                 <li
-                    className={`${getColor(levelToReach, type)} flex-col justify-center my-5 p-3`}
-                    key={id}>
-                        <div className={`${getBorderColor(levelToReach, type)} flex-col justify-center rounded-full p-5`}>
-                            {getAchievements(type)}
-                            <div>
-                                {description}
-                            </div>
-                        </div>
+                    key={id}
+                    className={`${getAchievementColor(levelToReach, type)} flex-col justify-center my-5 p-3`}
+                >
+                    <div className={`${getBorderColor(levelToReach, type)} flex-col justify-center rounded-full p-5`}>
+                        {getAchievementIcon(type)}
+                        <div>{description}</div>
+                    </div>
                 </li>
             ))}
         </ul>

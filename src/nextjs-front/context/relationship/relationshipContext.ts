@@ -18,7 +18,7 @@ export type RelationshipContextType = {
 	setSuggested: (data: any) => any;
 
 	createSuggestedFriends: (users: User[], friends: User[], blocked: User[]) => any;
-	getRelationships: (users: User[], id: string) => any;
+	getUserRelationships: (users: User[], id: string) => any;
 	getRelationshipsData: () => any;
 }
 
