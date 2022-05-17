@@ -178,6 +178,8 @@ const LeaderboardPage: NextPageWithLayout = ({}) => {
   }, [selected])
 
   useEffect(() => {
+    console.log('[Leaderboard] fetch data');
+
     const fetchUsersData = async () => {
       setIsLoading(true);
       await getRelationshipsData();
@@ -186,7 +188,7 @@ const LeaderboardPage: NextPageWithLayout = ({}) => {
     }
 
     fetchUsersData().catch(console.error);
-  }, [users])
+  }, [])
 
   return (
     <div className="overflow-x-auto text-white bg-fixed bg-center bg-fill grow" style={{
@@ -241,7 +243,7 @@ const LeaderboardPage: NextPageWithLayout = ({}) => {
               },
               {
                 label: "42 ranking",
-                component:  <HistoryTable ranking={ranking42} />,
+                component: <HistoryTable ranking={ranking42} />,
               },
               {
                 label: "Achievements",

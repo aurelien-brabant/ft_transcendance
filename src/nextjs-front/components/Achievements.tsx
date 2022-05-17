@@ -2,34 +2,27 @@ import { useEffect, useState } from "react";
 import { FaUserFriends, FaGamepad } from "react-icons/fa";
 import { RiMedalLine } from "react-icons/ri";
 import { useSession } from "../hooks/use-session";
-
-const getAchievements = (type: string) => {
-    return (
-        <div className="flex justify-center">
-            {type === 'friends' && <FaUserFriends className="text-7xl"/>}
-            {type === 'wins' && <RiMedalLine className="text-7xl"/>}
-            {type === 'games' && <FaGamepad className="text-7xl"/>}
-        </div>
-    );
-}
+import { Achievement } from "transcendance-types";
 
 const Achievements: React.FC<{}> = () => {
     const { user } = useSession();
     const [achievements, setAchievements] = useState(user.achievements);
-    const [achievementsList, setAchievementsList] = useState([]);
-  
+    const [achievementsList, setAchievementsList] = useState<Achievement[]>([]);
+
     const getAchievementsData = async () => {
-        const reqList = await fetch('/api/achievements')
-        const list = await reqList.json();
-        setAchievementsList(list);
+        const res = await fetch('/api/achievements')
+        const data = await res.json();
+
+        setAchievementsList(data);
         setAchievements(user.achievements);
     }
 
     useEffect(() => {
+        console.log('[Achievements] getAchievementsData');
         getAchievementsData();
       }, [])
 
-    const getColor = (levelToReach: number, type: string) => {
+    const getAchivementColor = (levelToReach: number, type: string) => {
 
         for (let i in achievements) {
             if (achievements[i].levelToReach === levelToReach && achievements[i].type === type  && levelToReach === 10)
@@ -54,14 +47,25 @@ const Achievements: React.FC<{}> = () => {
         }
         return "border border-dashed border-gray-500"
     }
+
+    const getAchievementIcon = (type: string) => {
+        return (
+            <div className="flex justify-center">
+                {type === 'friends' && <FaUserFriends className="text-7xl"/>}
+                {type === 'wins' && <RiMedalLine className="text-7xl"/>}
+                {type === 'games' && <FaGamepad className="text-7xl"/>}
+            </div>
+        );
+    }
+
     return (
         <ul className="text-gray-500 place-items-stretch grid grid-cols-3 text-center my-10">
             {achievementsList.map(({id, type, description, levelToReach}) => (
                 <li
-                    className={`${getColor(levelToReach, type)} flex-col justify-center my-5 p-3`}
+                    className={`${getAchivementColor(levelToReach, type)} flex-col justify-center my-5 p-3`}
                     key={id}>
                         <div className={`${getBorderColor(levelToReach, type)} flex-col justify-center rounded-full p-5`}>
-                            {getAchievements(type)}
+                            {getAchievementIcon(type)}
                             <div>
                                 {description}
                             </div>

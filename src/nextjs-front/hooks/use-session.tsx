@@ -9,8 +9,15 @@ type UseSessionParams = {
 };
 
 export const useSession = ({ waitingTime }: UseSessionParams = {}) => {
-    const { loginWithTfa, authenticateUser, session, logout, login, verify, backend } =
-        useContext(AuthContext) as AuthContextValue;
+    const {
+        loginWithTfa,
+        authenticateUser,
+        session,
+        logout,
+        login,
+        verify,
+        backend
+    } = useContext(AuthContext) as AuthContextValue;
     const [currentSession, setCurrentSession] = useState<UserSession>(session);
 
     useEffect(() => {
