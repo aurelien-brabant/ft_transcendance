@@ -127,15 +127,15 @@ const TopPlayerItem: React.FC<TopPlayer> = (
   let pic: string = "";
   let userUrl: string = "";
 
-  if (ranking[0] && label == 'first') {
+  if (ranking[0] && ranking[0].hasPlayed && label == 'first') {
     pic = ranking[0].avatar;
     userUrl = `/users/${ranking[0].id}`;
   }
-  else if (ranking[1] && label == 'second') {
+  else if (ranking[1] && ranking[1].hasPlayed && label == 'second') {
     pic = ranking[1].avatar;
     userUrl = `/users/${ranking[1].id}`
   }
-  else if (ranking[2] && label == 'third') {
+  else if (ranking[2] && ranking[2].hasPlayed && label == 'third') {
     pic = ranking[2].avatar;
     userUrl = `/users/${ranking[2].id}`
   }
