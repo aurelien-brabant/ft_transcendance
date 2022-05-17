@@ -13,72 +13,47 @@ networks:
 services:
 
   # reverse proxy
-
   nginx-rproxy:
     image: nginx:1.21.5-alpine
-
     networks:
       - rproxy
-
     volumes:
       - ./rproxy.nginx.conf:/etc/nginx/nginx.conf
-
     ports:
       - 8080:80
 
   # frontend
-
   nextjs-front:
     build:
       context: nextjs-front
       dockerfile: Dockerfile
-
     networks:
       - rproxy
-
-    environment:
-      - NODE_ENV=production
-      - NEXT_PUBLIC_FT_CLIENT_ID=${FT_CLIENT_ID}
-      - NEXT_PUBLIC_FT_REDIRECT_URI=${FT_REDIRECT_URI}
-      #- NEXT_PUBLIC_SOCKET_URL=https://transcendance.aurelienbrabant.fr
+    env_file:
+      - ./nextjs-front/.env
 
   # backend
-
   nestjs-back:
     build:
       context: nestjs-back
       dockerfile: Dockerfile
-
     networks:
       - rproxy
       - backend
-
     volumes:
       - ./nestjs-back/avatars:/upload/avatars
-
-    environment:
-      - NODE_ENV=production
-      - POSTGRES_USER=${POSTGRES_USER}
-      - POSTGRES_PASSWORD=${POSTGRES_PASSWORD}
-      - POSTGRES_HOST=postgres # no need to put that in the .env as it depends on the service name
-      - FT_SECRET=${FT_SECRET}
-      - FT_CLIENT_ID=${FT_CLIENT_ID}
-      - FT_REDIRECT_URI=${FT_REDIRECT_URI}
-      - JWT_SECRET=${JWT_SECRET}
-      - JWT_LIFETIME=${JWT_LIFETIME}
+    env_file:
+      - ./nestjs-back/.env
+      - ./postgres.env
 
   postgres:
     image: postgres:14-alpine3.15
-
     networks:
       - backend
-
     volumes:
       - postgres-data:/var/lib/postgresql/data
-
-    environment:
-      - POSTGRES_USER=${POSTGRES_USER}
-      - POSTGRES_PASSWORD=${POSTGRES_PASSWORD}
+    env_file:
+      - ./postgres.env
 
 volumes:
   postgres-data:
