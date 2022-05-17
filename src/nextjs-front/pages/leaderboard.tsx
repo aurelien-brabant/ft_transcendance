@@ -12,46 +12,94 @@ import withDashboardLayout from "../components/hoc/withDashboardLayout";
 import relationshipContext, { RelationshipContextType } from "../context/relationship/relationshipContext";
 import { User } from "transcendance-types";
 
-export type rankedUser = {
+type Player = {
   id: string;
   username: string;
   avatar: string;
-  accountDeactivated: boolean;
+  hasPlayed: boolean;
   wins: number;
   losses: number;
   draws: number;
   ratio: number;
 };
 
-const HistoryTable: React.FC<{ ranking: rankedUser[] }> = ({
-  ranking
-}) => (
+type TopPlayer = {
+  label: string;
+  hint: string;
+  nColor: string;
+  ranking: Player[];
+};
 
-  <table
-    className="w-full my-4 text-left"
-  >
-    <thead>
-      <tr className="text-pink-600 bg-01dp">
-        <th className="p-3 uppercase">Rank</th>
-        <th className="p-3 uppercase">Username</th>
-        <th className="p-3 uppercase">Wins</th>
-        <th className="p-3 uppercase">Losses</th>
-        <th className="p-3 uppercase">Draws</th>
-        <th className="p-3 uppercase">Ratio</th>
-      </tr>
-    </thead>
-    <tbody>
-      {ranking
-        .map((user, index) => (
+/* Users are sorted from highest scorer */
+const getUserRank = (user: Player) => {
+  if (!user.hasPlayed) {
+    return (
+      <td className="p-3 text-white font-normal">-</td>
+    );
+  }
+
+  if (parseInt(user.id) === 1) {
+    return (
+      <td className="p-3 text-yellow-500 font-extrabold">{user.id}</td>
+    );
+  } else if (parseInt(user.id) === 2) {
+    return (
+      <td className="p-3 text-zinc-400 font-extrabold">{user.id}</td>
+    );
+  } else if (parseInt(user.id) === 3) {
+    return (
+      <td className="p-3 text-orange-800 font-extrabold">{user.id}</td>
+    );
+  }
+  return (
+    <td className="p-3 text-white font-normal">{user.id}</td>
+  );
+};
+
+const getUserRatio = (user: Player) => {
+  if (!user.hasPlayed) {
+    return (
+      <td className="p-3 text-neutral-200" >-</td>
+    );
+  }
+
+  const ratioColor = (user.ratio > 0.6) ? "text-green-500" :
+                     (user.ratio >= 0.4) ? "text-neutral-200" : "text-red-500";
+
+  return (
+    <td className={`p-3 ${ratioColor}`} >{user.ratio}</td>
+  );
+};
+
+/* Game ranking */
+const RankingTable: React.FC<{ ranking: Player[] }> = ({
+  ranking
+}) => {
+
+  console.log("--- ranking table");
+  return (
+    <table
+      className="w-full my-4 text-left"
+    >
+      <thead>
+        <tr className="text-pink-600 bg-01dp">
+          <th className="p-3 uppercase">Rank</th>
+          <th className="p-3 uppercase">Username</th>
+          <th className="p-3 uppercase">Wins</th>
+          <th className="p-3 uppercase">Losses</th>
+          <th className="p-3 uppercase">Draws</th>
+          <th className="p-3 uppercase">Ratio</th>
+        </tr>
+      </thead>
+
+      <tbody>
+        {ranking.map((user, index) => (
           <tr
             key={user.id}
-            className={`py-6 ${index % 2 ? "bg-03dp" : "bg-04dp"} ${user.accountDeactivated ? "line-through": "no-underline"}`}
+            className={`py-6 ${(index % 2) ? "bg-03dp" : "bg-04dp no-underline"}`}
           >
-            <td className={`p-3 ${(String(index) === "0") ? "text-yellow-500 font-extrabold" :
-                                (String(index) === "1") ? "text-zinc-400 font-extrabold" : 
-                                (String(index) === "2") ? "text-orange-800 font-extrabold" : "text-white font-normal"}`}>
-              {String(user.ratio) === "0" && !user.wins && !user.losses ? "-" : index + 1}
-            </td>
+            {console.log(user)}
+            {getUserRank(user)}
             <td className="p-3 font-bold">
               <Link href={`/users/${user.id}`}>
                 <a>{user.username}</a>
@@ -66,24 +114,18 @@ const HistoryTable: React.FC<{ ranking: rankedUser[] }> = ({
             <td className="p-3 text-neutral-200 font-normal">
               {user.draws}
             </td>
-            <td className={`p-3 ${(user.ratio >= 0.4 && user.ratio < 0.6) ? "text-neutral-200" :
-                                (user.ratio > 0.6) ? "text-green-500" : "text-red-500"}`}>
-              {String(user.ratio) === "0" && !user.wins && !user.losses ? "-" : user.ratio}
-            </td>
+            {getUserRatio(user)}
           </tr>
         ))}
-    </tbody>
-  </table>
-);
+      </tbody>
+    </table>
+  );
+}
 
-export type Highlight = {
-  label: string;
-  hint: string;
-  nColor: string;
-  ranking: rankedUser[];
-};
-
-const HighlightItem: React.FC<Highlight> = ({ label, hint, nColor, ranking }) => {
+/* Top 3 players */
+const TopPlayersItem: React.FC<TopPlayer> = (
+  { label, hint, nColor, ranking }
+) => {
 
   let pic: string = "";
   let userUrl: string = "";
@@ -128,62 +170,61 @@ const HighlightItem: React.FC<Highlight> = ({ label, hint, nColor, ranking }) =>
 }
 
 const LeaderboardPage: NextPageWithLayout = ({}) => {
-
-  const [ranking, setRanking] = useState<rankedUser[]>([]);
-  const [ranking42, setRanking42] = useState<rankedUser[]>([]);
   const [isLoading, setIsLoading] = useState(true);
-  const [activeRank, setActiveRank] = useState<rankedUser[]>([]);
+  const [rankingGlobal, setRankingGlobal] = useState<Player[]>([]);
+  const [ranking42, setRanking42] = useState<Player[]>([]);
+  const [activeRank, setActiveRank] = useState<Player[]>([]);
   const [selected, setSelected] = useState(0);
   const [mobileScreen] = useState(useMediaQuery({ query: "(min-width: 1280px)"}));
   const { users, getRelationshipsData } = useContext(relationshipContext) as RelationshipContextType;
 
-  const createrankedUsers = (users: User[]) => {
-    let rank: rankedUser[] = [];
-    let rank42: rankedUser[] = [];
+  const createRankingLists = (users: User[]) => {
+    const ranking: Player[] = [];
+    const ranking42: Player[] = [];
 
-    for (var user of users) {
+    const activeUsers = users.filter((user) => {
+      return user.accountDeactivated == false;
+    });
 
+    for (var user of activeUsers) {
       if (user.duoquadra_login) {
-        rank42 = [...rank42, {
+        ranking42.push({
           id: user.id,
           username: user.username,
           avatar: `/api/users/${user.id}/photo`,
+          hasPlayed: (user.games.length > 0),
           losses: user.losses,
           wins: user.wins,
           draws: user.draws,
-          accountDeactivated: user.accountDeactivated,
           ratio: user.ratio,
-        }];
+        });
       }
-
-      rank = [...rank, {
+      ranking.push({
         id: user.id,
         username: user.username,
         avatar: `/api/users/${user.id}/photo`,
+        hasPlayed: (user.games.length > 0),
         losses: user.losses,
         wins: user.wins,
         draws: user.draws,
-        accountDeactivated: user.accountDeactivated,
         ratio: user.ratio,
-      }];
+      });
     }
 
-    setRanking42(rank42);
-    setRanking(rank);
-    setActiveRank(rank);
+    setRanking42(ranking42);
+    setRankingGlobal(ranking);
+    setActiveRank(ranking);
   }
 
   useEffect(() => {
-    (!selected) ? setActiveRank(ranking) : setActiveRank(ranking42);
+    (!selected) ? setActiveRank(rankingGlobal) : setActiveRank(ranking42);
   }, [selected])
 
   useEffect(() => {
-    console.log('[Leaderboard] fetch data');
-
     const fetchUsersData = async () => {
       setIsLoading(true);
       await getRelationshipsData();
-      createrankedUsers(users);
+      createRankingLists(users);
       setIsLoading(false);
     }
 
@@ -201,13 +242,13 @@ const LeaderboardPage: NextPageWithLayout = ({}) => {
           </div>
           <div className="w-full p-5 bg-01dp border-2 border-02dp rounded drop-shadow-md grid lg:grid-cols-3">
             {mobileScreen ?
-            <HighlightItem
+            <TopPlayersItem
               label="second"
               hint="#2"
               nColor="text-zinc-400"
               ranking={activeRank}
             /> : 
-            <HighlightItem
+            <TopPlayersItem
               label="first"
               hint="#1"
               nColor="text-yellow-500"
@@ -215,20 +256,20 @@ const LeaderboardPage: NextPageWithLayout = ({}) => {
             />
             }
             {mobileScreen ?
-            <HighlightItem
+            <TopPlayersItem
               label="first"
               hint="#1"
               nColor="text-yellow-500"
               ranking={activeRank}
             />
-            :<HighlightItem
+            :<TopPlayersItem
               label="second"
               hint="#2"
               nColor="text-zinc-400"
               ranking={activeRank}
             />
             }
-            <HighlightItem
+            <TopPlayersItem
               label="third"
               hint="#3"
               nColor="text-orange-800"
@@ -239,11 +280,11 @@ const LeaderboardPage: NextPageWithLayout = ({}) => {
             items={[
               {
                 label: "Ranking",
-                component: <HistoryTable ranking={ranking} />,
+                component: <RankingTable ranking={rankingGlobal} />,
               },
               {
                 label: "42 ranking",
-                component: <HistoryTable ranking={ranking42} />,
+                component: <RankingTable ranking={ranking42} />,
               },
               {
                 label: "Achievements",
@@ -255,10 +296,10 @@ const LeaderboardPage: NextPageWithLayout = ({}) => {
       :
       <div className="relative flex flex-col items-center justify-center min-h-screen gap-y-4">
         <div className="absolute inset-0 z-50 flex items-center justify-center">
-			    <Image src="/logo.svg" height="200" width="200" />
-		    </div>
-    		<BounceLoader size={400} color="#db2777" />
-	    </div>
+          <Image src="/logo.svg" height="200" width="200" />
+        </div>
+        <BounceLoader size={400} color="#db2777" />
+      </div>
       }
     </div>
   );
