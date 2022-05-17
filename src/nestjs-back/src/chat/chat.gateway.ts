@@ -22,7 +22,8 @@ import { BadRequestTransformationFilter } from './chat-ws-exception-filter';
 
 @WebSocketGateway({
 		cors: true,
-		namespace: '/chat'
+		namespace: '/chat',
+		transports: ['websocket']
 	}
 )
 @UsePipes(

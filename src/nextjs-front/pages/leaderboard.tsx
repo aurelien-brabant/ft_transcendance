@@ -127,15 +127,15 @@ const TopPlayerItem: React.FC<TopPlayer> = (
   let pic: string = "";
   let userUrl: string = "";
 
-  if (ranking[0] && label == 'first') {
+  if (ranking[0] && ranking[0].hasPlayed && label == 'first') {
     pic = ranking[0].avatar;
     userUrl = `/users/${ranking[0].id}`;
   }
-  else if (ranking[1] && label == 'second') {
+  else if (ranking[1] && ranking[1].hasPlayed && label == 'second') {
     pic = ranking[1].avatar;
     userUrl = `/users/${ranking[1].id}`
   }
-  else if (ranking[2] && label == 'third') {
+  else if (ranking[2] && ranking[2].hasPlayed && label == 'third') {
     pic = ranking[2].avatar;
     userUrl = `/users/${ranking[2].id}`
   }
@@ -145,12 +145,12 @@ const TopPlayerItem: React.FC<TopPlayer> = (
       <h3 className="text-4xl font-bold">
         { (userUrl !== "") ?
           <a href={userUrl}>
-            <img
-              className="object-cover object-center rounded-full drop-shadow-md"
-              src={pic}
-              width={150}
-              height={150}
-            />
+            <div className="relative w-32 h-32">
+              <img
+                className="object-cover object-center w-full h-full rounded-full"
+                src={pic}
+              />
+            </div>
           </a>
           :
           <AiOutlineQuestionCircle className="text-9xl"/>
