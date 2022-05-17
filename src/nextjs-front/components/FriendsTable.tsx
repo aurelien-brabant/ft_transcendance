@@ -75,69 +75,29 @@ const FriendsTable: React.FC<{ category: string, list: User[], setSelected: any 
   }
 
   /* Add / remove friend */
-  const addFriend = async (user: User) => {
+  const sendFriendRequest = async (user: User) => {
     const res = await backend.request(`/api/users/${user.id}`, {
       method: "PATCH",
       headers: {
         "Content-Type": "application/json",
       },
       body: JSON.stringify({
-        friends: [ ...friends, { id: user.id } ]
+        pendingFriendsSent: [ ...pendingFriendsSent, { id: user.id } ]
       }),
     });
 
     const data = await res.json();
 
     if (res.status === 200) {
-      setFriends(data.friends);
-      if (user.duoquadra_login) {
-        setFriends42([ ...friends42, user ]);
-      }
+      setPendingFriendsSent(data.pendingFriendsSent);
       setAlert({
-        type: 'success',
-        content: `Added ${user.username} to friends.`
+        type: 'info',
+        content: 'Friend request sent'
       });
     } else {
       setAlert({
         type: 'error',
-        content: `Error while adding ${user.username}`
-      });
-    }
-  }
-
-  const removeFriend = async (user: User) => {
-    const filteredFriends = friends.filter((friend) => {
-      return friend.id !== user.id;
-    });
-
-    const res = await backend.request(`/api/users/${user.id}`, {
-      method: "PATCH",
-      headers: {
-        "Content-Type": "application/json",
-      },
-      body: JSON.stringify({
-        friends: filteredFriends
-      }),
-    });
-
-    const data = await res.json();
-
-    if (res.status === 200) {
-      setFriends(data.friends);
-      if (user.duoquadra_login) {
-        const filteredFriends42 = friends42.filter((friend) => {
-          return friend.id !== user.id;
-        });
-        setFriends42(filteredFriends42);
-      }
-      setAlert({
-        type: 'success',
-        content: `Removed ${user.username} from friends`
-      });
-    } else {
-      setAlert({
-        type: 'error',
-        content: `Error while adding ${user.username}`
+        content: `Error sending friend request`
       });
     }
   }
@@ -224,7 +184,6 @@ const FriendsTable: React.FC<{ category: string, list: User[], setSelected: any 
           <Tooltip className={actionTooltipStyles} content="Add friend">
             <button
               className="p-2 text-2xl bg-green-200 text-green-700 rounded-full"
-              onClick={() => { addFriend(user); }}
             >
               <AiOutlineCheck />
             </button>
@@ -247,7 +206,6 @@ const FriendsTable: React.FC<{ category: string, list: User[], setSelected: any 
         <Tooltip className={actionTooltipStyles} content="Remove friend">
           <button
             className="p-2 text-2xl bg-pink-200 text-pink-700 rounded-full"
-            onClick={() => { removeFriend(user); }}
           >
             <AiOutlineUserDelete />
           </button>
@@ -255,7 +213,10 @@ const FriendsTable: React.FC<{ category: string, list: User[], setSelected: any 
 
         {(category === "suggested") &&
         <Tooltip className={actionTooltipStyles} content="Send friend invite">
-          <button className="p-2 text-2xl bg-pink-200 text-pink-700 rounded-full">
+          <button
+            className="p-2 text-2xl bg-pink-200 text-pink-700 rounded-full"
+            onClick={() => { sendFriendRequest(user); }}
+          >
             <AiOutlineUserAdd />
           </button>
         </Tooltip>}

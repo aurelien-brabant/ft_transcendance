@@ -1,8 +1,8 @@
 import Link from "next/link";
 import { useRouter } from "next/router";
 import { useContext, useEffect, useState } from "react";
+import { AiOutlineUserAdd } from "react-icons/ai";
 import { FaEquals } from "react-icons/fa";
-import { IoMdPersonAdd } from "react-icons/io";
 import { GiAlarmClock, GiFalling, GiPingPongBat, GiPodiumWinner } from "react-icons/gi";
 import { RiPingPongLine, RiMessage2Line, RiUserSettingsLine } from "react-icons/ri";
 import { ActiveUser } from "transcendance-types";
@@ -400,7 +400,7 @@ const UserProfilePage: NextPageWithLayout = ({}) => {
                       } p-2 text-2xl bg-pink-200 text-pink-700 rounded-full transition hover:scale-105`}
                     >
                       {alreadyFriend ? (
-                        <IoMdPersonAdd
+                        <AiOutlineUserAdd
                           onClick={() =>
                             setAlert({
                               type: "warning",
@@ -409,7 +409,7 @@ const UserProfilePage: NextPageWithLayout = ({}) => {
                           }
                         />
                       ) : (
-                        <IoMdPersonAdd
+                        <AiOutlineUserAdd
                           onClick={() =>
                             requestFriend(String(userId), userData.username)
                           }

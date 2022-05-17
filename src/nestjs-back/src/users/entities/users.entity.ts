@@ -18,33 +18,33 @@ export class User {
     id: number;
 
     /* Informations */
-    @Column({unique: true})
+    @Column({ unique: true })
     username: string;
 
     /**
      * Should be null if user is not a duoquadra,
      * otherwise must be set to the duoquadra's unique login
      */
-    @Column({nullable: true, unique: true})
+    @Column({ nullable: true, unique: true })
     duoquadra_login: string;
 
-    @Column({unique: true})
+    @Column({ select: false, unique: true })
     email: string;
 
-    @Column({nullable: true})
+    @Column({ nullable: true })
     pic: string;
 
     /* Security */
-    @Column({select: false, nullable: true})
+    @Column({ select: false, nullable: true })
     password: string;
 
-    @Column({default: false})
+    @Column({ select: false, default: false })
     tfa: boolean;
 
-    @Column({nullable: true})
+    @Column({ select: false, nullable: true })
     tfaSecret: string;
 
-    @Column({default: false})
+    @Column({ select: false, default: false })
     hasTfaBeenValidated: boolean;
 
     /**
@@ -57,20 +57,20 @@ export class User {
     })
     lastTfaRequestTimestamp: string | number | Date;
 
-    @Column({default: false})
+    @Column({ default: false })
     accountDeactivated: boolean;
 
     /* Games */
     @ManyToMany(() => Game, game => game.players)
     games: Game[];
 
-    @Column({default: 0})
+    @Column({ default: 0 })
     wins: number;
 
-    @Column({default: 0})
+    @Column({ default: 0 })
     losses: number;
 
-    @Column({default: 0})
+    @Column({ default: 0 })
     draws: number;
 
     @Column({
