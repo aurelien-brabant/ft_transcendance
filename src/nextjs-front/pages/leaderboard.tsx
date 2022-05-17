@@ -15,6 +15,7 @@ import { User } from "transcendance-types";
 
 type Player = {
   id: string;
+  rank: number;
   username: string;
   avatar: string;
   hasPlayed: boolean;
@@ -39,21 +40,21 @@ const getUserRank = (user: Player) => {
     );
   }
 
-  if (parseInt(user.id) === 1) {
+  if (user.rank === 1) {
     return (
-      <td className="p-3 text-yellow-400 font-extrabold">{user.id}</td>
+      <td className="p-3 text-yellow-400 font-extrabold">{user.rank}</td>
     );
-  } else if (parseInt(user.id) === 2) {
+  } else if (user.rank === 2) {
     return (
-      <td className="p-3 text-stone-400 font-extrabold">{user.id}</td>
+      <td className="p-3 text-stone-400 font-extrabold">{user.rank}</td>
     );
-  } else if (parseInt(user.id) === 3) {
+  } else if (user.rank === 3) {
     return (
-      <td className="p-3 text-amber-700 font-extrabold">{user.id}</td>
+      <td className="p-3 text-amber-700 font-extrabold">{user.rank}</td>
     );
   }
   return (
-    <td className="p-3 text-white font-normal">{user.id}</td>
+    <td className="p-3 text-white font-normal">{user.rank}</td>
   );
 };
 
@@ -182,10 +183,16 @@ const LeaderboardPage: NextPageWithLayout = ({}) => {
       return user.accountDeactivated == false;
     });
 
+    activeUsers.sort(
+      (a: User, b: User) =>
+        ((b.wins + b.ratio) - (a.wins + a.ratio))
+    );
+
     for (var user of activeUsers) {
       if (user.duoquadra_login) {
         ranking42.push({
           id: user.id,
+          rank: ranking42.length + 1,
           username: user.username,
           avatar: `/api/users/${user.id}/photo`,
           hasPlayed: (user.games.length > 0),
@@ -197,6 +204,7 @@ const LeaderboardPage: NextPageWithLayout = ({}) => {
       }
       ranking.push({
         id: user.id,
+        rank: ranking.length + 1,
         username: user.username,
         avatar: `/api/users/${user.id}/photo`,
         hasPlayed: (user.games.length > 0),
@@ -217,10 +225,13 @@ const LeaderboardPage: NextPageWithLayout = ({}) => {
   }, [selected])
 
   useEffect(() => {
+    createRankingLists(users);
+  }, [users])
+
+  useEffect(() => {
     const fetchUsersData = async () => {
       setIsLoading(true);
       await getRelationshipsData();
-      createRankingLists(users);
       setIsLoading(false);
     }
 
