@@ -33,7 +33,7 @@ export type ActiveUser = BaseUserData & {
 	wins: number;
 	losses: number;
 	draws: number;
-	ratio: number | string;
+	ratio: number;
 	achievements: Achievement[];
 	friends: ActiveUser[];
 	blockedUsers: ActiveUser[];
