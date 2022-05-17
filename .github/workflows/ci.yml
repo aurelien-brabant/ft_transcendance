@@ -16,10 +16,12 @@ jobs:
                   cat >> ./src/nextjs-front/.env << END
                   NEXT_PUBLIC_FT_CLIENT_ID=$NEXT_PUBLIC_FT_CLIENT_ID
                   NEXT_PUBLIC_FT_REDIRECT_URI=$NEXT_PUBLIC_FT_REDIRECT_URI
+                  NEXT_PUBLIC_SOCKET_URL=$NEXT_PUBLIC_SOCKET_URL
                   END
               env:
                   NEXT_PUBLIC_FT_CLIENT_ID: ${{ secrets.NEXT_PUBLIC_FT_CLIENT_ID }}
                   NEXT_PUBLIC_FT_REDIRECT_URI: ${{ secrets.NEXT_PUBLIC_FT_REDIRECT_URI }}
+                  NEXT_PUBLIC_SOCKET_URL: ${{ secrets.NEXT_PUBLIC_SOCKET_URL }}
 
             - name: Build nextjs-front
               run: |
