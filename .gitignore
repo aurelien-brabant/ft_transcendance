@@ -1,4 +1,7 @@
-*.env
 .babelrc
 src/docker-compose.dev.yml
 .idea
+
+# production env files (do not exclude sample.env files)
+.env
+postgres.env

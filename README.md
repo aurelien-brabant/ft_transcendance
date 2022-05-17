@@ -2,6 +2,61 @@
 
 A frankly over-engineered but not less cool web implementation of the Pong game.
 
+# Setup
+
+A `docker-compose` file is available to build and run the set of containers that are required to make the app work as it is supposed to.
+However, before that some environment setup has to be done. The following steps will guide you through these.
+
+## PostgreSQL (database) setup
+
+The basic database credentials can be configured through a `postgres.env` file.
+
+Copy the provided sample to a `postgres.env` file like so:
+
+```sh
+cp postgres.sample.env postgres.env
+```
+
+And then tweak the variables in there as you wish.
+
+## NestJS (backend) setup
+
+The backend server configuration is loaded from a `.env` file located in the `nestjs-back` directory.
+
+Copy the provided sample to a `.env` file after you got in the `nestjs-back` directory:
+
+```sh
+cd nestjs-back && cp sample.env .env
+```
+
+Configure every variable in this file and make sure to read the comments when applicable. You don't need to configure the database
+credentials in there as they will be taken from the `postgres.env` file.
+
+## NextJS (frontend) setup
+
+Some configuration is required to make the frontend behave properly.
+This configuration is loaded from a `.env` file that must be located in the `nextjs-front` directory.
+
+To start, copy the provided sample to a proper `.env` file:
+
+```sh
+cd nextjs-front && cp sample.env .env
+```
+
+# Run in production
+
+Before running the project in production, [please make sure you did all the required setup before](#setup).
+
+Then, building the containers and running the app in production is a simple as typing:
+
+```sh
+docker-compose up --build
+```
+
+**Protip**: You can specify the `-d` flag if you want the project to run in the background.
+
+
+
 # Development
 
 ## Architecture
