@@ -239,25 +239,26 @@ export class UsersService {
       await this.emailIsUnique(updateUserDto.email);
     }
 
-    if (updateUserDto.friends && updateUserDto.friends.length) {
-      /* Add friend */
-      for (var newFriend of updateUserDto.friends) {
-        user = await this.addFriend(id, newFriend.id.toString());
-        await this.achievementsService.checkUserAchievement(user, 'friends', user.friends.length);
+    // if (updateUserDto.friends && updateUserDto.friends.length) {
+    //   /* Add friend */
+    //   for (var newFriend of updateUserDto.friends) {
+    //     user = await this.addFriend(id, newFriend.id.toString());
+    //     await this.achievementsService.checkUserAchievement(user, 'friends', user.friends.length);
 
-        const friend = await this.addFriend(newFriend.id.toString(), user.id.toString());
-        await this.achievementsService.checkUserAchievement(friend, 'friends', friend.friends.length);
+    //     const friend = await this.addFriend(newFriend.id.toString(), user.id.toString());
+    //     await this.achievementsService.checkUserAchievement(friend, 'friends', friend.friends.length);
+    //   }
+    // }
+    if (updateUserDto.pendingFriendsSent) {
+      if (updateUserDto.pendingFriendsSent.length < 1) {
+        throw new Error('Cannot cancel sent invites.');
       }
-    } else if (updateUserDto.pendingFriendsSent && updateUserDto.pendingFriendsSent.length) {
       /* Send frienship invite */
       for (var receiver of updateUserDto.pendingFriendsSent) {
         user = await this.addFriendshipSent(id, receiver.id.toString());
-        if (receiver) {
-          await this.addFriendshipReceived(receiver.id.toString(), user.id.toString());
-        }
+        await this.addFriendshipReceived(receiver.id.toString(), user.id.toString());
       }
     } else { /* Default case */
-      console.log('----- default case'); // tmp debug
       const user = await this.usersRepository.preload({
         id: +id,
         ...updateUserDto
