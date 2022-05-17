@@ -20,4 +20,4 @@ async function seed() {
 
 export default seed;*/
 
-export default null
+export default null;

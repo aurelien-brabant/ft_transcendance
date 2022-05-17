@@ -1,59 +1,61 @@
-import { UserStatus } from "./Constants";
+import { UserStatus } from './Constants';
 
 export class User {
-	id: number;
-	username: string;
-	status?: UserStatus;
-	socketId?: string;
-	roomId?: string;
+  id: number;
+  username: string;
+  status?: UserStatus;
+  socketId?: string;
+  roomId?: string;
 
-	constructor(id: number, username: string, socketId: string) {
-		this.id = id;
-		this.username = username;
-		this.socketId = socketId
-	}
+  constructor(id: number, username: string, socketId: string) {
+    this.id = id;
+    this.username = username;
+    this.socketId = socketId;
+  }
 
-	setUsername(username: string) {
-		this.username = username;
-	}
+  setUsername(username: string) {
+    this.username = username;
+  }
 
-	setUserStatus(status: UserStatus) {
-		this.status = status;
-	}
+  setUserStatus(status: UserStatus) {
+    this.status = status;
+  }
 
-	setSocketId(socketId: string) {
-		this.socketId = socketId;
-	}
+  setSocketId(socketId: string) {
+    this.socketId = socketId;
+  }
 
-	setRoomId(roomId: string | undefined) {
-		this.roomId = roomId;
-	}
+  setRoomId(roomId: string | undefined) {
+    this.roomId = roomId;
+  }
 }
 
 export class ConnectedUsers {
-	private users: Array<User> = new Array();
+  private users: Array<User> = [];
 
-	constructor(private maxUser: number = Infinity) {}
+  constructor(private maxUser: number = Infinity) {}
 
-	addUser(user: User) {
-		this.users.push(user);
-	}
+  addUser(user: User) {
+    this.users.push(user);
+  }
 
-	removeUser(userRm: User) {
-		let userIndex: number = this.users.findIndex(user => user.socketId === userRm.socketId);
-		if (userIndex !== -1)
-			this.users.splice(userIndex, 1);
-	}
+  removeUser(userRm: User) {
+    const userIndex: number = this.users.findIndex(
+      (user) => user.socketId === userRm.socketId,
+    );
+    if (userIndex !== -1) this.users.splice(userIndex, 1);
+  }
 
-	getUser(socketId: string): User | undefined {
-		let userIndex: number = this.users.findIndex(user => user.socketId === socketId);
-		if (userIndex === -1)
-			return undefined;
-		return this.users[userIndex];
-	}
+  getUser(socketId: string): User | undefined {
+    const userIndex: number = this.users.findIndex(
+      (user) => user.socketId === socketId,
+    );
+    if (userIndex === -1) return undefined;
+    return this.users[userIndex];
+  }
 
-	changeUserStatus(socketId: string, status: UserStatus) {
-		let user: User = this.getUser(socketId);
-		user.setUserStatus(status);
-	}
+  changeUserStatus(socketId: string, status: UserStatus) {
+    const user: User = this.getUser(socketId);
+    user.setUserStatus(status);
+  }
 }

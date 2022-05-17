@@ -16,13 +16,13 @@ export class DmMessagesService {
 
   findAll() {
     return this.messagesRepository.find({
-      relations: ['author', 'channel']
+      relations: ['author', 'channel'],
     });
   }
 
   async findOne(id: string) {
-    const message =  await this.messagesRepository.findOne(id, {
-      relations: ['author', 'channel']
+    const message = await this.messagesRepository.findOne(id, {
+      relations: ['author', 'channel'],
     });
 
     if (!message) {
@@ -41,7 +41,7 @@ export class DmMessagesService {
     });
   }
 
-  async update(id: string, updateDmMessageDto: UpdateDmMessageDto) { 
+  async update(id: string, updateDmMessageDto: UpdateDmMessageDto) {
     const message = await this.messagesRepository.preload({
       id: +id,
       ...updateDmMessageDto,
@@ -53,7 +53,7 @@ export class DmMessagesService {
     return this.messagesRepository.save(message);
   }
 
-  async remove(id: string) { 
+  async remove(id: string) {
     const message = await this.findOne(id);
 
     if (!message) {

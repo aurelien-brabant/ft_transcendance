@@ -4,7 +4,7 @@ import { Type } from 'class-transformer';
 import { CreateChannelDto } from './create-channel.dto';
 import { ChannelMessage } from 'src/chat/channels/entities/channel-messages.entity';
 import { ChannelPunishment } from '../entities/punishment.entity';
-import { User } from "src/users/entities/users.entity";
+import { User } from 'src/users/entities/users.entity';
 
 export class UpdateChannelDto extends PartialType(CreateChannelDto) {
   @IsOptional()

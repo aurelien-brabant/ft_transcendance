@@ -1,4 +1,4 @@
-COMPOSE := docker-compose -f src/docker-compose.dev.yml
+COMPOSE := docker compose -f src/docker-compose.dev.yml
 
 up:
 	${COMPOSE} up -d

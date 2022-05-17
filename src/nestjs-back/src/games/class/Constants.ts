@@ -1,7 +1,7 @@
 // Constant
-export const canvasWidth: number = 1920;
-export const canvasHeight: number = 1080;
-export const timing: number = 15;
+export const canvasWidth = 1920;
+export const canvasHeight = 1080;
+export const timing = 15;
 
 // Players Constant
 export const playerSpeed = 550;
@@ -15,20 +15,20 @@ export const ballMaxSpeed = 1500;
 export const ballAcceleration = 50;
 
 export enum GameState {
-	WAITING,
-	STARTING,
-	PLAYING,
-	PAUSED,
-	RESUMED,
-	GOAL,
-	END
+  WAITING,
+  STARTING,
+  PLAYING,
+  PAUSED,
+  RESUMED,
+  GOAL,
+  END,
 }
 
 export enum UserStatus {
-	INHUB,
-	INQUEUE,
-	OFFLINE,
-	ONLINE,
-	PLAYING,
-	SPECTATING,
+  INHUB,
+  INQUEUE,
+  OFFLINE,
+  ONLINE,
+  PLAYING,
+  SPECTATING,
 }

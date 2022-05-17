@@ -44,7 +44,7 @@ export class UsersService {
 
   async findOne(id: string) {
     /* if id can't be parsed as a number then it is assumed to be an username */
-    const isDatabaseId = !isNaN(Number(id))
+    const isDatabaseId = !isNaN(Number(id));
     const user = await this.usersRepository.findOne({
       relations: [
         'games',
@@ -54,7 +54,7 @@ export class UsersService {
         'pendingFriendsSent',
         'pendingFriendsReceived',
       ],
-      where: isDatabaseId ? { id } : { username: id }
+      where: isDatabaseId ? { id } : { username: id },
     });
 
     if (!user) {
@@ -99,13 +99,13 @@ export class UsersService {
     const users = await this.usersRepository.find({
       where: [
         {
-          username: ILike(`%${searchTerm}%`)
+          username: ILike(`%${searchTerm}%`),
         },
         {
-          duoquadra_login: ILike(`%${searchTerm}%`)
+          duoquadra_login: ILike(`%${searchTerm}%`),
         },
-      ]
-    })
+      ],
+    });
 
     return users;
   }
@@ -185,7 +185,12 @@ export class UsersService {
 
   /* Update */
   updateUserRatio = (user: User) => {
-    const ratio = Math.round(((user.wins + user.draws * 0.5) / (user.wins + user.draws + user.losses)) * 100) / 100;
+    const ratio =
+      Math.round(
+        ((user.wins + user.draws * 0.5) /
+          (user.wins + user.draws + user.losses)) *
+          100,
+      ) / 100;
 
     return ratio;
   };
@@ -195,7 +200,6 @@ export class UsersService {
       user.draws += 1;
     } else if (isWinner) {
       user.wins += 1;
-      
     } else {
       user.losses += 1;
     }
@@ -203,14 +207,23 @@ export class UsersService {
 
     const updatedUser = await this.usersRepository.save(user);
 
-    await this.achievementsService.checkUserAchievement(user, 'wins', user.wins);
-    await this.achievementsService.checkUserAchievement(user, 'games', (user.games.length + 1));
+    await this.achievementsService.checkUserAchievement(
+      user,
+      'wins',
+      user.wins,
+    );
+    await this.achievementsService.checkUserAchievement(
+      user,
+      'games',
+      user.games.length + 1,
+    );
 
     return updatedUser;
   }
 
   async usernameIsAvailable(username: string) {
-    const duplicatedUsername = await this.usersRepository.createQueryBuilder('user')
+    const duplicatedUsername = await this.usersRepository
+      .createQueryBuilder('user')
       .where('user.username = :username', { username })
       .getOne();
 
@@ -228,32 +241,53 @@ export class UsersService {
 
     if (updateUserDto.friends && updateUserDto.friends.length) {
       /* Add friend */
-      for (var newFriend of updateUserDto.friends) {
+      for (const newFriend of updateUserDto.friends) {
         user = await this.addFriend(id, newFriend.id.toString());
-        await this.achievementsService.checkUserAchievement(user, 'friends', user.friends.length);
+        await this.achievementsService.checkUserAchievement(
+          user,
+          'friends',
+          user.friends.length,
+        );
 
-        const friend = await this.addFriend(newFriend.id.toString(), user.id.toString());
-        await this.achievementsService.checkUserAchievement(friend, 'friends', friend.friends.length);
+        const friend = await this.addFriend(
+          newFriend.id.toString(),
+          user.id.toString(),
+        );
+        await this.achievementsService.checkUserAchievement(
+          friend,
+          'friends',
+          friend.friends.length,
+        );
       }
-    } else if (updateUserDto.blockedUsers && updateUserDto.blockedUsers.length) {
+    } else if (
+      updateUserDto.blockedUsers &&
+      updateUserDto.blockedUsers.length
+    ) {
       /* Block user */
-      for (var toBlock of updateUserDto.blockedUsers) {
+      for (const toBlock of updateUserDto.blockedUsers) {
         user = await this.blockUser(id, toBlock.toString());
       }
-    } else if (updateUserDto.pendingFriendsSent && updateUserDto.pendingFriendsSent.length) {
+    } else if (
+      updateUserDto.pendingFriendsSent &&
+      updateUserDto.pendingFriendsSent.length
+    ) {
       /* Send frienship invite */
-      for (var receiver of updateUserDto.pendingFriendsSent) {
+      for (const receiver of updateUserDto.pendingFriendsSent) {
         user = await this.addFriendshipSent(id, receiver.id.toString());
         if (receiver) {
-          await this.addFriendshipReceived(receiver.id.toString(), user.id.toString());
+          await this.addFriendshipReceived(
+            receiver.id.toString(),
+            user.id.toString(),
+          );
         }
       }
-    } else { /* Default case */
+    } else {
+      /* Default case */
       const user = await this.usersRepository.preload({
         id: +id,
-        ...updateUserDto
+        ...updateUserDto,
       });
-  
+
       if (!user) {
         throw new Error('Cannot update user.');
       }
@@ -272,7 +306,7 @@ export class UsersService {
   }
 
   async getRandomAvatar(id: string) {
-    let user = await this.usersRepository.findOne(id);
+    const user = await this.usersRepository.findOne(id);
 
     const imageLoc = join('/upload', 'avatars', user.pic);
 
@@ -282,7 +316,7 @@ export class UsersService {
   }
 
   async getAvatar42(id: string) {
-    let user = await this.usersRepository.findOne(id);
+    const user = await this.usersRepository.findOne(id);
 
     const imageLoc = join('/upload', 'avatars', user.pic);
 
@@ -393,7 +427,7 @@ export class UsersService {
 
   /* Relationships */
   async addFriendshipReceived(id: string, senderId: string) {
-    let user = await this.usersRepository.findOne(id, {
+    const user = await this.usersRepository.findOne(id, {
       relations: ['pendingFriendsReceived'],
     });
     const sender = await this.usersRepository.findOne(senderId);
@@ -407,7 +441,7 @@ export class UsersService {
   }
 
   async removeFriendshipReceived(id: string, senderId: string) {
-    let user = await this.usersRepository.findOne(id, {
+    const user = await this.usersRepository.findOne(id, {
       relations: ['pendingFriendsReceived'],
     });
 
@@ -424,7 +458,7 @@ export class UsersService {
   }
 
   async addFriendshipSent(id: string, receiverId: string) {
-    let user = await this.usersRepository.findOne(id, {
+    const user = await this.usersRepository.findOne(id, {
       relations: ['pendingFriendsSent'],
     });
     const receiver = await this.usersRepository.findOne(receiverId);
@@ -438,7 +472,7 @@ export class UsersService {
   }
 
   async removeFriendshipSent(id: string, receiverId: string) {
-    let user = await this.usersRepository.findOne(id, {
+    const user = await this.usersRepository.findOne(id, {
       relations: ['pendingFriendsSent'],
     });
 
@@ -455,7 +489,7 @@ export class UsersService {
   }
 
   async addFriend(id: string, friendId: string) {
-    let user = await this.usersRepository.findOne(id, {
+    const user = await this.usersRepository.findOne(id, {
       relations: ['friends'],
     });
     const friend = await this.usersRepository.findOne(friendId);
@@ -469,7 +503,7 @@ export class UsersService {
   }
 
   async removeFriend(id: string, friendId: string) {
-    let user = await this.usersRepository.findOne(id, {
+    const user = await this.usersRepository.findOne(id, {
       relations: ['friends'],
     });
 
@@ -486,7 +520,7 @@ export class UsersService {
   }
 
   async blockUser(id: string, blockedId: string) {
-    let user = await this.usersRepository.findOne(id, {
+    const user = await this.usersRepository.findOne(id, {
       relations: ['blockedUsers'],
     });
     const blockedUser = await this.usersRepository.findOne(blockedId);
@@ -500,7 +534,7 @@ export class UsersService {
   }
 
   async unblockUser(id: string, userId: string) {
-    let user = await this.usersRepository.findOne(id, {
+    const user = await this.usersRepository.findOne(id, {
       relations: ['blockedUsers'],
     });
 
@@ -520,15 +554,12 @@ export class UsersService {
     if (action === 'friend') {
       await this.removeFriend(userToUpdate, id);
       return await this.removeFriend(id, userToUpdate);
-    }
-    else if (action === 'unblock') {
+    } else if (action === 'unblock') {
       return await this.unblockUser(id, userToUpdate);
-    }
-    else if (action === 'removeFriendsSent') {
+    } else if (action === 'removeFriendsSent') {
       await this.removeFriendshipReceived(userToUpdate, id);
       return await this.removeFriendshipSent(id, userToUpdate);
-    }
-    else if (action === 'removeFriendsReceived') {
+    } else if (action === 'removeFriendsReceived') {
       await this.removeFriendshipSent(userToUpdate, id);
       return await this.removeFriendshipReceived(id, userToUpdate);
     }
@@ -539,7 +570,7 @@ export class UsersService {
 
   /**
    * Get a Direct Message between two users
-   * 
+   *
    * @param id - The id of the user to which the result will be send back to
    * @param friendId - The id of the user's friend
    * @returns A Direct Message
@@ -555,10 +586,11 @@ export class UsersService {
     });
 
     if (user && user.directMessages) {
-      const dm = user.directMessages.find((dm) =>
-        !!dm.users.find((user) => {
-          return user.id === parseInt(friendId);
-        })
+      const dm = user.directMessages.find(
+        (dm) =>
+          !!dm.users.find((user) => {
+            return user.id === parseInt(friendId);
+          }),
       );
       if (dm) return dm;
     }

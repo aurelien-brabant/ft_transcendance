@@ -140,6 +140,6 @@ export class AuthController {
   @UseGuards(JwtAuthGuard)
   @Get('/is-logged-in')
   async isLoggedIn() {
-    return { loggedIn: true }
+    return { loggedIn: true };
   }
 }

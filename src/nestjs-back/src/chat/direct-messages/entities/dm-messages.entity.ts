@@ -3,10 +3,10 @@ import {
   CreateDateColumn,
   Entity,
   ManyToOne,
-  PrimaryGeneratedColumn
-} from "typeorm";
-import { DirectMessage } from "src/chat/direct-messages/entities/direct-messages";
-import { User } from "src/users/entities/users.entity";
+  PrimaryGeneratedColumn,
+} from 'typeorm';
+import { DirectMessage } from 'src/chat/direct-messages/entities/direct-messages';
+import { User } from 'src/users/entities/users.entity';
 
 @Entity()
 export class DmMessage {
@@ -14,8 +14,8 @@ export class DmMessage {
   id: number;
 
   @CreateDateColumn({
-    type: "timestamptz",
-    default: () => "CURRENT_TIMESTAMP(6)"
+    type: 'timestamptz',
+    default: () => 'CURRENT_TIMESTAMP(6)',
   })
   createdAt: Date;
 
@@ -25,8 +25,8 @@ export class DmMessage {
   @ManyToOne(() => User)
   author: User;
 
-  @ManyToOne(() => DirectMessage, dm => dm.messages, {
-    onDelete: "CASCADE"
+  @ManyToOne(() => DirectMessage, (dm) => dm.messages, {
+    onDelete: 'CASCADE',
   })
   dm: DirectMessage;
 }

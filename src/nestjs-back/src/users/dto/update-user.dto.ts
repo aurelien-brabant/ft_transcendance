@@ -14,51 +14,51 @@ import { CreateUserDto } from './create-user.dto';
 import { User } from '../entities/users.entity';
 
 export class UpdateUserDto extends PartialType(CreateUserDto) {
-    /* Informations */
-    @IsOptional()
-    @Transform(({ value }) => value.trim())
-    @IsNotEmpty()
-    @IsString()
-    @Matches(/^[^0-9][a-zA-Z0-9_]+$/, {
-      message:
-        'The username must not start with a number and contain alphanumeric characters and underscores only.',
-    })
-    @MaxLength(30)
-    @MinLength(2)
-    readonly username: string;
+  /* Informations */
+  @IsOptional()
+  @Transform(({ value }) => value.trim())
+  @IsNotEmpty()
+  @IsString()
+  @Matches(/^[^0-9][a-zA-Z0-9_]+$/, {
+    message:
+      'The username must not start with a number and contain alphanumeric characters and underscores only.',
+  })
+  @MaxLength(30)
+  @MinLength(2)
+  readonly username: string;
 
-    @IsOptional()
-    @Transform(({ value }) => value.trim())
-    @IsNotEmpty()
-    @IsString()
-    readonly duoquadra_login: string;
+  @IsOptional()
+  @Transform(({ value }) => value.trim())
+  @IsNotEmpty()
+  @IsString()
+  readonly duoquadra_login: string;
 
-    /* Security */
-    @IsOptional()
-    @IsBoolean()
-    readonly tfa: boolean;
+  /* Security */
+  @IsOptional()
+  @IsBoolean()
+  readonly tfa: boolean;
 
-    @IsOptional()
-    @IsString()
-    readonly tfaSecret: string;
+  @IsOptional()
+  @IsString()
+  readonly tfaSecret: string;
 
-    @IsOptional()
-    @IsBoolean()
-    readonly accountDeactivated: boolean;
+  @IsOptional()
+  @IsBoolean()
+  readonly accountDeactivated: boolean;
 
-    /* Relationships */
-    @IsOptional()
-    @IsArray()
-    @Type(() => User)
-    readonly friends: User[];
+  /* Relationships */
+  @IsOptional()
+  @IsArray()
+  @Type(() => User)
+  readonly friends: User[];
 
-    @IsOptional()
-    @IsArray()
-    @Type(() => User)
-    readonly pendingFriendsSent: User[];
+  @IsOptional()
+  @IsArray()
+  @Type(() => User)
+  readonly pendingFriendsSent: User[];
 
-    @IsOptional()
-    @IsArray()
-    @Type(() => User)
-    readonly blockedUsers: User[];
+  @IsOptional()
+  @IsArray()
+  @Type(() => User)
+  readonly blockedUsers: User[];
 }

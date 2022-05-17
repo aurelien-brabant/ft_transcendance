@@ -8,21 +8,9 @@ import { DmMessagesService } from './dm-messages.service';
 import { UsersModule } from 'src/users/users.module';
 
 @Module({
-  imports: [
-    UsersModule,
-    TypeOrmModule.forFeature([
-      DirectMessage,
-      DmMessage
-    ])
-  ],
+  imports: [UsersModule, TypeOrmModule.forFeature([DirectMessage, DmMessage])],
   controllers: [DirectMessagesController],
-  providers: [
-    DirectMessagesService,
-    DmMessagesService
-  ],
-  exports: [
-    DirectMessagesService,
-    DmMessagesService
-  ]
+  providers: [DirectMessagesService, DmMessagesService],
+  exports: [DirectMessagesService, DmMessagesService],
 })
 export class DirectMessagesModule {}

@@ -18,21 +18,13 @@ export class DirectMessagesService {
 
   findAll() {
     return this.directMessagesRepository.find({
-      relations: [
-        'users',
-        'messages',
-        'messages.author'
-      ]
+      relations: ['users', 'messages', 'messages.author'],
     });
   }
 
   async findOne(id: string) {
-    const dm =  await this.directMessagesRepository.findOne(id, {
-      relations: [
-        'users',
-        'messages',
-        'messages.author'
-      ]
+    const dm = await this.directMessagesRepository.findOne(id, {
+      relations: ['users', 'messages', 'messages.author'],
     });
     if (!dm) {
       throw new Error(`Direct Message [${id}] not found`);
@@ -50,7 +42,7 @@ export class DirectMessagesService {
   async update(id: string, updateDirectMessageDto: UpdateDirectMessageDto) {
     const dm = await this.directMessagesRepository.preload({
       id: +id,
-      ...updateDirectMessageDto
+      ...updateDirectMessageDto,
     });
     if (!dm) {
       throw new Error(`Cannot update Direct Message [${id}]: Not found`);
@@ -59,7 +51,7 @@ export class DirectMessagesService {
     return this.directMessagesRepository.save(dm);
   }
 
-  async remove(id: string) { 
+  async remove(id: string) {
     const dm = await this.directMessagesRepository.findOne(id);
 
     if (!dm) {

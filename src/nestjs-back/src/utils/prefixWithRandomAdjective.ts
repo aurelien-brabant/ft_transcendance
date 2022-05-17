@@ -1,4 +1,4 @@
-import faker from "@faker-js/faker";
+import faker from '@faker-js/faker';
 
 export const prefixWithRandomAdjective = (src: string, maxLen?: number) => {
   if (!maxLen) {
@@ -11,7 +11,7 @@ export const prefixWithRandomAdjective = (src: string, maxLen?: number) => {
     throw new Error('src should be shorter than maxLen characters');
   }
 
-  let adj = faker.word.adjective(maxLen).substring(0, adjLen);
+  const adj = faker.word.adjective(maxLen).substring(0, adjLen);
 
   return `${adj}_${src}`;
 };

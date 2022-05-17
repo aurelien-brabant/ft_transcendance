@@ -3,10 +3,10 @@ import {
   CreateDateColumn,
   Entity,
   ManyToOne,
-  PrimaryGeneratedColumn
-} from "typeorm";
-import { Channel } from "src/chat/channels/entities/channels.entity";
-import { User } from "src/users/entities/users.entity";
+  PrimaryGeneratedColumn,
+} from 'typeorm';
+import { Channel } from 'src/chat/channels/entities/channels.entity';
+import { User } from 'src/users/entities/users.entity';
 
 @Entity()
 export class ChannelMessage {
@@ -14,8 +14,8 @@ export class ChannelMessage {
   id: number;
 
   @CreateDateColumn({
-    type: "timestamptz",
-    default: () => "CURRENT_TIMESTAMP(6)"
+    type: 'timestamptz',
+    default: () => 'CURRENT_TIMESTAMP(6)',
   })
   createdAt: Date;
 
@@ -25,8 +25,8 @@ export class ChannelMessage {
   @ManyToOne(() => User)
   author?: User;
 
-  @ManyToOne(() => Channel, channel => channel.messages, {
-    onDelete: "CASCADE"
+  @ManyToOne(() => Channel, (channel) => channel.messages, {
+    onDelete: 'CASCADE',
   })
   channel: Channel;
 }

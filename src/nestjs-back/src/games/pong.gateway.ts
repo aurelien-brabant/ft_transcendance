@@ -1,15 +1,15 @@
 import { Socket, Server } from 'socket.io';
-import { Logger } from "@nestjs/common"
+import { Logger } from '@nestjs/common';
 import {
-	MessageBody,
-	OnGatewayInit,
-	OnGatewayConnection,
-	OnGatewayDisconnect,
-	ConnectedSocket,
-	SubscribeMessage,
-	WebSocketGateway,
-	WebSocketServer
-} from "@nestjs/websockets";
+  MessageBody,
+  OnGatewayInit,
+  OnGatewayConnection,
+  OnGatewayDisconnect,
+  ConnectedSocket,
+  SubscribeMessage,
+  WebSocketGateway,
+  WebSocketServer,
+} from '@nestjs/websockets';
 import { GamesService } from './games.service';
 import { UsersService } from 'src/users/users.service';
 
@@ -18,295 +18,302 @@ import Room from './class/Room';
 import { ConnectedUsers, User } from './class/ConnectedUsers';
 import { GameState, UserStatus } from './class/Constants';
 
-@WebSocketGateway({ cors: true, namespace: "game" })
-export class PongGateway implements OnGatewayInit, OnGatewayConnection, OnGatewayDisconnect {
-	constructor(
-		private readonly gamesService: GamesService,
-		private readonly usersService: UsersService
-	) {}
+@WebSocketGateway({ cors: true, namespace: 'game' })
+export class PongGateway
+  implements OnGatewayInit, OnGatewayConnection, OnGatewayDisconnect
+{
+  constructor(
+    private readonly gamesService: GamesService,
+    private readonly usersService: UsersService,
+  ) {}
 
-	@WebSocketServer()
-	server: Server;
-	private logger: Logger = new Logger('gameGateway');
+  @WebSocketServer()
+  server: Server;
+  private logger: Logger = new Logger('gameGateway');
 
-	private readonly queue: Queue = new Queue();
-	private readonly rooms: Map<string, Room> = new Map();
-	private readonly currentGames: Array<string> = new Array();
-	private readonly connectedUsers: ConnectedUsers = new ConnectedUsers();
+  private readonly queue: Queue = new Queue();
+  private readonly rooms: Map<string, Room> = new Map();
+  private readonly currentGames: Array<string> = [];
+  private readonly connectedUsers: ConnectedUsers = new ConnectedUsers();
 
-	afterInit(server: Server) {
-		setInterval(() => {
-			if (this.queue.size() > 1) {
-				let players: User[] = Array();
-				let roomId: string;
-				let room: Room;
+  afterInit(server: Server) {
+    setInterval(() => {
+      if (this.queue.size() > 1) {
+        const players: User[] = [];
+        let roomId: string;
+        let room: Room;
 
-				players.push(this.queue.dequeue());
-				// Match players based on ratio, etc...
-				players.push(this.queue.dequeue());
+        players.push(this.queue.dequeue());
+        // Match players based on ratio, etc...
+        players.push(this.queue.dequeue());
 
-				// emit rooms change event for spectator or create a game in DB
-				
-				roomId = `${players[0].username}&${players[1].username}`;
-				
-				room = new Room(roomId, players, {maxGoal: 1});
-				
-				this.server.to(players[0].socketId).emit("newRoom", room);
-				this.server.to(players[1].socketId).emit("newRoom",  room);
-				this.rooms.set(roomId, room);
-				this.currentGames.push(roomId);
-				this.server.emit("updateCurrentGames", this.currentGames);
-			}
-		}, 5000);
-		this.logger.log(`Init Pong Gateway`);
-	}
+        // emit rooms change event for spectator or create a game in DB
 
-	async handleConnection(@ConnectedSocket() client: Socket) {
-		// this.logger.log(`Client connected: ${client.id}`);
-	}
+        roomId = `${players[0].username}&${players[1].username}`;
 
-	@SubscribeMessage('handleUserConnect')
-	async handleUserConnect(@ConnectedSocket() client: Socket, @MessageBody() user: User) {
-		let newUser: User = new User(user.id, user.username, client.id);
-		newUser.setSocketId(client.id);
-		newUser.setUserStatus(UserStatus.INHUB);
+        room = new Room(roomId, players, { maxGoal: 1 });
 
-		// Verify that player is not already in a game
-		this.rooms.forEach((room: Room) => {
-			if (room.isAPlayer(newUser) && room.gameState !== GameState.END)
-			{
-				newUser.setUserStatus(UserStatus.PLAYING);
-				newUser.setRoomId(room.roomId);
-				this.server.to(client.id).emit("newRoom", room);
-				if (room.gameState === GameState.PAUSED)
-				{
-					room.changeGameState(GameState.RESUMED);
-					room.pauseTime[room.pauseTime.length - 1].resume = Date.now();
-				}
-				return ;
-			}
-		});
-		this.connectedUsers.addUser(newUser);
-	}
+        this.server.to(players[0].socketId).emit('newRoom', room);
+        this.server.to(players[1].socketId).emit('newRoom', room);
+        this.rooms.set(roomId, room);
+        this.currentGames.push(roomId);
+        this.server.emit('updateCurrentGames', this.currentGames);
+      }
+    }, 5000);
+    this.logger.log(`Init Pong Gateway`);
+  }
 
-	async handleDisconnect(@ConnectedSocket() client: Socket) {
-		let user: User = this.connectedUsers.getUser(client.id);
+  async handleConnection(@ConnectedSocket() client: Socket) {
+    // this.logger.log(`Client connected: ${client.id}`);
+  }
 
-		if (user) {
-			this.rooms.forEach((room: Room) => {
-				if (room.isAPlayer(user))
-				{
-					room.removeUser(user);
-					if (room.players.length === 0)
-					{
-						this.logger.log("No player left in the room deleting it...");
-						this.rooms.delete(room.roomId);
+  @SubscribeMessage('handleUserConnect')
+  async handleUserConnect(
+    @ConnectedSocket() client: Socket,
+    @MessageBody() user: User,
+  ) {
+    const newUser: User = new User(user.id, user.username, client.id);
+    newUser.setSocketId(client.id);
+    newUser.setUserStatus(UserStatus.INHUB);
 
-						let roomIndex: number = this.currentGames.findIndex(roomIdRm => roomIdRm === room.roomId);
-						if (roomIndex !== -1)
-							this.currentGames.splice(roomIndex, 1);
-						this.server.emit("updateCurrentGames", this.currentGames);
-					}
-					else if (room.gameState !== GameState.END) {
-						if (room.gameState === GameState.GOAL)
-							room.resetPosition();
-						room.pause();
-					}
-					client.leave(room.roomId);
-					return ;
-				}
-			});
+    // Verify that player is not already in a game
+    this.rooms.forEach((room: Room) => {
+      if (room.isAPlayer(newUser) && room.gameState !== GameState.END) {
+        newUser.setUserStatus(UserStatus.PLAYING);
+        newUser.setRoomId(room.roomId);
+        this.server.to(client.id).emit('newRoom', room);
+        if (room.gameState === GameState.PAUSED) {
+          room.changeGameState(GameState.RESUMED);
+          room.pauseTime[room.pauseTime.length - 1].resume = Date.now();
+        }
+        return;
+      }
+    });
+    this.connectedUsers.addUser(newUser);
+  }
 
-			// remove from queue and connected user
-			this.queue.remove(user);
-			this.logger.log(`Client ${user.username} disconnected: ${client.id}`);
-			this.connectedUsers.removeUser(user);
-		}
-	}
+  async handleDisconnect(@ConnectedSocket() client: Socket) {
+    const user: User = this.connectedUsers.getUser(client.id);
 
-	// Etape 1 : Player JoinQueue
-	@SubscribeMessage('joinQueue')
-	handleJoinQueue(@ConnectedSocket() client: Socket) {
-		let user: User = this.connectedUsers.getUser(client.id);
+    if (user) {
+      this.rooms.forEach((room: Room) => {
+        if (room.isAPlayer(user)) {
+          room.removeUser(user);
+          if (room.players.length === 0) {
+            this.logger.log('No player left in the room deleting it...');
+            this.rooms.delete(room.roomId);
 
-		if (user && !this.queue.isInQueue(user))
-		{
-			this.connectedUsers.changeUserStatus(client.id, UserStatus.INQUEUE);
-			this.queue.enqueue(user);
-			this.server.to(client.id).emit('joinedQueue');
-			this.logger.log(`Client ${user.username}: ${client.id} was added to queue !`);
-		}
-	}
+            const roomIndex: number = this.currentGames.findIndex(
+              (roomIdRm) => roomIdRm === room.roomId,
+            );
+            if (roomIndex !== -1) this.currentGames.splice(roomIndex, 1);
+            this.server.emit('updateCurrentGames', this.currentGames);
+          } else if (room.gameState !== GameState.END) {
+            if (room.gameState === GameState.GOAL) room.resetPosition();
+            room.pause();
+          }
+          client.leave(room.roomId);
+          return;
+        }
+      });
 
-	// Etape 1 : Player JoinQueue
-	@SubscribeMessage('leaveQueue')
-	handleLeaveQueue(@ConnectedSocket() client: Socket) {
-		let user: User = this.connectedUsers.getUser(client.id);
+      // remove from queue and connected user
+      this.queue.remove(user);
+      this.logger.log(`Client ${user.username} disconnected: ${client.id}`);
+      this.connectedUsers.removeUser(user);
+    }
+  }
 
-		// check if user is in queue
-		if (user && this.queue.isInQueue(user))
-		{
-			this.queue.remove(user);
-			this.server.to(client.id).emit('leavedQueue');
-		}
-	}
+  // Etape 1 : Player JoinQueue
+  @SubscribeMessage('joinQueue')
+  handleJoinQueue(@ConnectedSocket() client: Socket) {
+    const user: User = this.connectedUsers.getUser(client.id);
 
-	@SubscribeMessage('spectateRoom')
-	handleSpectateRoom(@ConnectedSocket() client: Socket, @MessageBody() roomId: string) {
-		const room: Room = this.rooms.get(roomId);
+    if (user && !this.queue.isInQueue(user)) {
+      this.connectedUsers.changeUserStatus(client.id, UserStatus.INQUEUE);
+      this.queue.enqueue(user);
+      this.server.to(client.id).emit('joinedQueue');
+      this.logger.log(
+        `Client ${user.username}: ${client.id} was added to queue !`,
+      );
+    }
+  }
 
-		if (room) {
-			let user = this.connectedUsers.getUser(client.id);
-			if (!room.isAPlayer(user))
-				this.server.to(client.id).emit("newRoom", room);
-		}
-	}
+  // Etape 1 : Player JoinQueue
+  @SubscribeMessage('leaveQueue')
+  handleLeaveQueue(@ConnectedSocket() client: Socket) {
+    const user: User = this.connectedUsers.getUser(client.id);
 
-	// Etape 2 : The player was assigned a Room and received the roomId we add him to the room
-	@SubscribeMessage('joinRoom')
-	handleJoinRoom(@ConnectedSocket() client: Socket, @MessageBody() roomId: string) {
-		const room: Room = this.rooms.get(roomId);
+    // check if user is in queue
+    if (user && this.queue.isInQueue(user)) {
+      this.queue.remove(user);
+      this.server.to(client.id).emit('leavedQueue');
+    }
+  }
 
-		if (room) {
-			let user = this.connectedUsers.getUser(client.id);
-			client.join(roomId);
-			if (user.status === UserStatus.INHUB) {
-				this.connectedUsers.changeUserStatus(client.id, UserStatus.SPECTATING);
-			}
-			else if (room.isAPlayer(user))
-				room.addUser(user);
-			this.server.to(client.id).emit("joinedRoom");
-			this.server.to(client.id).emit("updateRoom", room);
-		}
-	}
+  @SubscribeMessage('spectateRoom')
+  handleSpectateRoom(
+    @ConnectedSocket() client: Socket,
+    @MessageBody() roomId: string,
+  ) {
+    const room: Room = this.rooms.get(roomId);
 
+    if (room) {
+      const user = this.connectedUsers.getUser(client.id);
+      if (!room.isAPlayer(user))
+        this.server.to(client.id).emit('newRoom', room);
+    }
+  }
 
-	@SubscribeMessage('leaveRoom')
-	handleLeaveRoom(@ConnectedSocket() client: Socket, @MessageBody() roomId: string) {
-		const room: Room = this.rooms.get(roomId);
-		let user: User = this.connectedUsers.getUser(client.id);
+  // Etape 2 : The player was assigned a Room and received the roomId we add him to the room
+  @SubscribeMessage('joinRoom')
+  handleJoinRoom(
+    @ConnectedSocket() client: Socket,
+    @MessageBody() roomId: string,
+  ) {
+    const room: Room = this.rooms.get(roomId);
 
-		if (user && room) {
-			room.removeUser(user);
-			if (room.players.length === 0) {
-				this.logger.log("No user left in the room deleting it...");
-				this.rooms.delete(room.roomId);
+    if (room) {
+      const user = this.connectedUsers.getUser(client.id);
+      client.join(roomId);
+      if (user.status === UserStatus.INHUB) {
+        this.connectedUsers.changeUserStatus(client.id, UserStatus.SPECTATING);
+      } else if (room.isAPlayer(user)) room.addUser(user);
+      this.server.to(client.id).emit('joinedRoom');
+      this.server.to(client.id).emit('updateRoom', room);
+    }
+  }
 
-				let roomIndex: number = this.currentGames.findIndex(roomIdRm => roomIdRm === room.roomId);
-				if (roomIndex !== -1)
-					this.currentGames.splice(roomIndex, 1);
-				this.server.emit("updateCurrentGames", this.currentGames);
-			}
-			if (room.isAPlayer(user) && room.gameState !== GameState.END)
-				room.pause();
-			client.leave(room.roomId);
-			this.connectedUsers.changeUserStatus(client.id, UserStatus.INHUB);
-		}
-		this.server.to(client.id).emit("leavedRoom");
-	}
+  @SubscribeMessage('leaveRoom')
+  handleLeaveRoom(
+    @ConnectedSocket() client: Socket,
+    @MessageBody() roomId: string,
+  ) {
+    const room: Room = this.rooms.get(roomId);
+    const user: User = this.connectedUsers.getUser(client.id);
 
-	// Etape 3 : Players ask for the last room Updates
-	@SubscribeMessage('requestUpdate')
-	async handleRequestUpdate(@ConnectedSocket() client: Socket, @MessageBody() roomId: string) {
-		const room: Room = this.rooms.get(roomId);
+    if (user && room) {
+      room.removeUser(user);
+      if (room.players.length === 0) {
+        this.logger.log('No user left in the room deleting it...');
+        this.rooms.delete(room.roomId);
 
-		if (room) {
-			let currentTimestamp = Date.now();
-			if (room.gameState === GameState.STARTING && (currentTimestamp - room.timestampStart) >= 3500) {
-				room.timestampStart = Date.now();
-				room.lastUpdate = Date.now();
-				room.changeGameState(GameState.PLAYING);
-			}
-			else if (room.gameState === GameState.PLAYING)
-			{
-				room.update();
-				if (room.isGameEnd) {
-					let winner = await this.usersService.findOne(String(room.winnerId));
-					let loser = await this.usersService.findOne(String(room.loserId));
+        const roomIndex: number = this.currentGames.findIndex(
+          (roomIdRm) => roomIdRm === room.roomId,
+        );
+        if (roomIndex !== -1) this.currentGames.splice(roomIndex, 1);
+        this.server.emit('updateCurrentGames', this.currentGames);
+      }
+      if (room.isAPlayer(user) && room.gameState !== GameState.END)
+        room.pause();
+      client.leave(room.roomId);
+      this.connectedUsers.changeUserStatus(client.id, UserStatus.INHUB);
+    }
+    this.server.to(client.id).emit('leavedRoom');
+  }
 
-					/* Update users wins/losses/draws and ratio */
-					const isDraw = (room.winnerScore === room.loserScore);
-					await this.usersService.updateStats(winner, isDraw, true);
-					await this.usersService.updateStats(loser, isDraw, false);
+  // Etape 3 : Players ask for the last room Updates
+  @SubscribeMessage('requestUpdate')
+  async handleRequestUpdate(
+    @ConnectedSocket() client: Socket,
+    @MessageBody() roomId: string,
+  ) {
+    const room: Room = this.rooms.get(roomId);
 
-					/* Save game in database */
-					await this.gamesService.create({
-						players: [winner, loser],
-						winnerId: room.winnerId,
-						loserId: room.loserId,
-						createdAt: new Date(room.timestampStart),
-						endedAt: new Date(currentTimestamp),
-						gameDuration: room.getDuration(),
-						winnerScore: room.winnerScore,
-						loserScore: room.loserScore
-					});
+    if (room) {
+      const currentTimestamp = Date.now();
+      if (
+        room.gameState === GameState.STARTING &&
+        currentTimestamp - room.timestampStart >= 3500
+      ) {
+        room.timestampStart = Date.now();
+        room.lastUpdate = Date.now();
+        room.changeGameState(GameState.PLAYING);
+      } else if (room.gameState === GameState.PLAYING) {
+        room.update();
+        if (room.isGameEnd) {
+          const winner = await this.usersService.findOne(String(room.winnerId));
+          const loser = await this.usersService.findOne(String(room.loserId));
 
-					let roomIndex: number = this.currentGames.findIndex(roomIdRm => roomIdRm === room.roomId);
-					if (roomIndex !== -1)
-						this.currentGames.splice(roomIndex, 1);
-					this.server.emit("updateCurrentGames", this.currentGames);
-				}
-			}
-			else if (room.gameState === GameState.GOAL && (currentTimestamp - room.goalTimestamp) >= 3500) {
-				room.resetPosition();
-				room.changeGameState(GameState.PLAYING);
-				room.lastUpdate = Date.now();
-			} else if (room.gameState === GameState.RESUMED && (currentTimestamp - room.pauseTime[room.pauseTime.length - 1].resume) >= 3500) {
-				room.lastUpdate = Date.now();
-				room.changeGameState(GameState.PLAYING);
-			}
+          /* Update users wins/losses/draws and ratio */
+          const isDraw = room.winnerScore === room.loserScore;
+          await this.usersService.updateStats(winner, isDraw, true);
+          await this.usersService.updateStats(loser, isDraw, false);
 
-			this.server.to(room.roomId).emit("updateRoom", room);
-		}
-	}
+          /* Save game in database */
+          await this.gamesService.create({
+            players: [winner, loser],
+            winnerId: room.winnerId,
+            loserId: room.loserId,
+            createdAt: new Date(room.timestampStart),
+            endedAt: new Date(currentTimestamp),
+            gameDuration: room.getDuration(),
+            winnerScore: room.winnerScore,
+            loserScore: room.loserScore,
+          });
 
-	// Controls
-	@SubscribeMessage('keyDown')
-	async handleKeyUp(@ConnectedSocket() client: Socket, @MessageBody() data: {roomId: string, key: string, username: string}) {
-		const room: Room = this.rooms.get(data.roomId);
+          const roomIndex: number = this.currentGames.findIndex(
+            (roomIdRm) => roomIdRm === room.roomId,
+          );
+          if (roomIndex !== -1) this.currentGames.splice(roomIndex, 1);
+          this.server.emit('updateCurrentGames', this.currentGames);
+        }
+      } else if (
+        room.gameState === GameState.GOAL &&
+        currentTimestamp - room.goalTimestamp >= 3500
+      ) {
+        room.resetPosition();
+        room.changeGameState(GameState.PLAYING);
+        room.lastUpdate = Date.now();
+      } else if (
+        room.gameState === GameState.RESUMED &&
+        currentTimestamp - room.pauseTime[room.pauseTime.length - 1].resume >=
+          3500
+      ) {
+        room.lastUpdate = Date.now();
+        room.changeGameState(GameState.PLAYING);
+      }
 
-		if (room && room.playerOne.user.username === data.username)
-		{
-			if (data.key === 'ArrowUp')
-				room.playerOne.up = true;
-			if (data.key === 'ArrowDown')
-				room.playerOne.down = true;
+      this.server.to(room.roomId).emit('updateRoom', room);
+    }
+  }
 
-		}
-		else if (room && room.playerTwo.user.username === data.username)
-		{
-			if (data.key === 'ArrowUp')
-				room.playerTwo.up = true;
-			if (data.key === 'ArrowDown')
-				room.playerTwo.down = true;
-		}
-	}
+  // Controls
+  @SubscribeMessage('keyDown')
+  async handleKeyUp(
+    @ConnectedSocket() client: Socket,
+    @MessageBody() data: { roomId: string; key: string; username: string },
+  ) {
+    const room: Room = this.rooms.get(data.roomId);
 
-	@SubscribeMessage('keyUp')
-	async handleKeyDown(@ConnectedSocket() client: Socket, @MessageBody() data: {roomId: string, key: string, username: string}) {
-		const room: Room = this.rooms.get(data.roomId);
+    if (room && room.playerOne.user.username === data.username) {
+      if (data.key === 'ArrowUp') room.playerOne.up = true;
+      if (data.key === 'ArrowDown') room.playerOne.down = true;
+    } else if (room && room.playerTwo.user.username === data.username) {
+      if (data.key === 'ArrowUp') room.playerTwo.up = true;
+      if (data.key === 'ArrowDown') room.playerTwo.down = true;
+    }
+  }
 
-		if (room && room.playerOne.user.username === data.username)
-		{
-			if (data.key === 'ArrowUp')
-				room.playerOne.up = false;
-			if (data.key === 'ArrowDown')
-				room.playerOne.down = false;
+  @SubscribeMessage('keyUp')
+  async handleKeyDown(
+    @ConnectedSocket() client: Socket,
+    @MessageBody() data: { roomId: string; key: string; username: string },
+  ) {
+    const room: Room = this.rooms.get(data.roomId);
 
-		}
-		else if (room && room.playerTwo.user.username === data.username)
-		{
-			if (data.key === 'ArrowUp')
-				room.playerTwo.up = false;
-			if (data.key === 'ArrowDown')
-				room.playerTwo.down = false;
-		}
-	}
+    if (room && room.playerOne.user.username === data.username) {
+      if (data.key === 'ArrowUp') room.playerOne.up = false;
+      if (data.key === 'ArrowDown') room.playerOne.down = false;
+    } else if (room && room.playerTwo.user.username === data.username) {
+      if (data.key === 'ArrowUp') room.playerTwo.up = false;
+      if (data.key === 'ArrowDown') room.playerTwo.down = false;
+    }
+  }
 
-
-	// Etape 1 : Player JoinQueue
-	@SubscribeMessage('getCurrentGames')
-	handleCurrentGames(@ConnectedSocket() client: Socket) {
-		this.server.to(client.id).emit("updateCurrentGames", (this.currentGames));
-	}
+  // Etape 1 : Player JoinQueue
+  @SubscribeMessage('getCurrentGames')
+  handleCurrentGames(@ConnectedSocket() client: Socket) {
+    this.server.to(client.id).emit('updateCurrentGames', this.currentGames);
+  }
 }

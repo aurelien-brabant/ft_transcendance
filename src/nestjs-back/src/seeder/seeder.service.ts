@@ -109,4 +109,4 @@ export class SeederService {
     }
 }*/
 
-export default null
+export default null;

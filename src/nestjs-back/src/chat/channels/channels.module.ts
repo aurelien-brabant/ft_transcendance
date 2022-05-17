@@ -13,24 +13,10 @@ import { UsersModule } from 'src/users/users.module';
 @Module({
   imports: [
     UsersModule,
-    TypeOrmModule.forFeature([
-      Channel,
-      ChannelMessage,
-      ChannelPunishment
-    ])
+    TypeOrmModule.forFeature([Channel, ChannelMessage, ChannelPunishment]),
   ],
-  controllers: [
-    ChannelsController,
-    ChannelPunishmentsController
-  ],
-  providers: [
-    ChannelsService,
-    ChannelMessagesService,
-    PunishmentsService
-  ],
-  exports: [
-    ChannelsService,
-    ChannelMessagesService
-  ]
+  controllers: [ChannelsController, ChannelPunishmentsController],
+  providers: [ChannelsService, ChannelMessagesService, PunishmentsService],
+  exports: [ChannelsService, ChannelMessagesService],
 })
 export class ChannelsModule {}

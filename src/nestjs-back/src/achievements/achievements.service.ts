@@ -46,7 +46,8 @@ export class AchievementsService implements OnModuleInit {
   }
 
   create(createAchievementDto: CreateAchievementDto) {
-    const achievement = this.achievementsRepository.create(createAchievementDto);
+    const achievement =
+      this.achievementsRepository.create(createAchievementDto);
 
     return this.achievementsRepository.save(achievement);
   }
@@ -54,7 +55,7 @@ export class AchievementsService implements OnModuleInit {
   async update(id: string, updateAchievementDto: UpdateAchievementDto) {
     const achievement = await this.achievementsRepository.preload({
       id: +id,
-      ...updateAchievementDto
+      ...updateAchievementDto,
     });
 
     if (!achievement) {
@@ -70,28 +71,29 @@ export class AchievementsService implements OnModuleInit {
     return this.achievementsRepository.remove(achievement);
   }
 
-  async addUserAchievement(id: string, updateAchievementDto: UpdateAchievementDto) {
+  async addUserAchievement(
+    id: string,
+    updateAchievementDto: UpdateAchievementDto,
+  ) {
     const achievement = await this.findOne(id);
 
     this.logger.log(`Add Achievement [${achievement.description}] to User`);
 
     return await this.update(id, {
-      users: [
-        ...achievement.users,
-        ...updateAchievementDto.users
-      ]
+      users: [...achievement.users, ...updateAchievementDto.users],
     });
   }
 
   async checkUserAchievement(user: User, type: string, levelReached: number) {
-    const achievement = await this.achievementsRepository.createQueryBuilder('achievement')
+    const achievement = await this.achievementsRepository
+      .createQueryBuilder('achievement')
       .where('achievement.type = :type', { type })
       .andWhere('achievement.levelToReach = :levelReached', { levelReached })
       .getOne();
 
     if (achievement) {
       await this.addUserAchievement(achievement.id.toString(), {
-        users: [ user ]
+        users: [user],
       });
     }
   }

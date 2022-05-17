@@ -1,6 +1,6 @@
-import { Time } from "@faker-js/faker/time";
-import { SpawnSyncOptionsWithBufferEncoding } from "child_process";
-import { Timestamp } from "typeorm";
+import { Time } from '@faker-js/faker/time';
+import { SpawnSyncOptionsWithBufferEncoding } from 'child_process';
+import { Timestamp } from 'typeorm';
 
 /* USERS */
 

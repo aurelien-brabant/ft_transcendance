@@ -16,13 +16,13 @@ export class ChannelMessagesService {
 
   findAll() {
     return this.messagesRepository.find({
-      relations: ['author', 'channel']
+      relations: ['author', 'channel'],
     });
   }
 
   async findOne(id: string) {
-    const message =  await this.messagesRepository.findOne(id, {
-      relations: ['author', 'channel']
+    const message = await this.messagesRepository.findOne(id, {
+      relations: ['author', 'channel'],
     });
 
     if (!message) {
@@ -34,14 +34,16 @@ export class ChannelMessagesService {
   async create(createChanMessageDto: CreateChannelMessageDto) {
     const message = this.messagesRepository.create(createChanMessageDto);
 
-    this.logger.log(`Create new message in channel [${createChanMessageDto.channel.id}]`);
+    this.logger.log(
+      `Create new message in channel [${createChanMessageDto.channel.id}]`,
+    );
 
     return await this.messagesRepository.save(message).catch(() => {
       throw new Error('Message may not be longer than 640 characters.');
     });
   }
 
-  async update(id: string, updateMessageDto: UpdateChannelMessageDto) { 
+  async update(id: string, updateMessageDto: UpdateChannelMessageDto) {
     const message = await this.messagesRepository.preload({
       id: +id,
       ...updateMessageDto,
@@ -53,7 +55,7 @@ export class ChannelMessagesService {
     return this.messagesRepository.save(message);
   }
 
-  async remove(id: string) { 
+  async remove(id: string) {
     const message = await this.findOne(id);
 
     if (!message) {

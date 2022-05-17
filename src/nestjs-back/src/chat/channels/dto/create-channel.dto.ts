@@ -17,13 +17,14 @@ export class CreateChannelDto {
   @Transform(({ value }) => value.trim())
   @IsString()
   @Matches(/^[a-zA-Z0-9_ ]+$/, {
-    message: 'The channel name must contain alphanumeric characters, underscores and spaces only.',
+    message:
+      'The channel name must contain alphanumeric characters, underscores and spaces only.',
   })
   @Length(3, 20)
   readonly name: string;
 
   @IsString()
-  @IsIn(["public", "private", "protected"])
+  @IsIn(['public', 'private', 'protected'])
   readonly privacy: string;
 
   @IsOptional()

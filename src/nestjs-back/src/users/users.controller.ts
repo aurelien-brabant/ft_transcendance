@@ -28,8 +28,8 @@ import { CreateUserDto } from './dto/create-user.dto';
 import { UpdateUserDto } from './dto/update-user.dto';
 import { editFileName, imageFileFilter } from 'src/utils/upload';
 import { ValidateTfaDto } from './dto/validate-tfa-dto';
-import { IsLoggedInUserGuard } from "./guard/is-logged-in-user.guard";
-import { JwtAuthGuard } from "../auth/guard/jwt-auth.guard";
+import { IsLoggedInUserGuard } from './guard/is-logged-in-user.guard';
+import { JwtAuthGuard } from '../auth/guard/jwt-auth.guard';
 
 @Controller('users')
 export class UsersController {
@@ -41,12 +41,11 @@ export class UsersController {
     return this.usersService.findAll(paginationQuery);
   }
 
-
   @UseGuards(JwtAuthGuard)
   @Get('/search')
   async searchUsersBy(@Query('v') searchTerm: string) {
     if (searchTerm === undefined) {
-      throw new BadRequestException('Missing "v" query parameter')
+      throw new BadRequestException('Missing "v" query parameter');
     }
 
     return this.usersService.searchUsers(searchTerm);
@@ -107,7 +106,10 @@ export class UsersController {
 
   @UseGuards(JwtAuthGuard, IsLoggedInUserGuard)
   @Patch(':userId')
-  async update(@Param('userId') id: string, @Body() updateUserDto: UpdateUserDto) {
+  async update(
+    @Param('userId') id: string,
+    @Body() updateUserDto: UpdateUserDto,
+  ) {
     return await this.usersService.update(id, updateUserDto).catch((err) => {
       throw new BadRequestException(err.message);
     });
@@ -126,9 +128,11 @@ export class UsersController {
     @Param('user') userToUpdate: string,
     @Param('action') action: string,
   ) {
-    return await this.usersService.removeRelation(id, userToUpdate, action).catch((err) => {
-      throw new BadRequestException(err.message);
-    });
+    return await this.usersService
+      .removeRelation(id, userToUpdate, action)
+      .catch((err) => {
+        throw new BadRequestException(err.message);
+      });
   }
 
   @UseGuards(JwtAuthGuard, IsLoggedInUserGuard)

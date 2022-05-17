@@ -1,8 +1,4 @@
-import {
-    IsEmail,
-    IsString,
-    IsUrl
-} from "class-validator";
+import { IsEmail, IsString, IsUrl } from 'class-validator';
 
 /**
  * NOTE: as of now this DTO is not used in its quality of DTO, but more as a standard typescript type.
@@ -13,12 +9,12 @@ import {
  */
 
 export class CreateDuoQuadraDto {
-    @IsString()
-    login: string;
- 
-    @IsUrl()
-    imageUrl: string;
+  @IsString()
+  login: string;
 
-    @IsEmail()
-    email: string;
+  @IsUrl()
+  imageUrl: string;
+
+  @IsEmail()
+  email: string;
 }
