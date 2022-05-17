@@ -5,7 +5,7 @@ import { FaEquals } from "react-icons/fa";
 import { IoMdPersonAdd } from "react-icons/io";
 import { GiFalling, GiPodiumWinner } from "react-icons/gi";
 import { RiPingPongLine, RiMessage2Line, RiUserSettingsLine } from "react-icons/ri";
-import { ActiveUser, Game } from "transcendance-types";
+import { ActiveUser } from "transcendance-types";
 import { NextPageWithLayout } from "../_app";
 import alertContext, { AlertContextType } from "../../context/alert/alertContext";
 import chatContext, { ChatContextType } from "../../context/chat/chatContext";
@@ -16,6 +16,7 @@ import { UserStatusItem } from "../../components/UserStatus";
 import withDashboardLayout from "../../components/hoc/withDashboardLayout";
 import { useSession } from "../../hooks/use-session";
 import { classNames } from "../../utils/class-names";
+import { Game } from "../../transcendance-types";
 
 /**
  * Game history
@@ -225,7 +226,8 @@ const UserProfilePage: NextPageWithLayout = ({}) => {
         id: gameHistory.length.toString(),
         date: new Date(game.createdAt),
         duration: game.gameDuration,
-        isDraw: (game.winnerScore === game.loserScore),
+        // isDraw: (game.winnerScore === game.loserScore), // not used for now
+        isDraw: false,
         userIsWinner,
         opponentId,
         opponentUsername: data.username,
@@ -436,7 +438,7 @@ const UserProfilePage: NextPageWithLayout = ({}) => {
               <HighlightItem
                 n={userData.ratio}
                 label="Ratio"
-                hint="Wins divided by looses"
+                hint="Wins divided by total played games"
                 nColor="text-blue-500"
               />
             </div>

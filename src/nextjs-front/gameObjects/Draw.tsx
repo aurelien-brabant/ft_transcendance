@@ -165,12 +165,15 @@ export class Draw {
 		this.drawText(p2.goal + "", 3*(canvasWidth/4), canvasHeight/10, 45, 'white');
 	}
 
-	drawPauseButton() {
+	drawPauseButton(room: IRoom) {
 		let pauseSizeX = this.height/10;
 		let pauseSizeY = this.height/10;
-		this.drawRectangle(0, 0, this.width, this.height, "rgba(0, 0, 0, 0.1)")
+		let timer: Date = new Date(Date.now() - room.pauseTime[room.pauseTime.length - 1].pause);
+		let seconds: string = (42 - timer.getSeconds() < 10 ? "0" : "") + (42 - timer.getSeconds()) + "s";
+		this.drawRectangle(0, 0, this.width, this.height, "rgba(0, 0, 0, 0.3)")
 		this.drawRectangle(((this.width/2) - pauseSizeX/2), ((this.height/2) - pauseSizeY/2), pauseSizeX/3, pauseSizeY, 'white');
 		this.drawRectangle(((this.width/2) + pauseSizeX/6), ((this.height/2) - pauseSizeY/2), pauseSizeX/3, pauseSizeY, 'white');
+		this.drawCenteredText(seconds, this.width/2, (this.height/2 - pauseSizeY), pauseSizeY, "white");
 	}
 
 	drawLoading(seconds: number) {

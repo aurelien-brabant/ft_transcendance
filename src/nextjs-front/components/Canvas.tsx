@@ -126,7 +126,7 @@ const Canvas: React.FC<{socketProps: Socket, roomProps: any}> = ({socketProps, r
 				// Wait for player to hit enter
 				loading();
 			} else if (room.gameState === GameState.PAUSED) {
-				draw.drawPauseButton();
+				draw.drawPauseButton(room);
 			} else if (room.gameState === GameState.RESUMED) {
 				let count: number = (Date.now() - room.pauseTime[room.pauseTime.length - 1].resume) / 1000;
 				draw.drawRectangle(0, 0, canvasWidth, canvasHeight, "rgba(0, 0, 0, 0.5)");

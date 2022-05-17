@@ -174,8 +174,6 @@ export default class Room implements IRoom {
 			if (this.mode === GameMode.DEFAULT && (this.playerOne.goal === this.maxGoal || this.playerTwo.goal === this.maxGoal))
 			{
 				this.defaultGameMode();
-				// this.winner = this.playerOne.goal === this.maxGoal ? this.playerOne.user.username : this.playerTwo.user.username;
-				// this.loser = this.playerOne.goal === this.maxGoal ? this.playerTwo.user.username : this.playerOne.user.username;
 				this.changeGameState(GameState.END);
 				this.isGameEnd = true;
 			}
@@ -202,5 +200,25 @@ export default class Room implements IRoom {
 		this.playerTwo.update(secondPassed);
 		this.ball.update(secondPassed, this.playerOne, this.playerTwo);
 		this.checkGoal();
+	}
+
+	pauseForfait() {
+		if (this.players[0].id === this.playerOne.user.id) {
+			this.winner = this.playerOne.user.username;
+			this.winnerId = this.playerOne.user.id;
+			this.winnerScore = this.playerOne.goal;
+			this.loser = this.playerTwo.user.username;
+			this.loserId = this.playerTwo.user.id;
+			this.loserScore = this.playerTwo.goal;
+
+		} else {
+			this.winner = this.playerTwo.user.username;
+			this.winnerId = this.playerTwo.user.id;
+			this.winnerScore = this.playerTwo.goal;
+			this.loser = this.playerOne.user.username;
+			this.loserId = this.playerOne.user.id;
+			this.loserScore = this.playerOne.goal;
+		}
+
 	}
 }
