@@ -20,8 +20,8 @@ const RelationshipProvider: React.FC = ({ children }) => {
 
 		for (var user of users) {
 			if (user.id !== userId && user.accountDeactivated) {
-				const isNotFriend = !!friends.find((friend) => friend.id === userId);
-				const isNotBlocked = !!blocked.find((blockedUser) => blockedUser.id === userId);
+				const isNotFriend = !!friends.find((friend) => friend.id !== userId);
+				const isNotBlocked = !!blocked.find((blockedUser) => blockedUser.id !== userId);
 
 				if (isNotFriend && isNotBlocked) {
 					suggestedUsers.push(user);
@@ -32,10 +32,14 @@ const RelationshipProvider: React.FC = ({ children }) => {
 	}
 
 	/* Get relationships specific to the current user */
-	const getUserRelationships = async (users: User[], id: string) => {
+	const setUserRelationships = async (users: User[], id: string) => {
 		const res = await backend.request(`/api/users/${id}`);
 		const data = await res.json();
 		const duoquadraFriends: User[] = [];
+
+		const filteredUsers = users.filter((user) => {
+			return user.id !== currentUser.id;
+		});
 
 		setFriends(data.friends);
 		setBlocked(data.blockedUsers);
@@ -48,7 +52,7 @@ const RelationshipProvider: React.FC = ({ children }) => {
 			}
 		}
 		setFriends42(duoquadraFriends);
-		createSuggestedFriends(users, data.friends, data.blockedUsers);
+		createSuggestedFriends(filteredUsers, data.friends, data.blockedUsers);
 	}
 
 	/* Fetch all users and set current user relationships */
@@ -58,18 +62,14 @@ const RelationshipProvider: React.FC = ({ children }) => {
 
 		setUsers(allUsers);
 
-		// debug
+		// tmp debug: to test with all users
 		setFriends(allUsers);
 		setFriends42(allUsers);
 		setBlocked(allUsers);
 		setPendingFriendsReceived(allUsers);
 		setSuggested(allUsers);
 
-		// const filteredUsers = allUsers.filter((user) => {
-		// 	return user.id !== currentUser.id;
-		// });
-
-		// getUserRelationships(filteredUsers, currentUser.id);
+		// setUserRelationships(filteredUsers, currentUser.id);
 	}
 
 	return (
@@ -89,8 +89,6 @@ const RelationshipProvider: React.FC = ({ children }) => {
 				setPendingFriendsSent,
 				suggested,
 				setSuggested,
-				createSuggestedFriends,
-				getUserRelationships,
 				getRelationshipsData,
 			}}
 		>

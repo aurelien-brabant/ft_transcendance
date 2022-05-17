@@ -16,15 +16,15 @@ import relationshipContext, { RelationshipContextType } from "../context/relatio
 const FriendsTable: React.FC<{ category: string, list: User[], setSelected: any }> = ({
   category, list, setSelected
 }) => {
-  // const { user: currentUser, backend } = useSession();
-  // const { setAlert } = useContext(alertContext) as AlertContextType;
-  // const {
-  //   friends, setFriends,
-  //   friends42, setFriends42,
-  //   blocked, setBlocked,
-  //   pendingFriendsReceived, setPendingFriendsReceived,
-  //   pendingFriendsSent, setPendingFriendsSent
-  // } = useContext(relationshipContext) as RelationshipContextType;
+  const { user: currentUser, backend } = useSession();
+  const { setAlert } = useContext(alertContext) as AlertContextType;
+  const {
+    friends, setFriends,
+    friends42, setFriends42,
+    blocked, setBlocked,
+    pendingFriendsReceived, setPendingFriendsReceived,
+    pendingFriendsSent, setPendingFriendsSent,
+  } = useContext(relationshipContext) as RelationshipContextType;
   const gridStyle = "place-items-stretch grid md:grid grid-cols-2 md:grid-cols-3 gap-10 text-center pt-10 pb-10";
   const userCardStyle = "text-pink-600 justity-items-center px-5 pt-2 pb-7 bg-01dp border border-pink-500 rounded hover:bg-03dp hover:text-inherit md:transition md:transform md:ease-in md:hover:-translate-y-1";
   const actionTooltipStyles = "font-bold bg-dark text-neutral-200";
@@ -74,13 +74,143 @@ const FriendsTable: React.FC<{ category: string, list: User[], setSelected: any 
     );
   }
 
-  const getActionButtons = (category: string) => {
+  /* Add / remove friend */
+  const addFriend = async (user: User) => {
+    const res = await backend.request(`/api/users/${user.id}`, {
+      method: "PATCH",
+      headers: {
+        "Content-Type": "application/json",
+      },
+      body: JSON.stringify({
+        friends: [ ...friends, { id: user.id } ]
+      }),
+    });
+
+    const data = await res.json();
+
+    if (res.status === 200) {
+      setFriends(data.friends);
+      if (user.duoquadra_login) {
+        setFriends42([ ...friends42, user ]);
+      }
+      setAlert({
+        type: 'success',
+        content: `Added ${user.username} to friends.`
+      });
+    } else {
+      setAlert({
+        type: 'error',
+        content: `Error while adding ${user.username}`
+      });
+    }
+  }
+
+  const removeFriend = async (user: User) => {
+    const filteredFriends = friends.filter((friend) => {
+      return friend.id !== user.id;
+    });
+
+    const res = await backend.request(`/api/users/${user.id}`, {
+      method: "PATCH",
+      headers: {
+        "Content-Type": "application/json",
+      },
+      body: JSON.stringify({
+        friends: filteredFriends
+      }),
+    });
+
+    const data = await res.json();
+
+    if (res.status === 200) {
+      setFriends(data.friends);
+      if (user.duoquadra_login) {
+        const filteredFriends42 = friends42.filter((friend) => {
+          return friend.id !== user.id;
+        });
+        setFriends42(filteredFriends42);
+      }
+      setAlert({
+        type: 'success',
+        content: `Removed ${user.username} from friends`
+      });
+    } else {
+      setAlert({
+        type: 'error',
+        content: `Error while adding ${user.username}`
+      });
+    }
+  }
+
+  /* Block / Unblock */
+  const blockUser = async (user: User) => {
+    const res = await backend.request(`/api/users/${user.id}`, {
+      method: "PATCH",
+      headers: {
+        "Content-Type": "application/json",
+      },
+      body: JSON.stringify({
+        blockedUsers: [ ...blocked, { id: user.id } ]
+      }),
+    });
+
+    const data = await res.json();
+
+    if (res.status === 200) {
+      setBlocked(data.blockedUsers);
+      setAlert({
+        type: 'success',
+        content: `User ${user.username} blocked`
+      });
+    } else {
+      setAlert({
+        type: 'error',
+        content: `Error while unblocking ${user.username}`
+      });
+    }
+  }
+
+  const unblockUser = async (user: User) => {
+    const filteredUsers = blocked.filter((blockedUser) => {
+      return blockedUser.id !== user.id;
+    });
+
+    const res = await backend.request(`/api/users/${user.id}`, {
+      method: "PATCH",
+      headers: {
+        "Content-Type": "application/json",
+      },
+      body: JSON.stringify({
+        blockedUsers: filteredUsers
+      }),
+    });
+
+    const data = await res.json();
+
+    if (res.status === 200) {
+      setBlocked(data.blockedUsers);
+      setAlert({
+        type: 'success',
+        content: `User ${user.username} unblocked`
+      });
+    } else {
+      setAlert({
+        type: 'error',
+        content: `Error while blocking ${user.username}`
+      });
+    }
+  }
+
+  const getActionButtons = (user: User, category: string) => {
     if (category === "blocked") {
       return (
         <div className="relative md:absolute left-0 right-0 flex items-center justify-center -bottom-4 gap-x-6">
   
           <Tooltip className={actionTooltipStyles} content="Unblock">
-            <button className="p-2 text-2xl bg-pink-200 text-pink-700 rounded-full">
+            <button
+              className="p-2 text-2xl bg-pink-200 text-pink-700 rounded-full"
+              onClick={() => { unblockUser(user); }}
+            >
               <RiUserHeartLine />
             </button>
           </Tooltip>
@@ -91,8 +221,11 @@ const FriendsTable: React.FC<{ category: string, list: User[], setSelected: any 
       return (
         <div className="relative md:absolute left-0 right-0 flex items-center justify-center -bottom-4 gap-x-6">
   
-          <Tooltip className={actionTooltipStyles} content="Accept friend">
-            <button className="p-2 text-2xl bg-green-200 text-green-700 rounded-full">
+          <Tooltip className={actionTooltipStyles} content="Add friend">
+            <button
+              className="p-2 text-2xl bg-green-200 text-green-700 rounded-full"
+              onClick={() => { addFriend(user); }}
+            >
               <AiOutlineCheck />
             </button>
           </Tooltip>
@@ -112,20 +245,26 @@ const FriendsTable: React.FC<{ category: string, list: User[], setSelected: any 
 
         {(category === "friends") &&
         <Tooltip className={actionTooltipStyles} content="Remove friend">
-          <button className="p-2 text-2xl bg-pink-200 text-pink-700 rounded-full">
+          <button
+            className="p-2 text-2xl bg-pink-200 text-pink-700 rounded-full"
+            onClick={() => { removeFriend(user); }}
+          >
             <AiOutlineUserDelete />
           </button>
         </Tooltip>}
 
         {(category === "suggested") &&
-        <Tooltip className={actionTooltipStyles} content="Add friend">
+        <Tooltip className={actionTooltipStyles} content="Send friend invite">
           <button className="p-2 text-2xl bg-pink-200 text-pink-700 rounded-full">
             <AiOutlineUserAdd />
           </button>
         </Tooltip>}
 
         <Tooltip className={actionTooltipStyles} content="Block">
-          <button className="p-2 text-2xl bg-neutral-400 text-neutral-900 rounded-full">
+          <button
+            className="p-2 text-2xl bg-neutral-400 text-neutral-900 rounded-full"
+            onClick={() => { blockUser(user); }}
+          >
             <FaUserSlash />
           </button>
         </Tooltip>
@@ -146,7 +285,7 @@ const FriendsTable: React.FC<{ category: string, list: User[], setSelected: any 
         {list.map((user) => (
           <li key={user.id} className={userCardStyle} >
             {getUserCard(user)}
-            {getActionButtons(category)}
+            {getActionButtons(user, category)}
           </li>
         ))}
 
@@ -180,184 +319,5 @@ const FriendsTable: React.FC<{ category: string, list: User[], setSelected: any 
     );
   }
 }
-
-  // const updateFriendsRequests = (id: string) => {
-  //   backend.request(`/api/users/${user.id}/${id}/removeFriendsReceived`, {
-  //     method: "DELETE",
-  //     headers: {
-  //       "Content-Type": "application/json",
-  //     },
-  //   });
-  // }
-
-  // const requestFriend = async (id: string, username: string, isDuoQuadra: boolean) => {
-  //   const req = await backend.request(`/api/users/${user.id}`);
-  //   const data = await req.json();
-  //   const received = data.pendingFriendsReceived;
-  //   let isAsking: boolean = false;
-
-  //   for (let i in received) {
-  //     if (received[i].id === id)
-  //       isAsking = true;
-  //   }
-
-  //   if (isAsking) {
-  //     updateFriendsRequests(id);
-
-  //     const addFriend = await backend.request(`/api/users/${user.id}`, {
-  //       method: "PATCH",
-  //       headers: {
-  //         "Content-Type": "application/json",
-  //       },
-  //       body: JSON.stringify({
-  //         friends: [ { "id": id } ]
-  //       }),
-  //     });
-
-  //     if (addFriend.ok) {
-  //       setPendingFriendsReceived(pendingFriendsReceived.filter(
-  //         item => item.id !== id
-  //       ));
-  //       setFriends([...friends, {"id": id, "username": username}]);
-  //       isDuoQuadra && setFriends42([...friends42, {"id": id, "username": username}]);
-  //       setAlert({ type: 'info', content: `New friend: ${username}` });
-  //     }
-  //     else
-  //       setAlert({ type: 'error', content: `Error while adding ${username} as friend` });  
-  //   }
-  //   else {
-  //     const reqSent = await backend.request(`/api/users/${user.id}`, {
-  //       method: "PATCH",
-  //       headers: {
-  //         "Content-Type": "application/json",
-  //       },
-  //       body: JSON.stringify({
-  //         pendingFriendsSent: [ { "id": id } ]
-  //       }),
-  //     });
-
-  //     if (reqSent.ok) {
-  //       //TO DO CHECK ACHIEVEMENTS FOR UPDATING
-  //       setSuggested(suggestedUsers.filter(
-  //         item => item.id !== id
-  //       ));
-  //       setPendingFriendsSent([ ...pendingFriendsSent, { "id": id, "username": username } ]);
-  //       setAlert({
-  //         type: 'info',
-  //         content: `Friend request sent to ${username}`
-  //       });
-  //     }
-  //     else {
-  //       setAlert({
-  //         type: 'error',
-  //         content: `Error while sending friend request to ${username}`
-  //       });
-  //     }
-  //   }
-  // }
-
-  // const blockUser = async (id: string, username: string) => {
-  //   let isAsking: boolean = false;
-
-  //   for (let i in pendingFriendsReceived) {
-  //     if (pendingFriendsReceived[i].id === id)
-  //       isAsking = true;
-  //   }
-  //   isAsking && updateFriendsRequests(id);
-
-  //   const block = await backend.request(`/api/users/${user.id}`, {
-  //     method: "PATCH",
-  //     headers: {
-  //       "Content-Type": "application/json",
-  //     },
-  //     body: JSON.stringify({
-  //       blockedUsers: [ { "id": id } ]
-  //     }),
-  //   });
-
-  //   if (block.ok) {
-  //     setBlocked([ ...blocked, { "id": id, "username": username } ]);
-  //     setSuggested(suggestedUsers.filter(
-  //       item => item.id !== id
-  //     ));
-  //     setAlert({
-  //       type: 'success',
-  //       content: `User ${username} blocked`
-  //     });
-  //   } else {
-  //     setAlert({
-  //       type: 'error',
-  //       content: `Error while blocking ${username}`
-  //     });
-  //   }
-  // }
-
-  // const removeRelation = async (id: string, username:string, action: string, list42: boolean) => {
-  //   const remove = await backend.request(`/api/users/${user.id}/${id}/${action}`, {
-  //     method: "DELETE",
-  //     headers: {
-  //       "Content-Type": "application/json",
-  //     },
-  //   });
-
-  //   if (remove.ok) {
-  //     let updated: User[];
-  //     let updated42: User[] = [];
-
-  //     if (action === 'unblock') {
-  //       updated = blocked.filter(
-  //         item => item.id !== id
-  //       );
-  //     } else {
-  //       updated = friends.filter(
-  //         item => item.id !== id
-  //       );
-  //       updated42 = friends42.filter(
-  //         item => item.id !== id
-  //       );
-  //     }
-
-  //     if (action === 'friend') {
-  //       setFriends(updated);
-  //       list42 && setFriends42(updated42);
-  //       setSuggested([ ...suggestedUsers, { "id": id, "username": username } ]);
-  //     } else if (action === 'unblock') {
-  //       setBlocked(updated);
-  //       setSuggested(updated.filter(
-  //         item => item.id !== id
-  //       ));
-  //     }
-
-  //     setAlert({
-  //       type: 'success',
-  //       content: `${action === 'friend' ? `Friendship with ${username} destroyed` : `User ${username} unblocked successfully`}`
-  //     });
-  //   } else {
-  //     setAlert({
-  //       type: 'error',
-  //       content: `${action === 'friend' ? `Error while killing friendship with ${username}` : `Error while unblocking ${username}`}`
-  //     });
-  //   }
-  // }
-
-  // const checkRelation = (id: string, list: User[]) => {
-  //   for (let i in list) {
-  //     if (list[i].id === id) {
-  //       return true;
-  //     }
-  //   }
-  //   return false
-  // }
-
-  // const hasAlreadyAsked = (id: string, list: any) => {
-  //   const invites = list.pendingFriendsSent;
-
-  //   for (let i in invites) {
-  //     if (invites[i].id === id) {
-  //       return true;
-  //     }
-  //   }
-  //   return false
-  // }
 
 export default FriendsTable;

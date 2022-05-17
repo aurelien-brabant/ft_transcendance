@@ -235,11 +235,6 @@ export class UsersService {
         const friend = await this.addFriend(newFriend.id.toString(), user.id.toString());
         await this.achievementsService.checkUserAchievement(friend, 'friends', friend.friends.length);
       }
-    } else if (updateUserDto.blockedUsers && updateUserDto.blockedUsers.length) {
-      /* Block user */
-      for (var toBlock of updateUserDto.blockedUsers) {
-        user = await this.blockUser(id, toBlock.id.toString());
-      }
     } else if (updateUserDto.pendingFriendsSent && updateUserDto.pendingFriendsSent.length) {
       /* Send frienship invite */
       for (var receiver of updateUserDto.pendingFriendsSent) {
@@ -249,11 +244,12 @@ export class UsersService {
         }
       }
     } else { /* Default case */
+      console.log('----- default case'); // tmp debug
       const user = await this.usersRepository.preload({
         id: +id,
         ...updateUserDto
       });
-  
+
       if (!user) {
         throw new Error('Cannot update user.');
       }

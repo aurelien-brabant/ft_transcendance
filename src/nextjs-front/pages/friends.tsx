@@ -57,36 +57,22 @@ const FriendsPage: NextPageWithLayout = ({}) => {
   const [selected, setSelected] = useState(0);
   const { user } = useSession();
   const {
-    users,
     friends,
     friends42,
     blocked,
     pendingFriendsReceived,
     suggested,
     getRelationshipsData,
-    getUserRelationships,
-    createSuggestedFriends,
   } = useContext(relationshipContext) as RelationshipContextType;
   const router = useRouter();
 
-  useEffect(() => {
+  const fetchUserRelationships = async () => {
     setIsLoading(true);
-    if (user) {
-      getRelationshipsData();
-      getUserRelationships(users, user.id);
-      createSuggestedFriends(users, friends, blocked);
-      setIsLoading(false);
-    }
-  }, [selected]);
+    await getRelationshipsData();
+    setIsLoading(false);
+  }
 
   useEffect(() => {
-    const fetchUserRelationships = async () => {
-      setIsLoading(true);
-      await getRelationshipsData();
-      createSuggestedFriends(users, friends, blocked);
-      setIsLoading(false);
-    }
-
     if (user) {
       fetchUserRelationships().catch(console.error);
     }
