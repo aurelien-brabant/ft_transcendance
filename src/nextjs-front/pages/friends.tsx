@@ -80,16 +80,28 @@ const FriendsPage: NextPageWithLayout = ({}) => {
   }, [selected]);
 
   useEffect(() => {
-    if (user) {
-      getUserRelationships(users, user.id);
+    const fetchUserRelationships = async () => {
+      setIsLoading(true);
+      await getRelationshipsData();
       createSuggestedFriends(users, friends, blocked);
       setIsLoading(false);
+    }
+
+    if (user) {
+      fetchUserRelationships().catch(console.error);
     }
   }, []);
 
   return (
     <div className="text-white bg-fixed bg-center bg-fill grow">
-      {!isLoading ? (
+      {isLoading ? (
+        <div className="relative flex flex-col items-center justify-center min-h-screen gap-y-4">
+          <div className="absolute inset-0 z-50 flex items-center justify-center">
+            <Image src="/logo.svg" height="200" width="200" />
+          </div>
+          <BounceLoader size={400} color="#db2777" />
+        </div>
+      ) : (
         <div style={{ maxWidth: "800px" }} className="px-2 py-10 mx-auto">
           <div className="flex flex-col items-center gap-y-10">
             <div className="relative w-48 h-48 flex justify-center items-center text-center">
@@ -204,13 +216,6 @@ const FriendsPage: NextPageWithLayout = ({}) => {
               ]}
             />
           </div>
-        </div>
-      ) : (
-        <div className="relative flex flex-col items-center justify-center min-h-screen bg-gray-900 gap-y-4">
-          <div className="absolute inset-0 z-50 flex items-center justify-center">
-            <Image src="/logo.svg" height="200" width="200" />
-          </div>
-          <BounceLoader size={400} color="#db2777" />
         </div>
       )}
     </div>
