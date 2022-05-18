@@ -52,7 +52,7 @@ export class PongGateway implements OnGatewayInit, OnGatewayConnection, OnGatewa
 	
 	afterInit(server: Server) {
 		setInterval(() => {
-			if (this.queue.size() > 1) {
+			if (this.queue.size() > 1) { // && this.currentGames.length < MAX_SIMULTANEOUS_GAMES
 				let players: User[] = Array();
 
 				players = this.queue.matchPlayers();
@@ -245,7 +245,7 @@ export class PongGateway implements OnGatewayInit, OnGatewayConnection, OnGatewa
 			}
 			else if (room.gameState === GameState.PLAYING)
 			{
-				room.update();
+				room.update(currentTimestamp);
 				if (room.isGameEnd)
 					this.saveGame(room, currentTimestamp);
 			}
@@ -269,7 +269,7 @@ export class PongGateway implements OnGatewayInit, OnGatewayConnection, OnGatewa
 			if (room.mode === GameMode.TIMER && (room.gameState === GameState.GOAL || room.gameState === GameState.PLAYING))
 				room.updateTimer();
 
-			this.server.to(room.roomId).emit("updateRoom", room);
+			this.server.to(room.roomId).emit("updateRoom", JSON.stringify(room.serialize()));
 		}
 	}
 

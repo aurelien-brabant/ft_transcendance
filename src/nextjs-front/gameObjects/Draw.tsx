@@ -235,7 +235,6 @@ export class Draw {
 	}
 
 	drawTimer(room: IRoom) {
-		
 		if (room.gameDuration - room.timer > 0) {
 			let timer: Date = new Date(room.gameDuration - room.timer);
 			let time: string = timer.toLocaleString().substring(12, 18);

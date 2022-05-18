@@ -30,6 +30,52 @@ export interface IRoom {
 	gameDuration: number;
 }
 
+export type SerializeRoom = {
+		roomId: string;
+		gameState: GameState;
+		playerOne: {
+			user: {
+				id: number;
+				username: string;
+			}
+			width: number;
+			height: number;
+			x: number;
+			y: number;
+			color: string;
+			goal: number;
+		};
+		playerTwo: {
+			user: {
+				id: number;
+				username: string;
+			}
+			width: number;
+			height: number;
+			x: number;
+			y: number;
+			color: string;
+			goal: number;
+		};
+
+		ball: {
+			x: number;
+			y: number;
+			r: number;
+			color: string;
+		},
+		timestampStart: number;
+		goalTimestamp: number;
+		pauseTime: {
+			pause: number;
+			resume: number;
+		}[],
+		mode: number;
+		timer: number;
+		gameDuration: number;
+		lastGoal: string;
+};
+
 export default class Room implements IRoom {
 	roomId: string;
 	gameState: GameState;
@@ -179,7 +225,7 @@ export default class Room implements IRoom {
 
 	checkGoal() {
 		if (this.ball.goal === true) {
-			this.goalTimestamp = Date.now();
+			this.goalTimestamp = this.lastUpdate;
 			if (this.mode === GameMode.DEFAULT && (this.playerOne.goal === this.maxGoal || this.playerTwo.goal === this.maxGoal))
 			{
 				this.defaultGameMode();
@@ -201,9 +247,9 @@ export default class Room implements IRoom {
 		}
 	}
 
-	update(): void {
-		let secondPassed: number = (Date.now() - this.lastUpdate) / 1000;
-		this.lastUpdate = Date.now();
+	update(currentTimestamp: number): void {
+		let secondPassed: number = (currentTimestamp - this.lastUpdate) / 1000;
+		this.lastUpdate = currentTimestamp;
 
 		this.playerOne.update(secondPassed);
 		this.playerTwo.update(secondPassed);
@@ -228,6 +274,50 @@ export default class Room implements IRoom {
 			this.loserId = this.playerOne.user.id;
 			this.loserScore = this.playerOne.goal;
 		}
-
 	}
+
+	serialize(): SerializeRoom { // send the littlest amount of data
+		const newSerializeRoom: SerializeRoom = {
+			roomId: this.roomId,
+			gameState: this.gameState,
+			playerOne: {
+				user: {
+					id: this.playerOne.user.id,
+					username: this.playerOne.user.username,
+				},
+				width: this.playerOne.width,
+				height: this.playerOne.height,
+				x: this.playerOne.x,
+				y: this.playerOne.y,
+				color: this.playerOne.color,
+				goal: this.playerOne.goal,
+			},
+			playerTwo: {
+				user: {
+					id: this.playerTwo.user.id,
+					username: this.playerTwo.user.username,
+				},
+				width: this.playerTwo.width,
+				height: this.playerTwo.height,
+				x: this.playerTwo.x,
+				y: this.playerTwo.y,
+				color: this.playerTwo.color,
+				goal: this.playerTwo.goal,
+			},
+			ball: {
+				x: this.ball.x,
+				y: this.ball.y,
+				r: this.ball.r,
+				color: this.ball.color,
+			},
+			timestampStart: this.timestampStart,
+			goalTimestamp: this.goalTimestamp,
+			pauseTime: this.pauseTime,
+			mode: this.mode,
+			timer: this.timer,
+			gameDuration: this.gameDuration,
+			lastGoal: this.lastGoal,
+		};
+		return newSerializeRoom;
+	} 
 }
