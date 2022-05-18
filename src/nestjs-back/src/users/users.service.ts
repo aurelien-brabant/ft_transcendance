@@ -48,7 +48,6 @@ export class UsersService {
       .createQueryBuilder('user')
       .addSelect('user.email')
       .addSelect('user.tfa')
-      .addSelect('user.tfaSecret')
       .addSelect('user.hasTfaBeenValidated')
       .addSelect('user.lastTfaRequestTimestamp')
       .where('user.id = :id', { id })
