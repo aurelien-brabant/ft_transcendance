@@ -35,26 +35,30 @@ export class PongGateway implements OnGatewayInit, OnGatewayConnection, OnGatewa
 	private readonly currentGames: Array<string> = new Array();
 	private readonly connectedUsers: ConnectedUsers = new ConnectedUsers();
 
+	createNewRoom(players: User[]): void {
+		let roomId: string;
+		let room: Room;
+
+		roomId = `${players[0].username}&${players[1].username}`;
+				
+		room = new Room(roomId, players, {mode: players[0].mode});
+		
+		this.server.to(players[0].socketId).emit("newRoom", room);
+		this.server.to(players[1].socketId).emit("newRoom",  room);
+		this.rooms.set(roomId, room);
+		this.currentGames.push(roomId);
+		this.server.emit("updateCurrentGames", this.currentGames);
+	}
+	
 	afterInit(server: Server) {
 		setInterval(() => {
 			if (this.queue.size() > 1) {
 				let players: User[] = Array();
-				let roomId: string;
-				let room: Room;
 
 				players = this.queue.matchPlayers();
 				if (players.length === 0)
 					return ;
-
-				roomId = `${players[0].username}&${players[1].username}`;
-				
-				room = new Room(roomId, players, {mode: players[0].mode});
-				
-				this.server.to(players[0].socketId).emit("newRoom", room);
-				this.server.to(players[1].socketId).emit("newRoom",  room);
-				this.rooms.set(roomId, room);
-				this.currentGames.push(roomId);
-				this.server.emit("updateCurrentGames", this.currentGames);
+				this.createNewRoom(players);
 			}
 		}, 5000);
 		this.logger.log(`Init Pong Gateway`);
@@ -224,14 +228,19 @@ export class PongGateway implements OnGatewayInit, OnGatewayConnection, OnGatewa
 			this.server.emit("updateCurrentGames", this.currentGames);
 	}
 
+	secondToTimestamp(second: number): number{
+		return (second * 1000);
+	}
+
 	@SubscribeMessage('requestUpdate')
-	async handleRequestUpdate(@ConnectedSocket() client: Socket, @MessageBody() roomId: string) {
+	async handleRequestUpdate(@MessageBody() roomId: string) {
 		const room: Room = this.rooms.get(roomId);
 
 		if (room) {
 			let currentTimestamp: number = Date.now();
 
-			if (room.gameState === GameState.STARTING && (currentTimestamp - room.timestampStart) >= 3500) {
+			if (room.gameState === GameState.STARTING
+					&& (currentTimestamp - room.timestampStart) >= this.secondToTimestamp(3.5)) {
 				room.start();
 			}
 			else if (room.gameState === GameState.PLAYING)
@@ -240,14 +249,17 @@ export class PongGateway implements OnGatewayInit, OnGatewayConnection, OnGatewa
 				if (room.isGameEnd)
 					this.saveGame(room, currentTimestamp);
 			}
-			else if (room.gameState === GameState.GOAL && (currentTimestamp - room.goalTimestamp) >= 3500) {
+			else if (room.gameState === GameState.GOAL
+					&& (currentTimestamp - room.goalTimestamp) >= this.secondToTimestamp(3.5)) {
 				room.resetPosition();
 				room.changeGameState(GameState.PLAYING);
 				room.lastUpdate = Date.now();
-			} else if (room.gameState === GameState.RESUMED && (currentTimestamp - room.pauseTime[room.pauseTime.length - 1].resume) >= 3500) {
+			} else if (room.gameState === GameState.RESUMED
+					&& (currentTimestamp - room.pauseTime[room.pauseTime.length - 1].resume) >= this.secondToTimestamp(3.5)) {
 				room.lastUpdate = Date.now();
 				room.changeGameState(GameState.PLAYING);
-			} else if (room.gameState === GameState.PAUSED && (currentTimestamp - room.pauseTime[room.pauseTime.length - 1].pause) >= 42000) {
+			} else if (room.gameState === GameState.PAUSED
+					&& (currentTimestamp - room.pauseTime[room.pauseTime.length - 1].pause) >= this.secondToTimestamp(42)) {
 				room.pauseForfait();
 				room.changeGameState(GameState.END);
 				room.pauseTime[room.pauseTime.length - 1].resume = Date.now();
