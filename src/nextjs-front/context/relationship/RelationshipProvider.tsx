@@ -22,9 +22,9 @@ const RelationshipProvider: React.FC = ({ children }) => {
 			if (user.id !== userId && !user.accountDeactivated) {
 				const isNotFriend = !(!!friends.find((friend) => friend.id === user.id));
 				const isNotBlocked = !(!!blocked.find((blockedUser) => blockedUser.id === user.id));
-				const noRequest = !(!!requests.find((receiver) => receiver.id === user.id));
+				const notRequested = !(!!requests.find((receiver) => receiver.id === user.id));
 
-				if (isNotFriend && isNotBlocked && noRequest) {
+				if (isNotFriend && isNotBlocked && notRequested) {
 					suggestedUsers.push(user);
 				}
 			}
@@ -43,6 +43,7 @@ const RelationshipProvider: React.FC = ({ children }) => {
 		const filteredUsers = users.filter(user => {
 			return user.id !== userId;
 		});
+		const allRequests = [...data.pendingFriendsSent, ...data.pendingFriendsReceived];
 
 		setFriends(data.friends);
 		setBlocked(data.blockedUsers);
@@ -54,8 +55,9 @@ const RelationshipProvider: React.FC = ({ children }) => {
 				duoquadraFriends.push(friend);
 			}
 		}
+
 		setFriends42(duoquadraFriends);
-		createSuggestedFriends(filteredUsers, data.friends, data.blockedUsers, data.pendingFriendsSent);
+		createSuggestedFriends(filteredUsers, data.friends, data.blockedUsers, allRequests);
 	}
 
 	/* Fetch all users and set current user relationships */

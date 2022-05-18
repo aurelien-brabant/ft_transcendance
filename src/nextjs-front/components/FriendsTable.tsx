@@ -91,10 +91,6 @@ const FriendsTable: React.FC<{ category: string, list: User[], setSelected: any 
 
     if (res.status === 200) {
       setPendingFriendsSent(data.pendingFriendsSent);
-      setAlert({
-        type: 'info',
-        content: 'Friend request sent'
-      });
     } else {
       setAlert({
         type: 'error',
@@ -114,8 +110,10 @@ const FriendsTable: React.FC<{ category: string, list: User[], setSelected: any 
     const data = await res.json();
 
     if (res.status === 200) {
-      console.log(data.friends);
       setFriends(data.friends);
+      if (user.duoquadra_login) {
+        setFriends42([ ...friends42, user ]);
+      }
     } else {
       setAlert({
         type: 'error',
@@ -134,7 +132,6 @@ const FriendsTable: React.FC<{ category: string, list: User[], setSelected: any 
     const data = await res.json();
 
     if (res.status === 200) {
-      console.log(data.pendingFriendsReceived);
       setPendingFriendsReceived(data.pendingFriendsReceived);
     } else {
       setAlert({
@@ -154,8 +151,14 @@ const FriendsTable: React.FC<{ category: string, list: User[], setSelected: any 
     const data = await res.json();
 
     if (res.status === 200) {
-      console.log(data.friends);
       setFriends(data.friends);
+      if (user.duoquadra_login) {
+        const filteredUsers = friends42.filter(friend => {
+          return friend.id !== user.id;
+        });
+
+        setFriends42(filteredUsers);
+      }
     } else {
       setAlert({
         type: 'error',
@@ -180,10 +183,6 @@ const FriendsTable: React.FC<{ category: string, list: User[], setSelected: any 
 
     if (res.status === 200) {
       setBlocked(data.blockedUsers);
-      setAlert({
-        type: 'success',
-        content: `User ${user.username} blocked`
-      });
     } else {
       setAlert({
         type: 'error',
@@ -209,10 +208,6 @@ const FriendsTable: React.FC<{ category: string, list: User[], setSelected: any 
 
     if (res.status === 200) {
       setBlocked(data.blockedUsers);
-      setAlert({
-        type: 'success',
-        content: `User ${user.username} unblocked`
-      });
     } else {
       setAlert({
         type: 'error',
