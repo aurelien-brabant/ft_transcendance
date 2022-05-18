@@ -118,8 +118,11 @@ const FriendsPage: NextPageWithLayout = ({}) => {
             </div>
 
             <div className="flex flex-col items-center">
-              <h1 className="text-2xl text-pink-500">{user.username}</h1>
+              <h1 className="text-2xl uppercase text-pink-500 font-extrabold">
+                {user.username}
+              </h1>
               <UserStatusItem
+                className={"mt-2"}
                 id={user.id}
               />
             </div>
