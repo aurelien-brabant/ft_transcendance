@@ -1,54 +1,23 @@
 import { useContext, useEffect, useState } from "react";
 import { BounceLoader } from "react-spinners";
-import { FaUserClock, FaUserFriends, FaUsersSlash } from "react-icons/fa";
 import { RiUserSettingsLine } from "react-icons/ri";
+import {
+  ClockIcon,
+  InboxInIcon,
+  LockClosedIcon,
+  UserAddIcon,
+  UsersIcon,
+} from "@heroicons/react/outline";
 import Image from "next/image";
 import { useRouter } from "next/router";
 import { NextPageWithLayout } from "./_app";
-import relationshipContext, {
-  RelationshipContextType,
-} from "../context/relationship/relationshipContext";
+import { useSession } from "../hooks/use-session";
+import { UserStatusItem } from "../components/UserStatus";
 import FriendsTable from "../components/FriendsTable";
 import Selector from "../components/Selector";
 import Tooltip from "../components/Tooltip";
-import { useSession } from "../hooks/use-session";
-import { UserStatusItem } from "../components/UserStatus";
 import withDashboardLayout from "../components/hoc/withDashboardLayout";
-
-export type Highlight = {
-  n: number;
-  label: string;
-  hint: string;
-  nColor: string;
-};
-
-const HighlightItem: React.FC<Highlight> = ({ n, label, hint, nColor }) => {
-  return (
-    <article
-      style={label === "friends42" ? { color: "#00babc" } : {}}
-      className={`flex flex-col items-center gap-y-2 ${nColor}`}
-    >
-      <div
-        style={label === "friends42" ? { backgroundColor: "#00babc" } : {}}
-        className="text-6xl rounded-full"
-      >
-        {label === "friends" && <FaUserFriends />}
-        {label === "friends42" && (
-          <div className="relative w-12 h-12 flex justify-center items-center text-center">
-          <img
-            className="object-cover object-center w-full h-full rounded-full"
-            src="/plain_logo.svg"
-          />
-          </div>
-        )}
-        {label === "blocked" && <FaUsersSlash />}
-        {label === "pending" && <FaUserClock />}
-      </div>
-      <h1 className="text-5xl">{n}</h1>
-      <small className="font-bold">{hint}</small>
-    </article>
-  );
-};
+import relationshipContext, { RelationshipContextType } from "../context/relationship/relationshipContext";
 
 const FriendsPage: NextPageWithLayout = ({}) => {
   const [isLoading, setIsLoading] = useState(true);
@@ -64,6 +33,46 @@ const FriendsPage: NextPageWithLayout = ({}) => {
     getRelationshipsData,
   } = useContext(relationshipContext) as RelationshipContextType;
   const router = useRouter();
+
+  /* Header between the user picture and the other users cards */
+  const friendHeader = [
+    {
+      name: "Friends",
+      icon: UsersIcon,
+      nb: friends.length,
+      color: "text-pink-500",
+    },
+    {
+      name: "Friends@42",
+      icon: UsersIcon,
+      nb: friends42.length,
+      color: "text-emerald-500",
+    },
+    {
+      name: "Received requests",
+      icon: InboxInIcon,
+      nb: pendingFriendsReceived.length,
+      color: "text-blue-500",
+    },
+    {
+      name: "Sent requests",
+      icon: ClockIcon,
+      nb: pendingFriendsSent.length,
+      color: "text-blue-700",
+    },
+    {
+      name: "Blocked users",
+      icon: LockClosedIcon,
+      nb: blocked.length,
+      color: "text-slate-700",
+    },
+    {
+      name: "Suggested friends",
+      icon: UserAddIcon,
+      nb: suggested.length,
+      color: "text-purple-400",
+    },
+  ];
 
   const fetchUserRelationships = async () => {
     setIsLoading(true);
@@ -115,37 +124,17 @@ const FriendsPage: NextPageWithLayout = ({}) => {
               />
             </div>
 
-            <div className="space-y-7 md:space-y-0 w-full p-2 bg-01dp border border-02dp rounded drop-shadow-md grid grid-cols-2 md:grid-cols-5 items-end">
-              <HighlightItem
-                n={friends.length}
-                label="friends"
-                hint="Friends"
-                nColor="text-blue-500"
-              />
-              <HighlightItem
-                n={friends42.length}
-                label="friends42"
-                hint="Friends @42"
-                nColor="text-green-500"
-              />
-              <HighlightItem
-                n={pendingFriendsReceived.length}
-                label="pending"
-                hint="Received Requests"
-                nColor="text-purple-500"
-              />
-              <HighlightItem
-                n={pendingFriendsSent.length}
-                label="pending"
-                hint="Sent Requests"
-                nColor="text-purple-400"
-              />
-              <HighlightItem
-                n={blocked.length}
-                label="blocked"
-                hint="Blocked Users"
-                nColor="text-red-500"
-              />
+            <div className="grid grid-cols-6 gap-2 bg-01dp p-6">
+              {friendHeader.map((item) => (
+                <div className="flex flex-col items-center align-end gap-y-2 text-gray-400" >
+                  <item.icon
+                    className={`h-6 w-6 ${item.color}`}
+                    aria-hidden="true"
+                  />
+                  <h1>{item.nb}</h1>
+                  <p className="text-center text-sm">{item.name}</p>
+                </div>
+              ))}
             </div>
 
             <Selector
