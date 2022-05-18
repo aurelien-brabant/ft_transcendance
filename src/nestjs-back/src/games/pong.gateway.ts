@@ -78,10 +78,7 @@ export class PongGateway implements OnGatewayInit, OnGatewayConnection, OnGatewa
 				newUser.setRoomId(room.roomId);
 				this.server.to(client.id).emit("newRoom", room);
 				if (room.gameState === GameState.PAUSED)
-				{
-					room.changeGameState(GameState.RESUMED);
-					room.pauseTime[room.pauseTime.length - 1].resume = Date.now();
-				}
+					room.resume();
 				return ;
 			}
 		});
@@ -170,9 +167,8 @@ export class PongGateway implements OnGatewayInit, OnGatewayConnection, OnGatewa
 		if (room) {
 			let user = this.connectedUsers.getUser(client.id);
 			client.join(roomId);
-			if (user.status === UserStatus.INHUB) {
+			if (user.status === UserStatus.INHUB)
 				this.connectedUsers.changeUserStatus(client.id, UserStatus.SPECTATING);
-			}
 			else if (room.isAPlayer(user))
 				room.addUser(user);
 			this.server.to(client.id).emit("joinedRoom");
@@ -212,10 +208,9 @@ export class PongGateway implements OnGatewayInit, OnGatewayConnection, OnGatewa
 
 		if (room) {
 			let currentTimestamp = Date.now();
+
 			if (room.gameState === GameState.STARTING && (currentTimestamp - room.timestampStart) >= 3500) {
-				room.timestampStart = Date.now();
-				room.lastUpdate = Date.now();
-				room.changeGameState(GameState.PLAYING);
+				room.start();
 			}
 			else if (room.gameState === GameState.PLAYING)
 			{
@@ -270,7 +265,7 @@ export class PongGateway implements OnGatewayInit, OnGatewayConnection, OnGatewa
 				console.log(isDraw);
 
 				/* Save game in database */
-				let test = await this.gamesService.create({
+				await this.gamesService.create({
 					players: [winner, loser],
 					winnerId: room.winnerId,
 					loserId: room.loserId,

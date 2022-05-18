@@ -109,10 +109,20 @@ export default class Room implements IRoom {
 		this.gameState = newGameState;
 	}
 
+	start(): void {
+		this.timestampStart = Date.now();
+		this.lastUpdate = Date.now();
+		this.changeGameState(GameState.PLAYING);
+	}
+
 	pause(): void {
 		this.changeGameState(GameState.PAUSED);
 		this.pauseTime.push({pause: Date.now(), resume: Date.now()});
+	}
 
+	resume(): void {
+		this.changeGameState(GameState.RESUMED);
+		this.pauseTime[this.pauseTime.length - 1].resume = Date.now();
 	}
 
 	resetPosition(): void {
