@@ -120,7 +120,6 @@ export class PongGateway implements OnGatewayInit, OnGatewayConnection, OnGatewa
 		}
 	}
 
-	// Etape 1 : Player JoinQueue
 	@SubscribeMessage('joinQueue')
 	handleJoinQueue(@ConnectedSocket() client: Socket, @MessageBody() mode: string) {
 		let user: User = this.connectedUsers.getUser(client.id);
@@ -135,12 +134,10 @@ export class PongGateway implements OnGatewayInit, OnGatewayConnection, OnGatewa
 		}
 	}
 
-	// Etape 1 : Player JoinQueue
 	@SubscribeMessage('leaveQueue')
 	handleLeaveQueue(@ConnectedSocket() client: Socket) {
 		let user: User = this.connectedUsers.getUser(client.id);
 
-		// check if user is in queue
 		if (user && this.queue.isInQueue(user))
 		{
 			this.queue.remove(user);
@@ -159,7 +156,6 @@ export class PongGateway implements OnGatewayInit, OnGatewayConnection, OnGatewa
 		}
 	}
 
-	// Etape 2 : The player was assigned a Room and received the roomId we add him to the room
 	@SubscribeMessage('joinRoom')
 	handleJoinRoom(@ConnectedSocket() client: Socket, @MessageBody() roomId: string) {
 		const room: Room = this.rooms.get(roomId);
@@ -201,13 +197,39 @@ export class PongGateway implements OnGatewayInit, OnGatewayConnection, OnGatewa
 		this.server.to(client.id).emit("leavedRoom");
 	}
 
-	// Etape 3 : Players ask for the last room Updates
+	async saveGame(room: Room, currentTimestamp: number){
+			let winner = await this.usersService.findOne(String(room.winnerId));
+			let loser = await this.usersService.findOne(String(room.loserId));
+
+			/* Update users wins/losses/draws and ratio */
+			const isDraw: boolean = false; // This is not used but may be one day
+			await this.usersService.updateStats(winner, isDraw, true);
+			await this.usersService.updateStats(loser, isDraw, false);
+
+			/* Save game in database */
+			let test = await this.gamesService.create({
+				players: [winner, loser],
+				winnerId: room.winnerId,
+				loserId: room.loserId,
+				createdAt: new Date(room.timestampStart),
+				endedAt: new Date(currentTimestamp),
+				gameDuration: room.getDuration(),
+				winnerScore: room.winnerScore,
+				loserScore: room.loserScore,
+				mode: room.mode
+			});
+			let roomIndex: number = this.currentGames.findIndex(roomIdRm => roomIdRm === room.roomId);
+			if (roomIndex !== -1)
+				this.currentGames.splice(roomIndex, 1);
+			this.server.emit("updateCurrentGames", this.currentGames);
+	}
+
 	@SubscribeMessage('requestUpdate')
 	async handleRequestUpdate(@ConnectedSocket() client: Socket, @MessageBody() roomId: string) {
 		const room: Room = this.rooms.get(roomId);
 
 		if (room) {
-			let currentTimestamp = Date.now();
+			let currentTimestamp: number = Date.now();
 
 			if (room.gameState === GameState.STARTING && (currentTimestamp - room.timestampStart) >= 3500) {
 				room.start();
@@ -215,31 +237,9 @@ export class PongGateway implements OnGatewayInit, OnGatewayConnection, OnGatewa
 			else if (room.gameState === GameState.PLAYING)
 			{
 				room.update();
+
 				if (room.isGameEnd) {
-					let winner = await this.usersService.findOne(String(room.winnerId));
-					let loser = await this.usersService.findOne(String(room.loserId));
-
-					/* Update users wins/losses/draws and ratio */
-					const isDraw: boolean = false; // This is not used but may be one day
-					await this.usersService.updateStats(winner, isDraw, true);
-					await this.usersService.updateStats(loser, isDraw, false);
-
-					/* Save game in database */
-					let test = await this.gamesService.create({
-						players: [winner, loser],
-						winnerId: room.winnerId,
-						loserId: room.loserId,
-						createdAt: new Date(room.timestampStart),
-						endedAt: new Date(currentTimestamp),
-						gameDuration: room.getDuration(),
-						winnerScore: room.winnerScore,
-						loserScore: room.loserScore,
-						mode: room.mode
-					});
-					let roomIndex: number = this.currentGames.findIndex(roomIdRm => roomIdRm === room.roomId);
-					if (roomIndex !== -1)
-						this.currentGames.splice(roomIndex, 1);
-					this.server.emit("updateCurrentGames", this.currentGames);
+				this.saveGame(room, currentTimestamp);
 				}
 			}
 			else if (room.gameState === GameState.GOAL && (currentTimestamp - room.goalTimestamp) >= 3500) {
@@ -254,33 +254,7 @@ export class PongGateway implements OnGatewayInit, OnGatewayConnection, OnGatewa
 				
 				room.changeGameState(GameState.END);
 				room.pauseTime[room.pauseTime.length - 1].resume = Date.now();
-
-				let winner = await this.usersService.findOne(String(room.winnerId));
-				let loser = await this.usersService.findOne(String(room.loserId));
-
-				/* Update users wins/losses/draws and ratio */
-				const isDraw: boolean = false; // This is not used but may be one day
-				await this.usersService.updateStats(winner, isDraw, true);
-				await this.usersService.updateStats(loser, isDraw, false);
-				console.log(isDraw);
-
-				/* Save game in database */
-				await this.gamesService.create({
-					players: [winner, loser],
-					winnerId: room.winnerId,
-					loserId: room.loserId,
-					createdAt: new Date(room.timestampStart),
-					endedAt: new Date(currentTimestamp),
-					gameDuration: room.getDuration(),
-					winnerScore: room.winnerScore,
-					loserScore: room.loserScore,
-					mode: room.mode
-				});
-				let roomIndex: number = this.currentGames.findIndex(roomIdRm => roomIdRm === room.roomId);
-				if (roomIndex !== -1)
-					this.currentGames.splice(roomIndex, 1);
-				this.server.emit("updateCurrentGames", this.currentGames);
-
+				this.saveGame(room, currentTimestamp);
 			}
 
 			if (room.mode === GameMode.TIMER && (room.gameState === GameState.GOAL || room.gameState === GameState.PLAYING))
@@ -336,7 +310,6 @@ export class PongGateway implements OnGatewayInit, OnGatewayConnection, OnGatewa
 	}
 
 
-	// Etape 1 : Player JoinQueue
 	@SubscribeMessage('getCurrentGames')
 	handleCurrentGames(@ConnectedSocket() client: Socket) {
 		this.server.to(client.id).emit("updateCurrentGames", (this.currentGames));

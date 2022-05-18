@@ -73,7 +73,9 @@ const Hub: NextPageWithLayout = () => {
 		});
 
 		socket.on("joinedRoom", (data: IRoom) => {
-			chatSocket.emit("userGameStatus", { isPlaying: true });
+			if (chatSocket)
+				chatSocket.emit("userGameStatus", { isPlaying: true });
+
 			setDisplayGame(true);
 			setAlert({
 				type: "info",
@@ -82,7 +84,8 @@ const Hub: NextPageWithLayout = () => {
 		});
 
 		socket.on("leavedRoom", (data: IRoom) => {
-			chatSocket.emit("userGameStatus", { isPlaying: false });
+			if (chatSocket)
+				chatSocket.emit("userGameStatus", { isPlaying: false });
 			roomId = undefined;
 			setDisplayGame(false);
 			setRoom(null);
