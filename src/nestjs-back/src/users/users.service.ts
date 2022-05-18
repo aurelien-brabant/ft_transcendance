@@ -27,6 +27,9 @@ export class UsersService {
   findAll(paginationQuery: PaginationQueryDto) {
     const { offset, limit } = paginationQuery;
     return this.usersRepository.find({
+      relations: [
+        'games',
+      ],
       skip: offset,
       take: limit,
       order: {
@@ -64,8 +67,8 @@ export class UsersService {
     const user = await this.usersRepository.findOne({
       relations: [
         'games',
-        'friends',
         'achievements',
+        'friends',
         'blockedUsers',
         'pendingFriendsSent',
         'pendingFriendsReceived',
