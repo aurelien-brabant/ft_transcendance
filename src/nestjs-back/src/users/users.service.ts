@@ -27,24 +27,40 @@ export class UsersService {
   findAll(paginationQuery: PaginationQueryDto) {
     const { offset, limit } = paginationQuery;
     return this.usersRepository.find({
-      relations: [
-        'games',
-        'friends',
-        'blockedUsers',
-        'pendingFriendsSent',
-        'pendingFriendsReceived',
-      ],
       skip: offset,
       take: limit,
       order: {
-        ratio: 'DESC',
+        wins: 'DESC',
       },
     });
   }
 
+  /**
+   * The following fields are sensitive and unselected so they don't
+   * appear in search bar results. This function aims to collect them
+   * for a specific user.
+   */
+  async getUserSensitiveFields(id: string) {
+    const user = await this.usersRepository
+      .createQueryBuilder('user')
+      .addSelect('user.email')
+      .addSelect('user.tfa')
+      .addSelect('user.tfaSecret')
+      .addSelect('user.hasTfaBeenValidated')
+      .addSelect('user.lastTfaRequestTimestamp')
+      .where('user.id = :id', { id })
+      .getOne();
+
+    if (!user) {
+      throw new Error('User not found');
+    }
+    return user;
+  }
+
   async findOne(id: string) {
     /* if id can't be parsed as a number then it is assumed to be an username */
-    const isDatabaseId = !isNaN(Number(id))
+    const isDatabaseId = !isNaN(Number(id));
+
     const user = await this.usersRepository.findOne({
       relations: [
         'games',
@@ -60,6 +76,14 @@ export class UsersService {
     if (!user) {
       throw new Error('User not found');
     }
+
+    const hidden = await this.getUserSensitiveFields(user.id.toString());
+
+    user.email = hidden.email;
+    user.tfa = hidden.tfa;
+    user.tfaSecret = hidden.tfaSecret;
+    user.hasTfaBeenValidated = hidden.hasTfaBeenValidated;
+    user.lastTfaRequestTimestamp= hidden.lastTfaRequestTimestamp;
 
     return user;
   }
