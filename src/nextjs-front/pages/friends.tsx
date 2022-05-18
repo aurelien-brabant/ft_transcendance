@@ -126,7 +126,10 @@ const FriendsPage: NextPageWithLayout = ({}) => {
 
             <div className="grid grid-cols-6 gap-2 bg-01dp p-6">
               {friendHeader.map((item) => (
-                <div className="flex flex-col items-center align-end gap-y-2 text-gray-400" >
+                <div
+                  key={item.name}
+                  className="flex flex-col items-center align-end gap-y-2 text-gray-400"
+                >
                   <item.icon
                     className={`h-6 w-6 ${item.color}`}
                     aria-hidden="true"
