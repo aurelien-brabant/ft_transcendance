@@ -1,8 +1,8 @@
 import { useContext, useEffect, useState } from "react";
 import { BounceLoader } from "react-spinners";
-import { RiUserSettingsLine } from "react-icons/ri";
 import {
   ClockIcon,
+  CogIcon,
   InboxInIcon,
   LockClosedIcon,
   UserAddIcon,
@@ -107,7 +107,8 @@ const FriendsPage: NextPageWithLayout = ({}) => {
                   content="Edit profile"
                 >
                   <button className="p-2 text-2xl text-white/90 bg-01dp rounded-full transition hover:scale-105">
-                    <RiUserSettingsLine
+                    <CogIcon
+                      className="h-6 w-6"
                       onClick={() => {
                         router.push("/welcome");
                       }}
@@ -118,8 +119,11 @@ const FriendsPage: NextPageWithLayout = ({}) => {
             </div>
 
             <div className="flex flex-col items-center">
-              <h1 className="text-2xl text-pink-500">{user.username}</h1>
+              <h1 className="text-2xl uppercase text-pink-500 font-extrabold">
+                {user.username}
+              </h1>
               <UserStatusItem
+                className={"mt-2"}
                 id={user.id}
               />
             </div>

@@ -15,6 +15,7 @@ import { useSession } from "../hooks/use-session";
 const labelClassName = "grow uppercase text-neutral-400";
 const inputClassName = "transition col-span-2 grow bg-transparent outline-0 border-04dp pb-1 border-b-2 focus:border-pink-600";
 const inputGroupClassName = "grid md:grid-cols-4 grid-cols-1 items-center gap-x-8 gap-y-2";
+const actionTooltipStyles = "font-bold bg-dark text-neutral-200";
 
 type FormData = {
   username: string;
@@ -34,7 +35,7 @@ const InputErrorProvider: React.FC<{ error?: string | null }> = ({
   error,
 }) => (
   <div className="flex flex-col col-span-2">
-    <small className="min-h-[1.5em] text-red-500">{error && error}</small>
+    <small className="min-h-[1.5em] text-red-400">{error && error}</small>
     {children}
   </div>
 );
@@ -384,11 +385,11 @@ const Welcome: NextPageWithLayout = () => {
 
       {(user.duoquadra_login) &&
       <div className="flex flex-col items-center p-2">
-        <div className="border border-gray-900 hover:border-pink-600 rounded-full pb-0 pt-2 pr-2 pl-2">
+        <div className="bg-pink-200 rounded-full pb-0 pt-2 pr-2 pl-2">
           <Image
             src="/logo.svg"
-            width={35}
-            height={35}
+            width={25}
+            height={25}
             alt="42 logo"
             title="Get intra picture profile"
             className="hover:cursor-pointer"
@@ -399,58 +400,49 @@ const Welcome: NextPageWithLayout = () => {
 
       {!pendingQR ? (
       <Fragment>
-        <div className="flex flex-col items-center gap-y-4">
+        <div className="flex flex-col items-center gap-y-10">
           <div className="relative w-48 h-48">
             <img
-              className="object-cover object-center w-full h-full rounded drop-shadow-md"
+              className="object-cover object-center w-full h-full rounded-full ring-pink-500 p-2 ring drop-shadow-md"
               src={`/api/users/${user.id}/photo`}
             />
 
             {pendingPic ? (
-            <div className="absolute p-2 bg-white border-2 border-gray-900 rounded-full -top-4 -right-4">
-              <div className="absolute left-0 right-0 flex items-center justify-center -bottom-4 gap-x-2">
-                <Tooltip className="font-bold bg-gray-900 text-neutral-200" content="Cancel">
-                  <button className="p-2 text-xl text-gray-900 bg-white rounded-full transition hover:scale-105">
-                    <MdCancel
-                        className="text-red-600"
-                        onClick={() => {setPendingPic(false)}}
-                    />
-                  </button>
-                </Tooltip>
-              </div>
+            <div className="absolute left-0 right-0 flex items-center justify-center -bottom-4 gap-x-2">
+              <Tooltip className={actionTooltipStyles} content="Cancel">
+                <button className="p-2 text-2xl text-pink-200 bg-pink-700 rounded-full transition hover:scale-105">
+                  <MdCancel
+                    onClick={() => {setPendingPic(false);}}
+                  />
+                </button>
+              </Tooltip>
             </div>
             ) : (
-            <div>
-              <div className="absolute flex -top-4 -left-4">
-                <Tooltip className="font-bold bg-gray-900 text-neutral-200" content="Random avatar">
-                  <button className="p-2 text-xl text-gray-900 bg-white rounded-full transition hover:scale-105">
+              <div className="absolute left-0 right-0 flex items-center justify-center -bottom-4 gap-x-2">
+                <Tooltip className={actionTooltipStyles} content="Random avatar">
+                  <button className="p-2 text-2xl text-pink-700 bg-pink-200 rounded-full transition hover:scale-105">
                     <MdCameraswitch
-                      className="text-gray-900 hover:text-pink-600"
-                      onClick={() => {getRandomPic()}}
+                      onClick={() => {getRandomPic();}}
                     />
                   </button>
                 </Tooltip>
-              </div>
-              <div className="absolute flex -top-4 -right-4">
-                <Tooltip className="font-bold bg-gray-900 text-neutral-200" content="Upload avatar">
-                  <button className="p-2 text-xl text-gray-900 bg-white rounded-full transition hover:scale-105">
+                <Tooltip className={actionTooltipStyles} content="Upload avatar">
+                  <button className="p-2 text-2xl text-pink-700 bg-pink-200 rounded-full transition hover:scale-105">
                     <FiEdit2
-                      className="text-gray-900 hover:text-pink-600"
-                      onClick={() => {setPendingPic(true)}}
+                      onClick={() => {setPendingPic(true);}}
                     />
                   </button>
                 </Tooltip>
               </div>
-            </div>
             )}
           </div>
           {pendingPic ? (
           <UploadPic />
           ) : (
-          <div className="text-center">
-            <h2 className="text-xl font-bold text-pink-600">
+          <div className="flex flex-col items-center">
+            <h1 className="text-2xl uppercase text-pink-500 font-extrabold">
               {user.username}
-            </h2>
+            </h1>
             <Link href={`/users/${user.id}`}>
               <a className="block py-1 text-sm uppercase text-neutral-200 hover:underline">
                 See public profile
@@ -503,7 +495,7 @@ const Welcome: NextPageWithLayout = () => {
               </label>
               <button
                 type="button"
-                className={`px-6 py-2 col-span-2 ${(tfaStatus === 'enabled') ? "bg-red-500" : "bg-green-500"}`}
+                className={`px-6 py-2 col-span-2 ${(tfaStatus === 'enabled') ? "bg-red-400" : "bg-emerald-500"}`}
                 onClick={() => {
                   if (tfaStatus === 'disabled') {
                     setAlert({ type: 'info', content: 'Scan the QR code to get the 6-digits code given by your authenticator app'})
@@ -525,7 +517,7 @@ const Welcome: NextPageWithLayout = () => {
             <div className="flex flex-col justify-between py-5 gap-y-4 md:gap-y-0 md:flex-row">
               <button
                 type="submit"
-                className={`px-1 md:px-6 py-2 font-bold uppercase bg-green-600 text-sm md:text-lg ${
+                className={`px-1 md:px-6 py-2 font-bold uppercase bg-emerald-500 text-sm md:text-lg ${
                   !hasPendingChanges && "opacity-70"
                 }`}
               >
@@ -533,7 +525,7 @@ const Welcome: NextPageWithLayout = () => {
               </button>
 
               <button
-                className="px-1 py-2 text-sm font-bold uppercase bg-red-600 md:px-6 md:text-lg"
+                className="px-1 py-2 text-sm font-bold uppercase bg-slate-700 md:px-6 md:text-lg"
                 onClick={(e) => {
                   e.preventDefault();
                   if (confirm("Deactivated account?\nJust login again to reactivate your account.\n\nClick OK to proceed.") == true) {
