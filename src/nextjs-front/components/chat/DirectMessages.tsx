@@ -41,7 +41,7 @@ const DirectMessages: React.FC<{ viewParams: Object; }> = ({ viewParams }) => {
 	const updateDmsListener = (channels: DmChannel[]) => {
 		const dms: DirectMessage[] = [];
 
-		for (var channel of Array.from(channels)) {
+		for (const channel of Array.from(channels)) {
 			const friend = (channel.users[0].id === user.id) ? channel.users[1] : channel.users[0];
 			const isBlocked = !!blocked.find(user => user.id === friend.id);
 

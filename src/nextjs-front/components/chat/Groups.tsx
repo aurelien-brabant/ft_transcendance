@@ -58,7 +58,7 @@ const Groups: React.FC<{viewParams: Object;}> = ({ viewParams }) => {
 	const updateChannelsListener = (channels: Channel[]) => {
 		const groups: ChatGroup[] = [];
 
-		for (var channel of Array.from(channels)) {
+		for (const channel of Array.from(channels)) {
 			const lastMessage: ChatMessagePreview = getLastMessage(channel, (channel.privacy === "protected"));
 
 			groups.push({

@@ -176,7 +176,7 @@ const GroupUsers: React.FC<{ viewParams: any }> = ({ viewParams }) => {
 		setOwner(owner);
 
 		const users: UserSummary[] = [];
-		for (var chanUser of channel.users) {
+		for (const chanUser of channel.users) {
 			if (chanUser.id !== owner.id) {
 				users.push({
 					id: chanUser.id,

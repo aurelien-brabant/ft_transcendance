@@ -211,7 +211,7 @@ export class ChatGateway implements OnGatewayInit, OnGatewayConnection {
 	) {
 		const channels = await this.chatService.getUserChannels(userId);
 
-		for (var channel of channels) {
+		for (const channel of channels) {
 			this.userJoinRoom(client.id, `channel_${channel.id}`);
 		}
 		this.server.to(client.id).emit('updateUserChannels', (channels));
@@ -548,7 +548,7 @@ export class ChatGateway implements OnGatewayInit, OnGatewayConnection {
 	) {
 		const dms = await this.chatService.getUserDms(userId);
 
-		for (var dm of dms) {
+		for (const dm of dms) {
 			this.userJoinRoom(client.id, `dm_${dm.id}`);
 		}
 		this.server.to(client.id).emit('updateUserDms', (dms));

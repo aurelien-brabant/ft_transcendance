@@ -222,7 +222,7 @@ const UserProfilePage: NextPageWithLayout = ({}) => {
       ((new Date(b.endedAt)).valueOf() - (new Date(a.endedAt)).valueOf())
     );
 
-    for (var game of games) {
+    for (const game of games) {
       const opponentId = (game.winnerId === parseInt(userId)) ? game.loserId : game.winnerId;
       const userIsWinner = (game.winnerId === parseInt(userId));
       const res = await fetch(`/api/users/${opponentId}`);
