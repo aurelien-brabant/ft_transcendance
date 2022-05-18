@@ -109,7 +109,7 @@ const FriendsPage: NextPageWithLayout = ({}) => {
             </div>
 
             <div className="flex flex-col items-center">
-              <h1 className="text-2xl text-pink-600">{user.username}</h1>
+              <h1 className="text-2xl text-pink-500">{user.username}</h1>
               <UserStatusItem
                 id={user.id}
               />
@@ -131,14 +131,14 @@ const FriendsPage: NextPageWithLayout = ({}) => {
               <HighlightItem
                 n={pendingFriendsReceived.length}
                 label="pending"
-                hint="Pending Requests"
+                hint="Received Requests"
                 nColor="text-purple-500"
               />
               <HighlightItem
                 n={pendingFriendsSent.length}
                 label="pending"
-                hint="Pending Requests"
-                nColor="text-purple-500"
+                hint="Sent Requests"
+                nColor="text-purple-400"
               />
               <HighlightItem
                 n={blocked.length}

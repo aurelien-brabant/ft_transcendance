@@ -567,10 +567,6 @@ export class UsersService {
     else if (action === 'unblock') {
       return await this.unblockUser(id, otherUserId);
     }
-    // else if (action === 'cancelRequest') {
-    //   await this.removeFriendshipReceived(otherUserId, id);
-    //   return await this.removeFriendshipSent(id, otherUserId);
-    // }
     else if (action === 'rmRequest') {
       await this.removeFriendshipSent(otherUserId, id);
       return await this.removeFriendshipReceived(id, otherUserId);

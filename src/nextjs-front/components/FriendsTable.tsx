@@ -26,7 +26,7 @@ const FriendsTable: React.FC<{ category: string, list: User[], setSelected: any 
     pendingFriendsSent, setPendingFriendsSent,
   } = useContext(relationshipContext) as RelationshipContextType;
   const gridStyle = "place-items-stretch grid md:grid grid-cols-2 md:grid-cols-3 gap-10 text-center pt-10 pb-10";
-  const userCardStyle = "text-pink-600 justity-items-center px-5 pt-2 pb-7 bg-01dp border border-pink-500 rounded hover:bg-03dp hover:text-inherit md:transition md:transform md:ease-in md:hover:-translate-y-1";
+  const userCardStyle = "text-pink-500 justity-items-center px-5 pt-2 pb-7 bg-01dp border border-pink-500 rounded hover:bg-03dp hover:text-inherit md:transition md:transform md:ease-in md:hover:-translate-y-1";
   const actionTooltipStyles = "font-bold bg-dark text-neutral-200";
 
   const getUserCard = (user: User) => {
@@ -34,7 +34,7 @@ const FriendsTable: React.FC<{ category: string, list: User[], setSelected: any 
       <Link href={`/users/${user.id}`}>
       <a>
         <div className="grid grid-cols-2 m-2 space-x-3">
-          <div className="grid grid-cols-1 text-center place-items-center text-yellow-400 border-pink-600 bg-inherit">
+          <div className="grid grid-cols-1 text-center place-items-center text-yellow-400 border-pink-500 bg-inherit">
             <FaMedal/> {user.wins}
           </div>
           <div className="grid grid-cols-1 text-center place-items-center text-red-500 bg-inherit">
@@ -65,7 +65,7 @@ const FriendsTable: React.FC<{ category: string, list: User[], setSelected: any 
             </div>
           </div>
         </div>}
-  
+
         <p className="place-content-evenly text-ellipsis overflow-hidden cursor-pointer font-bold">
           {user.username}
         </p>
@@ -222,10 +222,15 @@ const FriendsTable: React.FC<{ category: string, list: User[], setSelected: any 
 
   /* Icons for sending invites, add/remove friend, block and so forth */
   const getActionButtons = (user: User, category: string) => {
+    if (category === "sent") {
+      return (
+        <small className="text-pink-500">didn't accept the request yet</small>
+      );
+    }
     if (category === "blocked") {
       return (
         <div className="relative md:absolute left-0 right-0 flex items-center justify-center -bottom-4 gap-x-6">
-  
+
           <Tooltip className={actionTooltipStyles} content="Unblock">
             <button
               className="p-2 text-2xl bg-pink-200 text-pink-700 rounded-full"
@@ -234,13 +239,13 @@ const FriendsTable: React.FC<{ category: string, list: User[], setSelected: any 
               <RiUserHeartLine />
             </button>
           </Tooltip>
-  
+
         </div>
       );
     } else if (category === "pending") {
       return (
         <div className="relative md:absolute left-0 right-0 flex items-center justify-center -bottom-4 gap-x-6">
-  
+
           <Tooltip className={actionTooltipStyles} content="Add friend">
             <button
               className="p-2 text-2xl bg-green-200 text-green-700 rounded-full"
@@ -258,7 +263,7 @@ const FriendsTable: React.FC<{ category: string, list: User[], setSelected: any 
               <AiOutlineClose />
             </button>
           </Tooltip>
-  
+
         </div>
       );
     }
@@ -331,7 +336,7 @@ const FriendsTable: React.FC<{ category: string, list: User[], setSelected: any 
               Have a look at recommandations
           </h3>
           <button className="m-5" onClick={() => {setSelected(4);}}>
-              <IoIosArrowForward className="text-pink-600 text-2xl hover:animate-bounceForward hover:cursor-pointer"/>
+              <IoIosArrowForward className="text-pink-500 text-2xl hover:animate-bounceForward hover:cursor-pointer"/>
           </button>
         </>}
         {(category === 'suggested') &&
