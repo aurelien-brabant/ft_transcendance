@@ -22,6 +22,7 @@ const FriendsTable: React.FC<{ category: string, list: User[], setSelected: any 
     friends, setFriends,
     friends42, setFriends42,
     blocked, setBlocked,
+    suggested, setSuggested,
     pendingFriendsReceived, setPendingFriendsReceived,
     pendingFriendsSent, setPendingFriendsSent,
   } = useContext(relationshipContext) as RelationshipContextType;
@@ -77,7 +78,7 @@ const FriendsTable: React.FC<{ category: string, list: User[], setSelected: any 
 
   /* Send friend request */
   const sendFriendRequest = async (user: User) => {
-    const res = await backend.request(`/api/users/${user.id}`, {
+    const res = await backend.request(`/api/users/${currentUser.id}`, {
       method: "PATCH",
       headers: {
         "Content-Type": "application/json",
@@ -91,10 +92,15 @@ const FriendsTable: React.FC<{ category: string, list: User[], setSelected: any 
 
     if (res.status === 200) {
       setPendingFriendsSent(data.pendingFriendsSent);
+
+      const filteredUsers = suggested.filter(suggestion => {
+        return suggestion.id !== user.id;
+      });
+      setSuggested(filteredUsers);
     } else {
       setAlert({
         type: 'error',
-        content: `Error sending friend request`
+        content: data.message
       });
     }
   }
@@ -111,13 +117,15 @@ const FriendsTable: React.FC<{ category: string, list: User[], setSelected: any 
 
     if (res.status === 200) {
       setFriends(data.friends);
+      setPendingFriendsReceived(data.pendingFriendsReceived);
+
       if (user.duoquadra_login) {
         setFriends42([ ...friends42, user ]);
       }
     } else {
       setAlert({
         type: 'error',
-        content: `Error accepting friend request`
+        content: data.message
       });
     }
   }
@@ -136,7 +144,7 @@ const FriendsTable: React.FC<{ category: string, list: User[], setSelected: any 
     } else {
       setAlert({
         type: 'error',
-        content: `Error declining friend request`
+        content: data.message
       });
     }
   }
@@ -152,24 +160,24 @@ const FriendsTable: React.FC<{ category: string, list: User[], setSelected: any 
 
     if (res.status === 200) {
       setFriends(data.friends);
+
       if (user.duoquadra_login) {
         const filteredUsers = friends42.filter(friend => {
           return friend.id !== user.id;
         });
-
         setFriends42(filteredUsers);
       }
     } else {
       setAlert({
         type: 'error',
-        content: `Error removing friend`
+        content: data.message
       });
     }
   }
 
   /* Block / Unblock */
   const blockUser = async (user: User) => {
-    const res = await backend.request(`/api/users/${user.id}`, {
+    const res = await backend.request(`/api/users/${currentUser.id}`, {
       method: "PATCH",
       headers: {
         "Content-Type": "application/json",
@@ -186,7 +194,7 @@ const FriendsTable: React.FC<{ category: string, list: User[], setSelected: any 
     } else {
       setAlert({
         type: 'error',
-        content: `Error while unblocking ${user.username}`
+        content: 'Unblocking failed.'
       });
     }
   }
@@ -195,7 +203,7 @@ const FriendsTable: React.FC<{ category: string, list: User[], setSelected: any 
     const filteredUsers = blocked.filter((blockedUser) => {
       return blockedUser.id !== user.id;
     });
-    const res = await backend.request(`/api/users/${user.id}`, {
+    const res = await backend.request(`/api/users/${currentUser.id}`, {
       method: "PATCH",
       headers: {
         "Content-Type": "application/json",
@@ -211,7 +219,7 @@ const FriendsTable: React.FC<{ category: string, list: User[], setSelected: any 
     } else {
       setAlert({
         type: 'error',
-        content: `Error while blocking ${user.username}`
+        content: `Error while unblocking ${user.username}`
       });
     }
   }
