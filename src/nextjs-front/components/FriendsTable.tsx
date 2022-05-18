@@ -1,10 +1,17 @@
 import Link from "next/link";
 import Image from 'next/image';
 import { useContext } from "react";
-import { AiOutlineCheck, AiOutlineClose, AiOutlineFall, AiOutlineUserAdd, AiOutlineUserDelete } from "react-icons/ai";
-import { FaMedal, FaUserSlash } from "react-icons/fa";
+import {
+  ArrowDownIcon,
+  ArrowUpIcon,
+  CheckIcon,
+  LockClosedIcon,
+  LockOpenIcon,
+  UserAddIcon,
+  UserRemoveIcon,
+  XIcon
+} from "@heroicons/react/outline";
 import { IoIosArrowForward } from "react-icons/io";
-import { RiUserHeartLine } from "react-icons/ri";
 import { User } from 'transcendance-types';
 import ResponsiveFade from "./ResponsiveFade";
 import Tooltip from "./Tooltip";
@@ -23,7 +30,7 @@ const FriendsTable: React.FC<{ category: string, list: User[], setSelected: any 
     friends42, setFriends42,
     blocked, setBlocked,
     suggested, setSuggested,
-    pendingFriendsReceived, setPendingFriendsReceived,
+    setPendingFriendsReceived,
     pendingFriendsSent, setPendingFriendsSent,
   } = useContext(relationshipContext) as RelationshipContextType;
   const gridStyle = "place-items-stretch grid md:grid grid-cols-2 md:grid-cols-3 gap-10 text-center pt-10 pb-10";
@@ -35,11 +42,11 @@ const FriendsTable: React.FC<{ category: string, list: User[], setSelected: any 
       <Link href={`/users/${user.id}`}>
       <a>
         <div className="grid grid-cols-2 m-2 space-x-3">
-          <div className="grid grid-cols-1 text-center place-items-center text-yellow-400 border-pink-500 bg-inherit">
-            <FaMedal/> {user.wins}
+          <div className="grid grid-cols-1 text-center place-items-center text-green-500 border-pink-500 bg-inherit">
+            <ArrowUpIcon className="h-4 w-4" /> {user.wins}
           </div>
-          <div className="grid grid-cols-1 text-center place-items-center text-red-500 bg-inherit">
-            <AiOutlineFall className="text-xl font-bold"/> {user.losses}
+          <div className="grid grid-cols-1 text-center place-items-center text-red-400 bg-inherit">
+            <ArrowDownIcon className="h-4 w-4"/> {user.losses}
           </div>
         </div>
 
@@ -233,6 +240,7 @@ const FriendsTable: React.FC<{ category: string, list: User[], setSelected: any 
       if (user.duoquadra_login) {
         setFriends42([ ...friends42, user ]);
       }
+      setSuggested([ ...suggested, user ]);
     } else {
       setAlert({
         type: 'error',
@@ -257,7 +265,7 @@ const FriendsTable: React.FC<{ category: string, list: User[], setSelected: any 
               className="p-2 text-2xl bg-pink-200 text-pink-700 rounded-full"
               onClick={() => { unblockUser(user); }}
             >
-              <RiUserHeartLine />
+              <LockOpenIcon className="h-6 w-6" />
             </button>
           </Tooltip>
 
@@ -272,7 +280,7 @@ const FriendsTable: React.FC<{ category: string, list: User[], setSelected: any 
               className="p-2 text-2xl bg-green-200 text-green-700 rounded-full"
               onClick={() => { acceptFriendRequest(user); }}
             >
-              <AiOutlineCheck />
+              <CheckIcon className="h-6 w-6" />
             </button>
           </Tooltip>
 
@@ -281,7 +289,7 @@ const FriendsTable: React.FC<{ category: string, list: User[], setSelected: any 
               className="p-2 text-2xl bg-red-200 text-red-700 rounded-full"
               onClick={() => { declineFriendRequest(user); }}
             >
-              <AiOutlineClose />
+              <XIcon className="h-6 w-6" />
             </button>
           </Tooltip>
 
@@ -298,7 +306,7 @@ const FriendsTable: React.FC<{ category: string, list: User[], setSelected: any 
             className="p-2 text-2xl bg-pink-200 text-pink-700 rounded-full"
             onClick={() => { removeFriend(user); }}
           >
-            <AiOutlineUserDelete />
+            <UserRemoveIcon className="h-6 w-6" />
           </button>
         </Tooltip>}
 
@@ -308,7 +316,7 @@ const FriendsTable: React.FC<{ category: string, list: User[], setSelected: any 
             className="p-2 text-2xl bg-pink-200 text-pink-700 rounded-full"
             onClick={() => { sendFriendRequest(user); }}
           >
-            <AiOutlineUserAdd />
+            <UserAddIcon className="h-6 w-6" />
           </button>
         </Tooltip>}
 
@@ -317,7 +325,7 @@ const FriendsTable: React.FC<{ category: string, list: User[], setSelected: any 
             className="p-2 text-2xl bg-neutral-400 text-neutral-900 rounded-full"
             onClick={() => { blockUser(user); }}
           >
-            <FaUserSlash />
+            <LockClosedIcon className="h-6 w-6" />
           </button>
         </Tooltip>
 
