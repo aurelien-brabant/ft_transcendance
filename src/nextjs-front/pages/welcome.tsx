@@ -13,8 +13,7 @@ import withDashboardLayout from "../components/hoc/withDashboardLayout";
 import { useSession } from "../hooks/use-session";
 
 const labelClassName = "grow uppercase text-neutral-400";
-const inputClassName =
-  "transition col-span-2 grow bg-transparent outline-0 border-04dp pb-1 border-b-2 focus:border-pink-600";
+const inputClassName = "transition col-span-2 grow bg-transparent outline-0 border-04dp pb-1 border-b-2 focus:border-pink-600";
 const inputGroupClassName = "grid md:grid-cols-4 grid-cols-1 items-center gap-x-8 gap-y-2";
 
 type FormData = {
@@ -39,7 +38,6 @@ const InputErrorProvider: React.FC<{ error?: string | null }> = ({
     {children}
   </div>
 );
-
 
 const Welcome: NextPageWithLayout = () => {
   const { user, logout, reloadUser, backend } = useSession();
@@ -77,8 +75,6 @@ const Welcome: NextPageWithLayout = () => {
   useEffect(() => {
     if (user.accountDeactivated)
       reactivateAccount();
-
-    const basePhoneNb = user.phone;
 
     baseObject = {
       username: user.username,

@@ -15,7 +15,6 @@ type BaseUserData = {
  */
  export type LoggedUser = BaseUserData & {
 	email: string;
-	phone?: string;
 	tfa: boolean;
 	tfaSecret?: string;
 };
