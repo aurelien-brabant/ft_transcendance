@@ -30,17 +30,15 @@ const HighlightItem: React.FC<Highlight> = ({ n, label, hint, nColor }) => {
     >
       <div
         style={label === "friends42" ? { backgroundColor: "#00babc" } : {}}
-        className="text-8xl rounded-full"
+        className="text-6xl rounded-full"
       >
         {label === "friends" && <FaUserFriends />}
         {label === "friends42" && (
-          <div className="text-black hover:border-pink-600 pb-0 pt-2 pr-2 pl-2">
-            <Image
-              src="/plain_logo.svg"
-              width={90}
-              height={90}
-              alt="Friends @42"
-            />
+          <div className="relative w-12 h-12 flex justify-center items-center text-center">
+          <img
+            className="object-cover object-center w-full h-full rounded-full"
+            src="/plain_logo.svg"
+          />
           </div>
         )}
         {label === "blocked" && <FaUsersSlash />}
@@ -61,6 +59,7 @@ const FriendsPage: NextPageWithLayout = ({}) => {
     friends42,
     blocked,
     pendingFriendsReceived,
+    pendingFriendsSent,
     suggested,
     getRelationshipsData,
   } = useContext(relationshipContext) as RelationshipContextType;
@@ -96,7 +95,7 @@ const FriendsPage: NextPageWithLayout = ({}) => {
               <div className="absolute left-0 right-0 flex items-center justify-center -bottom-4 gap-x-2">
                 <Tooltip
                   className="font-bold bg-dark text-neutral-200"
-                  content="Edit user"
+                  content="Edit profile"
                 >
                   <button className="p-2 text-2xl text-white/90 bg-01dp rounded-full transition hover:scale-105">
                     <RiUserSettingsLine
@@ -116,7 +115,7 @@ const FriendsPage: NextPageWithLayout = ({}) => {
               />
             </div>
 
-            <div className="space-y-7 md:space-y-0 w-full p-2 bg-01dp border border-02dp rounded drop-shadow-md grid grid-cols-2 md:grid-cols-4 items-end">
+            <div className="space-y-7 md:space-y-0 w-full p-2 bg-01dp border border-02dp rounded drop-shadow-md grid grid-cols-2 md:grid-cols-5 items-end">
               <HighlightItem
                 n={friends.length}
                 label="friends"
@@ -131,6 +130,12 @@ const FriendsPage: NextPageWithLayout = ({}) => {
               />
               <HighlightItem
                 n={pendingFriendsReceived.length}
+                label="pending"
+                hint="Pending Requests"
+                nColor="text-purple-500"
+              />
+              <HighlightItem
+                n={pendingFriendsSent.length}
                 label="pending"
                 hint="Pending Requests"
                 nColor="text-purple-500"
@@ -168,11 +173,21 @@ const FriendsPage: NextPageWithLayout = ({}) => {
                   ),
                 },
                 {
-                  label: "Pending Requests",
+                  label: "Received Requests",
                   component: (
                     <FriendsTable
                       category="pending"
                       list={pendingFriendsReceived}
+                      setSelected={setSelected}
+                    />
+                  ),
+                },
+                {
+                  label: "Sent Requests",
+                  component: (
+                    <FriendsTable
+                      category="sent"
+                      list={pendingFriendsSent}
                       setSelected={setSelected}
                     />
                   ),
