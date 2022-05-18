@@ -52,11 +52,10 @@ export default class Room implements IRoom {
 	loserScore: number;
 
 	isGameEnd: boolean;
+
 	// settings customisation
 	maxGoal: number;
-
 	mode: GameMode;
-
 	timer: number;
 	gameDuration: number;
 

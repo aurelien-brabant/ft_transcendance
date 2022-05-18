@@ -20,7 +20,7 @@ const OngoingGames: React.FC<{currentGamesProps: Array<string>, socketProps: Soc
                             {
                                 currentGames.map((roomId: string) => (
                                     // eslint-disable-next-line react/jsx-key
-                                    <div className='my-2 text-neutral-200 flex align-items w-max border border-gray-500 bg-gray-500'>
+                                    <div key={roomId} className='my-2 text-neutral-200 flex align-items w-max border border-gray-500 bg-gray-500'>
                                         <div className="px-6 font-bold drop-shadow-md text-bold my-auto ">
                                             {roomId.split("&").join(" VS ")}
                                         </div>

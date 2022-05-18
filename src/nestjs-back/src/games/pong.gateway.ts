@@ -35,26 +35,30 @@ export class PongGateway implements OnGatewayInit, OnGatewayConnection, OnGatewa
 	private readonly currentGames: Array<string> = new Array();
 	private readonly connectedUsers: ConnectedUsers = new ConnectedUsers();
 
+	createNewRoom(players: User[]): void {
+		let roomId: string;
+		let room: Room;
+
+		roomId = `${players[0].username}&${players[1].username}`;
+				
+		room = new Room(roomId, players, {mode: players[0].mode});
+		
+		this.server.to(players[0].socketId).emit("newRoom", room);
+		this.server.to(players[1].socketId).emit("newRoom",  room);
+		this.rooms.set(roomId, room);
+		this.currentGames.push(roomId);
+		this.server.emit("updateCurrentGames", this.currentGames);
+	}
+	
 	afterInit(server: Server) {
 		setInterval(() => {
 			if (this.queue.size() > 1) {
 				let players: User[] = Array();
-				let roomId: string;
-				let room: Room;
 
 				players = this.queue.matchPlayers();
 				if (players.length === 0)
 					return ;
-
-				roomId = `${players[0].username}&${players[1].username}`;
-				
-				room = new Room(roomId, players, {mode: players[0].mode});
-				
-				this.server.to(players[0].socketId).emit("newRoom", room);
-				this.server.to(players[1].socketId).emit("newRoom",  room);
-				this.rooms.set(roomId, room);
-				this.currentGames.push(roomId);
-				this.server.emit("updateCurrentGames", this.currentGames);
+				this.createNewRoom(players);
 			}
 		}, 5000);
 		this.logger.log(`Init Pong Gateway`);
@@ -120,7 +124,6 @@ export class PongGateway implements OnGatewayInit, OnGatewayConnection, OnGatewa
 		}
 	}
 
-	// Etape 1 : Player JoinQueue
 	@SubscribeMessage('joinQueue')
 	handleJoinQueue(@ConnectedSocket() client: Socket, @MessageBody() mode: string) {
 		let user: User = this.connectedUsers.getUser(client.id);
@@ -135,12 +138,10 @@ export class PongGateway implements OnGatewayInit, OnGatewayConnection, OnGatewa
 		}
 	}
 
-	// Etape 1 : Player JoinQueue
 	@SubscribeMessage('leaveQueue')
 	handleLeaveQueue(@ConnectedSocket() client: Socket) {
 		let user: User = this.connectedUsers.getUser(client.id);
 
-		// check if user is in queue
 		if (user && this.queue.isInQueue(user))
 		{
 			this.queue.remove(user);
@@ -159,7 +160,6 @@ export class PongGateway implements OnGatewayInit, OnGatewayConnection, OnGatewa
 		}
 	}
 
-	// Etape 2 : The player was assigned a Room and received the roomId we add him to the room
 	@SubscribeMessage('joinRoom')
 	handleJoinRoom(@ConnectedSocket() client: Socket, @MessageBody() roomId: string) {
 		const room: Room = this.rooms.get(roomId);
@@ -201,92 +201,73 @@ export class PongGateway implements OnGatewayInit, OnGatewayConnection, OnGatewa
 		this.server.to(client.id).emit("leavedRoom");
 	}
 
-	// Etape 3 : Players ask for the last room Updates
+	async saveGame(room: Room, currentTimestamp: number){
+			let winner = await this.usersService.findOne(String(room.winnerId));
+			let loser = await this.usersService.findOne(String(room.loserId));
+
+			/* Update users wins/losses/draws and ratio */
+			const isDraw: boolean = false; // This is not used but may be one day
+			await this.usersService.updateStats(winner, isDraw, true);
+			await this.usersService.updateStats(loser, isDraw, false);
+
+			/* Save game in database */
+			let test = await this.gamesService.create({
+				players: [winner, loser],
+				winnerId: room.winnerId,
+				loserId: room.loserId,
+				createdAt: new Date(room.timestampStart),
+				endedAt: new Date(currentTimestamp),
+				gameDuration: room.getDuration(),
+				winnerScore: room.winnerScore,
+				loserScore: room.loserScore,
+				mode: room.mode
+			});
+			let roomIndex: number = this.currentGames.findIndex(roomIdRm => roomIdRm === room.roomId);
+			if (roomIndex !== -1)
+				this.currentGames.splice(roomIndex, 1);
+			this.server.emit("updateCurrentGames", this.currentGames);
+	}
+
+	secondToTimestamp(second: number): number{
+		return (second * 1000);
+	}
+
 	@SubscribeMessage('requestUpdate')
-	async handleRequestUpdate(@ConnectedSocket() client: Socket, @MessageBody() roomId: string) {
+	async handleRequestUpdate(@MessageBody() roomId: string) {
 		const room: Room = this.rooms.get(roomId);
 
 		if (room) {
-			let currentTimestamp = Date.now();
+			let currentTimestamp: number = Date.now();
 
-			if (room.gameState === GameState.STARTING && (currentTimestamp - room.timestampStart) >= 3500) {
+			if (room.gameState === GameState.STARTING
+					&& (currentTimestamp - room.timestampStart) >= this.secondToTimestamp(3.5)) {
 				room.start();
 			}
 			else if (room.gameState === GameState.PLAYING)
 			{
 				room.update();
-				if (room.isGameEnd) {
-					let winner = await this.usersService.findOne(String(room.winnerId));
-					let loser = await this.usersService.findOne(String(room.loserId));
-
-					/* Update users wins/losses/draws and ratio */
-					const isDraw: boolean = false; // This is not used but may be one day
-					await this.usersService.updateStats(winner, isDraw, true);
-					await this.usersService.updateStats(loser, isDraw, false);
-
-					/* Save game in database */
-					let test = await this.gamesService.create({
-						players: [winner, loser],
-						winnerId: room.winnerId,
-						loserId: room.loserId,
-						createdAt: new Date(room.timestampStart),
-						endedAt: new Date(currentTimestamp),
-						gameDuration: room.getDuration(),
-						winnerScore: room.winnerScore,
-						loserScore: room.loserScore,
-						mode: room.mode
-					});
-					let roomIndex: number = this.currentGames.findIndex(roomIdRm => roomIdRm === room.roomId);
-					if (roomIndex !== -1)
-						this.currentGames.splice(roomIndex, 1);
-					this.server.emit("updateCurrentGames", this.currentGames);
-				}
+				if (room.isGameEnd)
+					this.saveGame(room, currentTimestamp);
 			}
-			else if (room.gameState === GameState.GOAL && (currentTimestamp - room.goalTimestamp) >= 3500) {
+			else if (room.gameState === GameState.GOAL
+					&& (currentTimestamp - room.goalTimestamp) >= this.secondToTimestamp(3.5)) {
 				room.resetPosition();
 				room.changeGameState(GameState.PLAYING);
 				room.lastUpdate = Date.now();
-			} else if (room.gameState === GameState.RESUMED && (currentTimestamp - room.pauseTime[room.pauseTime.length - 1].resume) >= 3500) {
+			} else if (room.gameState === GameState.RESUMED
+					&& (currentTimestamp - room.pauseTime[room.pauseTime.length - 1].resume) >= this.secondToTimestamp(3.5)) {
 				room.lastUpdate = Date.now();
 				room.changeGameState(GameState.PLAYING);
-			} else if (room.gameState === GameState.PAUSED && (currentTimestamp - room.pauseTime[room.pauseTime.length - 1].pause) >= 42000) {
+			} else if (room.gameState === GameState.PAUSED
+					&& (currentTimestamp - room.pauseTime[room.pauseTime.length - 1].pause) >= this.secondToTimestamp(42)) {
 				room.pauseForfait();
-				
 				room.changeGameState(GameState.END);
 				room.pauseTime[room.pauseTime.length - 1].resume = Date.now();
-
-				let winner = await this.usersService.findOne(String(room.winnerId));
-				let loser = await this.usersService.findOne(String(room.loserId));
-
-				/* Update users wins/losses/draws and ratio */
-				const isDraw: boolean = false; // This is not used but may be one day
-				await this.usersService.updateStats(winner, isDraw, true);
-				await this.usersService.updateStats(loser, isDraw, false);
-				console.log(isDraw);
-
-				/* Save game in database */
-				await this.gamesService.create({
-					players: [winner, loser],
-					winnerId: room.winnerId,
-					loserId: room.loserId,
-					createdAt: new Date(room.timestampStart),
-					endedAt: new Date(currentTimestamp),
-					gameDuration: room.getDuration(),
-					winnerScore: room.winnerScore,
-					loserScore: room.loserScore,
-					mode: room.mode
-				});
-				let roomIndex: number = this.currentGames.findIndex(roomIdRm => roomIdRm === room.roomId);
-				if (roomIndex !== -1)
-					this.currentGames.splice(roomIndex, 1);
-				this.server.emit("updateCurrentGames", this.currentGames);
-
+				this.saveGame(room, currentTimestamp);
 			}
 
 			if (room.mode === GameMode.TIMER && (room.gameState === GameState.GOAL || room.gameState === GameState.PLAYING))
-			{
 				room.updateTimer();
-			}
 
 			this.server.to(room.roomId).emit("updateRoom", room);
 		}
@@ -336,7 +317,6 @@ export class PongGateway implements OnGatewayInit, OnGatewayConnection, OnGatewa
 	}
 
 
-	// Etape 1 : Player JoinQueue
 	@SubscribeMessage('getCurrentGames')
 	handleCurrentGames(@ConnectedSocket() client: Socket) {
 		this.server.to(client.id).emit("updateCurrentGames", (this.currentGames));
