@@ -27,6 +27,9 @@ export class UsersService {
   findAll(paginationQuery: PaginationQueryDto) {
     const { offset, limit } = paginationQuery;
     return this.usersRepository.find({
+      relations: [
+        'games',
+      ],
       skip: offset,
       take: limit,
       order: {
@@ -45,7 +48,6 @@ export class UsersService {
       .createQueryBuilder('user')
       .addSelect('user.email')
       .addSelect('user.tfa')
-      .addSelect('user.tfaSecret')
       .addSelect('user.hasTfaBeenValidated')
       .addSelect('user.lastTfaRequestTimestamp')
       .where('user.id = :id', { id })
@@ -64,8 +66,8 @@ export class UsersService {
     const user = await this.usersRepository.findOne({
       relations: [
         'games',
-        'friends',
         'achievements',
+        'friends',
         'blockedUsers',
         'pendingFriendsSent',
         'pendingFriendsReceived',

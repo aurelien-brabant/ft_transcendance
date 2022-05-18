@@ -42,11 +42,12 @@ const FriendsTable: React.FC<{ category: string, list: User[], setSelected: any 
           </div>
         </div>
 
-        <div className="relative w-48 h-48 flex justify-center items-center text-center">
-        <img
-          className="object-cover object-center w-full h-full rounded-full"
-          src={`/api/users/${user.id}/photo`}
-        />
+        <div className="relative w-48 h-48 flex justify-center items-center">
+          <img
+            className="object-cover object-center w-full h-full rounded-full"
+            src={`/api/users/${user.id}/photo`}
+            alt="Profile picture"
+          />
         </div>
 
         {user.duoquadra_login &&
@@ -224,7 +225,7 @@ const FriendsTable: React.FC<{ category: string, list: User[], setSelected: any 
   const getActionButtons = (user: User, category: string) => {
     if (category === "sent") {
       return (
-        <small className="text-pink-500">didn't accept the request yet</small>
+        <small className="text-pink-500">didn&apos;t accept the request yet</small>
       );
     }
     if (category === "blocked") {

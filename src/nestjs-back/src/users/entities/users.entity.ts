@@ -117,4 +117,3 @@ export class User {
     @OneToMany(() => ChannelPunishment, (punishment) => punishment.punishedByUser)
     givenChannelPunishments: ChannelPunishment[];
 }
-

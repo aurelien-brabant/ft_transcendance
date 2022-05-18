@@ -35,58 +35,59 @@ const Hub: NextPageWithLayout = () => {
 
 	useEffect((): any => {
 		// connect to socket server
-		socket = io(process.env.NEXT_PUBLIC_SOCKET_URL + "/game");
+		socket = io(process.env.NEXT_PUBLIC_SOCKET_URL + "/game", { transports: ['websocket', 'polling']});
 
 		socket.on("connect", () => {
 			// Allow reconnection
 			socket.emit("handleUserConnect", userData);
 
-			socket.on("updateCurrentGames", (newRoomData: Array<string>) => {
-				setCurrentGames(newRoomData);
-			});
-
-			socket.on("newRoom", (newRoomData: IRoom) => {
-				socket.emit("joinRoom", newRoomData.roomId);
-				roomData = newRoomData;
-				roomId = newRoomData.roomId;
-				setRoom(roomData);
-				setInQueue(false);
-			});
-
-			socket.on("joinedQueue", (data: IRoom) => {
-				setInQueue(true);
-				setAlert({
-					type: "info",
-					content: "You were added to Queue"
-				});
-			});
-
-			socket.on("leavedQueue", (data: IRoom) => {
-				setInQueue(false);
-				setAlert({
-					type: "info",
-					content: "You were removed from Queue"
-				});
-			});
-
-			socket.on("joinedRoom", (data: IRoom) => {
-				chatSocket.emit("userGameStatus", { isPlaying: true });
-				setDisplayGame(true);
-				setAlert({
-					type: "info",
-					content: `Game joined`
-				});
-			});
-
-			socket.on("leavedRoom", (data: IRoom) => {
-				chatSocket.emit("userGameStatus", { isPlaying: false });
-				roomId = undefined;
-				setDisplayGame(false);
-				setRoom(null);
-			});
-
 			socket.emit("getCurrentGames");
 		});
+
+		socket.on("updateCurrentGames", (newRoomData: Array<string>) => {
+			setCurrentGames(newRoomData);
+		});
+
+		socket.on("newRoom", (newRoomData: IRoom) => {
+			socket.emit("joinRoom", newRoomData.roomId);
+			roomData = newRoomData;
+			roomId = newRoomData.roomId;
+			setRoom(roomData);
+			setInQueue(false);
+		});
+
+		socket.on("joinedQueue", (data: IRoom) => {
+			setInQueue(true);
+			setAlert({
+				type: "info",
+				content: "You were added to Queue"
+			});
+		});
+
+		socket.on("leavedQueue", (data: IRoom) => {
+			setInQueue(false);
+			setAlert({
+				type: "info",
+				content: "You were removed from Queue"
+			});
+		});
+
+		socket.on("joinedRoom", (data: IRoom) => {
+			chatSocket.emit("userGameStatus", { isPlaying: true });
+			setDisplayGame(true);
+			setAlert({
+				type: "info",
+				content: `Game joined`
+			});
+		});
+
+		socket.on("leavedRoom", (data: IRoom) => {
+			chatSocket.emit("userGameStatus", { isPlaying: false });
+			roomId = undefined;
+			setDisplayGame(false);
+			setRoom(null);
+		});
+
 
 	return () => {
 			if (chatSocket) {
