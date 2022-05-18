@@ -4,7 +4,7 @@ import { Channel } from "transcendance-types";
 import { useSession } from "../../hooks/use-session";
 import chatContext, { ChatContextType, ChatGroupPrivacy } from "../../context/chat/chatContext";
 
-type updateGroupData = {
+type UpdateGroupData = {
 	groupName: string | undefined;
 	groupPrivacy: ChatGroupPrivacy;
 	password: string | undefined;
@@ -67,14 +67,14 @@ const GroupSettings: React.FC<{ viewParams: any }> = ({ viewParams }) => {
 	/* OWNER */
 
 	/* Form */
-	const [formData, setFormData] = useState<updateGroupData>({
+	const [formData, setFormData] = useState<UpdateGroupData>({
 		groupName: undefined,
 		groupPrivacy: viewParams.privacy,
 		password: undefined,
 		password2: undefined,
 		restrictionDuration: undefined
 	});
-	const [fieldErrors, setFieldErrors] = useState<Partial<updateGroupData>>({});
+	const [fieldErrors, setFieldErrors] = useState<Partial<UpdateGroupData>>({});
 
 	const handleChange = (
 		e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement>
@@ -91,7 +91,7 @@ const GroupSettings: React.FC<{ viewParams: any }> = ({ viewParams }) => {
 
 	const handleSubmit = (e: React.FormEvent<HTMLFormElement>) => {
 		e.preventDefault();
-		const errors: Partial<updateGroupData> = {};
+		const errors: Partial<UpdateGroupData> = {};
 
 		if (formData.groupName && (formData.groupName.length < 3 || formData.groupName.length > 20)) {
 			errors['groupName'] = 'Group name should be between 3 and 20 characters long';
@@ -118,7 +118,7 @@ const GroupSettings: React.FC<{ viewParams: any }> = ({ viewParams }) => {
 	};
 
 	/* Update the group name, visibility and password */
-	const updateGroup = (formData: updateGroupData) => {
+	const updateGroup = (formData: UpdateGroupData) => {
 		socket.emit("updateChannel", {
 			id: channelId,
 			name: formData.groupName,
