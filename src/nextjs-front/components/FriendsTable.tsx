@@ -74,7 +74,7 @@ const FriendsTable: React.FC<{ category: string, list: User[], setSelected: any 
     );
   }
 
-  /* Add / remove friend */
+  /* Send friend request */
   const sendFriendRequest = async (user: User) => {
     const res = await backend.request(`/api/users/${user.id}`, {
       method: "PATCH",
@@ -98,6 +98,67 @@ const FriendsTable: React.FC<{ category: string, list: User[], setSelected: any 
       setAlert({
         type: 'error',
         content: `Error sending friend request`
+      });
+    }
+  }
+
+  /* Accept / decline friend request */
+  const acceptFriendRequest = async (user: User) => {
+    const res = await backend.request(`/api/users/${currentUser.id}/${user.id}/addFriend`, {
+      method: "PATCH",
+      headers: {
+        "Content-Type": "application/json",
+      },
+    });
+    const data = await res.json();
+
+    if (res.status === 200) {
+      console.log(data.friends);
+      setFriends(data.friends);
+    } else {
+      setAlert({
+        type: 'error',
+        content: `Error accepting friend request`
+      });
+    }
+  }
+
+  const declineFriendRequest = async (user: User) => {
+    const res = await backend.request(`/api/users/${currentUser.id}/${user.id}/rmRequest`, {
+      method: "PATCH",
+      headers: {
+        "Content-Type": "application/json",
+      },
+    });
+    const data = await res.json();
+
+    if (res.status === 200) {
+      console.log(data.pendingFriendsReceived);
+      setPendingFriendsReceived(data.pendingFriendsReceived);
+    } else {
+      setAlert({
+        type: 'error',
+        content: `Error declining friend request`
+      });
+    }
+  }
+
+  const removeFriend = async (user: User) => {
+    const res = await backend.request(`/api/users/${currentUser.id}/${user.id}/rmFriend`, {
+      method: "PATCH",
+      headers: {
+        "Content-Type": "application/json",
+      },
+    });
+    const data = await res.json();
+
+    if (res.status === 200) {
+      console.log(data.friends);
+      setFriends(data.friends);
+    } else {
+      setAlert({
+        type: 'error',
+        content: `Error removing friend`
       });
     }
   }
@@ -134,7 +195,6 @@ const FriendsTable: React.FC<{ category: string, list: User[], setSelected: any 
     const filteredUsers = blocked.filter((blockedUser) => {
       return blockedUser.id !== user.id;
     });
-
     const res = await backend.request(`/api/users/${user.id}`, {
       method: "PATCH",
       headers: {
@@ -144,7 +204,6 @@ const FriendsTable: React.FC<{ category: string, list: User[], setSelected: any 
         blockedUsers: filteredUsers
       }),
     });
-
     const data = await res.json();
 
     if (res.status === 200) {
@@ -161,6 +220,7 @@ const FriendsTable: React.FC<{ category: string, list: User[], setSelected: any 
     }
   }
 
+  /* Icons for sending invites, add/remove friend, block and so forth */
   const getActionButtons = (user: User, category: string) => {
     if (category === "blocked") {
       return (
@@ -184,13 +244,17 @@ const FriendsTable: React.FC<{ category: string, list: User[], setSelected: any 
           <Tooltip className={actionTooltipStyles} content="Add friend">
             <button
               className="p-2 text-2xl bg-green-200 text-green-700 rounded-full"
+              onClick={() => { acceptFriendRequest(user); }}
             >
               <AiOutlineCheck />
             </button>
           </Tooltip>
 
           <Tooltip className={actionTooltipStyles} content="Decline invite">
-            <button className="p-2 text-2xl bg-red-200 text-red-700 rounded-full">
+            <button
+              className="p-2 text-2xl bg-red-200 text-red-700 rounded-full"
+              onClick={() => { declineFriendRequest(user); }}
+            >
               <AiOutlineClose />
             </button>
           </Tooltip>
@@ -206,6 +270,7 @@ const FriendsTable: React.FC<{ category: string, list: User[], setSelected: any 
         <Tooltip className={actionTooltipStyles} content="Remove friend">
           <button
             className="p-2 text-2xl bg-pink-200 text-pink-700 rounded-full"
+            onClick={() => { removeFriend(user); }}
           >
             <AiOutlineUserDelete />
           </button>
@@ -241,15 +306,12 @@ const FriendsTable: React.FC<{ category: string, list: User[], setSelected: any 
           useMediaQueryArg={{ query: "(min-width: 1280px)" }}
           cascade triggerOnce duration={500}
         >
-
-        {/* List */}
-        {list.map((user) => (
-          <li key={user.id} className={userCardStyle} >
-            {getUserCard(user)}
-            {getActionButtons(user, category)}
-          </li>
-        ))}
-
+          {list.map((user) => (
+            <li key={user.id} className={userCardStyle} >
+              {getUserCard(user)}
+              {getActionButtons(user, category)}
+            </li>)
+          )}
         </ResponsiveFade>
       </ul>
     );

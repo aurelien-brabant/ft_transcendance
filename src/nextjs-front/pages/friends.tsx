@@ -73,9 +73,7 @@ const FriendsPage: NextPageWithLayout = ({}) => {
   }
 
   useEffect(() => {
-    if (user) {
-      fetchUserRelationships().catch(console.error);
-    }
+    fetchUserRelationships().catch(console.error);
   }, []);
 
   return (

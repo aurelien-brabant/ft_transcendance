@@ -39,7 +39,6 @@ const Achievements: React.FC<{}> = () => {
     }
 
     useEffect(() => {
-        console.log('[Achievements] getAchievementsData');
         getAchievementsData();
     }, [])
 

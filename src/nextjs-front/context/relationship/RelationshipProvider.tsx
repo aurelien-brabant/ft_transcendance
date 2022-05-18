@@ -14,16 +14,17 @@ const RelationshipProvider: React.FC = ({ children }) => {
 	const [suggested, setSuggested] = useState<User[]>([]);
 
 	/* Set a list of suggested new friends */
-	const createSuggestedFriends = (users: User[], friends: User[], blocked: User[]) => {
+	const createSuggestedFriends = (users: User[], friends: User[], blocked: User[], requests: User[]) => {
 		const suggestedUsers: User[] = [];
 		const userId: string = currentUser.id;
 
 		for (var user of users) {
-			if (user.id !== userId && user.accountDeactivated) {
-				const isNotFriend = !!friends.find((friend) => friend.id !== userId);
-				const isNotBlocked = !!blocked.find((blockedUser) => blockedUser.id !== userId);
+			if (user.id !== userId && !user.accountDeactivated) {
+				const isNotFriend = !(!!friends.find((friend) => friend.id === user.id));
+				const isNotBlocked = !(!!blocked.find((blockedUser) => blockedUser.id === user.id));
+				const noRequest = !(!!requests.find((receiver) => receiver.id === user.id));
 
-				if (isNotFriend && isNotBlocked) {
+				if (isNotFriend && isNotBlocked && noRequest) {
 					suggestedUsers.push(user);
 				}
 			}
@@ -36,9 +37,11 @@ const RelationshipProvider: React.FC = ({ children }) => {
 		const res = await backend.request(`/api/users/${id}`);
 		const data = await res.json();
 		const duoquadraFriends: User[] = [];
+		const userId: String = currentUser.id;
 
-		const filteredUsers = users.filter((user) => {
-			return user.id !== currentUser.id;
+		/* Remove current User from list */
+		const filteredUsers = users.filter(user => {
+			return user.id !== userId;
 		});
 
 		setFriends(data.friends);
@@ -52,7 +55,7 @@ const RelationshipProvider: React.FC = ({ children }) => {
 			}
 		}
 		setFriends42(duoquadraFriends);
-		createSuggestedFriends(filteredUsers, data.friends, data.blockedUsers);
+		createSuggestedFriends(filteredUsers, data.friends, data.blockedUsers, data.pendingFriendsSent);
 	}
 
 	/* Fetch all users and set current user relationships */
@@ -61,15 +64,7 @@ const RelationshipProvider: React.FC = ({ children }) => {
 		const allUsers: User[] = await res.json();
 
 		setUsers(allUsers);
-
-		// tmp debug: to test with all users
-		setFriends(allUsers);
-		setFriends42(allUsers);
-		setBlocked(allUsers);
-		setPendingFriendsReceived(allUsers);
-		setSuggested(allUsers);
-
-		// setUserRelationships(filteredUsers, currentUser.id);
+		await setUserRelationships(allUsers, currentUser.id);
 	}
 
 	return (

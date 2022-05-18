@@ -239,16 +239,6 @@ export class UsersService {
       await this.emailIsUnique(updateUserDto.email);
     }
 
-    // if (updateUserDto.friends && updateUserDto.friends.length) {
-    //   /* Add friend */
-    //   for (var newFriend of updateUserDto.friends) {
-    //     user = await this.addFriend(id, newFriend.id.toString());
-    //     await this.achievementsService.checkUserAchievement(user, 'friends', user.friends.length);
-
-    //     const friend = await this.addFriend(newFriend.id.toString(), user.id.toString());
-    //     await this.achievementsService.checkUserAchievement(friend, 'friends', friend.friends.length);
-    //   }
-    // }
     if (updateUserDto.pendingFriendsSent) {
       if (updateUserDto.pendingFriendsSent.length < 1) {
         throw new Error('Cannot cancel sent invites.');
@@ -538,19 +528,26 @@ export class UsersService {
     return this.usersRepository.save(user);
   }
 
-  async removeRelation(id: string, otherUserId: string, action: string) {
-    if (action === 'friend') {
+  async updateRelation(id: string, otherUserId: string, action: string) {
+    if (action === 'addFriend') {
+      const user = await this.addFriend(id, otherUserId);
+      await this.achievementsService.checkUserAchievement(user, 'friends', user.friends.length);
+
+      const friend = await this.addFriend(otherUserId, user.id.toString());
+      await this.achievementsService.checkUserAchievement(friend, 'friends', friend.friends.length);
+      return user;
+    } else if (action === 'rmFriend') {
       await this.removeFriend(otherUserId, id);
       return await this.removeFriend(id, otherUserId);
     }
     else if (action === 'unblock') {
       return await this.unblockUser(id, otherUserId);
     }
-    else if (action === 'removeFriendsSent') {
-      await this.removeFriendshipReceived(otherUserId, id);
-      return await this.removeFriendshipSent(id, otherUserId);
-    }
-    else if (action === 'removeFriendsReceived') {
+    // else if (action === 'cancelRequest') {
+    //   await this.removeFriendshipReceived(otherUserId, id);
+    //   return await this.removeFriendshipSent(id, otherUserId);
+    // }
+    else if (action === 'rmRequest') {
       await this.removeFriendshipSent(otherUserId, id);
       return await this.removeFriendshipReceived(id, otherUserId);
     }
