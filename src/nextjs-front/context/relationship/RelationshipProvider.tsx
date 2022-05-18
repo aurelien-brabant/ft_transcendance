@@ -18,11 +18,11 @@ const RelationshipProvider: React.FC = ({ children }) => {
 		const suggestedUsers: User[] = [];
 		const userId: string = currentUser.id;
 
-		for (var user of users) {
+		for (const user of users) {
 			if (user.id !== userId && !user.accountDeactivated) {
-				const isNotFriend = !(!!friends.find((friend) => friend.id === user.id));
-				const isNotBlocked = !(!!blocked.find((blockedUser) => blockedUser.id === user.id));
-				const notRequested = !(!!requests.find((receiver) => receiver.id === user.id));
+				const isNotFriend = !friends.find((friend) => friend.id === user.id);
+				const isNotBlocked = !blocked.find((blockedUser) => blockedUser.id === user.id);
+				const notRequested = !requests.find((receiver) => receiver.id === user.id);
 
 				if (isNotFriend && isNotBlocked && notRequested) {
 					suggestedUsers.push(user);
@@ -55,7 +55,7 @@ const RelationshipProvider: React.FC = ({ children }) => {
 		setPendingFriendsReceived(data.pendingFriendsReceived);
 		setPendingFriendsSent(data.pendingFriendsSent);
 
-		for (var friend of filteredFriends) {
+		for (const friend of filteredFriends) {
 			if (friend.duoquadra_login) {
 				duoquadraFriends.push(friend);
 			}

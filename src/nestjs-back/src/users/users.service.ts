@@ -258,13 +258,13 @@ export class UsersService {
   async updateBlockedUsers(id: string, users: User[]) {
     const blockList: User[] = [];
 
-    for (var toBlock of users) {
+    for (const toBlock of users) {
       if (parseInt(id) !== toBlock.id) { /* User can't block themselve */
         blockList.push(toBlock);
       }
     }
 
-    let user = await this.usersRepository.findOne(id, {
+    const user = await this.usersRepository.findOne(id, {
       relations: ['blockedUsers'],
     });
 
@@ -287,7 +287,7 @@ export class UsersService {
         throw new Error('Cannot cancel sent invites.');
       }
       /* Send frienship invite */
-      for (var receiver of updateUserDto.pendingFriendsSent) {
+      for (const receiver of updateUserDto.pendingFriendsSent) {
         user = await this.addFriendshipSent(id, receiver.id.toString());
       }
     } else if (updateUserDto.blockedUsers) {
@@ -446,7 +446,7 @@ export class UsersService {
     const sender = await this.usersRepository.findOne(senderId);
 
     if (!user || !sender) {
-      throw new Error('Cannot update user.');
+      throw new Error('Cannot add request. Receiver or sender not found.');
     }
 
     const alreadyFriend = !!user.friends.find((friend) => {
@@ -468,7 +468,7 @@ export class UsersService {
 
   async removeFriendshipReceived(id: string, senderId: string) {
     if (id === senderId) {
-      throw new Error('Operation not allowed. Please report the bug.');
+      throw new Error('Self-request not allowed. Please report the bug.');
     }
     let user = await this.usersRepository.findOne(id, {
       relations: ['pendingFriendsReceived'],
@@ -488,7 +488,7 @@ export class UsersService {
 
   async addFriendshipSent(id: string, receiverId: string) {
     if (id === receiverId) {
-      throw new Error('Operation not allowed.');
+      throw new Error('Self-friendship not allowed.');
     }
     let user = await this.usersRepository.findOne(id, {
       relations: ['friends', 'pendingFriendsSent'],
@@ -498,14 +498,14 @@ export class UsersService {
     });
 
     if (!user || !receiver) {
-      throw new Error('Cannot update user.');
+      throw new Error('Cannot add request. Receiver or sender not found.');
     }
 
     const isBlocked = !!receiver.blockedUsers.find((blocked) => {
       return blocked.id === user.id;
     });
     if (isBlocked) {
-      throw new Error('Operation not allowed.');
+      throw new Error('Operation not allowed. You were blocked by user.');
     }
 
     const alreadyFriend = !!user.friends.find((friend) => {
@@ -530,14 +530,14 @@ export class UsersService {
 
   async removeFriendshipSent(id: string, receiverId: string) {
     if (id === receiverId) {
-      throw new Error('Operation not allowed. Please report the bug.');
+      throw new Error('Self-request not allowed. Please report the bug.');
     }
     let user = await this.usersRepository.findOne(id, {
       relations: ['pendingFriendsSent'],
     });
 
     if (!user) {
-      throw new Error('Cannot update user.');
+      throw new Error('Cannot update user. User not found.');
     }
 
     const newPendingInvites = user.pendingFriendsSent.filter((sender) => {
@@ -555,7 +555,7 @@ export class UsersService {
     const sender = await this.usersRepository.findOne(senderId);
 
     if (!user || !sender) {
-      throw new Error('Cannot update user.');
+      throw new Error('Cannot update user. Receiver or sender not found.');
     }
 
     const isInvited = !!user.pendingFriendsReceived.find((request) => {
