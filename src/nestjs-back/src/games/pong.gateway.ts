@@ -237,10 +237,8 @@ export class PongGateway implements OnGatewayInit, OnGatewayConnection, OnGatewa
 			else if (room.gameState === GameState.PLAYING)
 			{
 				room.update();
-
-				if (room.isGameEnd) {
-				this.saveGame(room, currentTimestamp);
-				}
+				if (room.isGameEnd)
+					this.saveGame(room, currentTimestamp);
 			}
 			else if (room.gameState === GameState.GOAL && (currentTimestamp - room.goalTimestamp) >= 3500) {
 				room.resetPosition();
@@ -251,16 +249,13 @@ export class PongGateway implements OnGatewayInit, OnGatewayConnection, OnGatewa
 				room.changeGameState(GameState.PLAYING);
 			} else if (room.gameState === GameState.PAUSED && (currentTimestamp - room.pauseTime[room.pauseTime.length - 1].pause) >= 42000) {
 				room.pauseForfait();
-				
 				room.changeGameState(GameState.END);
 				room.pauseTime[room.pauseTime.length - 1].resume = Date.now();
 				this.saveGame(room, currentTimestamp);
 			}
 
 			if (room.mode === GameMode.TIMER && (room.gameState === GameState.GOAL || room.gameState === GameState.PLAYING))
-			{
 				room.updateTimer();
-			}
 
 			this.server.to(room.roomId).emit("updateRoom", room);
 		}
