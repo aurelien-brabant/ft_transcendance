@@ -92,11 +92,9 @@ const FriendsTable: React.FC<{ category: string, list: User[], setSelected: any 
 
     if (res.status === 200) {
       setPendingFriendsSent(data.pendingFriendsSent);
-
-      const filteredUsers = suggested.filter(suggestion => {
+      setSuggested(suggested.filter(suggestion => {
         return suggestion.id !== user.id;
-      });
-      setSuggested(filteredUsers);
+      }));
     } else {
       setAlert({
         type: 'error',
@@ -116,12 +114,15 @@ const FriendsTable: React.FC<{ category: string, list: User[], setSelected: any 
     const data = await res.json();
 
     if (res.status === 200) {
-      setFriends(data.friends);
       setPendingFriendsReceived(data.pendingFriendsReceived);
+      setFriends(data.friends);
 
       if (user.duoquadra_login) {
         setFriends42([ ...friends42, user ]);
       }
+      setSuggested(suggested.filter(suggestion => {
+        return suggestion.id !== user.id;
+      }));
     } else {
       setAlert({
         type: 'error',
@@ -141,6 +142,7 @@ const FriendsTable: React.FC<{ category: string, list: User[], setSelected: any 
 
     if (res.status === 200) {
       setPendingFriendsReceived(data.pendingFriendsReceived);
+      setSuggested([ ...suggested, user ]);
     } else {
       setAlert({
         type: 'error',
@@ -162,10 +164,9 @@ const FriendsTable: React.FC<{ category: string, list: User[], setSelected: any 
       setFriends(data.friends);
 
       if (user.duoquadra_login) {
-        const filteredUsers = friends42.filter(friend => {
+        setFriends42(friends42.filter(friend => {
           return friend.id !== user.id;
-        });
-        setFriends42(filteredUsers);
+        }));
       }
     } else {
       setAlert({
@@ -191,6 +192,17 @@ const FriendsTable: React.FC<{ category: string, list: User[], setSelected: any 
 
     if (res.status === 200) {
       setBlocked(data.blockedUsers);
+      setSuggested(suggested.filter(suggestion => {
+        return suggestion.id !== user.id;
+      }));
+      setFriends(friends.filter(friend => {
+        return friend.id !== user.id;
+      }));
+      if (user.duoquadra_login) {
+        setFriends42(friends42.filter(friend => {
+          return friend.id !== user.id;
+        }));
+      }
     } else {
       setAlert({
         type: 'error',
@@ -216,6 +228,11 @@ const FriendsTable: React.FC<{ category: string, list: User[], setSelected: any 
 
     if (res.status === 200) {
       setBlocked(data.blockedUsers);
+      setFriends([ ...friends, user ]);
+
+      if (user.duoquadra_login) {
+        setFriends42([ ...friends42, user ]);
+      }
     } else {
       setAlert({
         type: 'error',

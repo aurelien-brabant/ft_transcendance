@@ -441,7 +441,7 @@ export class UsersService {
       throw new Error('Operation not allowed.');
     }
     let user = await this.usersRepository.findOne(id, {
-      relations: ['pendingFriendsReceived'],
+      relations: ['friends', 'pendingFriendsReceived'],
     });
     const sender = await this.usersRepository.findOne(senderId);
 
@@ -493,10 +493,19 @@ export class UsersService {
     let user = await this.usersRepository.findOne(id, {
       relations: ['friends', 'pendingFriendsSent'],
     });
-    const receiver = await this.usersRepository.findOne(receiverId);
+    const receiver = await this.usersRepository.findOne(receiverId, {
+      relations: [ 'blockedUsers' ]
+    });
 
     if (!user || !receiver) {
       throw new Error('Cannot update user.');
+    }
+
+    const isBlocked = !!receiver.blockedUsers.find((blocked) => {
+      return blocked.id === user.id;
+    });
+    if (isBlocked) {
+      throw new Error('Operation not allowed.');
     }
 
     const alreadyFriend = !!user.friends.find((friend) => {
@@ -507,7 +516,7 @@ export class UsersService {
     }
 
     const alreadySent = !!user.pendingFriendsSent.find((receiver) => {
-      return receiver.id === parseInt(receiverId);
+      return receiver.id === receiver.id;
     });
 
     if (!alreadySent) {
@@ -615,7 +624,7 @@ export class UsersService {
     });
 
     if (!isFriend) {
-      throw new Error('Can\t remove a friendship that doesn\'t exist.');
+      throw new Error('Friendship already destroyed. Try to refresh the page.');
     }
 
     const newFriends = user.friends.filter((friend) => {

@@ -1,4 +1,4 @@
-import { useEffect, useState } from "react";
+import { useState } from "react";
 import { User } from 'transcendance-types';
 import { useSession } from "../../hooks/use-session";
 import relationshipContext from "./relationshipContext";
@@ -43,14 +43,19 @@ const RelationshipProvider: React.FC = ({ children }) => {
 		const filteredUsers = users.filter(user => {
 			return user.id !== userId;
 		});
+		const filteredFriends = data.friends.filter((friend: User) =>
+			(!!!data.blockedUsers.find((blocked: User) => {
+				return blocked.id === friend.id;
+			}))
+		);
 		const allRequests = [...data.pendingFriendsSent, ...data.pendingFriendsReceived];
 
-		setFriends(data.friends);
+		setFriends(filteredFriends);
 		setBlocked(data.blockedUsers);
 		setPendingFriendsReceived(data.pendingFriendsReceived);
 		setPendingFriendsSent(data.pendingFriendsSent);
 
-		for (var friend of data.friends) {
+		for (var friend of filteredFriends) {
 			if (friend.duoquadra_login) {
 				duoquadraFriends.push(friend);
 			}
