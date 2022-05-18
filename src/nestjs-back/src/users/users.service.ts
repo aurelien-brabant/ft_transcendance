@@ -259,7 +259,6 @@ export class UsersService {
     const blockList: User[] = [];
 
     for (var toBlock of users) {
-      console.log('to block: ', toBlock);
       if (parseInt(id) !== toBlock.id) { /* User can't block themselve */
         blockList.push(toBlock);
       }
@@ -270,7 +269,6 @@ export class UsersService {
     });
 
     user.blockedUsers = blockList;
-    console.log(user.blockedUsers);
     return this.usersRepository.save(user);
   }
 
@@ -294,7 +292,6 @@ export class UsersService {
       }
     } else if (updateUserDto.blockedUsers) {
       user = await this.updateBlockedUsers(id, updateUserDto.blockedUsers);
-      console.log(user);
     } else { /* Default case */
       const user = await this.usersRepository.preload({
         id: +id,
@@ -464,6 +461,9 @@ export class UsersService {
   }
 
   async removeFriendshipReceived(id: string, senderId: string) {
+    if (id === senderId) {
+      throw new Error('Operation not allowed. Please report the bug.');
+    }
     let user = await this.usersRepository.findOne(id, {
       relations: ['pendingFriendsReceived'],
     });
@@ -507,6 +507,9 @@ export class UsersService {
   }
 
   async removeFriendshipSent(id: string, receiverId: string) {
+    if (id === receiverId) {
+      throw new Error('Operation not allowed. Please report the bug.');
+    }
     let user = await this.usersRepository.findOne(id, {
       relations: ['pendingFriendsSent'],
     });
