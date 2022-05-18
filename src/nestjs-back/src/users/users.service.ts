@@ -449,13 +449,19 @@ export class UsersService {
       throw new Error('Cannot update user.');
     }
 
-    const alreadyReceived = !!user.pendingFriendsReceived.find((sender) => {
-      return sender.id === parseInt(senderId);
+    const alreadyFriend = !!user.friends.find((friend) => {
+      return friend.id === sender.id;
     });
 
-    if (!alreadyReceived) {
-      user.pendingFriendsReceived.push(sender);
-      return this.usersRepository.save(user);
+    if (!alreadyFriend) {
+      const alreadyReceived = !!user.pendingFriendsReceived.find((sender) => {
+        return sender.id === parseInt(senderId);
+      });
+  
+      if (!alreadyReceived) {
+        user.pendingFriendsReceived.push(sender);
+        return this.usersRepository.save(user);
+      }
     }
     return user;
   }
@@ -485,12 +491,19 @@ export class UsersService {
       throw new Error('Operation not allowed.');
     }
     let user = await this.usersRepository.findOne(id, {
-      relations: ['pendingFriendsSent'],
+      relations: ['friends', 'pendingFriendsSent'],
     });
     const receiver = await this.usersRepository.findOne(receiverId);
 
     if (!user || !receiver) {
       throw new Error('Cannot update user.');
+    }
+
+    const alreadyFriend = !!user.friends.find((friend) => {
+      return friend.id === receiver.id;
+    });
+    if (alreadyFriend) {
+      throw new Error(`${receiver.username} already accepted your request. Try to refresh the page.`);
     }
 
     const alreadySent = !!user.pendingFriendsSent.find((receiver) => {
@@ -547,7 +560,7 @@ export class UsersService {
       return friend.id === sender.id;
     });
     if (alreadyFriend) {
-      throw new Error(`Already friend.`);
+      throw new Error('Already friend. Try to refresh the page.');
     }
 
     const newRequests = user.pendingFriendsReceived.filter((request) => {
@@ -576,7 +589,7 @@ export class UsersService {
       return friend.id === friend.id;
     });
     if (alreadyFriend) {
-      throw new Error(`Already friend.`);
+      throw new Error('Already friend. Try to refresh the page.');
     }
 
     const newRequests = user.pendingFriendsSent.filter((request) => {
@@ -636,7 +649,7 @@ export class UsersService {
 
       return await this.removeFriendshipReceived(id, otherUserId);
     }
-    throw new Error(`No corresponding action found.`);
+    throw new Error('Invalid request.');
   }
 
   /* Chat */
