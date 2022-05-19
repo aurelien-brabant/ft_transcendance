@@ -18,16 +18,10 @@ const inputGroupClassName = "grid md:grid-cols-4 grid-cols-1 items-center gap-x-
 const actionTooltipStyles = "font-bold bg-dark text-neutral-200";
 
 type FormData = {
-  username: string;
-  email: string;
-  tfa: boolean;
-  pic: string;
-};
-
-type InvalidInputs = {
-  username?: string;
-  email?: string;
-  tfa?: string;
+  username: string | undefined;
+  email: string | undefined;
+  tfa: boolean | undefined;
+  pic: string | undefined;
 };
 
 const InputErrorProvider: React.FC<{ error?: string | null }> = ({
@@ -42,9 +36,9 @@ const InputErrorProvider: React.FC<{ error?: string | null }> = ({
 
 const Welcome: NextPageWithLayout = () => {
   const { user, logout, reloadUser, backend } = useSession();
-  const [invalidInputs, setInvalidInputs] = useState<InvalidInputs>({});
   const { setAlert } = useContext(alertContext) as AlertContextType;
   const router = useRouter();
+  const [pendingChanges, setPendingChanges] = useState(false);
   const [pendingPic, setPendingPic] = useState(false);
   const [pendingQR, setPendingQR] = useState(false);
   const [tfaCode, setTfaCode] = useState('');
@@ -52,16 +46,16 @@ const Welcome: NextPageWithLayout = () => {
   const [currentStep, setCurrentStep] = useState(0);
   const inputToFocus = useRef<HTMLInputElement>(null);
 
-  let baseObject: FormData;
-
-  const [formData, setFormData] = useState<FormData>({
-    username: user.username,
-    email: user.email,
-    tfa: user.tfa,
-    pic: user.pic
-  });
-
   /* Form */
+  const [formData, setFormData] = useState<FormData>({
+    username: undefined,
+    email: undefined,
+    tfa: undefined,
+    pic: undefined,
+  });
+  const [fieldErrors, setFieldErrors] = useState<Partial<FormData>>({});
+
+  /* Send new informations */
   const editUser = async (formData: FormData) => {
     const res = await backend.request(`/api/users/${user.id}`, {
       method: 'PATCH',
@@ -90,40 +84,46 @@ const Welcome: NextPageWithLayout = () => {
     }
   }
 
-  const handleSubmit = (e: React.FormEvent<HTMLFormElement>) => {
-    e.preventDefault();
-
-    if (!hasPendingChanges) return;
-
-    const tmp: InvalidInputs = {};
-
-    if (formData.username.length < 5 || formData.username.length > 50) {
-      tmp.username = "nickname can contain between 5 and 50 characters";
-    }
-
-    if (!isEmail(formData.email)) {
-      tmp.email = "Not a valid email";
-    }
-
-    setInvalidInputs(tmp);
-    if (!tmp.username && !tmp.email) {
-        editUser(formData);
-    }
-  };
-
   const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-    setInvalidInputs({ ...invalidInputs, [e.target.name]: undefined });
+    setFieldErrors({
+      ...fieldErrors,
+      [e.target.name]: undefined
+    });
     setFormData({
       ...formData,
       [e.target.name]: e.target.value,
     });
   };
 
-  // recompute this only when formData changes
-  const hasPendingChanges = useMemo(
-    () => JSON.stringify(formData) !== JSON.stringify(baseObject),
-    [formData]
-  );
+  const handleSubmit = (e: React.FormEvent<HTMLFormElement>) => {
+    e.preventDefault();
+    const errors: Partial<FormData> = {};
+
+    if (!pendingChanges) {
+      return;
+    }
+
+    if (formData.username) {
+      const usernameLen = formData.username.trim().length;
+
+      if (usernameLen < 2 || usernameLen > 30) {
+        errors['username'] = "Username can contain between 2 and 30 characters";
+      }
+      if (!(/^[^0-9][a-zA-Z0-9_]+$/.test(formData.username))) {
+        errors['username'] = "The username must not start with a number and contain alphanumeric characters and underscores only.";
+      }
+    }
+
+    if (formData.email && !isEmail(formData.email)) {
+      errors['email'] = 'Not a valid email';
+    }
+
+    if (Object.keys(errors).length === 0) {
+      editUser(formData);
+    }
+    setFieldErrors(errors);
+    setPendingChanges(false);
+  };
 
   /* Account deactivation/reactivation */
   const handleLogout = async () => {
@@ -167,30 +167,30 @@ const Welcome: NextPageWithLayout = () => {
         const img = event.target.files[0];
         setImage(img);
       }
-  };
+    };
 
-  const uploadToServer = async () => {
-    const body = new FormData();
-    body.append("image", image);
+    const uploadToServer = async () => {
+      const body = new FormData();
+      body.append("image", image);
 
-    const req = await backend.request(`/api/users/${user.id}/uploadAvatar`, {
-      method: "POST",
-      body
-    });
+      const req = await backend.request(`/api/users/${user.id}/uploadAvatar`, {
+        method: "POST",
+        body
+      });
 
-    if (req.ok) {
-      const res = await req.json();
+      if (req.ok) {
+        const res = await req.json();
 
-      setPendingPic(false);
-      setAlert({type: 'success', content: 'Avatar uploaded successfully'})
-      router.reload();
-    }
-    else if (req.status === 406)
-      setAlert({type: 'warning', content: 'Only JPG/JPEG/PNG/GIF are accepted'})
-    else if (req.status === 413)
-      setAlert({type: 'warning', content: 'File size too big!'})
-    else
-      setAlert({type: 'error', content: 'Error while uploading!'})
+        setPendingPic(false);
+        setAlert({type: 'success', content: 'Avatar uploaded successfully'})
+        router.reload();
+      }
+      else if (req.status === 406)
+        setAlert({type: 'warning', content: 'Only JPG/JPEG/PNG/GIF are accepted'})
+      else if (req.status === 413)
+        setAlert({type: 'warning', content: 'File size too big!'})
+      else
+        setAlert({type: 'error', content: 'Error while uploading!'})
     };
 
     return (
@@ -233,10 +233,8 @@ const Welcome: NextPageWithLayout = () => {
   }
 
   /* TFA */
-
   const activateTfa = async () => {
-
-    const req = await backend.request(`/api/users/${user.id}/enableTfa`, {
+    const res = await backend.request(`/api/users/${user.id}/enableTfa`, {
       method: 'POST',
       headers: {
         'Content-Type': 'application/json'
@@ -246,7 +244,7 @@ const Welcome: NextPageWithLayout = () => {
       body: JSON.stringify({tfaCode: tfaCode})
     });
 
-    if (req.status === 200) {
+    if (res.status === 200) {
       setAlert({ type: 'success', content: '2FA activated successfully' });
       setTfaStatus('enabled');
       setPendingQR(false);
@@ -260,7 +258,7 @@ const Welcome: NextPageWithLayout = () => {
   }
 
   const deactivateTfa = async () => {
-    const req = await backend.request(`/api/users/${user.id}`, {
+    const res = await backend.request(`/api/users/${user.id}`, {
       method: 'PATCH',
       headers: {
         'Content-Type': 'application/json'
@@ -273,7 +271,7 @@ const Welcome: NextPageWithLayout = () => {
       })
     });
 
-    if (req.status === 200) {
+    if (res.status === 200) {
       setAlert({ type: 'success', content: '2FA deactivated successfully' });
       setTfaStatus('disabled');
     }
@@ -363,20 +361,13 @@ const Welcome: NextPageWithLayout = () => {
   }, [tfaCode])
 
   useEffect(() => {
-    inputToFocus.current?.focus();
-  }, [currentStep, pendingQR]);
+    setPendingChanges(!(!formData.username && !formData.email && !formData.tfa && !formData.pic));
+  }, [formData]);
 
   useEffect(() => {
     if (user.accountDeactivated) {
       reactivateAccount();
     }
-
-    // baseObject = {
-    //   username: user.username,
-    //   email: user.email,
-    //   tfa: user.tfa,
-    //   pic: user.pic
-    // }
   }, [])
 
   return (
@@ -463,13 +454,14 @@ const Welcome: NextPageWithLayout = () => {
               <label htmlFor="username" className={labelClassName}>
                 Username
               </label>
-              <InputErrorProvider error={invalidInputs.username}>
+              <InputErrorProvider error={fieldErrors['username']}>
                 <input
-                  value={formData.username}
-                  onChange={handleChange}
+                  className={inputClassName}
                   type="text"
                   name="username"
-                  className={inputClassName}
+                  placeholder={user.username}
+                  value={formData.username}
+                  onChange={handleChange}
                 />
               </InputErrorProvider>
             </div>
@@ -478,13 +470,14 @@ const Welcome: NextPageWithLayout = () => {
               <label htmlFor="email" className={labelClassName}>
                 Email address
               </label>
-              <InputErrorProvider error={invalidInputs.email}>
+              <InputErrorProvider error={fieldErrors['email']}>
                 <input
+                  className={inputClassName}
                   type="text"
+                  name="email"
+                  placeholder={user.email}
                   value={formData.email}
                   onChange={handleChange}
-                  name="email"
-                  className={inputClassName}
                 />
               </InputErrorProvider>
             </div>
@@ -518,7 +511,7 @@ const Welcome: NextPageWithLayout = () => {
               <button
                 type="submit"
                 className={`px-1 md:px-6 py-2 font-bold uppercase bg-emerald-500 text-sm md:text-lg ${
-                  !hasPendingChanges && "opacity-70"
+                  !pendingChanges && "opacity-70"
                 }`}
               >
                 Save changes
