@@ -37,6 +37,7 @@ import { useSession } from "../../hooks/use-session";
 import { CheckIcon } from "@heroicons/react/solid";
 import { Combobox } from "@headlessui/react";
 import { useRouter } from "next/router";
+import Image from "next/image";
 import { useLiveSearch } from "../../hooks/use-live-search";
 import { SimpleSpinner } from "../simple-spinner";
 import { BiTrophy } from "react-icons/bi";
@@ -48,7 +49,7 @@ const navigation = [
   { name: "Leaderboard", href: "/leaderboard", icon: BiTrophy, current: false },
 ];
 
-const TOPNAV_OFFSET = '64px';
+const TOPNAV_OFFSET = "64px";
 
 /**
  * Search bar used to search for users and go to their profile page.
@@ -60,7 +61,7 @@ type SearchedUser = {
   username: string;
   duoquadra_login?: string;
   id: number;
-}
+};
 
 const SearchBar = () => {
   const fetchUsers = async (searchTerm: string): Promise<SearchedUser[]> => {
@@ -72,7 +73,7 @@ const SearchBar = () => {
       return fetchedUsers;
     }
 
-    return []
+    return [];
   };
 
   const [selectedPerson, setSelectedPerson] = useState();
@@ -82,14 +83,16 @@ const SearchBar = () => {
     elements: users,
     setSearchQuery,
     searchQuery,
-    isProcessing
-  } = useLiveSearch<SearchedUser>(fetchUsers, (user) => user.username );
+    isProcessing,
+  } = useLiveSearch<SearchedUser>(fetchUsers, (user) => user.username);
 
   const filteredPeople =
     searchQuery === ""
       ? users
       : users.filter((user) => {
-          return user.username.toLowerCase().includes(searchQuery.toLowerCase());
+          return user.username
+            .toLowerCase()
+            .includes(searchQuery.toLowerCase());
         });
 
   const handleSelect = async (user: any) => {
@@ -100,7 +103,7 @@ const SearchBar = () => {
   const handleQueryChange = async ({
     target: { value },
   }: ChangeEvent<HTMLInputElement>) => {
-    setSearchQuery(value)
+    setSearchQuery(value);
   };
 
   return (
@@ -112,7 +115,9 @@ const SearchBar = () => {
           displayValue={(user: any) => user.username}
         />
         <Combobox.Button className="absolute inset-y-0 right-0 flex items-center rounded-r-md px-2 focus:outline-none">
-          {isProcessing && <SimpleSpinner className="mr-3 h-5 w-5 text-pink-500" />}
+          {isProcessing && (
+            <SimpleSpinner className="mr-3 h-5 w-5 text-pink-500" />
+          )}
           <SearchIcon className="h-5 w-5 text-gray-400" aria-hidden="true" />
         </Combobox.Button>
 
@@ -174,16 +179,19 @@ export const DashboardLayout: FunctionComponent = ({ children }) => {
   const router = useRouter();
 
   useEffect(() => {
-    let currentlySelectedHref = '';
+    let currentlySelectedHref = "";
 
     for (const { href } of navigation) {
-      if (router.asPath.startsWith(href) && href.length > currentlySelectedHref.length) {
+      if (
+        router.asPath.startsWith(href) &&
+        href.length > currentlySelectedHref.length
+      ) {
         currentlySelectedHref = href;
       }
     }
 
-    setSelectedTabHref(currentlySelectedHref)
-  }, [router.asPath])
+    setSelectedTabHref(currentlySelectedHref);
+  }, [router.asPath]);
 
   const userNavigation = [
     { name: "Settings", href: "/welcome" },
@@ -224,7 +232,7 @@ export const DashboardLayout: FunctionComponent = ({ children }) => {
               leaveFrom="translate-x-0"
               leaveTo="-translate-x-full"
             >
-              <div className="relative flex-1 flex flex-col max-w-xs w-full pt-5 pb-4 bg-gray-800">
+              <div className="relative flex-1 flex flex-col max-w-xs w-full pt-5 pb-4 bg-02dp">
                 <Transition.Child
                   as={Fragment}
                   enter="ease-in-out duration-300"
@@ -248,12 +256,14 @@ export const DashboardLayout: FunctionComponent = ({ children }) => {
                     </button>
                   </div>
                 </Transition.Child>
-                <div className="flex-shrink-0 flex items-center px-4">
-                  <img
-                    className="h-8 w-auto"
-                    src="https://tailwindui.com/img/logos/workflow-logo-pink-500-mark-white-text.svg"
-                    alt="Transcendance"
-                  />
+                <div className="flex-shrink-0 flex items-center justify-center px-4">
+                  <div className="h-14 relative w-14">
+                    <Image
+                      layout={"fill"}
+                      src={"/logo_pink.svg"}
+                      alt="Transcendance"
+                    />
+                  </div>
                 </div>
                 <div className="mt-5 flex-1 h-0 overflow-y-auto">
                   <nav className="px-2 space-y-1">
@@ -262,9 +272,9 @@ export const DashboardLayout: FunctionComponent = ({ children }) => {
                         <a
                           className={classNames(
                             item.href === selectedTabHref
-                              ? "bg-gray-900 text-white"
-                              : "text-gray-300 hover:bg-gray-700 hover:text-white",
-                            "group flex items-center px-2 py-2 text-base font-medium rounded-md"
+                              ? "bg-01dp text-white"
+                              : "text-gray-300 hover:bg-01dp hover:text-white",
+                            "group flex items-center px-2 py-2 text-sm font-medium rounded-md"
                           )}
                         >
                           <item.icon
@@ -295,7 +305,9 @@ export const DashboardLayout: FunctionComponent = ({ children }) => {
           {/* Sidebar component, swap this element with another sidebar if you like */}
           <div className="flex-1 flex flex-col min-h-0 bg-02dp">
             <div className="flex items-center h-16 flex-shrink-0 px-4 bg-01dp">
-              <img className="h-8 w-auto" src="/logo_pink.svg" alt="Workflow" />
+              <div className="w-12 h-12 relative">
+                <Image src="/logo_pink.svg" layout={"fill"} alt="Workflow" />
+              </div>
             </div>
             <div className="flex-1 flex flex-col overflow-y-auto">
               <nav className="flex-1 px-2 py-4 space-y-1">
@@ -405,7 +417,7 @@ export const DashboardLayout: FunctionComponent = ({ children }) => {
             style={{
               background:
                 "repeating-linear-gradient(rgba(18,18,18,0.90), rgba(18,18,18,0.90)), url('/triangles.png') repeat",
-              minHeight: `calc(100vh - ${TOPNAV_OFFSET})`
+              minHeight: `calc(100vh - ${TOPNAV_OFFSET})`,
             }}
           >
             <div className="py-6">
