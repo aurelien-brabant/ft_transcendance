@@ -231,7 +231,7 @@ const Group: React.FC<{ viewParams: { [key: string]: any } }> = ({
 				(a: ChannelMessage, b: ChannelMessage) => (parseInt(a.id) - parseInt(b.id))
 			);
 
-			for (var message of channel.messages) {
+			for (const message of channel.messages) {
 				const author = message.author;
 				const isBlocked = author && !!blocked.find(blockedUser => blockedUser.id === author.id);
 				const isMe = author && (author.id === user.id);

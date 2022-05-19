@@ -10,14 +10,13 @@ export type RelationshipContextType = {
 	setFriends42: (data: any) => any;
 	blocked: User[];
 	setBlocked: (data: any) => any;
-	suggested: User[]
-	setSuggested: (data: any) => any;
 	pendingFriendsReceived: User[];
 	setPendingFriendsReceived: (data: any) => any;
 	pendingFriendsSent: User[];
 	setPendingFriendsSent: (data: any) => any;
-	createSuggested: (users: User[], friends: User[], blocked: User[]) => any;
-	getUserRelationships: (users: User[], id: string) => any;
+	suggested: User[]
+	setSuggested: (data: any) => any;
+
 	getRelationshipsData: () => any;
 }
 

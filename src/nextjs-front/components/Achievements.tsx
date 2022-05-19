@@ -19,7 +19,7 @@ const Achievements: React.FC<{}> = () => {
     const updateUserAchievements = async (achievements: Achievement[]) => {
         const userAchievements: UserAchievement[] = [];
 
-        for (var achievement of achievements) {
+        for (const achievement of achievements) {
             userAchievements.push({
                 id: userAchievements.length.toString(),
                 type: achievement.type,
@@ -39,13 +39,12 @@ const Achievements: React.FC<{}> = () => {
     }
 
     useEffect(() => {
-        console.log('[Achievements] getAchievementsData');
         getAchievementsData();
     }, [])
 
     /* Set list */
     const getAchievementColor = (levelToReach: number, type: string) => {
-        for (var achievement of userAchievements) {
+        for (const achievement of userAchievements) {
             if (achievement.levelReached === levelToReach && achievement.type === type && levelToReach === 10)
                 return "text-yellow-400"
             else if (achievement.levelReached === levelToReach && achievement.type === type && levelToReach === 3)
@@ -57,7 +56,7 @@ const Achievements: React.FC<{}> = () => {
     }
 
     const getBorderColor = (levelToReach: number, type: string) => {
-        for (var achievement of userAchievements) {
+        for (const achievement of userAchievements) {
             if (achievement.levelReached === levelToReach && achievement.type === type && levelToReach === 10)
                 return "ring-4 ring-yellow-400/20 border border-yellow-400 border-8"
             else if (achievement.levelReached === levelToReach && achievement.type === type && levelToReach === 3)

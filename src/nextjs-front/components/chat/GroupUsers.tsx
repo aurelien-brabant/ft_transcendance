@@ -82,7 +82,7 @@ const GroupUsers: React.FC<{ viewParams: any }> = ({ viewParams }) => {
 	const [owner, setOwner] = useState<UserSummary>();
 	const [ownerView, setOwnerView] = useState(false);
 	const [adminView, setAdminView] = useState(false);
-	const actionTooltipStyles = "font-bold bg-gray-900 text-neutral-200";
+	const actionTooltipStyles = "font-bold bg-dark text-neutral-200";
 	const pongIconStyle = "p-1 text-pink-700 bg-pink-200 rounded-full transition hover:scale-110  hover:text-pink-600";
 
 	/* Make user administrator */
@@ -176,7 +176,7 @@ const GroupUsers: React.FC<{ viewParams: any }> = ({ viewParams }) => {
 		setOwner(owner);
 
 		const users: UserSummary[] = [];
-		for (var chanUser of channel.users) {
+		for (const chanUser of channel.users) {
 			if (chanUser.id !== owner.id) {
 				users.push({
 					id: chanUser.id,

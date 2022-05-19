@@ -60,7 +60,7 @@ const GroupAdd: React.FC<{ viewParams: any }> = ({ viewParams }) => {
 	const selectFriends = async (channel: Channel) => {
 		const selectedFriends: User[] = [];
 
-		for (var friend of friends) {
+		for (const friend of friends) {
 			const isInChan = !!channel.users.find((user: BaseUserData) => {
 				return user.id === friend.id;
 			})

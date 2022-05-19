@@ -139,7 +139,7 @@ const DirectMessage: React.FC<{ viewParams: { [key: string]: any } }> = ({
 			(a: DmMessage, b: DmMessage) => (parseInt(a.id) - parseInt(b.id))
 		);
 
-		for (var message of dm.messages) {
+		for (const message of dm.messages) {
 			messages.push({
 				id: messages.length.toString(),
 				createdAt: message.createdAt,
