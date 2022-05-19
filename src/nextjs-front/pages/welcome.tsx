@@ -36,8 +36,8 @@ const InputErrorProvider: React.FC<{ error?: string | null }> = ({
 
 const Welcome: NextPageWithLayout = () => {
   const { user, logout, reloadUser, backend } = useSession();
-  const { setAlert } = useContext(alertContext) as AlertContextType;
   const router = useRouter();
+  const { setAlert } = useContext(alertContext) as AlertContextType;
   const [pendingChanges, setPendingChanges] = useState(false);
   const [pendingPic, setPendingPic] = useState(false);
   const [pendingQR, setPendingQR] = useState(false);
@@ -46,7 +46,6 @@ const Welcome: NextPageWithLayout = () => {
   const [currentStep, setCurrentStep] = useState(0);
   const inputToFocus = useRef<HTMLInputElement>(null);
 
-  /* Form */
   const [formData, setFormData] = useState<FormData>({
     username: undefined,
     email: undefined,
@@ -84,6 +83,7 @@ const Welcome: NextPageWithLayout = () => {
     }
   }
 
+  /* Form */
   const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     setFieldErrors({
       ...fieldErrors,
@@ -125,38 +125,9 @@ const Welcome: NextPageWithLayout = () => {
     setPendingChanges(false);
   };
 
-  /* Account deactivation/reactivation */
-  const handleLogout = async () => {
-    await logout();
-  }
-
-  const deactivateAccount = async () => {
-    const res = await backend.request(`/api/users/${user.id}`, {
-      method: 'PATCH',
-      headers: {
-        'Content-Type': 'application/json'
-      },
-      body: JSON.stringify({
-        accountDeactivated: true
-      })
-    });
-
-    if (res.status === 200) {
-      await handleLogout();
-    }
-  }
-
-  const reactivateAccount = () => {
-    backend.request(`/api/users/${user.id}`, {
-      method: 'PATCH',
-      headers: {
-        'Content-Type': 'application/json'
-      },
-      body: JSON.stringify({
-        accountDeactivated: false
-      })
-    });
-  }
+  useEffect(() => {
+    setPendingChanges(!(!formData.username && !formData.email && !formData.tfa && !formData.pic));
+  }, [formData]);
 
   /* Picture */
   const UploadPic = () => {
@@ -360,9 +331,38 @@ const Welcome: NextPageWithLayout = () => {
         activateTfa();
   }, [tfaCode])
 
-  useEffect(() => {
-    setPendingChanges(!(!formData.username && !formData.email && !formData.tfa && !formData.pic));
-  }, [formData]);
+  /* Account deactivation/reactivation */
+  const handleLogout = async () => {
+    await logout();
+  }
+
+  const deactivateAccount = async () => {
+    const res = await backend.request(`/api/users/${user.id}`, {
+      method: 'PATCH',
+      headers: {
+        'Content-Type': 'application/json'
+      },
+      body: JSON.stringify({
+        accountDeactivated: true
+      })
+    });
+
+    if (res.status === 200) {
+      await handleLogout();
+    }
+  }
+
+  const reactivateAccount = () => {
+    backend.request(`/api/users/${user.id}`, {
+      method: 'PATCH',
+      headers: {
+        'Content-Type': 'application/json'
+      },
+      body: JSON.stringify({
+        accountDeactivated: false
+      })
+    });
+  }
 
   useEffect(() => {
     if (user.accountDeactivated) {
@@ -488,7 +488,7 @@ const Welcome: NextPageWithLayout = () => {
               </label>
               <button
                 type="button"
-                className={`px-6 py-2 col-span-2 ${(tfaStatus === 'enabled') ? "bg-red-400" : "bg-emerald-500"}`}
+                className={`px-6 py-2 col-span-2 ${(tfaStatus === 'enabled') ? "bg-slate-700 hover:bg-slate-600" : "bg-emerald-500 hover:bg-emerald-400"}`}
                 onClick={() => {
                   if (tfaStatus === 'disabled') {
                     setAlert({ type: 'info', content: 'Scan the QR code to get the 6-digits code given by your authenticator app'})
@@ -511,14 +511,14 @@ const Welcome: NextPageWithLayout = () => {
               <button
                 type="submit"
                 className={`px-1 md:px-6 py-2 font-bold uppercase bg-emerald-500 text-sm md:text-lg ${
-                  !pendingChanges && "opacity-70"
+                  pendingChanges ? "hover:bg-emerald-400" : "opacity-70"
                 }`}
               >
                 Save changes
               </button>
 
               <button
-                className="px-1 py-2 text-sm font-bold uppercase bg-slate-700 md:px-6 md:text-lg"
+                className="px-1 py-2 text-sm font-bold uppercase bg-slate-700 md:px-6 md:text-lg hover:bg-slate-600"
                 onClick={(e) => {
                   e.preventDefault();
                   if (confirm("Deactivated account?\nJust login again to reactivate your account.\n\nClick OK to proceed.") == true) {
