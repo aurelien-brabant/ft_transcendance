@@ -390,7 +390,7 @@ const Welcome: NextPageWithLayout = () => {
     <div className="text-white" id="main-content">
       <div style={{ maxWidth: "800px" }} className="px-2 mx-auto" >
 
-      {(user.duoquadra_login) &&
+      {(!pendingQR && user.duoquadra_login) &&
       <div className="flex flex-col items-center p-2">
         <div className="bg-pink-200 rounded-full pb-0 pt-2 pr-2 pl-2">
           <Image
