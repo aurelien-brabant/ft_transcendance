@@ -110,16 +110,11 @@ export class PongGateway implements OnGatewayInit, OnGatewayConnection, OnGatewa
 		newUser.setSocketId(client.id);
 		newUser.setUserStatus(UserStatus.INHUB);
 
-		console.log(this.rooms);
-
 		/* Verify that player is not already in a game */
 		this.rooms.forEach((room: Room) => {
-			console.log(room);
 			if (room.isAPlayer(newUser) && room.gameState !== GameState.PLAYERONEWIN || room.gameState !== GameState.PLAYERTWOWIN) {
 				newUser.setUserStatus(UserStatus.PLAYING);
 				newUser.setRoomId(room.roomId);
-
-				console.log('is Player: ', room.isAPlayer(newUser));
 
 				this.server.to(client.id).emit("newRoom", room);
 				if (room.gameState === GameState.PAUSED) {

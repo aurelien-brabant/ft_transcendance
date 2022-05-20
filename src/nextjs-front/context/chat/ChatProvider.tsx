@@ -240,7 +240,6 @@ const ChatProvider: React.FC = ({ children }) => {
 
 		if (socket.connected === false) {
 			socket.on("connect", () => {
-				console.log("[Chat] Client connected");
 
 				socket.emit("updateChatUser", {
 					id: user.id,
