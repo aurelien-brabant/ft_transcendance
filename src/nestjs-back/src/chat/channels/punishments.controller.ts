@@ -14,7 +14,7 @@ export class ChannelPunishmentsController {
 
     @Get('/')
     getPunishmentsForUser(@Param('channelId') channelId: number, @Query('userId') userId: number) {
-        return this.channelPunishmentService.getActiveUserPunishments(channelId, userId, { onlyType: 'mute' })
+        return this.channelPunishmentService.getActiveUserPunishments(channelId, userId);
     }
 
     /* example endpoint call: /channels/1/punishments/punish-by-mute?punishedId=1&punisherId=2 */

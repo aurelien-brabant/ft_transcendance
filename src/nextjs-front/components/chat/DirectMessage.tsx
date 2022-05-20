@@ -1,7 +1,7 @@
 import { Fragment, useContext, useEffect, useRef, useState } from "react";
-import { AiOutlineArrowLeft, AiOutlineClose } from "react-icons/ai";
 import { FiSend } from "react-icons/fi";
 import { RiPingPongLine, RiGhostLine } from "react-icons/ri";
+import { ArrowSmLeftIcon, XIcon } from "@heroicons/react/outline";
 import Link from "next/link";
 import { DmChannel, DmMessage } from "transcendance-types";
 import { UserStatusItem } from "../UserStatus";
@@ -43,7 +43,7 @@ export const DirectMessageHeader: React.FC<{ viewParams: any }> = ({
               closeChat();
             }}
           >
-            <AiOutlineClose />
+            <XIcon className="h-6 w-6" />
           </button>
           <button
             className="text-2xl"
@@ -51,7 +51,7 @@ export const DirectMessageHeader: React.FC<{ viewParams: any }> = ({
               setChatView("dms", "Direct messages", {});
             }}
           >
-            <AiOutlineArrowLeft />
+            <ArrowSmLeftIcon className="h-6 w-6" />
           </button>
         </div>
         <Tooltip className={actionTooltipStyles} content="play">

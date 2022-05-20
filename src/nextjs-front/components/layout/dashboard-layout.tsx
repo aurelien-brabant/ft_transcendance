@@ -42,13 +42,6 @@ import { useLiveSearch } from "../../hooks/use-live-search";
 import { SimpleSpinner } from "../simple-spinner";
 import { BiTrophy } from "react-icons/bi";
 
-const navigation = [
-  { name: "My profile", href: "/welcome", icon: HomeIcon, current: true },
-  { name: "Friends", href: "/friends", icon: UsersIcon, current: false },
-  { name: "Play", href: "/hub", icon: FireIcon, current: false },
-  { name: "Leaderboard", href: "/leaderboard", icon: BiTrophy, current: false },
-];
-
 const TOPNAV_OFFSET = "64px";
 
 /**
@@ -174,8 +167,16 @@ const SearchBar = () => {
 
 export const DashboardLayout: FunctionComponent = ({ children }) => {
   const [sidebarOpen, setSidebarOpen] = useState(false);
-  const [selectedTabHref, setSelectedTabHref] = useState(navigation[0].href);
   const { user, logout } = useSession();
+
+  const navigation = [
+    { name: "My profile", href: `/users/${user.id}`, icon: HomeIcon, current: true },
+    { name: "Friends", href: "/friends", icon: UsersIcon, current: false },
+    { name: "Play", href: "/hub", icon: FireIcon, current: false },
+    { name: "Leaderboard", href: "/leaderboard", icon: BiTrophy, current: false },
+  ];
+
+  const [selectedTabHref, setSelectedTabHref] = useState(navigation[0].href);
   const router = useRouter();
 
   useEffect(() => {
@@ -193,9 +194,11 @@ export const DashboardLayout: FunctionComponent = ({ children }) => {
     setSelectedTabHref(currentlySelectedHref);
   }, [router.asPath]);
 
+
+
   const userNavigation = [
     { name: "Settings", href: "/welcome" },
-    { name: "My profile", href: `/users/${user.id}` },
+    // { name: "My profile", href: `/users/${user.id}` },
   ];
 
   const handleLogout = async () => {

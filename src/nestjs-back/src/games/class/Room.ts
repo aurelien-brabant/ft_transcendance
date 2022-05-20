@@ -15,13 +15,7 @@ export interface IRoom {
 	timestampStart: number;
 	lastUpdate: number;
 	goalTimestamp: number;
-	lastGoal: string;
 	pauseTime: {pause: number, resume: number}[];
-
-	winner: string;
-	loser: string;
-	winnerId: number;
-	loserId: number;
 
 	// settings customisation
 	maxGoal: number;
@@ -29,6 +23,51 @@ export interface IRoom {
 	timer: number;
 	gameDuration: number;
 }
+
+export type SerializeRoom = {
+		roomId: string;
+		gameState: GameState;
+		playerOne: {
+			user: {
+				id: number;
+				username: string;
+			}
+			width: number;
+			height: number;
+			x: number;
+			y: number;
+			color: string;
+			goal: number;
+		};
+		playerTwo: {
+			user: {
+				id: number;
+				username: string;
+			}
+			width: number;
+			height: number;
+			x: number;
+			y: number;
+			color: string;
+			goal: number;
+		};
+
+		ball: {
+			x: number;
+			y: number;
+			r: number;
+			color: string;
+		},
+		timestampStart: number;
+		goalTimestamp: number;
+		pauseTime: {
+			pause: number;
+			resume: number;
+		}[],
+		mode: number;
+		timer: number;
+		gameDuration: number;
+};
 
 export default class Room implements IRoom {
 	roomId: string;
@@ -41,15 +80,7 @@ export default class Room implements IRoom {
 	timestampStart: number;
 	lastUpdate: number;
 	goalTimestamp: number;
-	lastGoal: string;
 	pauseTime: {pause: number, resume: number}[];
-
-	winner: string;
-	loser: string;
-	winnerId: number;
-	loserId: number;
-	winnerScore: number;
-	loserScore: number;
 
 	isGameEnd: boolean;
 
@@ -130,45 +161,6 @@ export default class Room implements IRoom {
 		this.ball.reset();
 	}
 
-	defaultGameMode(): void {
-		if (this.playerOne.goal === this.maxGoal) {
-			this.winner = this.playerOne.user.username;
-			this.winnerId = this.playerOne.user.id;
-			this.winnerScore = this.playerOne.goal;
-			this.loser = this.playerTwo.user.username;
-			this.loserId = this.playerTwo.user.id;
-			this.loserScore = this.playerTwo.goal;
-
-		} else {
-			this.winner = this.playerTwo.user.username;
-			this.winnerId = this.playerTwo.user.id;
-			this.winnerScore = this.playerTwo.goal;
-			this.loser = this.playerOne.user.username;
-			this.loserId = this.playerOne.user.id;
-			this.loserScore = this.playerOne.goal;
-		}
-	}
-
-	timerGameMode() {
-		if (this.playerOne.goal > this.playerTwo.goal) {
-			this.winner = this.playerOne.user.username;
-			this.winnerId = this.playerOne.user.id;
-			this.winnerScore = this.playerOne.goal;
-			this.loser = this.playerTwo.user.username;
-			this.loserId = this.playerTwo.user.id;
-			this.loserScore = this.playerTwo.goal;
-
-		} else {
-			this.winner = this.playerTwo.user.username;
-			this.winnerId = this.playerTwo.user.id;
-			this.winnerScore = this.playerTwo.goal;
-			this.loser = this.playerOne.user.username;
-			this.loserId = this.playerOne.user.id;
-			this.loserScore = this.playerOne.goal;
-		}
-
-	}
-
 	updateTimer() {
 		let time: number = ((Date.now() - this.timestampStart));
 		this.pauseTime.forEach((pause) => {
@@ -179,31 +171,37 @@ export default class Room implements IRoom {
 
 	checkGoal() {
 		if (this.ball.goal === true) {
-			this.goalTimestamp = Date.now();
+			this.goalTimestamp = this.lastUpdate;
 			if (this.mode === GameMode.DEFAULT && (this.playerOne.goal === this.maxGoal || this.playerTwo.goal === this.maxGoal))
 			{
-				this.defaultGameMode();
-				this.changeGameState(GameState.END);
+				if (this.playerOne.goal === this.maxGoal)
+					this.changeGameState(GameState.PLAYERONEWIN);
+				else if (this.playerTwo.goal === this.maxGoal)
+					this.changeGameState(GameState.PLAYERTWOWIN);
 				this.isGameEnd = true;
 			}
 			else
 			{
-				this.lastGoal = (this.ball.x < canvasWidth/2) ? this.playerTwo.user.username : this.playerOne.user.username;
-				this.changeGameState(GameState.GOAL);
+				if (this.ball.x < canvasWidth/2)
+					this.changeGameState(GameState.PLAYERTWOSCORED);
+				else
+					this.changeGameState(GameState.PLAYERONESCORED);
 			}
 			this.ball.goal = false;
 		}
 
 		if (this.mode === GameMode.TIMER && (this.playerOne.goal !== this.playerTwo.goal) && this.timer >= this.gameDuration) {
-			this.timerGameMode();
-			this.changeGameState(GameState.END);
+			if (this.playerOne.goal > this.playerTwo.goal)
+				this.changeGameState(GameState.PLAYERONEWIN);
+			else
+				this.changeGameState(GameState.PLAYERTWOWIN);
 			this.isGameEnd = true;
 		}
 	}
 
-	update(): void {
-		let secondPassed: number = (Date.now() - this.lastUpdate) / 1000;
-		this.lastUpdate = Date.now();
+	update(currentTimestamp: number): void {
+		let secondPassed: number = (currentTimestamp - this.lastUpdate) / 1000;
+		this.lastUpdate = currentTimestamp;
 
 		this.playerOne.update(secondPassed);
 		this.playerTwo.update(secondPassed);
@@ -212,22 +210,53 @@ export default class Room implements IRoom {
 	}
 
 	pauseForfait() {
-		if (this.players[0].id === this.playerOne.user.id) {
-			this.winner = this.playerOne.user.username;
-			this.winnerId = this.playerOne.user.id;
-			this.winnerScore = this.playerOne.goal;
-			this.loser = this.playerTwo.user.username;
-			this.loserId = this.playerTwo.user.id;
-			this.loserScore = this.playerTwo.goal;
-
-		} else {
-			this.winner = this.playerTwo.user.username;
-			this.winnerId = this.playerTwo.user.id;
-			this.winnerScore = this.playerTwo.goal;
-			this.loser = this.playerOne.user.username;
-			this.loserId = this.playerOne.user.id;
-			this.loserScore = this.playerOne.goal;
-		}
-
+		if (this.players[0].id === this.playerOne.user.id)
+			this.changeGameState(GameState.PLAYERONEWIN);
+		else
+			this.changeGameState(GameState.PLAYERTWOWIN);
 	}
+
+	serialize(): SerializeRoom { // send the littlest amount of data
+		const newSerializeRoom: SerializeRoom = {
+			roomId: this.roomId,
+			gameState: this.gameState,
+			playerOne: {
+				user: {
+					id: this.playerOne.user.id,
+					username: this.playerOne.user.username,
+				},
+				width: this.playerOne.width,
+				height: this.playerOne.height,
+				x: this.playerOne.x,
+				y: this.playerOne.y,
+				color: this.playerOne.color,
+				goal: this.playerOne.goal,
+			},
+			playerTwo: {
+				user: {
+					id: this.playerTwo.user.id,
+					username: this.playerTwo.user.username,
+				},
+				width: this.playerTwo.width,
+				height: this.playerTwo.height,
+				x: this.playerTwo.x,
+				y: this.playerTwo.y,
+				color: this.playerTwo.color,
+				goal: this.playerTwo.goal,
+			},
+			ball: {
+				x: this.ball.x,
+				y: this.ball.y,
+				r: this.ball.r,
+				color: this.ball.color,
+			},
+			timestampStart: this.timestampStart,
+			goalTimestamp: this.goalTimestamp,
+			pauseTime: this.pauseTime,
+			mode: this.mode,
+			timer: this.timer,
+			gameDuration: this.gameDuration,
+		};
+		return newSerializeRoom;
+	} 
 }

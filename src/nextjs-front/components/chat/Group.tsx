@@ -1,8 +1,6 @@
 import { Fragment, useContext, useEffect, useRef, useState } from "react";
-import { AiOutlineArrowLeft, AiOutlineClose } from "react-icons/ai";
-import { FaUserFriends, FaUserPlus } from "react-icons/fa";
 import { FiSend } from "react-icons/fi";
-import { RiSettings5Line } from "react-icons/ri";
+import { ArrowSmLeftIcon, CogIcon, UserAddIcon, UserGroupIcon, XIcon } from "@heroicons/react/outline";
 import { Channel, ChannelMessage } from "transcendance-types";
 import Tooltip from "../../components/Tooltip";
 import { useSession } from "../../hooks/use-session";
@@ -76,14 +74,14 @@ export const GroupHeader: React.FC<{ viewParams: any }> = ({ viewParams }) => {
               closeChat();
             }}
           >
-            <AiOutlineClose />
+            <XIcon className="h-6 w-6" />
           </button>
           <button
             onClick={() => {
               setChatView("groups", "Group chats", {});
             }}
           >
-            <AiOutlineArrowLeft />
+            <ArrowSmLeftIcon className="h-6 w-6" />
           </button>
         </div>
         {userInChan === true && (
@@ -96,7 +94,7 @@ export const GroupHeader: React.FC<{ viewParams: any }> = ({ viewParams }) => {
                   });
                 }}
               >
-                <FaUserPlus className="text-lg" />
+                <UserAddIcon className="h-5 w-5" />
               </button>
             </Tooltip>
             <Tooltip className={actionTooltipStyles} content="users">
@@ -108,7 +106,7 @@ export const GroupHeader: React.FC<{ viewParams: any }> = ({ viewParams }) => {
                   });
                 }}
               >
-                <FaUserFriends />
+                <UserGroupIcon className="h-6 w-6" />
               </button>
             </Tooltip>
             <button
@@ -120,7 +118,7 @@ export const GroupHeader: React.FC<{ viewParams: any }> = ({ viewParams }) => {
                 });
               }}
             >
-              <RiSettings5Line />
+              <CogIcon className="h-6 w-6" />
             </button>
           </div>
         )}

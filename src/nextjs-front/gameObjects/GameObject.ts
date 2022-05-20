@@ -10,8 +10,10 @@ export enum GameState {
 	PLAYING,
 	PAUSED,
 	RESUMED,
-	GOAL,
-	END
+	PLAYERONESCORED,
+	PLAYERTWOSCORED,
+	PLAYERONEWIN,
+	PLAYERTWOWIN,
 }
 
 export enum GameMode {
@@ -52,7 +54,6 @@ export interface IRoom {
 
 	timestampStart: number;
 	goalTimestamp: number;
-	lastGoal: string;
 	pauseTime: {pause: number, resume: number}[];
 
 	winner: string;

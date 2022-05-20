@@ -1,10 +1,8 @@
 import { Fragment, useContext, useEffect, useState } from "react";
-import { AiOutlineArrowLeft, AiOutlineClose } from "react-icons/ai";
-import { FaCrown, FaUserFriends, FaUserLock, FaUserMinus } from "react-icons/fa";
-import { BsShieldFillCheck, BsShieldFillPlus, BsShieldFillX } from "react-icons/bs";
-import { GiThorHammer } from "react-icons/gi";
-import { MdVoiceOverOff } from "react-icons/md";
+import { FaCrown } from "react-icons/fa";
 import { RiPingPongLine } from 'react-icons/ri';
+import { ArrowSmLeftIcon, BanIcon, LockClosedIcon, ShieldExclamationIcon, UserRemoveIcon, UsersIcon, VolumeOffIcon, XIcon } from "@heroicons/react/outline";
+import { ShieldCheckIcon } from "@heroicons/react/solid";
 import Link from "next/link";
 import { Channel } from "transcendance-types";
 import { useSession } from "../../hooks/use-session";
@@ -52,14 +50,14 @@ export const GroupUsersHeader: React.FC<{ viewParams: any }> = ({ viewParams }) 
 			<div className="flex items-start justify-between pt-3 px-5">
 				<div className="flex gap-x-2 text-2xl">
 					<button onClick={() => { closeChat(); }}>
-						<AiOutlineClose />
+						<XIcon className="h-6 w-6" />
 					</button>
 					<button onClick={() => { closeRightmostView(); }}>
-						<AiOutlineArrowLeft />
+						<ArrowSmLeftIcon className="h-6 w-6" />
 					</button>
 				</div>
 				<div className="flex items-center gap-x-1 px-2">
-					<FaUserFriends />
+					<UsersIcon className="h-5 w-5" />
 					{peopleCount}
 				</div>
 			</div>
@@ -243,10 +241,10 @@ const GroupUsers: React.FC<{ viewParams: any }> = ({ viewParams }) => {
 				<Link href={`/users/${user.username}`}>
 					<a className="flex items-center gap-x-2">
 						{user.username}
-						{user.isAdmin && <BsShieldFillCheck className="text-blue-500"/>}
-						{user.isBlocked && <FaUserLock color="grey" />}
-						{user.isMuted && <MdVoiceOverOff color="grey"/>}
-						{user.isBanned && <GiThorHammer color="grey"/>}
+						{user.isAdmin && <ShieldCheckIcon className="h-5 w-5 text-blue-500"/>}
+						{user.isBlocked && <LockClosedIcon className="h-5 w-5" color="grey" />}
+						{user.isMuted && <VolumeOffIcon className="h-5 w-5" color="grey"/>}
+						{user.isBanned && <BanIcon className="h-5 w-5" color="grey"/>}
 					</a>
 				</Link>
 			</div>
@@ -262,17 +260,17 @@ const GroupUsers: React.FC<{ viewParams: any }> = ({ viewParams }) => {
 						<button
 						onClick={() => muteUser(user.id)}
 						className="transition hover:scale-110">
-							<MdVoiceOverOff color="grey"/>
+							<VolumeOffIcon className="h-5 w-5" color="grey"/>
 						</button>
 					</Tooltip>}
 					{!user.isBanned && <Tooltip className={actionTooltipStyles} content="ban">
 						<button onClick={() => banUser(user.id)} className="transition hover:scale-110">
-							<GiThorHammer color="grey"/>
+							<BanIcon className="h-5 w-5" color="grey"/>
 						</button>
 					</Tooltip>}
 					<Tooltip className={actionTooltipStyles} content="kick">
 						<button onClick={() => kickUser(user.id)} className="transition hover:scale-110">
-							<FaUserMinus className="text-lg" color="grey"/>
+							<UserRemoveIcon className="h-5 w-5" color="grey"/>
 						</button>
 					</Tooltip>
 				</>
@@ -285,14 +283,14 @@ const GroupUsers: React.FC<{ viewParams: any }> = ({ viewParams }) => {
 		if (user.isAdmin) {
 			return (
 				<button onClick={() => removeAdmin(user.id)} className="text-red-600 transition hover:scale-110">
-					<BsShieldFillX />
+					<ShieldExclamationIcon className="h-5 w-5" />
 				</button>
 			);
 		}
 		return (
 			<Tooltip className={actionTooltipStyles} content="+admin">
 				<button onClick={() => addAdmin(user.id)} className="text-blue-500 transition hover:scale-110">
-					<BsShieldFillPlus />
+					<ShieldExclamationIcon className="h-5 w-5" />
 				</button>
 			</Tooltip>
 		);
@@ -316,7 +314,7 @@ const GroupUsers: React.FC<{ viewParams: any }> = ({ viewParams }) => {
 						<a className="flex items-center gap-x-2">
 							{owner.username}
 							<FaCrown className="text-yellow-500" />
-							{owner.isBlocked && <FaUserLock className="text-red-600" />}
+							{owner.isBlocked && <LockClosedIcon className="h-5 w-5" color="grey" />}
 						</a>
 					</Link>
 				</div>
