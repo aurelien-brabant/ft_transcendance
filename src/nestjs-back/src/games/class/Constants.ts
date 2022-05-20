@@ -20,7 +20,8 @@ export enum GameState {
 	PLAYING,
 	PAUSED,
 	RESUMED,
-	GOAL,
+	PLAYERONESCORED,
+	PLAYERTWOSCORED,
 	END
 }
 

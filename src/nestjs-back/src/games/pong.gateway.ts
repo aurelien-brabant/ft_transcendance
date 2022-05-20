@@ -108,7 +108,7 @@ export class PongGateway implements OnGatewayInit, OnGatewayConnection, OnGatewa
 						this.server.emit("updateCurrentGames", this.currentGames);
 					}
 					else if (room.gameState !== GameState.END) {
-						if (room.gameState === GameState.GOAL)
+						if (room.gameState === GameState.PLAYERONESCORED || room.gameState === GameState.PLAYERTWOSCORED)
 							room.resetPosition();
 						room.pause();
 					}
@@ -249,7 +249,7 @@ export class PongGateway implements OnGatewayInit, OnGatewayConnection, OnGatewa
 				if (room.isGameEnd)
 					this.saveGame(room, currentTimestamp);
 			}
-			else if (room.gameState === GameState.GOAL
+			else if ((room.gameState === GameState.PLAYERONESCORED || room.gameState === GameState.PLAYERTWOSCORED)
 					&& (currentTimestamp - room.goalTimestamp) >= this.secondToTimestamp(3.5)) {
 				room.resetPosition();
 				room.changeGameState(GameState.PLAYING);
@@ -266,10 +266,10 @@ export class PongGateway implements OnGatewayInit, OnGatewayConnection, OnGatewa
 				this.saveGame(room, currentTimestamp);
 			}
 
-			if (room.mode === GameMode.TIMER && (room.gameState === GameState.GOAL || room.gameState === GameState.PLAYING))
+			if (room.mode === GameMode.TIMER && (room.gameState === GameState.PLAYERONESCORED || room.gameState === GameState.PLAYERTWOSCORED || room.gameState === GameState.PLAYING))
 				room.updateTimer();
 
-			this.server.to(room.roomId).emit("updateRoom", JSON.stringify(room.serialize()));
+			this.server.to(room.roomId).emit("updateRoom", room.serialize());
 		}
 	}
 

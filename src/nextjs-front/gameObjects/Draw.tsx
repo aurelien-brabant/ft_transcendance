@@ -1,4 +1,4 @@
-import { canvasHeight, canvasWidth, IBall, countDown, IPlayer, IRoom, loadingMsg } from "./GameObject";
+import { canvasHeight, canvasWidth, IBall, countDown, IPlayer, IRoom, loadingMsg, GameState } from "./GameObject";
 
 export type PlayerGoal = {
 	p1: boolean;
@@ -230,7 +230,10 @@ export class Draw {
 		let count: number = (Date.now() - room.goalTimestamp) / 1000;
 		this.drawGoalParticle(room.ball);
 		this.drawRectangle(0, 0, canvasWidth, canvasHeight, "rgba(0, 0, 0, 0.5)");
-		this.drawCenteredText((room.lastGoal + " Scores !!!"), this.width/2, ((this.height/2) - (this.height/10)), 45, 'white');
+		if (room.gameState === GameState.PLAYERONESCORED)
+			this.drawCenteredText((room.playerOne.user.username + " Scores !!!"), this.width/2, ((this.height/2) - (this.height/10)), 45, 'white');
+		else if (room.gameState === GameState.PLAYERTWOSCORED)
+			this.drawCenteredText((room.playerTwo.user.username + " Scores !!!"), this.width/2, ((this.height/2) - (this.height/10)), 45, 'white');
 		this.drawCountDown(countDown[Math.floor(count)]);
 	}
 

@@ -50,7 +50,7 @@ const Canvas: React.FC<{socketProps: Socket, roomProps: any}> = ({socketProps, r
 		draw.drawScore(room.playerOne, room.playerTwo);
 		draw.drawPaddle(room.playerOne);
 		draw.drawPaddle(room.playerTwo);
-		if (room.gameState !== GameState.GOAL && room.gameState !== GameState.END)
+		if (room.gameState !== GameState.PLAYERONESCORED && room.gameState !== GameState.PLAYERTWOSCORED && room.gameState !== GameState.END)
 			draw.drawBall(room.ball);
 		draw.animateNeon(canvas);
 	}
@@ -74,9 +74,8 @@ const Canvas: React.FC<{socketProps: Socket, roomProps: any}> = ({socketProps, r
 				window.addEventListener("keyup", upHandler);
 		}
 
-		socket.on("updateRoom", function(updatedRoom: string) {
-			room = JSON.parse(updatedRoom);
-			console.log(updatedRoom);
+		socket.on("updateRoom", function(updatedRoom: IRoom) {
+			room = updatedRoom;
 		});
 
 		const loading = () => {
@@ -133,10 +132,9 @@ const Canvas: React.FC<{socketProps: Socket, roomProps: any}> = ({socketProps, r
 				draw.drawRectangle(0, 0, canvasWidth, canvasHeight, "rgba(0, 0, 0, 0.5)");
 				draw.drawCountDown(countDown[Math.floor(count)]);
 
-			} else if (room.gameState === GameState.GOAL) {
+			} else if (room.gameState === GameState.PLAYERONESCORED || room.gameState === GameState.PLAYERTWOSCORED) {
 				goal();
-			}
-			else if (room.gameState === GameState.END) {
+			} else if (room.gameState === GameState.END) {
 				gameEnd();
 			}
 

@@ -15,7 +15,6 @@ export interface IRoom {
 	timestampStart: number;
 	lastUpdate: number;
 	goalTimestamp: number;
-	lastGoal: string;
 	pauseTime: {pause: number, resume: number}[];
 
 	winner: string;
@@ -73,7 +72,6 @@ export type SerializeRoom = {
 		mode: number;
 		timer: number;
 		gameDuration: number;
-		lastGoal: string;
 };
 
 export default class Room implements IRoom {
@@ -87,7 +85,6 @@ export default class Room implements IRoom {
 	timestampStart: number;
 	lastUpdate: number;
 	goalTimestamp: number;
-	lastGoal: string;
 	pauseTime: {pause: number, resume: number}[];
 
 	winner: string;
@@ -234,8 +231,13 @@ export default class Room implements IRoom {
 			}
 			else
 			{
-				this.lastGoal = (this.ball.x < canvasWidth/2) ? this.playerTwo.user.username : this.playerOne.user.username;
-				this.changeGameState(GameState.GOAL);
+				if (this.ball.x < canvasWidth/2) {
+					this.changeGameState(GameState.PLAYERTWOSCORED);
+					// this.changeGameState(GameState.GOAL);
+				} else {
+					this.changeGameState(GameState.PLAYERONESCORED);
+					// this.changeGameState(GameState.GOAL);
+				}
 			}
 			this.ball.goal = false;
 		}
@@ -316,7 +318,6 @@ export default class Room implements IRoom {
 			mode: this.mode,
 			timer: this.timer,
 			gameDuration: this.gameDuration,
-			lastGoal: this.lastGoal,
 		};
 		return newSerializeRoom;
 	} 
