@@ -76,7 +76,7 @@ const GroupUsers: React.FC<{ viewParams: any }> = ({ viewParams }) => {
 	const channelId: string = viewParams.channelId;
 	const { user: currentUser } = useSession();
 	const router = useRouter();
-	const { socket, setChatView } = useContext(chatContext) as ChatContextType;
+	const { socket, closeChat, setChatView } = useContext(chatContext) as ChatContextType;
 	const { blocked } = useContext(relationshipContext) as RelationshipContextType;
 	const [users, setUsers] = useState<UserSummary[]>([]);
 	const [owner, setOwner] = useState<UserSummary>();
@@ -134,11 +134,12 @@ const GroupUsers: React.FC<{ viewParams: any }> = ({ viewParams }) => {
 
 	/* Invite for a Pong game */
 	const sendPongInvite = async (userId: string) => {
-		console.log(`[Group Users] Invite user [${userId}] to play Pong`); // debug
 		socket.emit("sendPongInvite", {
 			senderId: currentUser.id,
 			receiverId: parseInt(userId),
 		});
+
+		closeChat();
 		await router.push("/hub");
 	};
 

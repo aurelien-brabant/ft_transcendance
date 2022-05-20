@@ -39,7 +39,6 @@ const Hub: NextPageWithLayout = () => {
 
 		socket.on("connect", () => {
 			// Allow reconnection
-			console.log('[Hub] Client connected');
 			socket.emit("handleUserConnect", userData);
 
 			socket.emit("getCurrentGames");
@@ -50,7 +49,6 @@ const Hub: NextPageWithLayout = () => {
 		});
 
 		socket.on("newRoom", (newRoomData: IRoom) => {
-			console.log('[Hub] Join Room');
 			socket.emit("joinRoom", newRoomData.roomId);
 			roomData = newRoomData;
 			roomId = newRoomData.roomId;

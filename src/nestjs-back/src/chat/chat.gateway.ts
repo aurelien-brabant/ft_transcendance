@@ -93,7 +93,6 @@ export class ChatGateway implements OnGatewayInit, OnGatewayConnection {
 			status: UserStatus[user.status]
 		});
 		this.logger.log(`Add user[${user.id}][${user.username}]`);
-		console.log(this.chatUsers); // debug
 	}
 
 	userJoinRoom(socketId: string, roomId: string) {
@@ -189,7 +188,7 @@ export class ChatGateway implements OnGatewayInit, OnGatewayConnection {
 				dm
 			} as CreateDmMessageDto);
 
-			this.server.to(`dm_${dm.id}`).emit('newPongInvite', { message, roomId });
+			this.server.to(`dm_${dm.id}`).emit('newPongInvite', { message });
 			this.logger.log(`New Pong invite in DM [${message.dm.id}]`);
 		} catch (e) {
 			this.server.to(client.id).emit('chatError', e.message);

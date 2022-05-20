@@ -163,7 +163,7 @@ const UserProfilePage: NextPageWithLayout = ({}) => {
   const { user } = useSession();
   const actionTooltipStyles = "font-bold bg-gray-900 text-neutral-200";
   const { setAlert } = useContext(alertContext) as AlertContextType;
-  const { socket: chatSocket, createDirectMessage } = useContext(chatContext) as ChatContextType;
+  const { socket: chatSocket, closeChat, createDirectMessage } = useContext(chatContext) as ChatContextType;
   const [gamesHistory, setGamesHistory] = useState<PastGame[]>([]);
   const [isLoading, setIsLoading] = useState(true);
   const [alreadyFriend, setAlreadyFriend] = useState(false);
@@ -183,11 +183,12 @@ const UserProfilePage: NextPageWithLayout = ({}) => {
 
   /* Send Pong invite */
   const sendPongInvite = async (userId: string) => {
-    console.log(`[users/:id] Invite user [${userId}] to play Pong`); // debug
-    socket.emit("sendPongInvite", {
+    chatSocket.emit("sendPongInvite", {
       senderId: user.id,
       receiverId: parseInt(userId),
     });
+
+    closeChat();
     await router.push("/hub");
   };
 

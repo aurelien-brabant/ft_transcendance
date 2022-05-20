@@ -45,14 +45,25 @@ export class PongGateway implements OnGatewayInit, OnGatewayConnection, OnGatewa
 		this.server.emit("updateCurrentGames", this.currentGames);
 	}
 
+	createInvitedUser(id: number, username: string) {
+		let newUser: User = this.connectedUsers.getUserById(id);
+
+		if (newUser) {
+			newUser.setUsername(username);
+		} else {
+			newUser= new User(id, username);
+		}
+		this.connectedUsers.addUser(newUser);
+		return newUser;
+	}
+
 	/* Create room when invite is sent by a User */
 	async createInviteRoom(sender: User, receiverId: number) {
 		this.logger.log("Create new Invite room");
-		console.log(sender);
 
-		const firstPlayer: User = new User(sender.id, sender.username);
-		const invited = await this.usersService.findOne(String(receiverId));
-		const secondPlayer: User = new User(invited.id, invited.username);
+		const firstPlayer: User = this.createInvitedUser(sender.id, sender.username);
+		const receiverData = await this.usersService.findOne(String(receiverId));
+		const secondPlayer: User = this.createInvitedUser(receiverData.id, receiverData.username);
 
 		const roomId: string = `${firstPlayer.username}&${secondPlayer.username}`;
 
@@ -63,8 +74,6 @@ export class PongGateway implements OnGatewayInit, OnGatewayConnection, OnGatewa
 		this.currentGames.push(roomId);
 
 		this.server.emit("updateCurrentGames", this.currentGames);
-		console.log(room); // debug
-		return roomId;
 	}
 
 	afterInit(server: Server) {
@@ -87,23 +96,30 @@ export class PongGateway implements OnGatewayInit, OnGatewayConnection, OnGatewa
 
 	@SubscribeMessage('handleUserConnect')
 	async handleUserConnect(@ConnectedSocket() client: Socket, @MessageBody() user: User) {
+		this.logger.log("New user in hub");
+
 		let newUser: User = this.connectedUsers.getUserById(user.id);
+
 		if (newUser) {
 			newUser.setSocketId(client.id);
 			newUser.setUsername(user.username);
-		}
-		else {
+		} else {
 			newUser= new User(user.id, user.username, client.id, user.ratio);
 		}
-		this.logger.log("Handle user connect");
+
 		newUser.setSocketId(client.id);
 		newUser.setUserStatus(UserStatus.INHUB);
 
+		console.log(this.rooms);
+
 		/* Verify that player is not already in a game */
 		this.rooms.forEach((room: Room) => {
+			console.log(room);
 			if (room.isAPlayer(newUser) && room.gameState !== GameState.PLAYERONEWIN || room.gameState !== GameState.PLAYERTWOWIN) {
 				newUser.setUserStatus(UserStatus.PLAYING);
 				newUser.setRoomId(room.roomId);
+
+				console.log('is Player: ', room.isAPlayer(newUser));
 
 				this.server.to(client.id).emit("newRoom", room);
 				if (room.gameState === GameState.PAUSED) {
