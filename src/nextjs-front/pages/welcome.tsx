@@ -1,17 +1,6 @@
-import {
-  Fragment,
-  useContext,
-  useEffect,
-  useMemo,
-  useRef,
-  useState,
-} from "react";
-import { FiEdit2, FiUploadCloud } from "react-icons/fi";
-import {
-  MdCameraswitch,
-  MdCancel,
-  MdOutlineArrowBackIos,
-} from "react-icons/md";
+import { Fragment, useContext, useEffect, useRef, useState } from "react";
+import { MdCameraswitch, MdOutlineArrowBackIos } from "react-icons/md";
+import { CloudUploadIcon, UploadIcon, XIcon } from "@heroicons/react/outline";
 import Link from "next/link";
 import Image from "next/image";
 import { useRouter } from "next/router";
@@ -28,18 +17,13 @@ const inputClassName =
   "transition col-span-2 grow bg-transparent outline-0 border-04dp pb-1 border-b-2 focus:border-pink-600";
 const inputGroupClassName =
   "grid md:grid-cols-4 grid-cols-1 items-center gap-x-8 gap-y-2";
+const actionTooltipStyles = "font-bold bg-dark text-neutral-200";
 
 type FormData = {
-  username: string;
-  email: string;
-  tfa: boolean;
-  pic: string;
-};
-
-type InvalidInputs = {
   username?: string;
   email?: string;
-  tfa?: string;
+  tfa?: boolean;
+  pic?: string;
 };
 
 const InputErrorProvider: React.FC<{ error?: string | null }> = ({
@@ -47,16 +31,16 @@ const InputErrorProvider: React.FC<{ error?: string | null }> = ({
   error,
 }) => (
   <div className="flex flex-col col-span-2">
-    <small className="min-h-[1.5em] text-red-500">{error && error}</small>
+    <small className="min-h-[1.5em] text-red-400">{error && error}</small>
     {children}
   </div>
 );
 
 const Welcome: NextPageWithLayout = () => {
   const { user, logout, reloadUser, backend } = useSession();
-  const [invalidInputs, setInvalidInputs] = useState<InvalidInputs>({});
-  const { setAlert } = useContext(alertContext) as AlertContextType;
   const router = useRouter();
+  const { setAlert } = useContext(alertContext) as AlertContextType;
+  const [pendingChanges, setPendingChanges] = useState(false);
   const [pendingPic, setPendingPic] = useState(false);
   const [pendingQR, setPendingQR] = useState(false);
   const [tfaCode, setTfaCode] = useState("");
@@ -64,75 +48,10 @@ const Welcome: NextPageWithLayout = () => {
   const [currentStep, setCurrentStep] = useState(0);
   const inputToFocus = useRef<HTMLInputElement>(null);
 
-  const [formData, setFormData] = useState<FormData>({
-    username: user.username,
-    email: user.email,
-    tfa: user.tfa,
-    pic: user.pic,
-  });
+  const [formData, setFormData] = useState<FormData>({});
+  const [fieldErrors, setFieldErrors] = useState<Partial<FormData>>({});
 
-  let baseObject: FormData;
-
-  const reactivateAccount = () => {
-    backend.request(`/api/users/${user.id}`, {
-      method: "PATCH",
-      headers: {
-        "Content-Type": "application/json",
-      },
-      body: JSON.stringify({
-        accountDeactivated: false,
-      }),
-    });
-  };
-
-  useEffect(() => {
-    if (user.accountDeactivated) reactivateAccount();
-
-    const basePhoneNb = user.phone;
-
-    baseObject = {
-      username: user.username,
-      email: user.email,
-      tfa: user.tfa,
-      pic: user.pic,
-    };
-  }, []);
-
-  // recompute this only when formData changes
-  const hasPendingChanges = useMemo(
-    () => JSON.stringify(formData) !== JSON.stringify(baseObject),
-    [formData]
-  );
-
-  const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-    setInvalidInputs({ ...invalidInputs, [e.target.name]: undefined });
-    setFormData({
-      ...formData,
-      [e.target.name]: e.target.value,
-    });
-  };
-
-  const handleLogout = async () => {
-    setAlert({ type: "success", content: "Logged out" });
-    await logout();
-  };
-
-  const deactivateAccount = async () => {
-    const res = await backend.request(`/api/users/${user.id}`, {
-      method: "PATCH",
-      headers: {
-        "Content-Type": "application/json",
-      },
-      body: JSON.stringify({
-        accountDeactivated: true,
-      }),
-    });
-
-    if (res.status === 200) {
-      await handleLogout();
-    }
-  };
-
+  /* Send new informations */
   const editUser = async (formData: FormData) => {
     const res = await backend.request(`/api/users/${user.id}`, {
       method: "PATCH",
@@ -161,29 +80,169 @@ const Welcome: NextPageWithLayout = () => {
     }
   };
 
+  /* Form */
+  const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    setFieldErrors({
+      ...fieldErrors,
+      [e.target.name]: undefined,
+    });
+    setFormData({
+      ...formData,
+      [e.target.name]: e.target.value,
+    });
+  };
+
+  const isUsernameValid = (username: string) => {
+    return /^[^0-9][a-zA-Z0-9_]+$/.test(username);
+  };
+
   const handleSubmit = (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault();
+    const errors: Partial<FormData> = {};
 
-    if (!hasPendingChanges) return;
+    if (!pendingChanges) return;
 
-    const tmp: InvalidInputs = {};
+    if (formData.username) {
+      const usernameLen = formData.username.trim().length;
 
-    if (formData.username.length < 5 || formData.username.length > 50) {
-      tmp.username = "nickname can contain between 5 and 50 characters";
+      if (usernameLen < 2 || usernameLen > 30) {
+        errors["username"] = "Username can contain between 2 and 30 characters";
+      } else if (formData.username === user.username) {
+        errors["username"] = "This is already your username";
+      } else if (!isUsernameValid(formData.username)) {
+        errors["username"] =
+          "The username must not start with a number and contain alphanumeric characters and underscores only";
+      }
     }
 
-    if (!isEmail(formData.email)) {
-      tmp.email = "Not a valid email";
+    if (formData.email) {
+      formData.email = formData.email.toLowerCase();
+
+      if (!isEmail(formData.email)) {
+        errors["email"] = "Not a valid email";
+      } else if (formData.email === user.email) {
+        errors["email"] = "This is already your email";
+      }
     }
 
-    setInvalidInputs(tmp);
-    if (!tmp.username && !tmp.email) {
+    if (Object.keys(errors).length === 0) {
       editUser(formData);
+    }
+    setFieldErrors(errors);
+    setPendingChanges(false);
+    setFormData({});
+  };
+
+  useEffect(() => {
+    /* Remove empty strings or undefined fields */
+    Object.keys(formData).forEach(
+      (key) =>
+        (formData[key as keyof FormData] === undefined ||
+          formData[key as keyof FormData] === "") &&
+        delete formData[key as keyof FormData]
+    );
+
+    setPendingChanges(
+      !(!formData.username && !formData.email && !formData.tfa && !formData.pic)
+    );
+  }, [formData]);
+
+  /* User's avatar */
+  const get42Pic = async () => {
+    setAlert({ type: "info", content: "Default 42 avatar requested" });
+    const res = await backend.request(`/api/users/${user.id}/avatar42`);
+
+    if (res.ok) {
+      router.reload();
+    } else {
+      setAlert({ type: "error", content: "Error while loading 42 avatar" });
     }
   };
 
+  const getRandomPic = async () => {
+    setAlert({ type: "info", content: "Random avatar requested" });
+    const res = await backend.request(`/api/users/${user.id}/randomAvatar`);
+
+    if (res.ok) {
+      router.reload();
+    } else {
+      setAlert({ type: "error", content: "Error while loading random avatar" });
+    }
+  };
+
+  const UploadPic = () => {
+    const [image, setImage] = useState("");
+    const [imageChosen, setImageChosen] = useState(false);
+
+    const uploadToClient = (event: any) => {
+      if (event.target.files && event.target.files[0]) {
+        const img = event.target.files[0];
+        setImage(img);
+        setImageChosen(true);
+      }
+    };
+
+    const uploadToServer = async () => {
+      if (!imageChosen) return;
+
+      const body = new FormData();
+      body.append("image", image);
+
+      const res = await backend.request(`/api/users/${user.id}/uploadAvatar`, {
+        method: "POST",
+        body,
+      });
+
+      if (res.ok) {
+        setPendingPic(false);
+        router.reload();
+      } else if (res.status === 406) {
+        setAlert({
+          type: "warning",
+          content: "Only JPG/JPEG/PNG/GIF are accepted",
+        });
+      } else if (res.status === 413) {
+        setAlert({ type: "warning", content: "File size too big!" });
+      } else {
+        setAlert({
+          type: "error",
+          content: "Error while uploading new avatar",
+        });
+      }
+    };
+
+    return (
+      <ResponsiveSlide
+        useMediaQueryArg={{ query: "(min-width: 1280px)" }}
+        direction="left"
+        duration={200}
+        triggerOnce
+      >
+        <div className="flex justify-center text-pink-500 space-x-5 text-center items-center">
+          <input
+            type="file"
+            name="uploadAvatar"
+            className="border border-pink-500 p-1"
+            onChange={uploadToClient}
+          />
+          <Tooltip className={actionTooltipStyles} content="Upload">
+            <button className="p-2 text-2xl text-pink-600 rounded-full transition">
+              <CloudUploadIcon
+                className={`h-6 w-6 ${
+                  imageChosen ? "hover:hover:scale-120" : "opacity-70"
+                }`}
+                onClick={uploadToServer}
+              />
+            </button>
+          </Tooltip>
+        </div>
+      </ResponsiveSlide>
+    );
+  };
+
+  /* TFA */
   const activateTfa = async () => {
-    const req = await backend.request(`/api/users/${user.id}/enableTfa`, {
+    const res = await backend.request(`/api/users/${user.id}/enableTfa`, {
       method: "POST",
       headers: {
         "Content-Type": "application/json",
@@ -193,7 +252,7 @@ const Welcome: NextPageWithLayout = () => {
       body: JSON.stringify({ tfaCode: tfaCode }),
     });
 
-    if (req.status === 200) {
+    if (res.status === 200) {
       setAlert({ type: "success", content: "2FA activated successfully" });
       setTfaStatus("enabled");
       setPendingQR(false);
@@ -206,7 +265,7 @@ const Welcome: NextPageWithLayout = () => {
   };
 
   const deactivateTfa = async () => {
-    const req = await backend.request(`/api/users/${user.id}`, {
+    const res = await backend.request(`/api/users/${user.id}`, {
       method: "PATCH",
       headers: {
         "Content-Type": "application/json",
@@ -219,23 +278,11 @@ const Welcome: NextPageWithLayout = () => {
       }),
     });
 
-    if (req.status === 200) {
+    if (res.status === 200) {
       setAlert({ type: "success", content: "2FA deactivated successfully" });
       setTfaStatus("disabled");
-    } else {
-      setAlert({ type: "error", content: "Error while deactivating 2FA!" });
-      setTfaStatus("enabled");
     }
   };
-
-  useEffect(() => {
-    if (!tfaCode.length && pendingQR) {
-      setAlert({
-        type: "info",
-        content: "Waiting for 2FA code...",
-      });
-    } else if (tfaCode.length === 6) activateTfa();
-  }, [tfaCode]);
 
   const handleChangeTfa = (e: React.ChangeEvent<HTMLInputElement>) => {
     e.preventDefault();
@@ -266,6 +313,7 @@ const Welcome: NextPageWithLayout = () => {
 
   const getTfaForm = () => {
     let content = [];
+
     for (let i = 0; i < 6; i++) {
       content.push(
         <input
@@ -304,96 +352,64 @@ const Welcome: NextPageWithLayout = () => {
     );
   };
 
-  const UploadPic = () => {
-    const [image, setImage] = useState("");
-
-    const uploadToClient = (event: any) => {
-      if (event.target.files && event.target.files[0]) {
-        const img = event.target.files[0];
-        setImage(img);
-      }
-    };
-
-    const uploadToServer = async () => {
-      const body = new FormData();
-      body.append("image", image);
-
-      const req = await backend.request(`/api/users/${user.id}/uploadAvatar`, {
-        method: "POST",
-        body,
+  useEffect(() => {
+    if (!tfaCode.length && pendingQR) {
+      setAlert({
+        type: "info",
+        content: "Waiting for 2FA code...",
       });
+    } else if (tfaCode.length === 6) activateTfa();
+  }, [tfaCode]);
 
-      if (req.ok) {
-        const res = await req.json();
-
-        setPendingPic(false);
-        setAlert({ type: "success", content: "Avatar uploaded successfully" });
-        router.reload();
-      } else if (req.status === 406)
-        setAlert({
-          type: "warning",
-          content: "Only JPG/JPEG/PNG/GIF are accepted",
-        });
-      else if (req.status === 413)
-        setAlert({ type: "warning", content: "File size too big!" });
-      else setAlert({ type: "error", content: "Error while uploading!" });
-    };
-
-    return (
-      <ResponsiveSlide
-        useMediaQueryArg={{ query: "(min-width: 1280px)" }}
-        direction="left"
-        duration={200}
-        triggerOnce
-      >
-        <div className="flex justify-center text-pink-600 space-x-5 text-center items-center">
-          <input
-            type="file"
-            name="uploadAvatar"
-            className="border border-pink-600 p-1"
-            onChange={uploadToClient}
-          />
-          <FiUploadCloud
-            onClick={uploadToServer}
-            className="text-3xl hover:animate-pulse"
-          />
-        </div>
-      </ResponsiveSlide>
-    );
+  /* Account deactivation/reactivation */
+  const handleLogout = async () => {
+    await logout();
   };
 
-  const getRandomPic = async () => {
-    setAlert({ type: "info", content: "New random avatar" });
+  const deactivateAccount = async () => {
+    const res = await backend.request(`/api/users/${user.id}`, {
+      method: "PATCH",
+      headers: {
+        "Content-Type": "application/json",
+      },
+      body: JSON.stringify({
+        accountDeactivated: true,
+      }),
+    });
 
-    const req = await backend.request(`/api/users/${user.id}/randomAvatar`);
-
-    if (req.ok) router.reload();
-    else setAlert({ type: "error", content: "Error while changin avatar!" });
+    if (res.status === 200) {
+      await handleLogout();
+    }
   };
 
-  const get42Pic = async () => {
-    setAlert({ type: "info", content: "Default 42 pic requested" });
-
-    const req = await backend.request(`/api/users/${user.id}/avatar42`);
-
-    if (req.ok) router.reload();
-    else setAlert({ type: "error", content: "Error while changin avatar!" });
+  const reactivateAccount = () => {
+    backend.request(`/api/users/${user.id}`, {
+      method: "PATCH",
+      headers: {
+        "Content-Type": "application/json",
+      },
+      body: JSON.stringify({
+        accountDeactivated: false,
+      }),
+    });
   };
 
   useEffect(() => {
-    inputToFocus.current?.focus();
-  }, [currentStep, pendingQR]);
+    if (user.accountDeactivated) {
+      reactivateAccount();
+    }
+  }, []);
 
   return (
     <div className="text-white" id="main-content">
       <div style={{ maxWidth: "800px" }} className="px-2 mx-auto">
-        {user.duoquadra_login ? (
+        {!pendingQR && user.duoquadra_login && (
           <div className="flex flex-col items-center p-2">
-            <div className="border border-gray-900 hover:border-pink-600 rounded-full pb-0 pt-2 pr-2 pl-2">
+            <div className="bg-pink-200 rounded-full pb-0 pt-2 pr-2 pl-2">
               <Image
                 src="/logo.svg"
-                width={35}
-                height={35}
+                width={25}
+                height={25}
                 alt="42 logo"
                 title="Get intra picture profile"
                 className="hover:cursor-pointer"
@@ -403,90 +419,80 @@ const Welcome: NextPageWithLayout = () => {
               />
             </div>
           </div>
-        ) : (
-          <></>
         )}
 
         {!pendingQR ? (
           <Fragment>
-            <div className="flex flex-col items-center gap-y-4">
+            <div className="flex flex-col items-center gap-y-10">
               <div className="relative w-48 h-48">
                 <img
-                  className="object-cover object-center w-full h-full rounded drop-shadow-md"
+                  className="object-cover object-center w-full h-full rounded-full ring-pink-500 p-2 ring drop-shadow-md"
                   src={`/api/users/${user.id}/photo`}
                 />
 
                 {pendingPic ? (
-                  <div className="absolute p-2 bg-white border-2 border-gray-900 rounded-full -top-4 -right-4">
-                    <div className="absolute left-0 right-0 flex items-center justify-center -bottom-4 gap-x-2">
-                      <Tooltip
-                        className="font-bold bg-gray-900 text-neutral-200"
-                        content="Cancel"
-                      >
-                        <button className="p-2 text-xl text-gray-900 bg-white rounded-full transition hover:scale-105">
-                          <MdCancel
-                            className="text-red-600"
-                            onClick={() => {
-                              setPendingPic(false);
-                            }}
-                          />
-                        </button>
-                      </Tooltip>
-                    </div>
+                  <div className="absolute left-0 right-0 flex items-center justify-center -bottom-4 gap-x-2">
+                    <Tooltip className={actionTooltipStyles} content="Cancel">
+                      <button className="p-2 text-2xl text-pink-200 bg-pink-700 rounded-full transition hover:scale-105">
+                        <XIcon
+                          className="h-6 w-6"
+                          onClick={() => {
+                            setPendingPic(false);
+                          }}
+                        />
+                      </button>
+                    </Tooltip>
                   </div>
                 ) : (
-                  <div>
-                    <div className="absolute flex -top-4 -left-4">
-                      <Tooltip
-                        className="font-bold bg-gray-900 text-neutral-200"
-                        content="Random avatar"
-                      >
-                        <button className="p-2 text-xl text-gray-900 bg-white rounded-full transition hover:scale-105">
-                          <MdCameraswitch
-                            className="text-gray-900 hover:text-pink-600"
-                            onClick={() => {
-                              getRandomPic();
-                            }}
-                          />
-                        </button>
-                      </Tooltip>
-                    </div>
-                    <div className="absolute flex -top-4 -right-4">
-                      <Tooltip
-                        className="font-bold bg-gray-900 text-neutral-200"
-                        content="Upload avatar"
-                      >
-                        <button className="p-2 text-xl text-gray-900 bg-white rounded-full transition hover:scale-105">
-                          <FiEdit2
-                            className="text-gray-900 hover:text-pink-600"
-                            onClick={() => {
-                              setPendingPic(true);
-                            }}
-                          />
-                        </button>
-                      </Tooltip>
-                    </div>
+                  <div className="absolute left-0 right-0 flex items-center justify-center -bottom-4 gap-x-2">
+                    <Tooltip
+                      className={actionTooltipStyles}
+                      content="Random avatar"
+                    >
+                      <button className="p-2 text-2xl text-pink-700 bg-pink-200 rounded-full transition hover:scale-105">
+                        <MdCameraswitch
+                          onClick={() => {
+                            getRandomPic();
+                          }}
+                        />
+                      </button>
+                    </Tooltip>
+                    <Tooltip
+                      className={actionTooltipStyles}
+                      content="Upload avatar"
+                    >
+                      <button className="p-2 text-2xl text-pink-700 bg-pink-200 rounded-full transition hover:scale-105">
+                        <UploadIcon
+                          className="h-6 w-6"
+                          onClick={() => {
+                            setPendingPic(true);
+                          }}
+                        />
+                      </button>
+                    </Tooltip>
                   </div>
                 )}
               </div>
 
-              {pendingPic ? (
-                <UploadPic />
-              ) : (
-                <div className="text-center">
-                  <h2 className="text-xl font-bold text-pink-600">
-                    {user.username}
-                  </h2>
-                  <Link href={`/users/${user.username}`}>
-                    <a className="block py-1 text-sm uppercase text-neutral-200 hover:underline">
-                      See public profile
-                    </a>
-                  </Link>
-                </div>
-              )}
+              <div className="container mx-auto h-24">
+                {pendingPic ? (
+                  <UploadPic />
+                ) : (
+                  <div className="flex flex-col items-center">
+                    <h1 className="text-2xl uppercase text-pink-500 font-extrabold">
+                      {user.username}
+                    </h1>
+                    <Link href={`/users/${user.id}`}>
+                      <a className="block py-1 text-sm uppercase text-neutral-200 hover:underline">
+                        See public profile
+                      </a>
+                    </Link>
+                  </div>
+                )}
+              </div>
             </div>
 
-            <div className="flex flex-col py-12 gap-y-10">
+            <div className="flex flex-col py-12 gap-y-2">
               <h1 className="text-2xl">Edit profile</h1>
 
               {/* Inputs */}
@@ -495,29 +501,30 @@ const Welcome: NextPageWithLayout = () => {
                   <label htmlFor="username" className={labelClassName}>
                     Username
                   </label>
-                  <InputErrorProvider error={invalidInputs.username}>
+                  <InputErrorProvider error={fieldErrors["username"]}>
                     <input
-                      value={formData.username}
-                      onChange={handleChange}
+                      className={inputClassName}
                       type="text"
                       name="username"
-                      className={inputClassName}
+                      placeholder={user.username}
+                      value={formData.username}
+                      onChange={handleChange}
                     />
                   </InputErrorProvider>
-                  <small></small>
                 </div>
 
                 <div className={inputGroupClassName}>
                   <label htmlFor="email" className={labelClassName}>
                     Email address
                   </label>
-                  <InputErrorProvider error={invalidInputs.email}>
+                  <InputErrorProvider error={fieldErrors["email"]}>
                     <input
+                      className={inputClassName}
                       type="text"
+                      name="email"
+                      placeholder={user.email}
                       value={formData.email}
                       onChange={handleChange}
-                      name="email"
-                      className={inputClassName}
                     />
                   </InputErrorProvider>
                 </div>
@@ -529,7 +536,9 @@ const Welcome: NextPageWithLayout = () => {
                   <button
                     type="button"
                     className={`px-6 py-2 col-span-2 ${
-                      tfaStatus === "enabled" ? "bg-red-500" : "bg-green-500"
+                      tfaStatus === "enabled"
+                        ? "bg-slate-700 hover:bg-slate-600"
+                        : "bg-emerald-500 hover:bg-emerald-400"
                     }`}
                     onClick={() => {
                       if (tfaStatus === "disabled") {
@@ -560,19 +569,18 @@ const Welcome: NextPageWithLayout = () => {
                 </div>
 
                 {/* actions */}
-
                 <div className="flex flex-col justify-between py-5 gap-y-4 md:gap-y-0 md:flex-row">
                   <button
                     type="submit"
-                    className={`px-1 md:px-6 py-2 font-bold uppercase bg-green-600 text-sm md:text-lg ${
-                      !hasPendingChanges && "opacity-70"
+                    className={`px-1 md:px-6 py-2 font-bold uppercase bg-emerald-500 text-sm md:text-lg ${
+                      pendingChanges ? "hover:bg-emerald-400" : "opacity-70"
                     }`}
                   >
                     Save changes
                   </button>
 
                   <button
-                    className="px-1 py-2 text-sm font-bold uppercase bg-red-600 md:px-6 md:text-lg"
+                    className="px-1 py-2 text-sm font-bold uppercase bg-slate-700 md:px-6 md:text-lg hover:bg-slate-600"
                     onClick={(e) => {
                       e.preventDefault();
                       if (

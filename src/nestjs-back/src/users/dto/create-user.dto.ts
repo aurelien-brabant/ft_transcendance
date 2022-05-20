@@ -8,7 +8,7 @@ import { Transform } from 'class-transformer';
 import { PasswordValidator } from 'src/utils/patternValidator';
 
 export class CreateUserDto {
-    @Transform(({ value }) => value.trim())
+    @Transform(({ value }) => value.trim().toLowerCase())
     @IsEmail()
     readonly email: string;
 

@@ -247,22 +247,26 @@ export class UsersService {
     return updatedUser;
   }
 
-  async usernameIsAvailable(username: string) {
-    const duplicatedUsername = await this.usersRepository.createQueryBuilder('user')
-      .where('user.username = :username', { username })
-      .getOne();
+  async usernameIsAvailable(userId: string, username: string) {
+    const user = await this.usersRepository.findOne({
+      where: {
+        username
+      }
+    });
 
-    if (duplicatedUsername) {
+    if (user && user.id !== parseInt(userId)) {
       throw new Error(`Username '${username}' not available.`);
     }
   }
 
-  async emailIsUnique(email: string) {
-    const duplicatedEmail = await this.usersRepository.createQueryBuilder('user')
-      .where('user.email = :email', { email })
-      .getOne();
+  async emailIsUnique(userId: string, email: string) {
+    const user = await this.usersRepository.findOne({
+      where: {
+        email
+      }
+    });
 
-    if (duplicatedEmail) {
+    if (user && user.id !== parseInt(userId)) {
       throw new Error("Email address already in use.");
     }
   }
@@ -289,10 +293,10 @@ export class UsersService {
     let user: User;
 
     if (updateUserDto.username) {
-      await this.usernameIsAvailable(updateUserDto.username);
+      await this.usernameIsAvailable(id, updateUserDto.username);
     }
     if (updateUserDto.email) {
-      await this.emailIsUnique(updateUserDto.email);
+      await this.emailIsUnique(id, updateUserDto.email);
     }
 
     if (updateUserDto.pendingFriendsSent) {
