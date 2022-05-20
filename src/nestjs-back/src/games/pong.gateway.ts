@@ -76,7 +76,7 @@ export class PongGateway implements OnGatewayInit, OnGatewayConnection, OnGatewa
 
 		// Verify that player is not already in a game
 		this.rooms.forEach((room: Room) => {
-			if (room.isAPlayer(newUser) && room.gameState !== GameState.END)
+			if (room.isAPlayer(newUser) && room.gameState !== GameState.PLAYERONEWIN || room.gameState !== GameState.PLAYERTWOWIN)
 			{
 				newUser.setUserStatus(UserStatus.PLAYING);
 				newUser.setRoomId(room.roomId);
@@ -107,7 +107,7 @@ export class PongGateway implements OnGatewayInit, OnGatewayConnection, OnGatewa
 							this.currentGames.splice(roomIndex, 1);
 						this.server.emit("updateCurrentGames", this.currentGames);
 					}
-					else if (room.gameState !== GameState.END) {
+					else if (room.gameState !== GameState.PLAYERONEWIN && room.gameState !== GameState.PLAYERTWOWIN) {
 						if (room.gameState === GameState.PLAYERONESCORED || room.gameState === GameState.PLAYERTWOSCORED)
 							room.resetPosition();
 						room.pause();
@@ -193,7 +193,7 @@ export class PongGateway implements OnGatewayInit, OnGatewayConnection, OnGatewa
 					this.currentGames.splice(roomIndex, 1);
 				this.server.emit("updateCurrentGames", this.currentGames);
 			}
-			if (room.isAPlayer(user) && room.gameState !== GameState.END)
+			if (room.isAPlayer(user) && room.gameState !== GameState.PLAYERONEWIN && room.gameState !== GameState.PLAYERTWOWIN)
 				room.pause();
 			client.leave(room.roomId);
 			this.connectedUsers.changeUserStatus(client.id, UserStatus.INHUB);
@@ -202,30 +202,45 @@ export class PongGateway implements OnGatewayInit, OnGatewayConnection, OnGatewa
 	}
 
 	async saveGame(room: Room, currentTimestamp: number){
-			let winner = await this.usersService.findOne(String(room.winnerId));
-			let loser = await this.usersService.findOne(String(room.loserId));
+		let winnerId, loserId, winnerScore, loserScore: number;
 
-			/* Update users wins/losses/draws and ratio */
-			const isDraw: boolean = false; // This is not used but may be one day
-			await this.usersService.updateStats(winner, isDraw, true);
-			await this.usersService.updateStats(loser, isDraw, false);
+		if (room.gameState === GameState.PLAYERONEWIN) {
+			winnerId = room.playerOne.user.id;
+			loserId = room.playerTwo.user.id;
+			winnerScore = room.playerOne.goal;
+			loserScore = room.playerTwo.goal;
+		}
+		else if (room.gameState === GameState.PLAYERTWOWIN) {
+			winnerId = room.playerTwo.user.id;
+			loserId = room.playerOne.user.id;
+			winnerScore = room.playerTwo.goal;
+			loserScore = room.playerOne.goal;
+		}
 
-			/* Save game in database */
-			let test = await this.gamesService.create({
-				players: [winner, loser],
-				winnerId: room.winnerId,
-				loserId: room.loserId,
-				createdAt: new Date(room.timestampStart),
-				endedAt: new Date(currentTimestamp),
-				gameDuration: room.getDuration(),
-				winnerScore: room.winnerScore,
-				loserScore: room.loserScore,
-				mode: room.mode
-			});
-			let roomIndex: number = this.currentGames.findIndex(roomIdRm => roomIdRm === room.roomId);
-			if (roomIndex !== -1)
-				this.currentGames.splice(roomIndex, 1);
-			this.server.emit("updateCurrentGames", this.currentGames);
+		const winner = await this.usersService.findOne(String(winnerId));
+		const loser = await this.usersService.findOne(String(loserId));
+
+		/* Update users wins/losses/draws and ratio */
+		const isDraw: boolean = false; // This is not used but may be one day
+		await this.usersService.updateStats(winner, isDraw, true);
+		await this.usersService.updateStats(loser, isDraw, false);
+
+		/* Save game in database */
+		let test = await this.gamesService.create({
+			players: [winner, loser],
+			winnerId: winnerId,
+			loserId: loserId,
+			createdAt: new Date(room.timestampStart),
+			endedAt: new Date(currentTimestamp),
+			gameDuration: room.getDuration(),
+			winnerScore: winnerScore,
+			loserScore: loserScore,
+			mode: room.mode
+		});
+		let roomIndex: number = this.currentGames.findIndex(roomIdRm => roomIdRm === room.roomId);
+		if (roomIndex !== -1)
+			this.currentGames.splice(roomIndex, 1);
+		this.server.emit("updateCurrentGames", this.currentGames);
 	}
 
 	secondToTimestamp(second: number): number{
@@ -261,7 +276,6 @@ export class PongGateway implements OnGatewayInit, OnGatewayConnection, OnGatewa
 			} else if (room.gameState === GameState.PAUSED
 					&& (currentTimestamp - room.pauseTime[room.pauseTime.length - 1].pause) >= this.secondToTimestamp(42)) {
 				room.pauseForfait();
-				room.changeGameState(GameState.END);
 				room.pauseTime[room.pauseTime.length - 1].resume = Date.now();
 				this.saveGame(room, currentTimestamp);
 			}

@@ -17,11 +17,6 @@ export interface IRoom {
 	goalTimestamp: number;
 	pauseTime: {pause: number, resume: number}[];
 
-	winner: string;
-	loser: string;
-	winnerId: number;
-	loserId: number;
-
 	// settings customisation
 	maxGoal: number;
 
@@ -86,13 +81,6 @@ export default class Room implements IRoom {
 	lastUpdate: number;
 	goalTimestamp: number;
 	pauseTime: {pause: number, resume: number}[];
-
-	winner: string;
-	loser: string;
-	winnerId: number;
-	loserId: number;
-	winnerScore: number;
-	loserScore: number;
 
 	isGameEnd: boolean;
 
@@ -173,45 +161,6 @@ export default class Room implements IRoom {
 		this.ball.reset();
 	}
 
-	defaultGameMode(): void {
-		if (this.playerOne.goal === this.maxGoal) {
-			this.winner = this.playerOne.user.username;
-			this.winnerId = this.playerOne.user.id;
-			this.winnerScore = this.playerOne.goal;
-			this.loser = this.playerTwo.user.username;
-			this.loserId = this.playerTwo.user.id;
-			this.loserScore = this.playerTwo.goal;
-
-		} else {
-			this.winner = this.playerTwo.user.username;
-			this.winnerId = this.playerTwo.user.id;
-			this.winnerScore = this.playerTwo.goal;
-			this.loser = this.playerOne.user.username;
-			this.loserId = this.playerOne.user.id;
-			this.loserScore = this.playerOne.goal;
-		}
-	}
-
-	timerGameMode() {
-		if (this.playerOne.goal > this.playerTwo.goal) {
-			this.winner = this.playerOne.user.username;
-			this.winnerId = this.playerOne.user.id;
-			this.winnerScore = this.playerOne.goal;
-			this.loser = this.playerTwo.user.username;
-			this.loserId = this.playerTwo.user.id;
-			this.loserScore = this.playerTwo.goal;
-
-		} else {
-			this.winner = this.playerTwo.user.username;
-			this.winnerId = this.playerTwo.user.id;
-			this.winnerScore = this.playerTwo.goal;
-			this.loser = this.playerOne.user.username;
-			this.loserId = this.playerOne.user.id;
-			this.loserScore = this.playerOne.goal;
-		}
-
-	}
-
 	updateTimer() {
 		let time: number = ((Date.now() - this.timestampStart));
 		this.pauseTime.forEach((pause) => {
@@ -225,26 +174,27 @@ export default class Room implements IRoom {
 			this.goalTimestamp = this.lastUpdate;
 			if (this.mode === GameMode.DEFAULT && (this.playerOne.goal === this.maxGoal || this.playerTwo.goal === this.maxGoal))
 			{
-				this.defaultGameMode();
-				this.changeGameState(GameState.END);
+				if (this.playerOne.goal === this.maxGoal)
+					this.changeGameState(GameState.PLAYERONEWIN);
+				else if (this.playerTwo.goal === this.maxGoal)
+					this.changeGameState(GameState.PLAYERTWOWIN);
 				this.isGameEnd = true;
 			}
 			else
 			{
-				if (this.ball.x < canvasWidth/2) {
+				if (this.ball.x < canvasWidth/2)
 					this.changeGameState(GameState.PLAYERTWOSCORED);
-					// this.changeGameState(GameState.GOAL);
-				} else {
+				else
 					this.changeGameState(GameState.PLAYERONESCORED);
-					// this.changeGameState(GameState.GOAL);
-				}
 			}
 			this.ball.goal = false;
 		}
 
 		if (this.mode === GameMode.TIMER && (this.playerOne.goal !== this.playerTwo.goal) && this.timer >= this.gameDuration) {
-			this.timerGameMode();
-			this.changeGameState(GameState.END);
+			if (this.playerOne.goal > this.playerTwo.goal)
+				this.changeGameState(GameState.PLAYERONEWIN);
+			else
+				this.changeGameState(GameState.PLAYERTWOWIN);
 			this.isGameEnd = true;
 		}
 	}
@@ -260,22 +210,10 @@ export default class Room implements IRoom {
 	}
 
 	pauseForfait() {
-		if (this.players[0].id === this.playerOne.user.id) {
-			this.winner = this.playerOne.user.username;
-			this.winnerId = this.playerOne.user.id;
-			this.winnerScore = this.playerOne.goal;
-			this.loser = this.playerTwo.user.username;
-			this.loserId = this.playerTwo.user.id;
-			this.loserScore = this.playerTwo.goal;
-
-		} else {
-			this.winner = this.playerTwo.user.username;
-			this.winnerId = this.playerTwo.user.id;
-			this.winnerScore = this.playerTwo.goal;
-			this.loser = this.playerOne.user.username;
-			this.loserId = this.playerOne.user.id;
-			this.loserScore = this.playerOne.goal;
-		}
+		if (this.players[0].id === this.playerOne.user.id)
+			this.changeGameState(GameState.PLAYERONEWIN);
+		else
+			this.changeGameState(GameState.PLAYERTWOWIN);
 	}
 
 	serialize(): SerializeRoom { // send the littlest amount of data

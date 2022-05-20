@@ -226,7 +226,7 @@ export class Draw {
 		}
 	}
 
-	drawGoal(room: IRoom, seconds: number) {
+	drawGoal(room: IRoom) {
 		let count: number = (Date.now() - room.goalTimestamp) / 1000;
 		this.drawGoalParticle(room.ball);
 		this.drawRectangle(0, 0, canvasWidth, canvasHeight, "rgba(0, 0, 0, 0.5)");

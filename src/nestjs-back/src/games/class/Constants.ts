@@ -22,7 +22,8 @@ export enum GameState {
 	RESUMED,
 	PLAYERONESCORED,
 	PLAYERTWOSCORED,
-	END
+	PLAYERONEWIN,
+	PLAYERTWOWIN
 }
 
 export enum UserStatus {
