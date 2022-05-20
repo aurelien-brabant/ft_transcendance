@@ -446,23 +446,25 @@ const Welcome: NextPageWithLayout = () => {
             )}
           </div>
 
-          {pendingPic ? (
-          <UploadPic />
-          ) : (
-          <div className="flex flex-col items-center">
-            <h1 className="text-2xl uppercase text-pink-500 font-extrabold">
-              {user.username}
-            </h1>
-            <Link href={`/users/${user.id}`}>
-              <a className="block py-1 text-sm uppercase text-neutral-200 hover:underline">
-                See public profile
-              </a>
-            </Link>
-          </div>)}
+          <div className="container mx-auto h-24">
+            {pendingPic ? (
+              <UploadPic />
+            ) : (
+            <div className="flex flex-col items-center">
+              <h1 className="text-2xl uppercase text-pink-500 font-extrabold">
+                {user.username}
+              </h1>
+              <Link href={`/users/${user.id}`}>
+                <a className="block py-1 text-sm uppercase text-neutral-200 hover:underline">
+                  See public profile
+                </a>
+              </Link>
+            </div>)}
+          </div>
 
         </div>
 
-        <div className="flex flex-col py-12 gap-y-10">
+        <div className="flex flex-col py-12 gap-y-2">
           <h1 className="text-2xl">
             Edit profile
           </h1>
