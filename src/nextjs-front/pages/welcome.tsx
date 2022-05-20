@@ -18,10 +18,10 @@ const inputGroupClassName = "grid md:grid-cols-4 grid-cols-1 items-center gap-x-
 const actionTooltipStyles = "font-bold bg-dark text-neutral-200";
 
 type FormData = {
-  username: string | undefined;
-  email: string | undefined;
-  tfa: boolean | undefined;
-  pic: string | undefined;
+  username?: string;
+  email?: string;
+  tfa?: boolean;
+  pic?: string;
 };
 
 const InputErrorProvider: React.FC<{ error?: string | null }> = ({
@@ -46,12 +46,7 @@ const Welcome: NextPageWithLayout = () => {
   const [currentStep, setCurrentStep] = useState(0);
   const inputToFocus = useRef<HTMLInputElement>(null);
 
-  const [formData, setFormData] = useState<FormData>({
-    username: undefined,
-    email: undefined,
-    tfa: undefined,
-    pic: undefined,
-  });
+  const [formData, setFormData] = useState<FormData>({});
   const [fieldErrors, setFieldErrors] = useState<Partial<FormData>>({});
 
   /* Send new informations */
@@ -91,7 +86,7 @@ const Welcome: NextPageWithLayout = () => {
     });
     setFormData({
       ...formData,
-      [e.target.name]: e.target.value,
+        [e.target.name]: e.target.value,
     });
   };
 
@@ -99,23 +94,29 @@ const Welcome: NextPageWithLayout = () => {
     e.preventDefault();
     const errors: Partial<FormData> = {};
 
-    if (!pendingChanges) {
-      return;
-    }
+    if (!pendingChanges) return ;
 
     if (formData.username) {
       const usernameLen = formData.username.trim().length;
 
       if (usernameLen < 2 || usernameLen > 30) {
-        errors['username'] = "Username can contain between 2 and 30 characters";
+        errors['username'] = 'Username can contain between 2 and 30 characters';
+      }
+      if (formData.username === user.username){
+        errors['username'] = 'This is already your username.';
       }
       if (!(/^[^0-9][a-zA-Z0-9_]+$/.test(formData.username))) {
-        errors['username'] = "The username must not start with a number and contain alphanumeric characters and underscores only.";
+        errors['username'] = 'The username must not start with a number and contain alphanumeric characters and underscores only.';
       }
     }
 
-    if (formData.email && !isEmail(formData.email)) {
-      errors['email'] = 'Not a valid email';
+    if (formData.email) {
+      if (!isEmail(formData.email)) {
+        errors['email'] = 'Not a valid email';
+      }
+      if (formData.email === user.email){
+        errors['email'] = 'This is already your email.';
+      }
     }
 
     if (Object.keys(errors).length === 0) {
@@ -126,6 +127,12 @@ const Welcome: NextPageWithLayout = () => {
   };
 
   useEffect(() => {
+    /* Remove empty strings or undefined fields */
+    Object.keys(formData).forEach((key) =>
+      (formData[key as keyof FormData] === undefined || formData[key as keyof FormData] === '')
+      && delete formData[key as keyof FormData]
+    );
+
     setPendingChanges(!(!formData.username && !formData.email && !formData.tfa && !formData.pic));
   }, [formData]);
 
