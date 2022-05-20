@@ -115,10 +115,22 @@ export class UsersService {
     const users = await this.findAll(paginationQuery);
     let rank: string;
 
-    for (let i = 0; i < users.length; i++) {
-      if (String(users[i].id) === id) rank = String(i + 1);
+    /* Sort from highest score and put users that didn't play at the end */
+    users.sort(
+      (a: User, b: User) =>
+        (b.games.length - a.games.length)
+    ).sort(
+      (a: User, b: User) =>
+        ((b.wins + b.ratio) - (a.wins + a.ratio))
+    );
+
+    const index = users.findIndex((user) => user.id === parseInt(id));
+
+    if (index === -1) {
+      throw new Error('User not found');
     }
-    return rank;
+
+    return String(index + 1);
   }
 
   async searchUsers(searchTerm: string) {
