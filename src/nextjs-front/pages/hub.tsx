@@ -56,7 +56,7 @@ const Hub: NextPageWithLayout = () => {
 			setInQueue(false);
 		});
 
-		socket.on("joinedQueue", (data: IRoom) => {
+		socket.on("joinedQueue", () => {
 			setInQueue(true);
 			setAlert({
 				type: "info",
@@ -64,7 +64,7 @@ const Hub: NextPageWithLayout = () => {
 			});
 		});
 
-		socket.on("leavedQueue", (data: IRoom) => {
+		socket.on("leavedQueue", () => {
 			setInQueue(false);
 			setAlert({
 				type: "info",
@@ -72,7 +72,7 @@ const Hub: NextPageWithLayout = () => {
 			});
 		});
 
-		socket.on("joinedRoom", (data: IRoom) => {
+		socket.on("joinedRoom", () => {
 			if (chatSocket)
 				chatSocket.emit("userGameStatus", { isPlaying: true });
 
@@ -83,14 +83,13 @@ const Hub: NextPageWithLayout = () => {
 			});
 		});
 
-		socket.on("leavedRoom", (data: IRoom) => {
+		socket.on("leavedRoom", () => {
 			if (chatSocket)
 				chatSocket.emit("userGameStatus", { isPlaying: false });
 			roomId = undefined;
 			setDisplayGame(false);
 			setRoom(null);
 		});
-
 
 	return () => {
 			if (chatSocket) {
