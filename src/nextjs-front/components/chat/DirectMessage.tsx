@@ -3,6 +3,7 @@ import { FiSend } from "react-icons/fi";
 import { RiPingPongLine, RiGhostLine } from "react-icons/ri";
 import { ArrowSmLeftIcon, XIcon } from "@heroicons/react/outline";
 import Link from "next/link";
+import { useRouter } from "next/router";
 import { DmChannel, DmMessage } from "transcendance-types";
 import { UserStatusItem } from "../UserStatus";
 import { useSession } from "../../hooks/use-session";
@@ -17,6 +18,7 @@ export const DirectMessageHeader: React.FC<{ viewParams: any }> = ({
   viewParams,
 }) => {
   const { user } = useSession();
+  const router = useRouter();
   const { socket, closeChat, setChatView } = useContext(
     chatContext
   ) as ChatContextType;
@@ -25,12 +27,13 @@ export const DirectMessageHeader: React.FC<{ viewParams: any }> = ({
     "p-1 text-pink-700 bg-pink-200 rounded-full transition hover:scale-110  hover:text-pink-600";
 
   /* Invite for a Pong game */
-  const sendPongInvite = (userId: string) => {
-    console.log(`[Direct Message] Invite user [${userId}] to play Pong`);
+  const sendPongInvite = async (userId: string) => {
+    console.log(`[Direct Message] Invite user [${userId}] to play Pong`); // debug
     socket.emit("sendPongInvite", {
       from: user.id,
       to: parseInt(userId),
     });
+    await router.push("/hub");
   };
 
   return (

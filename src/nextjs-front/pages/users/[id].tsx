@@ -182,12 +182,13 @@ const UserProfilePage: NextPageWithLayout = ({}) => {
   };
 
   /* Send Pong invite */
-  const sendPongInvite = (userId: string) => {
-    console.log(`[users/:id] Invite user [${userId}] to play Pong`);
+  const sendPongInvite = async (userId: string) => {
+    console.log(`[users/:id] Invite user [${userId}] to play Pong`); // debug
     chatSocket.emit("sendPongInvite", {
       from: user.id,
       to: parseInt(userId),
     });
+    await router.push("/hub");
   };
 
   /* Send friendship invite */
