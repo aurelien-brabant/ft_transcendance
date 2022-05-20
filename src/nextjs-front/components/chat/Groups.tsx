@@ -22,7 +22,7 @@ const Groups: React.FC<{viewParams: Object;}> = ({ viewParams }) => {
 			)
 			.sort(
 				(a: ChatGroup, b: ChatGroup) =>
-					(b.updatedAt.valueOf() - a.updatedAt.valueOf()
+					(new Date(b.updatedAt).valueOf() - new Date(a.updatedAt).valueOf()
 			)
 	), [chatGroups]);
 
@@ -76,7 +76,7 @@ const Groups: React.FC<{viewParams: Object;}> = ({ viewParams }) => {
 		/* Sorts from most recent */
 		groups.sort(
 			(a: ChatGroup, b: ChatGroup) =>
-			(b.updatedAt.valueOf() - a.updatedAt.valueOf())
+				(new Date(b.updatedAt).valueOf() - new Date(a.updatedAt).valueOf())
 		);
 		setChatGroups(groups);
 	}
