@@ -1,19 +1,16 @@
-import React, { useState } from "react";
+import React, { useEffect, useRef, useState } from "react";
 import { Socket } from 'socket.io-client';
-
-import { useRef, useEffect } from 'react';
+import { useSession } from "../hooks/use-session";
 import styles from "../styles/Canvas.module.css";
-
 import { Draw } from "../gameObjects/Draw";
 import { canvasHeight, canvasWidth, countDown, GameMode, GameState, IRoom } from "../gameObjects/GameObject";
-import { useSession } from "../hooks/use-session";
 
 const Canvas: React.FC<{socketProps: Socket, roomProps: any}> = ({socketProps, roomProps}) => {
 	const { user } = useSession();
 	const canvasRef = useRef<HTMLCanvasElement>(null);
 
-    let socket: Socket = socketProps;
-    let room: IRoom = roomProps;
+	let socket: Socket = socketProps;
+	let room: IRoom = roomProps;
 	let roomId: string | undefined = room?.roomId;
 	const [gameEnded, setGameEnded] = useState(false);
 
@@ -43,7 +40,7 @@ const Canvas: React.FC<{socketProps: Socket, roomProps: any}> = ({socketProps, r
 	*/
 	const drawGame = (canvas: HTMLCanvasElement, draw: Draw, room: IRoom): void => {
 		draw.clear();
-		
+
 		if (room.mode === GameMode.TIMER)
 			draw.drawTimer(room);
 		draw.drawNet();
@@ -79,6 +76,11 @@ const Canvas: React.FC<{socketProps: Socket, roomProps: any}> = ({socketProps, r
 			room = JSON.parse(updatedRoom);
 		});
 
+		const loading = () => {
+			seconds += secondElapsed;
+			draw.drawLoading(seconds);
+		}
+
 		const goal = () => {
 			draw.drawGoal(room);
 		}
@@ -108,7 +110,7 @@ const Canvas: React.FC<{socketProps: Socket, roomProps: any}> = ({socketProps, r
 
 		const gameLoop = (timestamp = 0) => {
 			if (room.gameState !== GameState.PLAYERONEWIN && room.gameState !== GameState.PLAYERTWOWIN && isAplayer) {
-					socket.emit("requestUpdate", roomId);
+				socket.emit("requestUpdate", roomId);
 			}
 			secondElapsed = (timestamp - oldTimestamp) / 1000;
 			oldTimestamp = timestamp;
@@ -125,9 +127,11 @@ const Canvas: React.FC<{socketProps: Socket, roomProps: any}> = ({socketProps, r
 				draw.drawPauseButton(room);
 			} else if (room.gameState === GameState.RESUMED) {
 				let count: number = (Date.now() - room.pauseTime[room.pauseTime.length - 1].resume) / 1000;
+
 				draw.drawRectangle(0, 0, canvasWidth, canvasHeight, "rgba(0, 0, 0, 0.5)");
 				draw.drawCountDown(countDown[Math.floor(count)]);
-
+			} else if (room.gameState === GameState.WAITING) {
+				loading();
 			} else if (room.gameState === GameState.PLAYERONESCORED || room.gameState === GameState.PLAYERTWOSCORED) {
 				goal();
 			} else if (room.gameState === GameState.PLAYERONEWIN || room.gameState === GameState.PLAYERTWOWIN) {
