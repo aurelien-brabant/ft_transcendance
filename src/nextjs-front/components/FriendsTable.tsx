@@ -1,292 +1,81 @@
 import Link from "next/link";
-import Image from 'next/image';
+import Image from "next/image";
 import { useContext } from "react";
-import { AiOutlineFall, AiOutlineUserAdd, AiOutlineUserDelete } from "react-icons/ai";
-import { FaMedal, FaUserSlash } from "react-icons/fa";
+import {
+  ArrowDownIcon,
+  ArrowUpIcon,
+  CheckIcon,
+  LockClosedIcon,
+  LockOpenIcon,
+  UserAddIcon,
+  UserRemoveIcon,
+  XIcon,
+} from "@heroicons/react/outline";
 import { IoIosArrowForward } from "react-icons/io";
-import { MdCancel } from "react-icons/md";
-import { RiUserHeartLine } from "react-icons/ri";
-import { User } from 'transcendance-types';
-import alertContext, { AlertContextType } from "../context/alert/alertContext";
+import { User } from "transcendance-types";
 import ResponsiveFade from "./ResponsiveFade";
 import Tooltip from "./Tooltip";
 import { useSession } from "../hooks/use-session";
-import relationshipContext, { RelationshipContextType } from "../context/relationship/relationshipContext";
+import alertContext, { AlertContextType } from "../context/alert/alertContext";
+import relationshipContext, {
+  RelationshipContextType,
+} from "../context/relationship/relationshipContext";
 
-const FriendsTable: React.FC<{ type: string, list: User[], suggested: User[], setSuggested: any, setSelected: any }> = ({
-  type, list, suggested, setSuggested, setSelected
-}) => {
+/* Friends and Duoquadra friends */
+const FriendsTable: React.FC<{
+  category: string;
+  list: User[];
+  setSelected: any;
+}> = ({ category, list, setSelected }) => {
+  const { user: currentUser, backend } = useSession();
   const { setAlert } = useContext(alertContext) as AlertContextType;
-  const { user, backend } = useSession();
   const {
-    friends, setFriends,
-    friends42, setFriends42,
-    blocked, setBlocked,
-    pendingFriendsReceived, setPendingFriendsReceived,
-    pendingFriendsSent, setPendingFriendsSent
+    friends,
+    setFriends,
+    friends42,
+    setFriends42,
+    blocked,
+    setBlocked,
+    suggested,
+    setSuggested,
+    setPendingFriendsReceived,
+    pendingFriendsSent,
+    setPendingFriendsSent,
   } = useContext(relationshipContext) as RelationshipContextType;
+  const gridStyle =
+    "place-items-stretch grid sm:grid-cols-2 lg:grid-cols-3 gap-10 text-center pt-10 pb-10";
+  const userCardStyle =
+    "text-pink-500 justity-items-center px-5 pt-2 pb-7 bg-01dp border border-pink-500 rounded hover:bg-03dp hover:text-inherit md:transition md:transform md:ease-in md:hover:-translate-y-1";
+  const actionTooltipStyles = "font-bold bg-dark text-neutral-200";
 
-  const updateFriendsRequests = (id: string) => {
-    backend.request(`/api/users/${user.id}/${id}/removeFriendsReceived`, {
-      method: "DELETE",
-      headers: {
-        "Content-Type": "application/json",
-      },
-    });
-  }
-
-  const requestFriend = async (id: string, username: string, isDuoQuadra: boolean) => {
-    const req = await backend.request(`/api/users/${user.id}`);
-    const data = await req.json();
-    const received = data.pendingFriendsReceived;
-    let isAsking: boolean = false;
-
-    for (let i in received) {
-      if (received[i].id === id)
-        isAsking = true;
-    }
-
-    if (isAsking) {
-      updateFriendsRequests(id);
-
-      const addFriend = await backend.request(`/api/users/${user.id}`, {
-        method: "PATCH",
-        headers: {
-          "Content-Type": "application/json",
-        },
-        body: JSON.stringify({
-          friends: [ { "id": id } ]
-        }),
-      });
-
-      if (addFriend.ok) {
-        setSuggested(suggested.filter(
-          item => item.id !== id
-        ));
-        setPendingFriendsReceived(pendingFriendsReceived.filter(
-          item => item.id !== id
-        ));
-        setFriends([...friends, {"id": id, "username": username}]);
-        isDuoQuadra && setFriends42([...friends42, {"id": id, "username": username}]);
-        setAlert({ type: 'info', content: `New friend: ${username}` });
-      }
-      else
-        setAlert({ type: 'error', content: `Error while adding ${username} as friend` });  
-    }
-    else {
-      const reqSent = await backend.request(`/api/users/${user.id}`, {
-        method: "PATCH",
-        headers: {
-          "Content-Type": "application/json",
-        },
-        body: JSON.stringify({
-          pendingFriendsSent: [ { "id": id } ]
-        }),
-      });
-
-      if (reqSent.ok) {
-        //TO DO CHECK ACHIEVEMENTS FOR UPDATING
-        setSuggested(suggested.filter(
-          item => item.id !== id
-        ));
-        setPendingFriendsSent([ ...pendingFriendsSent, { "id": id, "username": username } ]);
-        setAlert({
-          type: 'info',
-          content: `Friend request sent to ${username}`
-        });
-      }
-      else {
-        setAlert({
-          type: 'error',
-          content: `Error while sending friend request to ${username}`
-        });
-      }
-    }
-  }
-
-  const blockUser = async (id: string, username: string) => {
-    let isAsking: boolean = false;
-
-    for (let i in pendingFriendsReceived) {
-      if (pendingFriendsReceived[i].id === id)
-        isAsking = true;
-    }
-    isAsking && updateFriendsRequests(id);
-
-    const block = await backend.request(`/api/users/${user.id}`, {
-      method: "PATCH",
-      headers: {
-        "Content-Type": "application/json",
-      },
-      body: JSON.stringify({
-        blockedUsers: [ { "id": id } ]
-      }),
-    });
-
-    if (block.ok) {
-      setBlocked([ ...blocked, { "id": id, "username": username } ]);
-      setSuggested(suggested.filter(
-        item => item.id !== id
-      ));
-      setAlert({
-        type: 'success',
-        content: `User ${username} blocked`
-      });
-    } else {
-      setAlert({
-        type: 'error',
-        content: `Error while blocking ${username}`
-      });
-    }
-  }
-
-  const removeRelation = async (id: string, username:string, action: string, list42: boolean) => {
-    const remove = await backend.request(`/api/users/${user.id}/${id}/${action}`, {
-      method: "DELETE",
-      headers: {
-        "Content-Type": "application/json",
-      },
-    });
-
-    if (remove.ok) {
-      let updated: User[];
-      let updated42: User[] = [];
-
-      if (action === 'unblock') {
-        updated = blocked.filter(
-          item => item.id !== id
-        );
-      } else {
-        updated = friends.filter(
-          item => item.id !== id
-        );
-        updated42 = friends42.filter(
-          item => item.id !== id
-        );
-      }
-
-      if (action === 'friend') {
-        setFriends(updated);
-        list42 && setFriends42(updated42);
-        setSuggested([ ...suggested, { "id": id, "username": username } ]);
-      } else if (action === 'unblock') {
-        setBlocked(updated);
-        setSuggested(updated.filter(
-          item => item.id !== id
-        ));
-      }
-
-      setAlert({
-        type: 'success',
-        content: `${action === 'friend' ? `Friendship with ${username} destroyed` : `User ${username} unblocked successfully`}`
-      });
-    } else {
-      setAlert({
-        type: 'error',
-        content: `${action === 'friend' ? `Error while killing friendship with ${username}` : `Error while unblocking ${username}`}`
-      });
-    }
-  }
-
-  const checkRelation = (id: string, list: User[]) => {
-    for (let i in list) {
-      if (list[i].id === id) {
-        return true;
-      }
-    }
-    return false
-  }
-
-  const hasAlreadyAsked = (id: string, list: any) => {
-    const invites = list.pendingFriendsSent;
-
-    for (let i in invites) {
-      if (invites[i].id === id) {
-        return true;
-      }
-    }
-    return false
-  }
-
-  return (
-    (list.length) ?
-    <ul className={`place-items-stretch grid md:grid grid-cols-2 md:grid-cols-3 gap-10 text-center pt-10 pb-10 ${type === 'suggested' && "pr-0 md:pr-3"}`}>
-      <ResponsiveFade 
-        useMediaQueryArg={{ query: "(min-width: 1280px)" }}
-        cascade triggerOnce duration={500}
-      >
-      {list.map(({ id, username, duoquadra_login, wins, losses }) => (
-        <li
-          className="text-pink-600 justity-items-center px-5 pt-2 pb-7 bg-01dp border border-pink-600 rounded  hover:bg-03dp hover:text-inherit md:transition md:transform md:ease-in md:hover:-translate-y-2"
-          key={id}
-        >
-          { type === 'suggested' && 
-          <div className="relative flex items-center justify-center -bottom-4 gap-x-2">
-            <div className="border rounded-full absolute -top-3 md:-top-10 -right-2 md:-right-8 border-pink-600 hover:border-white bg-pink-600 hover:bg-white text-white hover:text-pink-600">
-              <MdCancel
-                className="cursor-pointer text-2xl"
-                onClick={() => setSuggested(suggested.filter(
-                  item => item.id !== id
-                ))}
-              />
+  const getUserCard = (user: User) => {
+    return (
+      <Link href={`/users/${user.id}`}>
+        <a>
+          <div className="grid grid-cols-2 m-2 space-x-3">
+            <div className="grid grid-cols-1 text-center place-items-center text-green-500 border-pink-500 bg-inherit">
+              <ArrowUpIcon className="h-4 w-4" /> {user.wins}
+            </div>
+            <div className="grid grid-cols-1 text-center place-items-center text-red-400 bg-inherit">
+              <ArrowDownIcon className="h-4 w-4" /> {user.losses}
             </div>
           </div>
-          }
-         
-          <div className="relative md:absolute left-0 right-0 flex items-center justify-center -bottom-4 gap-x-2">
-            {(!checkRelation(id, friends)) ?
-            <Tooltip className='font-bold bg-gray-900 text-neutral-200' content="Add as friend">
-              <button className="p-2 text-2xl text-gray-900 bg-white rounded-full transition hover:scale-105">
-                { !hasAlreadyAsked(id, friends) &&
-                    <AiOutlineUserAdd  onClick={() => {requestFriend(id, username, duoquadra_login ? true : false)}} />
-                }
-              </button>
-            </Tooltip>
-             :
-             <Tooltip className='font-bold bg-gray-900 text-neutral-200' content="Remove friendship">
-              <button className="p-2 text-2xl text-gray-900 bg-white rounded-full transition hover:scale-105">
-                <AiOutlineUserDelete onClick={() => {removeRelation(id, username, 'friend', type === 'friends42' ? true : false)}} />
-              </button>
-            </Tooltip>
-          }
-          
-          {(!checkRelation(id, blocked)) ?
-            <Tooltip className='font-bold bg-gray-900 text-neutral-200' content="Block user">
-              <button className="p-2 text-2xl text-gray-900 bg-white rounded-full transition hover:scale-105">
-                <FaUserSlash onClick={() => {blockUser(id, username)}} />
-              </button>
-            </Tooltip>
-          :
-            <Tooltip className='font-bold bg-gray-900 text-neutral-200' content="Unblock user">
-              <button className="p-2 text-2xl text-gray-900 bg-white rounded-full transition hover:scale-105">
-                <RiUserHeartLine onClick={() => {removeRelation(id, username, 'unblock', false)}} />
-              </button>
-            </Tooltip>
-          }
-        </div>
 
-          <Link href={`/users/${id}`}>
-            <a>
-              <div className={`grid grid-cols-2 m-2 space-x-3`}>
-              <div className="grid grid-cols-1 text-center place-items-center text-yellow-500 border-pink-600 bg-inherit">
-                <FaMedal/> {wins}
-              </div>
-              <div className="grid grid-cols-1 text-center place-items-center text-red-500 bg-inherit">
-                <AiOutlineFall className="text-xl font-bold"/> {losses}
-              </div>
-              </div>
-                <img
-                className="justify-content-center"
-                src={`/api/users/${id}/photo`}
-                height="100%"
-                width="100%"
-                />
-              {duoquadra_login &&
-              <div className="invisible md:visible absolute top-16 right-4">
-                <div className="flex flex-col items-center p-2">
+          <div className="my-4  relative w-44 mx-auto h-44 max-w-full rounded-full overflow-hidden">
+            <img
+              className="object-cover object-center w-full h-full"
+              src={`/api/users/${user.id}/photo`}
+              alt="Profile picture"
+            />
+          </div>
+
+          {user.duoquadra_login && (
+            <div className="invisible md:visible absolute top-16 right-4">
+              <div className="flex flex-col items-center p-2">
                 <div
                   style={{ backgroundColor: "#00babc" }}
-                  className="opacity-60 border border-black rounded-full pb-0 pt-2 pr-2 pl-2">
+                  className="opacity-60 border border-black rounded-full pb-0 pt-2 pr-2 pl-2"
+                >
                   <Image
                     src="/plain_logo.svg"
                     width={25}
@@ -294,45 +83,352 @@ const FriendsTable: React.FC<{ type: string, list: User[], suggested: User[], se
                     alt="42 Badge"
                   />
                 </div>
-              </div></div>
-              }
-              <p className="place-content-evenly text-ellipsis overflow-hidden cursor-pointer font-bold">
-                  {username}
-              </p>
-            </a>
-          </Link>
-        </li>
-        ))}
-      </ResponsiveFade>
-    </ul>
-    :
-    (type === 'friends' || type === 'friends42' || type === 'pending') ?
-    <div className="text-center pt-14">
-      <h1 className="m-5 uppercase text-7xl text-gray-700 tracking-widest">
-        Nothing here
-      </h1>
-      <h3 className="m-3 text-gray-500 text-2xl tracking-widest">
-          Have a look at recommandations
-      </h3>
-      <button className="m-5" onClick={() => {setSelected(4);}}>
-          <IoIosArrowForward className="text-pink-600 text-2xl hover:animate-bounceForward hover:cursor-pointer"/>
-      </button>
-    </div>
-    :
-    (type === 'blocked') ?
-    <h1 className="py-16 text-center m-5 uppercase text-7xl text-gray-700 tracking-widest">
-        Nothing here
-    </h1>
-    :
-    <div className="text-center py-16">
-      <h1 className="m-5 uppercase text-7xl text-gray-700 tracking-widest">
-          No suggestion
-      </h1>
-      <h3 className="m-3 text-gray-500 text-2xl tracking-widest">
-          Go outside IRL make friends ;)
-      </h3>
-    </div>
-  )
-}
+              </div>
+            </div>
+          )}
+
+          <p className="place-content-evenly text-ellipsis overflow-hidden cursor-pointer font-bold">
+            {user.username}
+          </p>
+        </a>
+      </Link>
+    );
+  };
+
+  /* Send friend request */
+  const sendFriendRequest = async (user: User) => {
+    const res = await backend.request(`/api/users/${currentUser.id}`, {
+      method: "PATCH",
+      headers: {
+        "Content-Type": "application/json",
+      },
+      body: JSON.stringify({
+        pendingFriendsSent: [...pendingFriendsSent, { id: user.id }],
+      }),
+    });
+
+    const data = await res.json();
+
+    if (res.status === 200) {
+      setPendingFriendsSent(data.pendingFriendsSent);
+      setSuggested(
+        suggested.filter((suggestion) => {
+          return suggestion.id !== user.id;
+        })
+      );
+    } else {
+      setAlert({
+        type: "error",
+        content: data.message,
+      });
+    }
+  };
+
+  /* Accept / decline friend request */
+  const acceptFriendRequest = async (user: User) => {
+    const res = await backend.request(
+      `/api/users/${currentUser.id}/${user.id}/addFriend`,
+      {
+        method: "PATCH",
+        headers: {
+          "Content-Type": "application/json",
+        },
+      }
+    );
+    const data = await res.json();
+
+    if (res.status === 200) {
+      setPendingFriendsReceived(data.pendingFriendsReceived);
+      setFriends(data.friends);
+
+      if (user.duoquadra_login) {
+        setFriends42([...friends42, user]);
+      }
+      setSuggested(
+        suggested.filter((suggestion) => {
+          return suggestion.id !== user.id;
+        })
+      );
+    } else {
+      setAlert({
+        type: "error",
+        content: data.message,
+      });
+    }
+  };
+
+  const declineFriendRequest = async (user: User) => {
+    const res = await backend.request(
+      `/api/users/${currentUser.id}/${user.id}/rmRequest`,
+      {
+        method: "PATCH",
+        headers: {
+          "Content-Type": "application/json",
+        },
+      }
+    );
+    const data = await res.json();
+
+    if (res.status === 200) {
+      setPendingFriendsReceived(data.pendingFriendsReceived);
+      setSuggested([...suggested, user]);
+    } else {
+      setAlert({
+        type: "error",
+        content: data.message,
+      });
+    }
+  };
+
+  const removeFriend = async (user: User) => {
+    const res = await backend.request(
+      `/api/users/${currentUser.id}/${user.id}/rmFriend`,
+      {
+        method: "PATCH",
+        headers: {
+          "Content-Type": "application/json",
+        },
+      }
+    );
+    const data = await res.json();
+
+    if (res.status === 200) {
+      setFriends(data.friends);
+
+      if (user.duoquadra_login) {
+        setFriends42(
+          friends42.filter((friend) => {
+            return friend.id !== user.id;
+          })
+        );
+      }
+    } else {
+      setAlert({
+        type: "error",
+        content: data.message,
+      });
+    }
+  };
+
+  /* Block / Unblock */
+  const blockUser = async (user: User) => {
+    const res = await backend.request(`/api/users/${currentUser.id}`, {
+      method: "PATCH",
+      headers: {
+        "Content-Type": "application/json",
+      },
+      body: JSON.stringify({
+        blockedUsers: [...blocked, { id: user.id }],
+      }),
+    });
+
+    const data = await res.json();
+
+    if (res.status === 200) {
+      setBlocked(data.blockedUsers);
+      setSuggested(
+        suggested.filter((suggestion) => {
+          return suggestion.id !== user.id;
+        })
+      );
+      setFriends(
+        friends.filter((friend) => {
+          return friend.id !== user.id;
+        })
+      );
+      if (user.duoquadra_login) {
+        setFriends42(
+          friends42.filter((friend) => {
+            return friend.id !== user.id;
+          })
+        );
+      }
+    } else {
+      setAlert({
+        type: "error",
+        content: "Unblocking failed.",
+      });
+    }
+  };
+
+  const unblockUser = async (user: User) => {
+    const filteredUsers = blocked.filter((blockedUser) => {
+      return blockedUser.id !== user.id;
+    });
+    const res = await backend.request(`/api/users/${currentUser.id}`, {
+      method: "PATCH",
+      headers: {
+        "Content-Type": "application/json",
+      },
+      body: JSON.stringify({
+        blockedUsers: filteredUsers,
+      }),
+    });
+    const data = await res.json();
+
+    if (res.status === 200) {
+      setBlocked(data.blockedUsers);
+      setFriends([...friends, user]);
+
+      if (user.duoquadra_login) {
+        setFriends42([...friends42, user]);
+      }
+      setSuggested([...suggested, user]);
+    } else {
+      setAlert({
+        type: "error",
+        content: `Error while unblocking ${user.username}`,
+      });
+    }
+  };
+
+  /* Icons for sending invites, add/remove friend, block and so forth */
+  const getActionButtons = (user: User, category: string) => {
+    if (category === "sent") {
+      return (
+        <small className="text-pink-500">
+          didn&apos;t accept the request yet
+        </small>
+      );
+    }
+    if (category === "blocked") {
+      return (
+        <div className="relative md:absolute left-0 right-0 flex items-center justify-center -bottom-4 gap-x-6">
+          <Tooltip className={actionTooltipStyles} content="Unblock">
+            <button
+              className="p-2 text-2xl bg-pink-200 text-pink-700 rounded-full"
+              onClick={() => {
+                unblockUser(user);
+              }}
+            >
+              <LockOpenIcon className="h-6 w-6" />
+            </button>
+          </Tooltip>
+        </div>
+      );
+    } else if (category === "pending") {
+      return (
+        <div className="relative md:absolute left-0 right-0 flex items-center justify-center -bottom-4 gap-x-6">
+          <Tooltip className={actionTooltipStyles} content="Add friend">
+            <button
+              className="p-2 text-2xl bg-green-200 text-green-700 rounded-full"
+              onClick={() => {
+                acceptFriendRequest(user);
+              }}
+            >
+              <CheckIcon className="h-6 w-6" />
+            </button>
+          </Tooltip>
+
+          <Tooltip className={actionTooltipStyles} content="Decline invite">
+            <button
+              className="p-2 text-2xl bg-red-200 text-red-700 rounded-full"
+              onClick={() => {
+                declineFriendRequest(user);
+              }}
+            >
+              <XIcon className="h-6 w-6" />
+            </button>
+          </Tooltip>
+        </div>
+      );
+    }
+
+    return (
+      <div className="relative md:absolute left-0 right-0 flex items-center justify-center -bottom-4 gap-x-6">
+        {category === "friends" && (
+          <Tooltip className={actionTooltipStyles} content="Remove friend">
+            <button
+              className="p-2 text-2xl bg-pink-200 text-pink-700 rounded-full"
+              onClick={() => {
+                removeFriend(user);
+              }}
+            >
+              <UserRemoveIcon className="h-6 w-6" />
+            </button>
+          </Tooltip>
+        )}
+
+        {category === "suggested" && (
+          <Tooltip className={actionTooltipStyles} content="Send friend invite">
+            <button
+              className="p-2 text-2xl bg-pink-200 text-pink-700 rounded-full"
+              onClick={() => {
+                sendFriendRequest(user);
+              }}
+            >
+              <UserAddIcon className="h-6 w-6" />
+            </button>
+          </Tooltip>
+        )}
+
+        <Tooltip className={actionTooltipStyles} content="Block">
+          <button
+            className="p-2 text-2xl bg-neutral-400 text-neutral-900 rounded-full"
+            onClick={() => {
+              blockUser(user);
+            }}
+          >
+            <LockClosedIcon className="h-6 w-6" />
+          </button>
+        </Tooltip>
+      </div>
+    );
+  };
+
+  if (list.length > 0) {
+    return (
+      <ul className={gridStyle}>
+        <ResponsiveFade
+          useMediaQueryArg={{ query: "(min-width: 1280px)" }}
+          cascade
+          triggerOnce
+          duration={500}
+        >
+          {list.map((user) => (
+            <li key={user.id} className={userCardStyle}>
+              {getUserCard(user)}
+              {getActionButtons(user, category)}
+            </li>
+          ))}
+        </ResponsiveFade>
+      </ul>
+    );
+  } else {
+    /* List is empty */
+    const headline =
+      category === "suggested" ? "No suggestion" : "Nothing here";
+    const redirToSuggestion =
+      category !== "suggested" && category !== "blocked";
+
+    return (
+      <div className="text-center pt-14">
+        <h1 className="m-5 uppercase text-7xl text-gray-700 tracking-widest">
+          {headline}
+        </h1>
+        {redirToSuggestion && (
+          <>
+            <h3 className="m-3 text-gray-500 text-2xl tracking-widest">
+              Have a look at recommandations
+            </h3>
+            <button
+              className="m-5"
+              onClick={() => {
+                setSelected(4);
+              }}
+            >
+              <IoIosArrowForward className="text-pink-500 text-2xl hover:animate-bounceForward hover:cursor-pointer" />
+            </button>
+          </>
+        )}
+        {category === "suggested" && (
+          <h3 className="m-3 text-gray-500 text-2xl tracking-widest">
+            Go outside IRL make friends ;)
+          </h3>
+        )}
+      </div>
+    );
+  }
+};
 
 export default FriendsTable;

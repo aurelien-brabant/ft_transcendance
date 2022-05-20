@@ -1,107 +1,112 @@
 import { useContext, useEffect, useState } from "react";
 import { BounceLoader } from "react-spinners";
-import { FaUserClock, FaUserFriends, FaUsersSlash } from "react-icons/fa";
 import { RiUserSettingsLine } from "react-icons/ri";
+import {
+  ClockIcon,
+  InboxInIcon,
+  LockClosedIcon,
+  UserAddIcon,
+  UsersIcon,
+} from "@heroicons/react/outline";
 import Image from "next/image";
 import { useRouter } from "next/router";
 import { NextPageWithLayout } from "./_app";
-import relationshipContext, {
-  RelationshipContextType,
-} from "../context/relationship/relationshipContext";
+import { useSession } from "../hooks/use-session";
+import { UserStatusItem } from "../components/UserStatus";
 import FriendsTable from "../components/FriendsTable";
 import Selector from "../components/Selector";
 import Tooltip from "../components/Tooltip";
-import { useSession } from "../hooks/use-session";
-import { UserStatusItem } from "../components/UserStatus";
 import withDashboardLayout from "../components/hoc/withDashboardLayout";
-
-export type Highlight = {
-  n: number;
-  label: string;
-  hint: string;
-  nColor: string;
-};
-
-const HighlightItem: React.FC<Highlight> = ({ n, label, hint, nColor }) => {
-  return (
-    <article
-      style={label === "friends42" ? { color: "#00babc" } : {}}
-      className={`flex flex-col items-center gap-y-2 ${nColor}`}
-    >
-      <div
-        style={label === "friends42" ? { backgroundColor: "#00babc" } : {}}
-        className="text-8xl rounded-full"
-      >
-        {label === "friends" && <FaUserFriends />}
-        {label === "friends42" && (
-          <div className="text-black hover:border-pink-600 pb-0 pt-2 pr-2 pl-2">
-            <Image
-              src="/plain_logo.svg"
-              width={90}
-              height={90}
-              alt="Friends @42"
-            />
-          </div>
-        )}
-        {label === "blocked" && <FaUsersSlash />}
-        {label === "pending" && <FaUserClock />}
-      </div>
-      <h1 className="text-5xl">{n}</h1>
-      <small className="font-bold">{hint}</small>
-    </article>
-  );
-};
+import relationshipContext, { RelationshipContextType } from "../context/relationship/relationshipContext";
 
 const FriendsPage: NextPageWithLayout = ({}) => {
   const [isLoading, setIsLoading] = useState(true);
   const [selected, setSelected] = useState(0);
   const { user } = useSession();
   const {
-    getRelationshipsData,
-    getUserRelationships,
-    createSuggested,
-    setSuggested,
-    suggested,
-    users,
     friends,
     friends42,
     blocked,
     pendingFriendsReceived,
+    pendingFriendsSent,
+    suggested,
+    getRelationshipsData,
   } = useContext(relationshipContext) as RelationshipContextType;
   const router = useRouter();
 
-  useEffect(() => {
+  /* Header between the user picture and the other users cards */
+  const friendHeader = [
+    {
+      name: "Friends",
+      icon: UsersIcon,
+      nb: friends.length,
+      color: "text-pink-500",
+    },
+    {
+      name: "Friends@42",
+      icon: UsersIcon,
+      nb: friends42.length,
+      color: "text-emerald-500",
+    },
+    {
+      name: "Received requests",
+      icon: InboxInIcon,
+      nb: pendingFriendsReceived.length,
+      color: "text-blue-500",
+    },
+    {
+      name: "Sent requests",
+      icon: ClockIcon,
+      nb: pendingFriendsSent.length,
+      color: "text-blue-700",
+    },
+    {
+      name: "Blocked users",
+      icon: LockClosedIcon,
+      nb: blocked.length,
+      color: "text-slate-700",
+    },
+    {
+      name: "Suggested friends",
+      icon: UserAddIcon,
+      nb: suggested.length,
+      color: "text-purple-400",
+    },
+  ];
+
+  const fetchUserRelationships = async () => {
     setIsLoading(true);
-    if (user) {
-      getRelationshipsData();
-      getUserRelationships(users, user.id);
-      createSuggested(users, friends, blocked);
-      setIsLoading(false);
-    }
-  }, [selected]);
+    await getRelationshipsData();
+    setIsLoading(false);
+  }
 
   useEffect(() => {
-    if (user) {
-      setIsLoading(false);
-    }
+    fetchUserRelationships().catch(console.error);
   }, []);
 
   return (
     <div className="text-white bg-fixed bg-center bg-fill grow">
-      {!isLoading ? (
+      {isLoading ? (
+        <div className="relative flex flex-col items-center justify-center min-h-screen gap-y-4">
+          <div className="absolute inset-0 z-50 flex items-center justify-center">
+            <Image src="/logo.svg" height="200" width="200" />
+          </div>
+          <BounceLoader size={400} color="#db2777" />
+        </div>
+      ) : (
         <div style={{ maxWidth: "800px" }} className="px-2 py-10 mx-auto">
           <div className="flex flex-col items-center gap-y-10">
             <div className="relative w-48 h-48 flex justify-center items-center text-center">
               <img
-                className="object-cover object-center w-full h-full rounded drop-shadow-md"
+                className="object-cover object-center w-full h-full rounded-full ring-pink-500 p-2 ring drop-shadow-md"
                 src={`/api/users/${user.id}/photo`}
               />
               <div className="absolute left-0 right-0 flex items-center justify-center -bottom-4 gap-x-2">
                 <Tooltip
-                  className="font-bold bg-gray-900 text-neutral-200"
-                  content="Edit user"
+                  className="font-bold bg-dark text-neutral-200"
+                  content="Edit profile"
                 >
-                  <button className="p-2 text-2xl text-gray-900 bg-white rounded-full transition hover:scale-105">
+                  <button className="p-2 text-2xl text-white/90 bg-01dp rounded-full transition hover:scale-105">
                     <RiUserSettingsLine
                       onClick={() => {
                         router.push("/welcome");
@@ -113,37 +118,29 @@ const FriendsPage: NextPageWithLayout = ({}) => {
             </div>
 
             <div className="flex flex-col items-center">
-              <h1 className="text-2xl text-pink-600">{user.username}</h1>
+              <h1 className="text-2xl uppercase text-pink-500 font-extrabold">
+                {user.username}
+              </h1>
               <UserStatusItem
+                className={"mt-2"}
                 id={user.id}
               />
             </div>
 
-            <div className="space-y-7 md:space-y-0 w-full p-2 bg-01dp border border-02dp rounded drop-shadow-md grid grid-cols-2 md:grid-cols-4 items-end">
-              <HighlightItem
-                n={friends.length}
-                label="friends"
-                hint="Friends"
-                nColor="text-blue-600"
-              />
-              <HighlightItem
-                n={friends42.length}
-                label="friends42"
-                hint="Friends @42"
-                nColor="text-green-500"
-              />
-              <HighlightItem
-                n={pendingFriendsReceived.length}
-                label="pending"
-                hint="Pending Requests"
-                nColor="text-purple-600"
-              />
-              <HighlightItem
-                n={blocked.length}
-                label="blocked"
-                hint="Blocked Users"
-                nColor="text-red-600"
-              />
+            <div className="grid grid-cols-6 gap-2 bg-01dp p-6">
+              {friendHeader.map((item) => (
+                <div
+                  key={item.name}
+                  className="flex flex-col items-center align-end gap-y-2 text-gray-400"
+                >
+                  <item.icon
+                    className={`h-6 w-6 ${item.color}`}
+                    aria-hidden="true"
+                  />
+                  <h1 className={(item.nb > 0) ? "font-bold" : ""}>{item.nb}</h1>
+                  <p className="text-center text-sm">{item.name}</p>
+                </div>
+              ))}
             </div>
 
             <Selector
@@ -154,10 +151,8 @@ const FriendsPage: NextPageWithLayout = ({}) => {
                   label: "Friends",
                   component: (
                     <FriendsTable
-                      type={"friends"}
+                      category="friends"
                       list={friends}
-                      suggested={suggested}
-                      setSuggested={setSuggested}
                       setSelected={setSelected}
                     />
                   ),
@@ -166,22 +161,28 @@ const FriendsPage: NextPageWithLayout = ({}) => {
                   label: "Friends @42",
                   component: (
                     <FriendsTable
-                      type={"friends42"}
+                      category="friends"
                       list={friends42}
-                      suggested={suggested}
-                      setSuggested={setSuggested}
                       setSelected={setSelected}
                     />
                   ),
                 },
                 {
-                  label: "Pending Requests",
+                  label: "Received Requests",
                   component: (
                     <FriendsTable
-                      type={"pending"}
+                      category="pending"
                       list={pendingFriendsReceived}
-                      suggested={suggested}
-                      setSuggested={setSuggested}
+                      setSelected={setSelected}
+                    />
+                  ),
+                },
+                {
+                  label: "Sent Requests",
+                  component: (
+                    <FriendsTable
+                      category="sent"
+                      list={pendingFriendsSent}
                       setSelected={setSelected}
                     />
                   ),
@@ -190,23 +191,18 @@ const FriendsPage: NextPageWithLayout = ({}) => {
                   label: "Blocked Users",
                   component: (
                     <FriendsTable
-                      type={"blocked"}
+                      category="blocked"
                       list={blocked}
-                      suggested={suggested}
-                      setSuggested={setSuggested}
                       setSelected={setSelected}
                     />
                   ),
                 },
-
                 {
                   label: "Suggested Friends",
                   component: (
                     <FriendsTable
-                      type={"suggested"}
+                      category="suggested"
                       list={suggested}
-                      suggested={suggested}
-                      setSuggested={setSuggested}
                       setSelected={setSelected}
                     />
                   ),
@@ -214,13 +210,6 @@ const FriendsPage: NextPageWithLayout = ({}) => {
               ]}
             />
           </div>
-        </div>
-      ) : (
-        <div className="relative flex flex-col items-center justify-center min-h-screen bg-gray-900 gap-y-4">
-          <div className="absolute inset-0 z-50 flex items-center justify-center">
-            <Image src="/logo.svg" height="200" width="200" />
-          </div>
-          <BounceLoader size={400} color="#db2777" />
         </div>
       )}
     </div>

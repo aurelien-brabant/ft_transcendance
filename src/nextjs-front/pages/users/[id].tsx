@@ -1,8 +1,8 @@
 import Link from "next/link";
 import { useRouter } from "next/router";
 import { useContext, useEffect, useState } from "react";
+import { AiOutlineUserAdd } from "react-icons/ai";
 import { FaEquals } from "react-icons/fa";
-import { IoMdPersonAdd } from "react-icons/io";
 import { GiAlarmClock, GiFalling, GiPingPongBat, GiPodiumWinner } from "react-icons/gi";
 import { RiPingPongLine, RiMessage2Line, RiUserSettingsLine } from "react-icons/ri";
 import { ActiveUser } from "transcendance-types";
@@ -222,7 +222,7 @@ const UserProfilePage: NextPageWithLayout = ({}) => {
       ((new Date(b.endedAt)).valueOf() - (new Date(a.endedAt)).valueOf())
     );
 
-    for (var game of games) {
+    for (const game of games) {
       const opponentId = (game.winnerId === parseInt(userId)) ? game.loserId : game.winnerId;
       const userIsWinner = (game.winnerId === parseInt(userId));
       const res = await fetch(`/api/users/${opponentId}`);
@@ -372,7 +372,7 @@ const UserProfilePage: NextPageWithLayout = ({}) => {
                 <div className="absolute left-0 right-0 flex items-center justify-center -bottom-4 gap-x-2">
                   <Tooltip className={actionTooltipStyles} content="challenge">
                     <button
-                      className="p-2 text-2xl text-gray-900 bg-pink-200 text-pink-700 rounded-full transition hover:scale-105"
+                      className="p-2 text-2xl text-pink-700 bg-pink-200 rounded-full transition hover:scale-105"
                       onClick={() => sendPongInvite(userData.id)}
                     >
                       <RiPingPongLine />
@@ -400,7 +400,7 @@ const UserProfilePage: NextPageWithLayout = ({}) => {
                       } p-2 text-2xl bg-pink-200 text-pink-700 rounded-full transition hover:scale-105`}
                     >
                       {alreadyFriend ? (
-                        <IoMdPersonAdd
+                        <AiOutlineUserAdd
                           onClick={() =>
                             setAlert({
                               type: "warning",
@@ -409,7 +409,7 @@ const UserProfilePage: NextPageWithLayout = ({}) => {
                           }
                         />
                       ) : (
-                        <IoMdPersonAdd
+                        <AiOutlineUserAdd
                           onClick={() =>
                             requestFriend(String(userId), userData.username)
                           }
@@ -461,7 +461,7 @@ const UserProfilePage: NextPageWithLayout = ({}) => {
                 },
                 {
                   label: "Achievements",
-                  component: <Achievements />,
+                  component: <Achievements userId={userData.id} />,
                 },
               ]}
             />

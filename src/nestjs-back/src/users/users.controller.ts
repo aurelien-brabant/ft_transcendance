@@ -41,17 +41,6 @@ export class UsersController {
     return this.usersService.findAll(paginationQuery);
   }
 
-
-  @UseGuards(JwtAuthGuard)
-  @Get('/search')
-  async searchUsersBy(@Query('v') searchTerm: string) {
-    if (searchTerm === undefined) {
-      throw new BadRequestException('Missing "v" query parameter')
-    }
-
-    return this.usersService.searchUsers(searchTerm);
-  }
-
   /* NOTE: userId can be either the actual database id of the user, or, preferrably on the frontend, their username */
   @UseGuards(JwtAuthGuard)
   @Get(':userId')
@@ -59,20 +48,6 @@ export class UsersController {
     return await this.usersService.findOne(id).catch((err) => {
       throw new NotFoundException(err.message);
     });
-  }
-
-  /* anyone can create a new user to begin the authentication process */
-  @Post()
-  async create(@Body() createUserDto: CreateUserDto) {
-    const createdUser = await this.usersService.create(createUserDto);
-
-    if (!createdUser) {
-      throw new ConflictException();
-    }
-
-    // exclude password from returned JSON
-    const { password, ...userData } = createdUser;
-    return userData;
   }
 
   @UseGuards(JwtAuthGuard)
@@ -105,6 +80,30 @@ export class UsersController {
     return this.usersService.findRank(id, paginationQuery);
   }
 
+  @UseGuards(JwtAuthGuard)
+  @Get('/search')
+  async searchUsersBy(@Query('v') searchTerm: string) {
+    if (searchTerm === undefined) {
+      throw new BadRequestException('Missing "v" query parameter')
+    }
+
+    return this.usersService.searchUsers(searchTerm);
+  }
+
+  /* anyone can create a new user to begin the authentication process */
+  @Post()
+  async create(@Body() createUserDto: CreateUserDto) {
+    const createdUser = await this.usersService.create(createUserDto);
+
+    if (!createdUser) {
+      throw new ConflictException();
+    }
+
+    // exclude password from returned JSON
+    const { password, ...userData } = createdUser;
+    return userData;
+  }
+
   @UseGuards(JwtAuthGuard, IsLoggedInUserGuard)
   @Patch(':userId')
   async update(@Param('userId') id: string, @Body() updateUserDto: UpdateUserDto) {
@@ -114,21 +113,21 @@ export class UsersController {
   }
 
   @UseGuards(JwtAuthGuard, IsLoggedInUserGuard)
-  @Delete(':userId')
-  remove(@Param('userId') id: string) {
-    return this.usersService.remove(id);
-  }
-
-  @UseGuards(JwtAuthGuard, IsLoggedInUserGuard)
-  @Delete(':userId/:user/:action')
-  async removeRelation(
+  @Patch(':userId/:user/:action')
+  async updateRelation(
     @Param('userId') id: string,
     @Param('user') userToUpdate: string,
     @Param('action') action: string,
   ) {
-    return await this.usersService.removeRelation(id, userToUpdate, action).catch((err) => {
+    return await this.usersService.updateRelation(id, userToUpdate, action).catch((err) => {
       throw new BadRequestException(err.message);
     });
+  }
+
+  @UseGuards(JwtAuthGuard, IsLoggedInUserGuard)
+  @Delete(':userId')
+  remove(@Param('userId') id: string) {
+    return this.usersService.remove(id);
   }
 
   @UseGuards(JwtAuthGuard, IsLoggedInUserGuard)

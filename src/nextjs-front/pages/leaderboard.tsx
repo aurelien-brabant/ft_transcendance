@@ -7,11 +7,13 @@ import { GiPodiumSecond, GiPodiumThird, GiPodiumWinner } from "react-icons/gi";
 import Link from "next/link";
 import Image from 'next/image';
 import { NextPageWithLayout } from "./_app";
+import { User } from "transcendance-types";
+import { useSession } from "../hooks/use-session";
 import Achievements from "../components/Achievements";
 import Selector from "../components/Selector";
 import withDashboardLayout from "../components/hoc/withDashboardLayout";
 import relationshipContext, { RelationshipContextType } from "../context/relationship/relationshipContext";
-import { User } from "transcendance-types";
+
 
 type Player = {
   id: string;
@@ -167,6 +169,7 @@ const TopPlayerItem: React.FC<TopPlayer> = (
 }
 
 const LeaderboardPage: NextPageWithLayout = ({}) => {
+  const { user: currentUser } = useSession();
   const [isLoading, setIsLoading] = useState(true);
   const [rankingGlobal, setRankingGlobal] = useState<Player[]>([]);
   const [ranking42, setRanking42] = useState<Player[]>([]);
@@ -188,7 +191,7 @@ const LeaderboardPage: NextPageWithLayout = ({}) => {
         ((b.wins + b.ratio) - (a.wins + a.ratio))
     );
 
-    for (var user of activeUsers) {
+    for (const user of activeUsers) {
       if (user.duoquadra_login) {
         ranking42.push({
           id: user.id,
@@ -302,7 +305,7 @@ const LeaderboardPage: NextPageWithLayout = ({}) => {
                 },
                 {
                   label: "Achievements",
-                  component:  <Achievements />,
+                  component:  <Achievements userId={currentUser.id} />,
                 }
               ]}
             />
