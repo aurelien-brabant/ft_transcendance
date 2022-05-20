@@ -64,7 +64,7 @@ export const DirectMessageHeader: React.FC<{ viewParams: any }> = ({
         </Tooltip>
       </div>
       <div className="flex items-center justify-center gap-x-3">
-        <Link href={`/users/${viewParams.friendId}`}>
+        <Link href={`/users/${viewParams.friendUsername}`}>
           <h6 className="font-bold hover:text-pink-600">
             {viewParams.friendUsername}
           </h6>

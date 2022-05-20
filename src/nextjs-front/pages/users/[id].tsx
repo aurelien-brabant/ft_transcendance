@@ -7,7 +7,9 @@ import { RiPingPongLine } from "react-icons/ri";
 import { ChatIcon, CogIcon, UserAddIcon } from "@heroicons/react/outline";
 import { ActiveUser } from "transcendance-types";
 import { NextPageWithLayout } from "../_app";
-import alertContext, { AlertContextType } from "../../context/alert/alertContext";
+import alertContext, {
+  AlertContextType,
+} from "../../context/alert/alertContext";
 import chatContext, { ChatContextType } from "../../context/chat/chatContext";
 import Achievements from "../../components/Achievements";
 import Selector from "../../components/Selector";
@@ -33,15 +35,15 @@ type PastGame = {
   opponentUsername: string;
   opponentScore: number;
   userScore: number;
-  mode: GameMode
+  mode: GameMode;
 };
 
 const convertDuration = (durationInMs: number) => {
   const minutes = Math.floor(durationInMs / 60000);
   const seconds = ((durationInMs % 60000) / 1000).toFixed(0);
 
-  return `${minutes} mn ${(parseInt(seconds) < 10 ? "0" : "")}${seconds} sec`;
-}
+  return `${minutes} mn ${parseInt(seconds) < 10 ? "0" : ""}${seconds} sec`;
+};
 
 const renderScore = (game: PastGame) => {
   if (game.isDraw) {
@@ -55,8 +57,7 @@ const renderScore = (game: PastGame) => {
   if (game.userIsWinner) {
     return (
       <div className="text-lg flex gap-x-2">
-        <span className="text-red-400">{game.opponentScore}</span>
-        -
+        <span className="text-red-400">{game.opponentScore}</span>-
         <span className="text-green-400">{game.userScore}</span>
       </div>
     );
@@ -64,8 +65,7 @@ const renderScore = (game: PastGame) => {
 
   return (
     <div className="text-lg flex gap-x-2">
-      <span className="text-green-400">{game.opponentScore}</span>
-      -
+      <span className="text-green-400">{game.opponentScore}</span>-
       <span className="text-red-400">{game.userScore}</span>
     </div>
   );
@@ -73,23 +73,15 @@ const renderScore = (game: PastGame) => {
 
 const getResultIcon = (game: PastGame) => {
   if (game.isDraw) {
-    return (
-      <FaEquals className="text-gray-400" />
-    );
+    return <FaEquals className="text-gray-400" />;
   }
   if (game.userIsWinner) {
-    return (
-      <GiPodiumWinner className="text-green-400" />
-    );
+    return <GiPodiumWinner className="text-green-400" />;
   }
-  return (
-    <GiFalling className="text-red-400" />
-  );
+  return <GiFalling className="text-red-400" />;
 };
 
-const HistoryTable: React.FC<{ history: PastGame[] }> = ({
-  history,
-}) => (
+const HistoryTable: React.FC<{ history: PastGame[] }> = ({ history }) => (
   <table className="w-full my-4 text-left">
     <thead>
       <tr className="text-pink-600 bg-01dp">
@@ -108,24 +100,22 @@ const HistoryTable: React.FC<{ history: PastGame[] }> = ({
           className={`py-6 ${index % 2 ? "bg-02dp" : "bg-03dp"}`}
         >
           <td className="p-3 font-bold">
-            <Link href={`/users/${game.opponentId}`} >
+            <Link href={`/users/${game.opponentUsername}`}>
               <a>{game.opponentUsername}</a>
             </Link>
           </td>
           <td className="p-3 text-neutral-200">
             {`${convertDuration(game.duration)}`}
           </td>
-          <td className="p-3">
-            {renderScore(game)}
-          </td>
+          <td className="p-3">{renderScore(game)}</td>
+          <td className="p-3 text-3xl">{getResultIcon(game)}</td>
+          <td className="p-3">{new Date(game.date).toLocaleDateString()}</td>
           <td className="p-3 text-3xl">
-            {getResultIcon(game)}
-          </td>
-          <td className="p-3">
-            {new Date(game.date).toLocaleDateString()}
-          </td>
-          <td className="p-3 text-3xl">
-            {game.mode === GameMode.DEFAULT ? (<GiPingPongBat className="text-blue-400"/>) : (<GiAlarmClock className="text-blue-400"/>)}
+            {game.mode === GameMode.DEFAULT ? (
+              <GiPingPongBat className="text-blue-400" />
+            ) : (
+              <GiAlarmClock className="text-blue-400" />
+            )}
           </td>
         </tr>
       ))}
@@ -163,7 +153,9 @@ const UserProfilePage: NextPageWithLayout = ({}) => {
   const { user } = useSession();
   const actionTooltipStyles = "font-bold bg-dark text-neutral-200";
   const { setAlert } = useContext(alertContext) as AlertContextType;
-  const { socket: chatSocket, createDirectMessage } = useContext(chatContext) as ChatContextType;
+  const { socket: chatSocket, createDirectMessage } = useContext(
+    chatContext
+  ) as ChatContextType;
   const [gamesHistory, setGamesHistory] = useState<PastGame[]>([]);
   const [isLoading, setIsLoading] = useState(true);
   const [alreadyFriend, setAlreadyFriend] = useState(false);
@@ -198,7 +190,7 @@ const UserProfilePage: NextPageWithLayout = ({}) => {
         "Content-Type": "application/json",
       },
       body: JSON.stringify({
-        pendingFriendsSent: [ { "id": id } ]
+        pendingFriendsSent: [{ id: id }],
       }),
     });
 
@@ -223,8 +215,9 @@ const UserProfilePage: NextPageWithLayout = ({}) => {
     );
 
     for (const game of games) {
-      const opponentId = (game.winnerId === parseInt(userId)) ? game.loserId : game.winnerId;
-      const userIsWinner = (game.winnerId === parseInt(userId));
+      const opponentId =
+        game.winnerId === parseInt(userId) ? game.loserId : game.winnerId;
+      const userIsWinner = game.winnerId === parseInt(userId);
       const res = await fetch(`/api/users/${opponentId}`);
       const data = await res.json();
 
@@ -239,7 +232,7 @@ const UserProfilePage: NextPageWithLayout = ({}) => {
         opponentUsername: data.username,
         opponentScore: !userIsWinner ? game.winnerScore : game.loserScore,
         userScore: userIsWinner ? game.winnerScore : game.loserScore,
-        mode: game.mode
+        mode: game.mode,
       });
     }
     setGamesHistory(gameHistory);
@@ -290,8 +283,8 @@ const UserProfilePage: NextPageWithLayout = ({}) => {
       const res = await fetch(`/api/users/${userId}`);
 
       if (!res.ok) {
-        router.push('/404');
-        return ;
+        router.push("/404");
+        return;
       }
 
       const matchingUser: any = await res.json();
@@ -303,7 +296,8 @@ const UserProfilePage: NextPageWithLayout = ({}) => {
       /* Didn't play yet */
       if (!matchingUser.wins && !matchingUser.losses && !matchingUser.draws) {
         setRank("-");
-      } else { /* Else set rank */
+      } else {
+        /* Else set rank */
         const reqRank = await fetch(`/api/users/${userId}/rank`);
         const res = await reqRank.json();
         setRank(res);
@@ -335,7 +329,12 @@ const UserProfilePage: NextPageWithLayout = ({}) => {
         <div className="w-full h-32 bg-04dp animate-pulse rounded" />
         <div className={"mt-8 w-full"}>
           {Array.from({ length: 10 }, (_, index) => (
-            <div className={classNames("animate-pulse h-10 w-full", index % 2 ? 'bg-03dp' : 'bg-04dp')} />
+            <div
+              className={classNames(
+                "animate-pulse h-10 w-full",
+                index % 2 ? "bg-03dp" : "bg-04dp"
+              )}
+            />
           ))}
         </div>
       </div>
@@ -427,10 +426,7 @@ const UserProfilePage: NextPageWithLayout = ({}) => {
               <h1 className="text-2xl uppercase text-pink-500 font-extrabold">
                 {userData.username}
               </h1>
-              <UserStatusItem
-                className={"mt-2"}
-                id={userData.id}
-              />
+              <UserStatusItem className={"mt-2"} id={userData.id} />
             </div>
             <div className="w-full p-5 bg-01dp grid lg:grid-cols-3">
               <HighlightItem
@@ -458,9 +454,7 @@ const UserProfilePage: NextPageWithLayout = ({}) => {
               items={[
                 {
                   label: "Games history",
-                  component: (
-                    <HistoryTable history={gamesHistory} />
-                  ),
+                  component: <HistoryTable history={gamesHistory} />,
                 },
                 {
                   label: "Achievements",
@@ -471,7 +465,7 @@ const UserProfilePage: NextPageWithLayout = ({}) => {
           </div>
         </div>
       ) : (
-          <Skeleton />
+        <Skeleton />
       )}
     </div>
   );
