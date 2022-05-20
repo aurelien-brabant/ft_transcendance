@@ -219,7 +219,7 @@ const UserProfilePage: NextPageWithLayout = ({}) => {
     /* Sorts from most recent */
     games.sort(
       (a: Game, b: Game) =>
-      ((new Date(b.endedAt)).valueOf() - (new Date(a.endedAt)).valueOf())
+      ((new Date(b.endedAt)).getTime() - (new Date(a.endedAt)).getTime())
     );
 
     for (const game of games) {
