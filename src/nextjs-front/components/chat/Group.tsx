@@ -36,10 +36,6 @@ export const GroupHeader: React.FC<{ viewParams: any }> = ({ viewParams }) => {
   const channelUpdatedListener = (channel: Channel) => {
     setChannelName(channel.name);
     setChannelPrivacy(channel.privacy);
-
-    if (!userInChan && channel.privacy !== "public") {
-      closeRightmostView();
-    }
   };
 
   const channelDeletedListener = (deletedId: string) => {

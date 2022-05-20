@@ -1,10 +1,10 @@
 import Link from "next/link";
 import { useRouter } from "next/router";
 import { useContext, useEffect, useState } from "react";
-import { AiOutlineUserAdd } from "react-icons/ai";
 import { FaEquals } from "react-icons/fa";
 import { GiAlarmClock, GiFalling, GiPingPongBat, GiPodiumWinner } from "react-icons/gi";
-import { RiPingPongLine, RiMessage2Line, RiUserSettingsLine } from "react-icons/ri";
+import { RiPingPongLine } from "react-icons/ri";
+import { ChatIcon, CogIcon, UserAddIcon } from "@heroicons/react/outline";
 import { ActiveUser } from "transcendance-types";
 import { NextPageWithLayout } from "../_app";
 import alertContext, { AlertContextType } from "../../context/alert/alertContext";
@@ -161,7 +161,7 @@ const UserProfilePage: NextPageWithLayout = ({}) => {
   }, [router.query]);
 
   const { user } = useSession();
-  const actionTooltipStyles = "font-bold bg-gray-900 text-neutral-200";
+  const actionTooltipStyles = "font-bold bg-dark text-neutral-200";
   const { setAlert } = useContext(alertContext) as AlertContextType;
   const { socket: chatSocket, createDirectMessage } = useContext(chatContext) as ChatContextType;
   const [gamesHistory, setGamesHistory] = useState<PastGame[]>([]);
@@ -219,7 +219,7 @@ const UserProfilePage: NextPageWithLayout = ({}) => {
     /* Sorts from most recent */
     games.sort(
       (a: Game, b: Game) =>
-      ((new Date(b.endedAt)).valueOf() - (new Date(a.endedAt)).valueOf())
+      ((new Date(b.endedAt)).getTime() - (new Date(a.endedAt)).getTime())
     );
 
     for (const game of games) {
@@ -360,7 +360,8 @@ const UserProfilePage: NextPageWithLayout = ({}) => {
                 <div className="absolute left-0 right-0 flex items-center justify-center -bottom-4 gap-x-2">
                   <Tooltip className={actionTooltipStyles} content="Edit user">
                     <button className="p-2 text-2xl text-white/90 bg-01dp rounded-full transition hover:scale-105">
-                      <RiUserSettingsLine
+                      <CogIcon
+                        className="h-6 w-6"
                         onClick={() => {
                           router.push("/welcome");
                         }}
@@ -384,7 +385,7 @@ const UserProfilePage: NextPageWithLayout = ({}) => {
                       className="p-2 text-pink-700 bg-pink-200 text-2xl rounded-full transition hover:scale-105"
                       onClick={handleMessageToUser}
                     >
-                      <RiMessage2Line />
+                      <ChatIcon className="h-6 w-6"/>
                     </button>
                   </Tooltip>
 
@@ -400,7 +401,8 @@ const UserProfilePage: NextPageWithLayout = ({}) => {
                       } p-2 text-2xl bg-pink-200 text-pink-700 rounded-full transition hover:scale-105`}
                     >
                       {alreadyFriend ? (
-                        <AiOutlineUserAdd
+                        <UserAddIcon
+                          className="h-6 w-6"
                           onClick={() =>
                             setAlert({
                               type: "warning",
@@ -409,7 +411,8 @@ const UserProfilePage: NextPageWithLayout = ({}) => {
                           }
                         />
                       ) : (
-                        <AiOutlineUserAdd
+                        <UserAddIcon
+                          className="h-6 w-6"
                           onClick={() =>
                             requestFriend(String(userId), userData.username)
                           }
@@ -421,7 +424,7 @@ const UserProfilePage: NextPageWithLayout = ({}) => {
               )}
             </div>
             <div className="flex flex-col items-center">
-              <h1 className="text-2xl uppercase text-pink-600 font-extrabold">
+              <h1 className="text-2xl uppercase text-pink-500 font-extrabold">
                 {userData.username}
               </h1>
               <UserStatusItem
@@ -429,7 +432,7 @@ const UserProfilePage: NextPageWithLayout = ({}) => {
                 id={userData.id}
               />
             </div>
-            <div className="w-full p-5 bg-01dp border-2 border-02dp rounded drop-shadow-md grid lg:grid-cols-3">
+            <div className="w-full p-5 bg-01dp grid lg:grid-cols-3">
               <HighlightItem
                 n={rank}
                 label="Ranking"
@@ -440,7 +443,7 @@ const UserProfilePage: NextPageWithLayout = ({}) => {
                 n={userData.wins}
                 label="TOTAL WINS"
                 hint="Number of wins"
-                nColor="text-green-300"
+                nColor="text-emerald-500"
               />
               <HighlightItem
                 n={userData.ratio}
