@@ -464,7 +464,7 @@ const UserProfilePage: NextPageWithLayout = ({}) => {
                 },
                 {
                   label: "Achievements",
-                  component: <Achievements />,
+                  component: <Achievements userId={userData.id} />,
                 },
               ]}
             />
