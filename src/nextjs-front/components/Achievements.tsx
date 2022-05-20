@@ -13,7 +13,7 @@ const Achievements: React.FC<{ userId: string }> = ({ userId }) => {
     const [userAchievements, setUserAchievements] = useState<UserAchievement[]>([]);
     const [achievementsList, setAchievementsList] = useState<Achievement[]>([]);
 
-    /* Update user's information on mount */
+    /* Update user's informations */
     const updateUserAchievements = async (achievements: Achievement[]) => {
         const userAchievements: UserAchievement[] = [];
 
@@ -43,7 +43,6 @@ const Achievements: React.FC<{ userId: string }> = ({ userId }) => {
     }
 
     useEffect(() => {
-        console.log('[Achivements] fetch data');
         getAchievementsData();
         getUserAchievements(userId);
     }, [])
