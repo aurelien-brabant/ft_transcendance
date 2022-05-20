@@ -113,6 +113,8 @@ const Welcome: NextPageWithLayout = () => {
     }
 
     if (formData.email) {
+      formData.email = formData.email.toLowerCase();
+
       if (!isEmail(formData.email)) {
         errors['email'] = 'Not a valid email';
       } else if (formData.email === user.email){
@@ -125,6 +127,7 @@ const Welcome: NextPageWithLayout = () => {
     }
     setFieldErrors(errors);
     setPendingChanges(false);
+    setFormData({});
   };
 
   useEffect(() => {
