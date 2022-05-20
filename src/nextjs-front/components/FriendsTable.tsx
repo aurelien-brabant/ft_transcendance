@@ -50,7 +50,7 @@ const FriendsTable: React.FC<{
 
   const getUserCard = (user: User) => {
     return (
-      <Link href={`/users/${user.id}`}>
+      <Link href={`/users/${user.username}`}>
         <a>
           <div className="grid grid-cols-2 m-2 space-x-3">
             <div className="grid grid-cols-1 text-center place-items-center text-green-500 border-pink-500 bg-inherit">
