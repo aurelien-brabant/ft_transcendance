@@ -1,6 +1,6 @@
-import { Fragment, useContext, useEffect, useMemo, useRef, useState } from "react";
-import { FiEdit2, FiUploadCloud } from "react-icons/fi";
-import { MdCameraswitch, MdCancel, MdOutlineArrowBackIos } from 'react-icons/md';
+import { Fragment, useContext, useEffect, useRef, useState } from "react";
+import { MdCameraswitch, MdOutlineArrowBackIos } from 'react-icons/md';
+import { CloudUploadIcon, UploadIcon, XIcon } from "@heroicons/react/outline";
 import Link from 'next/link';
 import Image from "next/image";
 import { useRouter } from 'next/router';
@@ -133,39 +133,65 @@ const Welcome: NextPageWithLayout = () => {
     setPendingChanges(!(!formData.username && !formData.email && !formData.tfa && !formData.pic));
   }, [formData]);
 
-  /* Picture */
+  /* User's avatar */
+  const get42Pic = async () => {
+    setAlert({type: 'info', content: 'Default 42 avatar requested'});
+    const res = await backend.request(`/api/users/${user.id}/avatar42`);
+
+    if (res.ok) {
+      router.reload();
+    }
+    else {
+      setAlert({type: 'error', content: 'Error while loading 42 avatar'});
+    }
+  }
+
+  const getRandomPic = async () => {
+    setAlert({type: 'info', content: 'Random avatar requested'});
+    const res = await backend.request(`/api/users/${user.id}/randomAvatar`);
+
+    if (res.ok) {
+      router.reload();
+    }
+    else {
+      setAlert({type: 'error', content: 'Error while loading random avatar'});
+    }
+  }
+
   const UploadPic = () => {
     const [image, setImage] = useState('');
+    const [imageChosen, setImageChosen] = useState(false);
 
-    const uploadToClient = (event:any) => {
+    const uploadToClient = (event: any) => {
       if (event.target.files && event.target.files[0]) {
         const img = event.target.files[0];
         setImage(img);
+        setImageChosen(true);
       }
     };
 
     const uploadToServer = async () => {
+      if (!imageChosen) return ;
+
       const body = new FormData();
       body.append("image", image);
 
-      const req = await backend.request(`/api/users/${user.id}/uploadAvatar`, {
+      const res = await backend.request(`/api/users/${user.id}/uploadAvatar`, {
         method: "POST",
         body
       });
 
-      if (req.ok) {
-        const res = await req.json();
-
+      if (res.ok) {
         setPendingPic(false);
-        setAlert({type: 'success', content: 'Avatar uploaded successfully'})
         router.reload();
       }
-      else if (req.status === 406)
-        setAlert({type: 'warning', content: 'Only JPG/JPEG/PNG/GIF are accepted'})
-      else if (req.status === 413)
-        setAlert({type: 'warning', content: 'File size too big!'})
-      else
-        setAlert({type: 'error', content: 'Error while uploading!'})
+      else if (res.status === 406) {
+        setAlert({type: 'warning', content: 'Only JPG/JPEG/PNG/GIF are accepted'});
+      } else if (res.status === 413) {
+        setAlert({type: 'warning', content: 'File size too big!'});
+      } else {
+        setAlert({type: 'error', content: 'Error while uploading new avatar'});
+      }
     };
 
     return (
@@ -173,38 +199,24 @@ const Welcome: NextPageWithLayout = () => {
         useMediaQueryArg={{ query: "(min-width: 1280px)" }}
         direction="left" duration={200} triggerOnce
       >
-        <div className="flex justify-center text-pink-600 space-x-5 text-center items-center">
+        <div className="flex justify-center text-pink-500 space-x-5 text-center items-center">
           <input
             type="file"
             name="uploadAvatar"
-            className="border border-pink-600 p-1"
+            className="border border-pink-500 p-1"
             onChange={uploadToClient}
           />
-          <FiUploadCloud onClick={uploadToServer} className="text-3xl hover:animate-pulse"/>
+          <Tooltip className={actionTooltipStyles} content="Upload">
+            <button className="p-2 text-2xl text-pink-600 rounded-full transition">
+              <CloudUploadIcon
+                className={`h-6 w-6 ${imageChosen ? "hover:hover:scale-120" : "opacity-70"}`}
+                onClick={uploadToServer}
+              />
+            </button>
+          </Tooltip>
         </div>
       </ResponsiveSlide>
-    )
-  }
-
-  const getRandomPic = async () => {
-    setAlert({type: 'info', content: 'New random avatar'})
-
-    const req = await backend.request(`/api/users/${user.id}/randomAvatar`);
-
-    if (req.ok)
-      router.reload();
-    else
-      setAlert({type: 'error', content: 'Error while changin avatar!'})
-  }
-
-  const get42Pic = async () => {
-    setAlert({type: 'info', content: 'Default 42 pic requested'})
-
-    const req = await backend.request(`/api/users/${user.id}/avatar42`);
-    if (req.ok)
-      router.reload();
-    else
-      setAlert({type: 'error', content: 'Error while changin avatar!'})
+    );
   }
 
   /* TFA */
@@ -406,7 +418,8 @@ const Welcome: NextPageWithLayout = () => {
             <div className="absolute left-0 right-0 flex items-center justify-center -bottom-4 gap-x-2">
               <Tooltip className={actionTooltipStyles} content="Cancel">
                 <button className="p-2 text-2xl text-pink-200 bg-pink-700 rounded-full transition hover:scale-105">
-                  <MdCancel
+                  <XIcon
+                    className="h-6 w-6"
                     onClick={() => {setPendingPic(false);}}
                   />
                 </button>
@@ -423,7 +436,8 @@ const Welcome: NextPageWithLayout = () => {
                 </Tooltip>
                 <Tooltip className={actionTooltipStyles} content="Upload avatar">
                   <button className="p-2 text-2xl text-pink-700 bg-pink-200 rounded-full transition hover:scale-105">
-                    <FiEdit2
+                    <UploadIcon
+                      className="h-6 w-6"
                       onClick={() => {setPendingPic(true);}}
                     />
                   </button>
@@ -431,6 +445,7 @@ const Welcome: NextPageWithLayout = () => {
               </div>
             )}
           </div>
+
           {pendingPic ? (
           <UploadPic />
           ) : (
@@ -444,6 +459,7 @@ const Welcome: NextPageWithLayout = () => {
               </a>
             </Link>
           </div>)}
+
         </div>
 
         <div className="flex flex-col py-12 gap-y-10">
