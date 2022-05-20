@@ -51,7 +51,8 @@ const SignIn: NextPageWithLayout = () => {
     const handleFormSubmit = async ({email, password}: any) => {
         setIsLoading(true);
         const hasLoggedIn = await login('credentials', {
-            email, password
+            email: email.toLowerCase(),
+            password
         });
         setIsLoading(false);
 

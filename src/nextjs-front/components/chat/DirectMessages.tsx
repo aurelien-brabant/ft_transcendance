@@ -68,7 +68,7 @@ const DirectMessages: React.FC<{ viewParams: Object }> = ({ viewParams }) => {
     /* Sorts from most recent */
     dms.sort(
       (a: DirectMessage, b: DirectMessage) =>
-        b.updatedAt.valueOf() - a.updatedAt.valueOf()
+        new Date(b.updatedAt).getTime() - new Date(a.updatedAt).getTime()
     );
     setDirectMessages(dms);
   };

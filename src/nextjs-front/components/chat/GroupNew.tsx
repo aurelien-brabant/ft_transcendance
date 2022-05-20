@@ -54,6 +54,7 @@ export const GroupNewHeader: React.FC = () => {
 const GroupNew: React.FC = () => {
 	const { user } = useSession();
 	const { socket, channelCreatedListener } = useContext(chatContext) as ChatContextType;
+	const [pendingChanges, setPendingChanges] = useState(false);
 	const inputGroupClassName = "flex flex-col gap-y-2";
 	const inputClassName = "px-2 py-1 border border-pink-600 bg-transparent outline-none";
 	const labelClassName = "text-xs text-neutral-200 uppercase";
@@ -80,27 +81,40 @@ const GroupNew: React.FC = () => {
 		});
 	};
 
+	const isGroupNameValid = (groupName: string) => {
+		return /^[a-zA-Z0-9_ ]+$/.test(groupName);
+	}
+
+	const isGroupPasswordValid = (password: string) => {
+		return /^(?=.*[A-Za-z])(?=.*[0-9])(?=.*[@$!%#?&])[A-Za-z0-9@$!%#?&]{8,30}$/.test(password);
+	}
+
 	const handleSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
 		e.preventDefault();
 		const errors: Partial<NewGroupData> = {};
 
-		formData.groupName = formData.groupName.trim();
+		if (!pendingChanges) return ;
 
-		if (formData.groupName.length < 3 || formData.groupName.length > 20) {
-			errors["groupName"] = "Group name should be between 3 and 20 characters long";
+		const nameLen = formData.groupName.trim().length;
+
+		if (nameLen < 3 || nameLen > 20) {
+			errors["groupName"] = "Name must be 3 to 20 characters long";
+		} else if (!isGroupNameValid(formData.groupName)) {
+			errors['groupName'] = 'Name must contain alphanumeric characters, underscores and spaces only';
 		}
 
 		if (formData.groupPrivacy === "protected") {
 			if (formData.password) {
 				if (formData.password.length == 0) {
-					errors["password"] = "Password can\"t be empty";
-				}
-				if (formData.password.length < 8) {
-					errors["password"] = "Password must contain at least 8 characters";
+					errors['password'] = 'Password can\'t be empty';
+				} else if (formData.password.length < 8 || formData.password.length > 30) {
+					errors['password'] = 'Password must be 8 to 30 characters long.';
+				} else if (!isGroupPasswordValid(formData.password)) {
+					errors['password'] = 'Password must contain at least one letter, one number, one special character.';
 				}
 			}
-			if (formData.password !== formData.password2) {
-				errors["password2"] = "Passwords do not match";
+			if (formData.password2 && (formData.password !== formData.password2)) {
+				errors['password2'] = 'Passwords do not match';
 			}
 		}
 
@@ -122,6 +136,10 @@ const GroupNew: React.FC = () => {
 
 		socket.emit("createChannel", data);
 	}
+
+	useEffect(() => {
+		setPendingChanges(!(formData.groupName !== "" && formData.password !== "" && formData.password2 !== ""));
+	}, [formData]);
 
 	useEffect(() => {
 		/* Listeners */
@@ -209,7 +227,9 @@ const GroupNew: React.FC = () => {
 						</div>
 					</Fragment>
 				)}
-				<button className="px-2 py-1 bg-pink-600">Create group</button>
+				<button className={`px-2 py-1 bg-pink-600 ${
+									pendingChanges ? "hover:bg-pink-500" : "opacity-70"
+								}`}>Create group</button>
 			</form>
 		</div>
 	);

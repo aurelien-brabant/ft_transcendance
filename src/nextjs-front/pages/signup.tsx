@@ -21,7 +21,6 @@ const formConfig: ProgressiveFormConfig = {
           placeholder: "example@gmail.com",
           validate: (value) =>
             isEmail(value) ? undefined : "Invalid e-mail address format",
-
         },
       ],
       submitCta: "Continue with email",
@@ -63,7 +62,10 @@ const SignUp: NextPageWithLayout = () => {
       headers: {
         "Content-Type": "application/json",
       },
-      body: JSON.stringify({ email: data.email, password: data.password }),
+      body: JSON.stringify({
+        email: data.email.toLowerCase(),
+        password: data.password
+      }),
     };
 
     const { status: createUserStatus } = await fetch("/api/users/", reqMeta);
