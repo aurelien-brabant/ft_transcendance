@@ -83,7 +83,7 @@ const GroupUsers: React.FC<{ viewParams: any }> = ({ viewParams }) => {
 	const [ownerView, setOwnerView] = useState(false);
 	const [adminView, setAdminView] = useState(false);
 	const actionTooltipStyles = "font-bold bg-dark text-neutral-200";
-	const pongIconStyle = "p-1 text-pink-700 bg-pink-200 rounded-full transition hover:scale-110  hover:text-pink-600";
+	const pongIconStyle = "p-1 text-pink-700 bg-pink-200 rounded-full transition hover:scale-110	hover:text-pink-600";
 
 	/* Make user administrator */
 	const addAdmin = (id: string) => {
@@ -136,8 +136,8 @@ const GroupUsers: React.FC<{ viewParams: any }> = ({ viewParams }) => {
 	const sendPongInvite = async (userId: string) => {
 		console.log(`[Group Users] Invite user [${userId}] to play Pong`); // debug
 		socket.emit("sendPongInvite", {
-			from: currentUser.id,
-			to: parseInt(userId),
+			senderId: currentUser.id,
+			receiverId: parseInt(userId),
 		});
 		await router.push("/hub");
 	};

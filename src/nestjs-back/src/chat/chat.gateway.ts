@@ -19,6 +19,8 @@ import { CreateChannelMessageDto } from './channels/dto/create-channel-message.d
 import { CreateDmMessageDto } from './direct-messages/dto/create-dm-message.dto';
 import { UpdateChannelDto } from './channels/dto/update-channel.dto';
 import { BadRequestTransformationFilter } from './chat-ws-exception-filter';
+import { PongGateway } from 'src/games/pong.gateway';
+import { User } from 'src/games/class/ConnectedUsers';
 
 @WebSocketGateway({
 		cors: true,
@@ -40,7 +42,8 @@ export class ChatGateway implements OnGatewayInit, OnGatewayConnection {
 	private readonly chatUsers: ChatUsers = new ChatUsers();
 
 	constructor(
-		private readonly chatService: ChatService
+		private readonly chatService: ChatService,
+		private readonly pongGateway: PongGateway,
 	) {}
 
 	afterInit(server: Server) {
@@ -150,51 +153,43 @@ export class ChatGateway implements OnGatewayInit, OnGatewayConnection {
 	@SubscribeMessage('sendPongInvite')
 	async handleSendPongInvite(
 		@ConnectedSocket() client: Socket,
-		@MessageBody() { from, to }: { from: number, to: number }
+		@MessageBody() { senderId, receiverId }: { senderId: number, receiverId: number }
 	) {
 		try {
-			let dm = await this.chatService.checkIfDmExists(from.toString(), to.toString());
-			const friendUser = this.chatUsers.getUserById(to.toString());
+			let dm = await this.chatService.checkIfDmExists(senderId.toString(), receiverId.toString());
+			const sender = this.chatUsers.getUser(client.id);
+			const receiver = this.chatUsers.getUserById(receiverId.toString());
 
 			if (!dm) {
-				console.log("DM not exists");
 				dm = await this.chatService.createDm({
-					users: [
-						{ id: from },
-						{ id: to }
-					],
+					users: [ { id: senderId }, { id: receiverId } ],
 				} as CreateDirectMessageDto);
 
-				if (friendUser) {
-					this.userJoinRoom(friendUser.socketId, `dm_${dm.id}`);
-					this.server.to(friendUser.socketId).emit('dmCreated');
+				if (receiver) {
+					this.userJoinRoom(receiver.socketId, `dm_${dm.id}`);
+					this.server.to(receiver.socketId).emit('dmCreated');
 				}
 			}
-			if (friendUser) {
-				const sender = this.chatUsers.getUser(client.id);
-
-				this.server.to(friendUser.socketId).emit(
+			if (receiver) {
+				this.server.to(receiver.socketId).emit(
 					'chatInfo',
 					`${sender.username} wants to play Pong! Open your DM and accept the challenge!`
 				);
 			}
 
-			// TODO
-			// - Create game room
-			// - Add User 'from' to room
+			const roomId = await this.pongGateway.createInviteRoom(
+				{ id: sender.id, username: sender.username } as User,
+				receiverId
+			);
 
 			const message = await this.chatService.addMessageToDm({
-				content: 'Let\'s fight!',
-				author: { id: from },
+				content: 'Let\'s play!',
+				author: { id: senderId },
 				type: 'invite',
 				dm
 			} as CreateDmMessageDto);
 
-			// TODO
-			// - Send DM to user 'to' with:
-			//   - Room link
-
-			this.server.to(`dm_${dm.id}`).emit('newPongInvite', { message });
+			this.server.to(`dm_${dm.id}`).emit('newPongInvite', { message, roomId });
 			this.logger.log(`New Pong invite in DM [${message.dm.id}]`);
 		} catch (e) {
 			this.server.to(client.id).emit('chatError', e.message);

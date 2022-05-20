@@ -39,6 +39,7 @@ const Hub: NextPageWithLayout = () => {
 
 		socket.on("connect", () => {
 			// Allow reconnection
+			console.log('[Hub] Client connected');
 			socket.emit("handleUserConnect", userData);
 
 			socket.emit("getCurrentGames");
@@ -49,6 +50,7 @@ const Hub: NextPageWithLayout = () => {
 		});
 
 		socket.on("newRoom", (newRoomData: IRoom) => {
+			console.log('[Hub] Join Room');
 			socket.emit("joinRoom", newRoomData.roomId);
 			roomData = newRoomData;
 			roomId = newRoomData.roomId;
@@ -73,9 +75,9 @@ const Hub: NextPageWithLayout = () => {
 		});
 
 		socket.on("joinedRoom", () => {
-			if (chatSocket)
+			if (chatSocket) {
 				chatSocket.emit("userGameStatus", { isPlaying: true });
-
+			}
 			setDisplayGame(true);
 			setAlert({
 				type: "info",
@@ -84,8 +86,9 @@ const Hub: NextPageWithLayout = () => {
 		});
 
 		socket.on("leavedRoom", () => {
-			if (chatSocket)
+			if (chatSocket) {
 				chatSocket.emit("userGameStatus", { isPlaying: false });
+			}
 			roomId = undefined;
 			setDisplayGame(false);
 			setRoom(null);
@@ -113,9 +116,9 @@ const Hub: NextPageWithLayout = () => {
 			<div className="text-white">
 				<div style={{ maxWidth: "1080px" }} className="px-2 py-10 mx-auto">
 				{
-					displayGame ?
+					displayGame ? (
 						<Canvas socketProps={socket} roomProps={room}></Canvas>
-					: (<div className="flex flex-col items-center">
+					) : (<div className="flex flex-col items-center">
 							<OngoingGames currentGamesProps={currentGames} socketProps={socket}></OngoingGames>
 							{
 								inQueue ? 

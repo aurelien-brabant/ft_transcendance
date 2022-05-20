@@ -10,7 +10,7 @@ export class User {
 
 	mode?: GameMode;
 
-	constructor(id: number, username: string, socketId: string, ratio?: number) {
+	constructor(id: number, username: string, socketId?: string, ratio?: number) {
 		this.id = id;
 		this.username = username;
 		this.ratio = ratio;
@@ -59,6 +59,13 @@ export class ConnectedUsers {
 
 	getUser(socketId: string): User | undefined {
 		let userIndex: number = this.users.findIndex(user => user.socketId === socketId);
+		if (userIndex === -1)
+			return undefined;
+		return this.users[userIndex];
+	}
+
+	getUserById(id: number): User | undefined {
+		let userIndex: number = this.users.findIndex(user => user.id === id);
 		if (userIndex === -1)
 			return undefined;
 		return this.users[userIndex];

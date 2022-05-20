@@ -184,9 +184,9 @@ const UserProfilePage: NextPageWithLayout = ({}) => {
   /* Send Pong invite */
   const sendPongInvite = async (userId: string) => {
     console.log(`[users/:id] Invite user [${userId}] to play Pong`); // debug
-    chatSocket.emit("sendPongInvite", {
-      from: user.id,
-      to: parseInt(userId),
+    socket.emit("sendPongInvite", {
+      senderId: user.id,
+      receiverId: parseInt(userId),
     });
     await router.push("/hub");
   };

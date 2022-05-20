@@ -36,28 +36,35 @@ export class PongGateway implements OnGatewayInit, OnGatewayConnection, OnGatewa
 
 	createNewRoom(players: User[]): void {
 		const roomId: string = `${players[0].username}&${players[1].username}`;
-		let room: Room = new Room(roomId, players, {mode: players[0].mode});
+		let room: Room = new Room(roomId, players, { mode: players[0].mode });
 
 		this.server.to(players[0].socketId).emit("newRoom", room);
-		this.server.to(players[1].socketId).emit("newRoom",  room);
+		this.server.to(players[1].socketId).emit("newRoom", room);
 		this.rooms.set(roomId, room);
 		this.currentGames.push(roomId);
 		this.server.emit("updateCurrentGames", this.currentGames);
 	}
 
-	/* Room created after invite is sent by a User */
-	createNewRoomOnInvite(sender: User, receiver: User) {
-		const roomId: string = `${sender.username}&${receiver.username}`;
-		let room: Room = new Room(roomId, [sender, receiver], {mode: sender.mode});
+	/* Create room when invite is sent by a User */
+	async createInviteRoom(sender: User, receiverId: number) {
+		this.logger.log("Create new Invite room");
+		console.log(sender);
+
+		const firstPlayer: User = new User(sender.id, sender.username);
+		const invited = await this.usersService.findOne(String(receiverId));
+		const secondPlayer: User = new User(invited.id, invited.username);
+
+		const roomId: string = `${firstPlayer.username}&${secondPlayer.username}`;
+
+		let room: Room = new Room(roomId, [firstPlayer, secondPlayer], { mode: GameMode.DEFAULT });
 		room.gameState = GameState.WAITING;
 
-		this.server.to(sender.socketId).emit("newRoom", room);
 		this.rooms.set(roomId, room);
 		this.currentGames.push(roomId);
 
 		this.server.emit("updateCurrentGames", this.currentGames);
 		console.log(room); // debug
-		return roomId; // for the chat
+		return roomId;
 	}
 
 	afterInit(server: Server) {
@@ -80,7 +87,15 @@ export class PongGateway implements OnGatewayInit, OnGatewayConnection, OnGatewa
 
 	@SubscribeMessage('handleUserConnect')
 	async handleUserConnect(@ConnectedSocket() client: Socket, @MessageBody() user: User) {
-		let newUser: User = new User(user.id, user.username, client.id, user.ratio);
+		let newUser: User = this.connectedUsers.getUserById(user.id);
+		if (newUser) {
+			newUser.setSocketId(client.id);
+			newUser.setUsername(user.username);
+		}
+		else {
+			newUser= new User(user.id, user.username, client.id, user.ratio);
+		}
+		this.logger.log("Handle user connect");
 		newUser.setSocketId(client.id);
 		newUser.setUserStatus(UserStatus.INHUB);
 
@@ -276,9 +291,12 @@ export class PongGateway implements OnGatewayInit, OnGatewayConnection, OnGatewa
 		if (room) {
 			const currentTimestamp: number = Date.now();
 
-			// if (room.gameState === GameState.WAITING) {
-			// 	room.start();
-			// }
+			if (room.gameState === GameState.WAITING) {
+				if (room.players.length === 2) {
+					room.gameState = GameState.STARTING;
+					room.start();
+				}
+			}
 			if (room.gameState === GameState.STARTING
 					&& (currentTimestamp - room.timestampStart) >= this.secondToTimestamp(3.5)) {
 				room.start();

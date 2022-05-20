@@ -29,11 +29,11 @@ export const DirectMessageHeader: React.FC<{ viewParams: any }> = ({
   /* Invite for a Pong game */
   const sendPongInvite = async (userId: string) => {
     console.log(`[Direct Message] Invite user [${userId}] to play Pong`); // debug
-    socket.emit("sendPongInvite", {
-      from: user.id,
-      to: parseInt(userId),
-    });
     await router.push("/hub");
+    socket.emit("sendPongInvite", {
+      senderId: user.id,
+      receiverId: parseInt(userId),
+    });
   };
 
   return (

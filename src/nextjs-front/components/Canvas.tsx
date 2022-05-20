@@ -125,7 +125,9 @@ const Canvas: React.FC<{socketProps: Socket, roomProps: any}> = ({socketProps, r
 			oldTimestamp = timestamp;
 			drawGame(canvas, draw, room);
 
-			if (room.gameState === GameState.STARTING) {
+			if (room.gameState === GameState.WAITING) {
+				loading();
+			} else if (room.gameState === GameState.STARTING) {
 				let count: number = (Date.now() - room.timestampStart) / 1000;
 				draw.drawRectangle(0, 0, canvasWidth, canvasHeight, "rgba(0, 0, 0, 0.5)");
 				draw.drawCountDown(countDown[Math.floor(count)]);
@@ -140,8 +142,6 @@ const Canvas: React.FC<{socketProps: Socket, roomProps: any}> = ({socketProps, r
 
 				draw.drawRectangle(0, 0, canvasWidth, canvasHeight, "rgba(0, 0, 0, 0.5)");
 				draw.drawCountDown(countDown[Math.floor(count)]);
-			} else if (room.gameState === GameState.WAITING) {
-				loading();
 			} else if (room.gameState === GameState.PLAYERONESCORED || room.gameState === GameState.PLAYERTWOSCORED) {
 				goal();
 			} else if (room.gameState === GameState.PLAYERONEWIN || room.gameState === GameState.PLAYERTWOWIN) {
