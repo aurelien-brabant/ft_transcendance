@@ -71,7 +71,9 @@ export class Ball implements IBall {
 
 	handleCollision(secondPassed: number, p1: Player, p2: Player) {
 		// Collision on the borders of the board game
-		if((this.y + (this.velocity.dy * secondPassed)) - this.r <= 0 || (this.y + (this.velocity.dy * secondPassed)) + this.r >= 1080)
+		let nextPosY: number = this.y + (this.velocity.dy * secondPassed);
+
+		if(nextPosY - this.r <= 0 || nextPosY + this.r >= 1080)
 		{
 			this.velocity.dy = -this.velocity.dy;
 			this.r -= 5;
@@ -96,8 +98,9 @@ export class Ball implements IBall {
 
 	// Collision between ball and Paddle
 	collision(secondPassed: number, p1: Player, p2: Player): boolean {
+		let nextPosX: number = this.x + (this.velocity.dx * secondPassed);
 		if (this.x < canvasWidth/2) {
-			if (((this.x + (this.velocity.dx * secondPassed)) - this.r) < p1.x + p1.width)
+			if (nextPosX - this.r < p1.x + p1.width)
 			{
 				if ((this.y + this.r >= p1.y && this.y + this.r <= p1.y + p1.height)
 				|| (this.y - this.r >= p1.y && this.y - this.r <= p1.y + p1.height))
@@ -110,10 +113,10 @@ export class Ball implements IBall {
 			}
 		}
 		else {
-			if (((this.x + (this.velocity.dx * secondPassed)) + this.r) > p2.x)
+			if (nextPosX + this.r > p2.x)
 			 {
 				 if ((this.y + this.r >= p2.y && this.y + this.r <= p2.y + p2.height)
-				 || ( this.y - this.r >= p2.y && this.y - this.r <= p2.y + p2.height))
+				 || (this.y - this.r >= p2.y && this.y - this.r <= p2.y + p2.height))
 				{
 					this.x = p2.x - this.r;
 					this.r -= 5;
