@@ -1,8 +1,7 @@
 import React, { Fragment, useContext, useEffect } from "react";
 import Draggable from 'react-draggable';
 import { useMediaQuery } from "react-responsive";
-import { AiOutlineClose } from "react-icons/ai";
-import { FaUserFriends, FaUser } from "react-icons/fa";
+import { UserIcon, UsersIcon, XIcon } from "@heroicons/react/outline";
 import Tooltip from "./Tooltip";
 import { ChatViewItem } from "../context/chat/ChatProvider";
 import chatContext, { ChatContextType } from "../context/chat/chatContext";
@@ -79,7 +78,7 @@ const Chat: React.FC<ChatProps> = ({ viewStack, onClose }) => {
 									onClick={() => { onClose(); }}
 									className={buttonClassName}
 								>
-									<AiOutlineClose />
+									<XIcon className="h-6 w-6" />
 								</button>
 							</Tooltip>
 							<Tooltip content="Groups" className={buttonTooltipClassName}>
@@ -88,8 +87,8 @@ const Chat: React.FC<ChatProps> = ({ viewStack, onClose }) => {
 									className={buttonClassName}
 								>
 									{currentView.label === "Group chats"
-										? <FaUserFriends />
-										: <FaUserFriends className="opacity-50" />
+										? <UsersIcon className="h-6 w-6" />
+										: <UsersIcon className="h-6 w-6 opacity-50" />
 									}
 								</button>
 							</Tooltip>
@@ -102,8 +101,8 @@ const Chat: React.FC<ChatProps> = ({ viewStack, onClose }) => {
 									className={buttonClassName}
 								>
 									{currentView.label === "Direct messages"
-										? <FaUser className="text-lg" />
-										: <FaUser className="text-lg opacity-50" />
+										? <UserIcon className="h-6 w-6" />
+										: <UserIcon className="h-6 w-6 opacity-50" />
 									}
 								</button>
 							</Tooltip>

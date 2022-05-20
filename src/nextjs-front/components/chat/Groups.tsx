@@ -1,6 +1,6 @@
 import { Fragment, useContext, useEffect, useMemo, useRef, useState } from "react";
-import { AiFillLock, AiFillUnlock, AiOutlineEyeInvisible } from "react-icons/ai";
-import { FaUserFriends } from "react-icons/fa";
+import { EyeOffIcon, LockClosedIcon, LockOpenIcon } from "@heroicons/react/outline";
+import { UsersIcon } from "@heroicons/react/solid";
 import { BaseUserData, Channel } from 'transcendance-types';
 import { useSession } from "../../hooks/use-session";
 import chatContext, { ChatContextType, ChatGroup, ChatGroupPrivacy, ChatMessagePreview } from "../../context/chat/chatContext";
@@ -45,8 +45,10 @@ const Groups: React.FC<{viewParams: Object;}> = ({ viewParams }) => {
 			message.createdAt = new Date(lastMessage.createdAt);
 
 			if (!isProtected) {
-				if (!!blocked.find((user) => { return user.id == lastMessage.author.id; })) {
+				if (lastMessage.author && !!blocked.find((user) => { return user.id == lastMessage.author.id; })) {
 					message.content = "Blocked message";
+				} else if (lastMessage.content.length > 22) {
+					message.content = lastMessage.content.slice(0, 22) + "...";
 				} else {
 					message.content = lastMessage.content;
 				}
@@ -178,7 +180,7 @@ const Groups: React.FC<{viewParams: Object;}> = ({ viewParams }) => {
 					<option value="private">private</option>
 					<option value="protected">protected</option>
 				</select>
-				<button className="px-2 py-1 text-sm font-bold uppercase bg-pink-600 rounded" onClick={() => {
+				<button className="px-2 py-1 text-sm font-bold uppercase bg-pink-600 hover:bg-pink-500 rounded" onClick={() => {
 					openChatView('group_new', 'Create a new group', {});
 				}}>
 					+Group
@@ -195,11 +197,11 @@ const Groups: React.FC<{viewParams: Object;}> = ({ viewParams }) => {
 					>
 						<div className="absolute bottom-0 left-0 flex items-center px-3 py-1 text-sm text-white bg-04dp drop-shadow-md gap-x-1">
 							<div className="flex items-center gap-x-1">
-								<FaUserFriends />
+								<UsersIcon className="h-3 w-3" />
 								{gm.peopleCount}
 							</div>
 							{gm.privacy === "private" && (
-								<AiOutlineEyeInvisible />
+								<EyeOffIcon className="h-3 w-3" />
 							)}
 						</div>
 						<div>
@@ -223,9 +225,9 @@ const Groups: React.FC<{viewParams: Object;}> = ({ viewParams }) => {
 								</h6>
 								{gm.privacy === "protected" &&
 									(gm.in ? (
-										<AiFillUnlock className="opacity-50" />
+										<LockOpenIcon className="h-4 w-4 opacity-50" />
 									) : (
-										<AiFillLock />
+										<LockClosedIcon className="h-4 w-4" />
 									))}
 							</div>
 							<p>
