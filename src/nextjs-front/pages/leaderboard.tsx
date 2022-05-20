@@ -186,7 +186,11 @@ const LeaderboardPage: NextPageWithLayout = ({}) => {
       return user.accountDeactivated == false;
     });
 
+    /* Sort from highest score and put users that didn't play at the end */
     activeUsers.sort(
+      (a: User, b: User) =>
+        (b.games.length - a.games.length)
+    ).sort(
       (a: User, b: User) =>
         ((b.wins + b.ratio) - (a.wins + a.ratio))
     );
