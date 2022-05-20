@@ -90,6 +90,14 @@ export class ChannelsService {
 		return channel;
 	}
 
+	async nameIsAvailable(name: string) {
+		const channel = await this.channelsRepository.createQueryBuilder('channel')
+			.where('channel.name = :name', { name })
+			.getOne();
+
+		return channel;
+	}
+
 	findAll() {
 		return this.channelsRepository.find({
 			relations: [
@@ -119,10 +127,16 @@ export class ChannelsService {
 	}
 
 	async create(createChannelDto: CreateChannelDto) {
+		const existingChannel = await this.nameIsAvailable(createChannelDto.name);
+		const channel = this.channelsRepository.create(createChannelDto);
+
+		if (existingChannel) {
+			throw new Error(`Group '${createChannelDto.name}' already exists. Choose another name.`);
+		}
+
 		if (createChannelDto.password) {
 			createChannelDto.password = await hashPassword(createChannelDto.password, 10);
 		}
-		const channel = this.channelsRepository.create(createChannelDto);
 
 		this.logger.log(`Create new channel [${channel.name}]`);
 
@@ -132,6 +146,13 @@ export class ChannelsService {
 	}
 
 	async update(id: string, updateChannelDto: UpdateChannelDto) {
+		if (updateChannelDto.name) {
+			const existingChannel = await this.nameIsAvailable(updateChannelDto.name);
+			if (existingChannel.id !== parseInt(id)) {
+				throw new Error(`Group '${updateChannelDto.name}' already exists. Choose another name.`);
+			}
+		}
+
 		if (updateChannelDto.password) {
 			updateChannelDto.password = await hashPassword(updateChannelDto.password, 10);
 		}
