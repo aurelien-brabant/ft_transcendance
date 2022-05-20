@@ -47,6 +47,8 @@ const Groups: React.FC<{viewParams: Object;}> = ({ viewParams }) => {
 			if (!isProtected) {
 				if (!!blocked.find((user) => { return user.id == lastMessage.author.id; })) {
 					message.content = "Blocked message";
+				} else if (lastMessage.content.length > 22) {
+					message.content = lastMessage.content.slice(0, 22) + "...";
 				} else {
 					message.content = lastMessage.content;
 				}
