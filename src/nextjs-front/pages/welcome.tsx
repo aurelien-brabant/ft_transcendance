@@ -90,6 +90,10 @@ const Welcome: NextPageWithLayout = () => {
     });
   };
 
+  const isUsernameValid = (username: string) => {
+    return /^[^0-9][a-zA-Z0-9_]+$/.test(username);
+  }
+
   const handleSubmit = (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault();
     const errors: Partial<FormData> = {};
@@ -103,7 +107,7 @@ const Welcome: NextPageWithLayout = () => {
         errors['username'] = 'Username can contain between 2 and 30 characters';
       } else if (formData.username === user.username){
         errors['username'] = 'This is already your username';
-      } else if (!(/^[^0-9][a-zA-Z0-9_]+$/.test(formData.username))) {
+      } else if (!isUsernameValid(formData.username)) {
         errors['username'] = 'The username must not start with a number and contain alphanumeric characters and underscores only';
       }
     }

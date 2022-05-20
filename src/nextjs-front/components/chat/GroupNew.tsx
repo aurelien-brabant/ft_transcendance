@@ -81,6 +81,14 @@ const GroupNew: React.FC = () => {
 		});
 	};
 
+	const isGroupNameValid = (groupName: string) => {
+		return /^[a-zA-Z0-9_ ]+$/.test(groupName);
+	}
+
+	const isGroupPasswordValid = (password: string) => {
+		return /^(?=.*[A-Za-z])(?=.*[0-9])(?=.*[@$!%#?&])[A-Za-z0-9@$!%#?&]{8,30}$/.test(password);
+	}
+
 	const handleSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
 		e.preventDefault();
 		const errors: Partial<NewGroupData> = {};
@@ -91,7 +99,7 @@ const GroupNew: React.FC = () => {
 
 		if (nameLen < 3 || nameLen > 20) {
 			errors["groupName"] = "Name must be 3 to 20 characters long";
-		} else if (!(/^[a-zA-Z0-9_ ]+$/.test(formData.groupName))) {
+		} else if (!isGroupNameValid(formData.groupName)) {
 			errors['groupName'] = 'Name must contain alphanumeric characters, underscores and spaces only';
 		}
 
@@ -101,7 +109,7 @@ const GroupNew: React.FC = () => {
 					errors['password'] = 'Password can\'t be empty';
 				} else if (formData.password.length < 8 || formData.password.length > 30) {
 					errors['password'] = 'Password must be 8 to 30 characters long.';
-				} else if (!(/^(?=.*[A-Za-z])(?=.*[0-9])(?=.*[@$!%#?&])[A-Za-z0-9@$!%#?&]{8,30}$/.test(formData.password))) {
+				} else if (!isGroupPasswordValid(formData.password)) {
 					errors['password'] = 'Password must contain at least one letter, one number, one special character.';
 				}
 			}

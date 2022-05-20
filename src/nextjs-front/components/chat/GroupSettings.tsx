@@ -84,6 +84,14 @@ const GroupSettings: React.FC<{ viewParams: any }> = ({ viewParams }) => {
 		});
 	};
 
+	const isGroupNameValid = (groupName: string) => {
+		return /^[a-zA-Z0-9_ ]+$/.test(groupName);
+	}
+
+	const isGroupPasswordValid = (password: string) => {
+		return /^(?=.*[A-Za-z])(?=.*[0-9])(?=.*[@$!%#?&])[A-Za-z0-9@$!%#?&]{8,30}$/.test(password);
+	}
+
 	const handleSubmit = (e: React.FormEvent<HTMLFormElement>) => {
 		e.preventDefault();
 		const errors: Partial<UpdateGroupData> = {};
@@ -97,7 +105,7 @@ const GroupSettings: React.FC<{ viewParams: any }> = ({ viewParams }) => {
 				errors['groupName'] = 'Name must be 3 to 20 characters long';
 			} else if (formData.groupName === channelName) {
 				errors['groupName'] = 'This is the current group name';
-			} else if (!(/^[a-zA-Z0-9_ ]+$/.test(formData.groupName))) {
+			} else if (!isGroupNameValid(formData.groupName)) {
 				errors['groupName'] = 'Name must contain alphanumeric characters, underscores and spaces only';
 			}
 		}
@@ -108,7 +116,7 @@ const GroupSettings: React.FC<{ viewParams: any }> = ({ viewParams }) => {
 					errors['password'] = 'Password can\'t be empty';
 				} else if (formData.password.length < 8 || formData.password.length > 30) {
 					errors['password'] = 'Password must be 8 to 30 characters long.';
-				} else if (!(/^(?=.*[A-Za-z])(?=.*[0-9])(?=.*[@$!%#?&])[A-Za-z0-9@$!%#?&]{8,30}$/.test(formData.password))) {
+				} else if (!isGroupPasswordValid(formData.password)) {
 					errors['password'] = 'Password must contain at least one letter, one number, one special character.';
 				}
 			}
