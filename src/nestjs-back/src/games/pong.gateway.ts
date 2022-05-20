@@ -45,6 +45,21 @@ export class PongGateway implements OnGatewayInit, OnGatewayConnection, OnGatewa
 		this.server.emit("updateCurrentGames", this.currentGames);
 	}
 
+	/* Room created after invite is sent by a User */
+	createNewRoomOnInvite(sender: User, receiver: User) {
+		const roomId: string = `${sender.username}&${receiver.username}`;
+		let room: Room = new Room(roomId, [sender, receiver], {mode: sender.mode});
+		room.gameState = GameState.WAITING;
+
+		this.server.to(sender.socketId).emit("newRoom", room);
+		this.rooms.set(roomId, room);
+		this.currentGames.push(roomId);
+
+		this.server.emit("updateCurrentGames", this.currentGames);
+		console.log(room); // debug
+		return roomId; // for the chat
+	}
+
 	afterInit(server: Server) {
 		setInterval(() => {
 			if (this.queue.size() > 1) { // && this.currentGames.length < MAX_SIMULTANEOUS_GAMES
@@ -261,6 +276,9 @@ export class PongGateway implements OnGatewayInit, OnGatewayConnection, OnGatewa
 		if (room) {
 			const currentTimestamp: number = Date.now();
 
+			// if (room.gameState === GameState.WAITING) {
+			// 	room.start();
+			// }
 			if (room.gameState === GameState.STARTING
 					&& (currentTimestamp - room.timestampStart) >= this.secondToTimestamp(3.5)) {
 				room.start();
