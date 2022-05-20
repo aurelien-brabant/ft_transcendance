@@ -91,10 +91,11 @@ export class ChannelsService {
 	}
 
 	async nameIsAvailable(name: string) {
-		const channel = await this.channelsRepository.createQueryBuilder('channel')
-			.where('channel.name = :name', { name })
-			.getOne();
-
+		const channel = await this.channelsRepository.findOne({
+			where: {
+				name
+			}
+		});
 		return channel;
 	}
 

@@ -248,9 +248,11 @@ export class UsersService {
   }
 
   async usernameIsAvailable(userId: string, username: string) {
-    const user = await this.usersRepository.createQueryBuilder('user')
-      .where('user.username = :username', { username })
-      .getOne();
+    const user = await this.usersRepository.findOne({
+      where: {
+        username
+      }
+    });
 
     if (user && user.id !== parseInt(userId)) {
       throw new Error(`Username '${username}' not available.`);
@@ -258,9 +260,11 @@ export class UsersService {
   }
 
   async emailIsUnique(userId: string, email: string) {
-    const user = await this.usersRepository.createQueryBuilder('user')
-      .where('user.email = :email', { email })
-      .getOne();
+    const user = await this.usersRepository.findOne({
+      where: {
+        email
+      }
+    });
 
     if (user && user.id !== parseInt(userId)) {
       throw new Error("Email address already in use.");
