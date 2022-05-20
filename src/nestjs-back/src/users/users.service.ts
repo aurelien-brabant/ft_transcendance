@@ -260,11 +260,12 @@ export class UsersService {
 
     for (const toBlock of users) {
       if (parseInt(id) !== toBlock.id) { /* User can't block themselve */
-        blockList.push(toBlock);
+        const blockedUser = await this.usersRepository.findOne(toBlock.id);
+        blockList.push(blockedUser);
       }
     }
 
-    const user = await this.usersRepository.findOne(id, {
+    let user = await this.usersRepository.findOne(id, {
       relations: ['blockedUsers'],
     });
 
