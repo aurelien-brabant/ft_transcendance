@@ -74,8 +74,8 @@ const Canvas: React.FC<{socketProps: Socket, roomProps: any}> = ({socketProps, r
 				window.addEventListener("keyup", upHandler);
 		}
 
-		socket.on("updateRoom", function(updatedRoom: IRoom) {
-			room = updatedRoom;
+		socket.on("updateRoom", function(updatedRoom: string) {
+			room = JSON.parse(updatedRoom);
 		});
 
 		const loading = () => {

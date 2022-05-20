@@ -172,7 +172,7 @@ export class PongGateway implements OnGatewayInit, OnGatewayConnection, OnGatewa
 			else if (room.isAPlayer(user))
 				room.addUser(user);
 			this.server.to(client.id).emit("joinedRoom");
-			this.server.to(client.id).emit("updateRoom", room);
+			this.server.to(client.id).emit("updateRoom", JSON.stringify(room.serialize()));
 		}
 	}
 
@@ -269,7 +269,7 @@ export class PongGateway implements OnGatewayInit, OnGatewayConnection, OnGatewa
 			if (room.mode === GameMode.TIMER && (room.gameState === GameState.PLAYERONESCORED || room.gameState === GameState.PLAYERTWOSCORED || room.gameState === GameState.PLAYING))
 				room.updateTimer();
 
-			this.server.to(room.roomId).emit("updateRoom", room.serialize());
+			this.server.to(room.roomId).emit("updateRoom", JSON.stringify(room.serialize()));
 		}
 	}
 
