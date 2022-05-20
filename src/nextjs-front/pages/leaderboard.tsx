@@ -9,7 +9,6 @@ import Image from 'next/image';
 import { NextPageWithLayout } from "./_app";
 import { User } from "transcendance-types";
 import { useSession } from "../hooks/use-session";
-import Achievements from "../components/Achievements";
 import Selector from "../components/Selector";
 import withDashboardLayout from "../components/hoc/withDashboardLayout";
 import relationshipContext, { RelationshipContextType } from "../context/relationship/relationshipContext";
@@ -306,10 +305,6 @@ const LeaderboardPage: NextPageWithLayout = ({}) => {
                 {
                   label: "42 ranking",
                   component: <RankingTable ranking={ranking42} />,
-                },
-                {
-                  label: "Achievements",
-                  component:  <Achievements userId={currentUser.id} />,
                 }
               ]}
             />
