@@ -8,11 +8,9 @@ import Link from "next/link";
 import Image from 'next/image';
 import { NextPageWithLayout } from "./_app";
 import { User } from "transcendance-types";
-import { useSession } from "../hooks/use-session";
 import Selector from "../components/Selector";
 import withDashboardLayout from "../components/hoc/withDashboardLayout";
 import relationshipContext, { RelationshipContextType } from "../context/relationship/relationshipContext";
-
 
 type Player = {
   id: string;
@@ -168,7 +166,6 @@ const TopPlayerItem: React.FC<TopPlayer> = (
 }
 
 const LeaderboardPage: NextPageWithLayout = ({}) => {
-  const { user: currentUser } = useSession();
   const [isLoading, setIsLoading] = useState(true);
   const [rankingGlobal, setRankingGlobal] = useState<Player[]>([]);
   const [ranking42, setRanking42] = useState<Player[]>([]);
