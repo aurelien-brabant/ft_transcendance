@@ -1,7 +1,6 @@
 import { useEffect, useState } from "react";
 import { FaUserFriends, FaGamepad } from "react-icons/fa";
 import { RiMedalLine } from "react-icons/ri";
-import { useSession } from "../hooks/use-session";
 import { Achievement } from "transcendance-types";
 
 type UserAchievement = {
@@ -10,8 +9,7 @@ type UserAchievement = {
     levelReached: number;
 };
 
-const Achievements: React.FC<{}> = () => {
-    const { user } = useSession();
+const Achievements: React.FC<{ userId: string }> = ({ userId }) => {
     const [userAchievements, setUserAchievements] = useState<UserAchievement[]>([]);
     const [achievementsList, setAchievementsList] = useState<Achievement[]>([]);
 
@@ -30,16 +28,24 @@ const Achievements: React.FC<{}> = () => {
     };
 
     /* Fetch achievements data on mount */
+    const getUserAchievements = async (userId: string) => {
+        const res = await fetch(`/api/users/${userId}`);
+        const data = await res.json();
+
+        updateUserAchievements(data.achievements);
+    }
+
     const getAchievementsData = async () => {
-        const res = await fetch('/api/achievements')
+        const res = await fetch('/api/achievements');
         const data = await res.json();
 
         setAchievementsList(data);
-        updateUserAchievements(user.achievements);
     }
 
     useEffect(() => {
+        console.log('[Achivements] fetch data');
         getAchievementsData();
+        getUserAchievements(userId);
     }, [])
 
     /* Set list */
