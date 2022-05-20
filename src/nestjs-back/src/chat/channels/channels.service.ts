@@ -148,7 +148,7 @@ export class ChannelsService {
 	async update(id: string, updateChannelDto: UpdateChannelDto) {
 		if (updateChannelDto.name) {
 			const existingChannel = await this.nameIsAvailable(updateChannelDto.name);
-			if (existingChannel.id !== parseInt(id)) {
+			if (existingChannel && existingChannel.id !== parseInt(id)) {
 				throw new Error(`Group '${updateChannelDto.name}' already exists. Choose another name.`);
 			}
 		}

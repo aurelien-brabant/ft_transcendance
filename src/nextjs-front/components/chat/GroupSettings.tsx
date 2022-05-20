@@ -5,11 +5,11 @@ import { useSession } from "../../hooks/use-session";
 import chatContext, { ChatContextType, ChatGroupPrivacy } from "../../context/chat/chatContext";
 
 type UpdateGroupData = {
-	groupName: string | undefined;
-	groupPrivacy: ChatGroupPrivacy;
-	password: string | undefined;
-	password2: string | undefined;
-	restrictionDuration: string | undefined;
+	groupName?: string;
+	groupPrivacy?: ChatGroupPrivacy;
+	password?: string;
+	password2?: string;
+	restrictionDuration?: string;
 };
 
 const privacyTips = {
@@ -56,6 +56,7 @@ const GroupSettings: React.FC<{ viewParams: any }> = ({ viewParams }) => {
 	const channelId: string = viewParams.channelId;
 	const { user } = useSession();
 	const { socket, setChatView, closeRightmostView } = useContext(chatContext) as ChatContextType;
+	const [pendingChanges, setPendingChanges] = useState(false);
 	const [ownerView, setOwnerView] = useState(false);
 	const [userInChan, setUserInChan] = useState(false);
 	const [channelName, setChannelName] = useState(viewParams.channelName);
@@ -67,13 +68,7 @@ const GroupSettings: React.FC<{ viewParams: any }> = ({ viewParams }) => {
 	/* OWNER */
 
 	/* Form */
-	const [formData, setFormData] = useState<UpdateGroupData>({
-		groupName: undefined,
-		groupPrivacy: viewParams.privacy,
-		password: undefined,
-		password2: undefined,
-		restrictionDuration: undefined
-	});
+	const [formData, setFormData] = useState<UpdateGroupData>({});
 	const [fieldErrors, setFieldErrors] = useState<Partial<UpdateGroupData>>({});
 
 	const handleChange = (
@@ -93,20 +88,31 @@ const GroupSettings: React.FC<{ viewParams: any }> = ({ viewParams }) => {
 		e.preventDefault();
 		const errors: Partial<UpdateGroupData> = {};
 
-		if (formData.groupName && (formData.groupName.length < 3 || formData.groupName.length > 20)) {
-			errors['groupName'] = 'Group name should be between 3 and 20 characters long';
+		if (!pendingChanges) return ;
+
+		if (formData.groupName) {
+			const nameLen = formData.groupName.trim().length;
+
+			if (nameLen < 3 || nameLen > 20) {
+				errors['groupName'] = 'Name must be 3 to 20 characters long';
+			} else if (formData.groupName === channelName) {
+				errors['groupName'] = 'This is the current group name';
+			} else if (!(/^[a-zA-Z0-9_ ]+$/.test(formData.groupName))) {
+				errors['groupName'] = 'Name must contain alphanumeric characters, underscores and spaces only';
+			}
 		}
 
 		if (formData.groupPrivacy === 'protected') {
 			if (formData.password) {
 				if (formData.password.length == 0) {
 					errors['password'] = 'Password can\'t be empty';
-				}
-				if (formData.password.length < 8) {
-					errors['password'] = 'Password must contain at least 8 characters';
+				} else if (formData.password.length < 8 || formData.password.length > 30) {
+					errors['password'] = 'Password must be 8 to 30 characters long.';
+				} else if (!(/^(?=.*[A-Za-z])(?=.*[0-9])(?=.*[@$!%#?&])[A-Za-z0-9@$!%#?&]{8,30}$/.test(formData.password))) {
+					errors['password'] = 'Password must contain at least one letter, one number, one special character.';
 				}
 			}
-			if (formData.password !== formData.password2) {
+			if (formData.password2 && (formData.password !== formData.password2)) {
 				errors['password2'] = 'Passwords do not match';
 			}
 		}
@@ -128,6 +134,17 @@ const GroupSettings: React.FC<{ viewParams: any }> = ({ viewParams }) => {
 		});
 		closeRightmostView();
 	}
+
+	useEffect(() => {
+		/* Remove empty strings or undefined fields */
+		Object.keys(formData).forEach((key) =>
+			(formData[key as keyof UpdateGroupData] === undefined || formData[key as keyof UpdateGroupData] === "")
+			&& delete formData[key as keyof UpdateGroupData]
+		);
+
+		setPendingChanges(!(!formData.groupName && !formData.groupPrivacy && !formData.password && !formData.password2 && !formData.restrictionDuration));
+	}, [formData]);
+
 
 	/* If the owner leaves the group, it is deleted */
 	const disbandGroup = async () => {
@@ -217,11 +234,12 @@ const GroupSettings: React.FC<{ viewParams: any }> = ({ viewParams }) => {
 							value={formData.groupPrivacy}
 							onChange={handleChange}
 						>
+							<option value=""></option>
 							<option value="private">private</option>
 							<option value="protected">password protected</option>
 							<option value="public">public</option>
 						</select>
-						<small>{privacyTips[formData.groupPrivacy]}</small>
+						{formData.groupPrivacy && <small>{privacyTips[formData.groupPrivacy]}</small>}
 					</div>
 					{formData.groupPrivacy === "protected" && (
 						<Fragment>
@@ -273,17 +291,20 @@ const GroupSettings: React.FC<{ viewParams: any }> = ({ viewParams }) => {
 							value={formData.restrictionDuration}
 							onChange={handleChange}
 						>
+							<option value=""></option>
 							<option value="1">1 minute</option>
 							<option value="5">5 minutes</option>
 							<option value="15">15 minutes</option>
 						</select>
 					</div>
-					<button className="px-2 py-1 bg-pink-600">Update group</button>
+					<button className={`px-2 py-1 bg-pink-600 ${
+									pendingChanges ? "hover:bg-pink-500" : "opacity-70"
+								}`}>Update group</button>
 				</form>
 				<h6 className="text-xl">Leave group</h6>
 				<div className="flex flex-col gap-y-4">
 					<small>Since you are the owner of this group, it will be disband.</small>
-					<button onClick={() => { disbandGroup() }} className="px-3 py-2 uppercase bg-red-600">
+					<button onClick={() => { disbandGroup() }} className="px-3 py-2 uppercase bg-red-600 hover:bg-red-500">
 						Disband group
 					</button>
 				</div>
@@ -307,7 +328,7 @@ const GroupSettings: React.FC<{ viewParams: any }> = ({ viewParams }) => {
 					<h6 className="text-xl">Leave group</h6>
 					<button
 						onClick={() => { handleUserLeaveGroup() }}
-						className="px-3 py-2 uppercase bg-red-600">
+						className="px-3 py-2 uppercase bg-red-600 hover:bg-red-500">
 							Leave group
 					</button>
 					</div>

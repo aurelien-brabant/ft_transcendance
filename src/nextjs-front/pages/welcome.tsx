@@ -101,11 +101,9 @@ const Welcome: NextPageWithLayout = () => {
 
       if (usernameLen < 2 || usernameLen > 30) {
         errors['username'] = 'Username can contain between 2 and 30 characters';
-      }
-      if (formData.username === user.username){
+      } else if (formData.username === user.username){
         errors['username'] = 'This is already your username';
-      }
-      if (!(/^[^0-9][a-zA-Z0-9_]+$/.test(formData.username))) {
+      } else if (!(/^[^0-9][a-zA-Z0-9_]+$/.test(formData.username))) {
         errors['username'] = 'The username must not start with a number and contain alphanumeric characters and underscores only';
       }
     }
@@ -113,8 +111,7 @@ const Welcome: NextPageWithLayout = () => {
     if (formData.email) {
       if (!isEmail(formData.email)) {
         errors['email'] = 'Not a valid email';
-      }
-      if (formData.email === user.email){
+      } else if (formData.email === user.email){
         errors['email'] = 'This is already your email';
       }
     }
