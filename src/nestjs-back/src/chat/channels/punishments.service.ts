@@ -50,7 +50,7 @@ export class PunishmentsService {
         }
 
         const durationInSeconds = channel.restrictionDuration * 60;
-        const punishmentStartDate = new Date();
+        const punishmentStartDate = new Date(Date.now());
         const punishmentEndDate = new Date(punishmentStartDate.getTime() + durationInSeconds * 1000);
 
         const punishment = this.channelPunishmentRepository.create({

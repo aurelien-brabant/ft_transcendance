@@ -126,7 +126,7 @@ const DirectMessages: React.FC<{ viewParams: Object }> = ({ viewParams }) => {
           }}
         />
         <button
-          className="px-2 py-1 text-sm font-bold uppercase bg-pink-600 rounded"
+          className="px-2 py-1 text-sm font-bold uppercase bg-pink-600 hover:bg-pink-500 rounded"
           onClick={() => {
             openChatView("dm_new", "Chat with a friend", {});
           }}
