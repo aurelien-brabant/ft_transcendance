@@ -189,8 +189,6 @@ const DirectMessage: React.FC<{ viewParams: { [key: string]: any } }> = ({
   const acceptPongInvite = (roomId: string | undefined) => {
     if (!roomId) return ;
 
-    console.log(roomId);
-
     socket.emit("acceptPongInvite", {
       roomId,
       userId: user.id,
