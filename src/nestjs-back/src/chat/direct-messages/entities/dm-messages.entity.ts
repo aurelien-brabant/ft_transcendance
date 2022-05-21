@@ -29,6 +29,10 @@ export class DmMessage {
   @Column({ default: "regular" })
   type: string;
 
+  /* if invite */
+  @Column({ nullable: true })
+  roomId?: string;
+
   @ManyToOne(() => DirectMessage, dm => dm.messages, {
     onDelete: "CASCADE"
   })

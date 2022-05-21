@@ -25,6 +25,7 @@ export type ChatMessage = ChatMessagePreview & {
   displayAuthor: boolean;
   displayStyle: string;
   isInvite: boolean;
+  roomId?: string;
 };
 
 export type ChatGroupPrivacy = "public" | "protected" | "private";

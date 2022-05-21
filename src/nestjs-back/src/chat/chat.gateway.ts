@@ -149,6 +149,21 @@ export class ChatGateway implements OnGatewayInit, OnGatewayConnection {
 		}
 	}
 
+	@SubscribeMessage('acceptPongInvite')
+	async handleAcceptPongInvite(
+		@ConnectedSocket() client: Socket,
+		@MessageBody() { roomId, userId }: { roomId: string, userId: number }
+	) {
+		try {
+			this.pongGateway.setInviteRoomToReady(roomId);
+			this.logger.log(`Pong invite accepted by User [${userId}]`);
+
+			this.server.to(client.id).emit('redirectToGame');
+		} catch (e) {
+			this.server.to(client.id).emit('chatError', e.message);
+		}
+	}
+
 	@SubscribeMessage('sendPongInvite')
 	async handleSendPongInvite(
 		@ConnectedSocket() client: Socket,
@@ -185,6 +200,7 @@ export class ChatGateway implements OnGatewayInit, OnGatewayConnection {
 				content: 'Let\'s play!',
 				author: { id: senderId },
 				type: 'invite',
+				roomId,
 				dm
 			} as CreateDmMessageDto);
 
@@ -598,7 +614,7 @@ export class ChatGateway implements OnGatewayInit, OnGatewayConnection {
 		@ConnectedSocket() client: Socket,
 		@MessageBody() data: CreateDmMessageDto
 	) {
-		if (data.type) {
+		if (data.type || data.roomId) {
 			throw new WsException('Unauthorized operation.');
 		}
 		try {

@@ -13,6 +13,7 @@ const Canvas: React.FC<{socketProps: Socket, roomProps: any}> = ({socketProps, r
 	let room: IRoom = roomProps;
 	let roomId: string | undefined = room?.roomId;
 	const [gameEnded, setGameEnded] = useState(false);
+	const [isWaiting, setIsWaiting] = useState(room?.gameState === GameState.WAITING);
 
 	let isAplayer: boolean = (room.playerOne.user.username == user.username || room.playerTwo.user.username == user.username);
 	let oldTimestamp: number = 0;
@@ -79,11 +80,11 @@ const Canvas: React.FC<{socketProps: Socket, roomProps: any}> = ({socketProps, r
 
 		socket.on("updateRoom", function(updatedRoom: string) {
 			room = JSON.parse(updatedRoom);
+			setIsWaiting(room.gameState === GameState.WAITING);
 		});
 
-		const loading = () => {
-			seconds += secondElapsed;
-			draw.drawLoading(seconds);
+		const waitForInvitedUser = () => {
+			draw.drawWaiting();
 		}
 
 		const goal = () => {
@@ -126,7 +127,7 @@ const Canvas: React.FC<{socketProps: Socket, roomProps: any}> = ({socketProps, r
 			drawGame(canvas, draw, room);
 
 			if (room.gameState === GameState.WAITING) {
-				loading();
+				waitForInvitedUser();
 			} else if (room.gameState === GameState.STARTING) {
 				let count: number = (Date.now() - room.timestampStart) / 1000;
 				draw.drawRectangle(0, 0, canvasWidth, canvasHeight, "rgba(0, 0, 0, 0.5)");
@@ -190,7 +191,7 @@ const Canvas: React.FC<{socketProps: Socket, roomProps: any}> = ({socketProps, r
 						</div>
 					</div>
 					{
-						(gameEnded || !isAplayer) &&
+						(gameEnded || !isAplayer || isWaiting) &&
 						<button onClick={leaveRoom} className="px-6 py-2 text-xl uppercase bg-pink-600 drop-shadow-md text-bold text-neutral-200">Leave Room</button>
 					}
 			</div>

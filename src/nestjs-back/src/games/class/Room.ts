@@ -96,7 +96,7 @@ export default class Room implements IRoom {
 	constructor(
 		roomId: string,
 		users: User[],
-		customisation: {mode?: GameMode} = {mode: GameMode.DEFAULT}
+		customisation: { mode?: GameMode } = { mode: GameMode.DEFAULT }
 	) {
 	this.roomId = roomId;
 	this.gameState = GameState.STARTING;
@@ -110,7 +110,7 @@ export default class Room implements IRoom {
 	this.goalTimestamp = Date.now();
 	this.pauseTime = [];
 
-	this.mode = customisation.mode;		
+	this.mode = customisation.mode;
 	this.maxGoal = 11;
 
 	this.isGameEnd = false;

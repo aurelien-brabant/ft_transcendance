@@ -87,6 +87,7 @@ const DirectMessage: React.FC<{ viewParams: { [key: string]: any } }> = ({
 }) => {
   const dmId: string = viewParams.channelId;
   const { user } = useSession();
+  const { asPath } = useRouter();
   const router = useRouter();
   const { socket, closeChat, getMessageStyle } = useContext(
     chatContext
@@ -96,7 +97,6 @@ const DirectMessage: React.FC<{ viewParams: { [key: string]: any } }> = ({
   const [sendingEnabled, setSendingEnabled] = useState(false);
   const chatBottom = useRef<HTMLDivElement>(null);
   const pongAcceptIconStyle = "p-1 text-green-800 bg-green-300 rounded-full hover:text-green-600";
-  const pongDeclineIconStyle = "p-1 text-red-800 bg-red-300 rounded-full hover:text-red-600";
 
   /* Send new message */
   const handleDmSubmit = async () => {
@@ -150,6 +150,7 @@ const DirectMessage: React.FC<{ viewParams: { [key: string]: any } }> = ({
         displayAuthor: !(message.author.id === user.id),
         displayStyle: getMessageStyle(message.author),
         isInvite: message.type === "invite",
+        roomId: message.roomId ? message.roomId : undefined,
       });
       return newMessages;
     });
@@ -174,6 +175,7 @@ const DirectMessage: React.FC<{ viewParams: { [key: string]: any } }> = ({
         displayAuthor: !(message.author.id === user.id),
         displayStyle: getMessageStyle(message.author),
         isInvite: message.type === "invite",
+        roomId: message.roomId ? message.roomId : undefined,
       });
     }
     setMessages(messages);
@@ -184,9 +186,25 @@ const DirectMessage: React.FC<{ viewParams: { [key: string]: any } }> = ({
     chatBottom.current?.scrollIntoView();
   }, [messages]);
 
-  const acceptInvite = async () => {
-    closeChat();
-    await router.push("/hub");
+  const acceptPongInvite = (roomId: string | undefined) => {
+    if (!roomId) return ;
+
+    console.log(roomId);
+
+    socket.emit("acceptPongInvite", {
+      roomId,
+      userId: user.id,
+    });
+
+    socket.on("redirectToGame", () => {
+      closeChat();
+
+      if (asPath === "/hub") {
+        router.reload();
+      } else {
+        router.push("/hub");
+      }
+    });
   };
 
   useEffect(() => {
@@ -211,8 +229,8 @@ const DirectMessage: React.FC<{ viewParams: { [key: string]: any } }> = ({
           <div
             key={msg.id}
             className={`
-							${msg.displayStyle}
-							max-w-[80%] p-2 my-2 rounded whitespace-wrap break-all`}
+              ${msg.displayStyle}
+              max-w-[80%] p-2 my-2 rounded whitespace-wrap break-all`}
           >
             <p className="whitespace-pre-line">{msg.content}</p>
             {msg.isInvite && (
@@ -220,7 +238,9 @@ const DirectMessage: React.FC<{ viewParams: { [key: string]: any } }> = ({
                 <div className="flex justify-around">
                   <button
                     className={pongAcceptIconStyle}
-                    onClick={acceptInvite}
+                    onClick={() => {
+                      acceptPongInvite(msg.roomId);
+                    }}
                   >
                     <RiPingPongLine />
                   </button>

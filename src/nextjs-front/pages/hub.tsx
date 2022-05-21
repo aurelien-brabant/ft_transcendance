@@ -8,7 +8,7 @@ import chatContext, { ChatContextType } from "../context/chat/chatContext";
 import Canvas from "../components/Canvas";
 import withDashboardLayout from "../components/hoc/withDashboardLayout";
 import OngoingGames from "../components/OngoingGames";
-import { IRoom, User } from "../gameObjects/GameObject";
+import { GameState, IRoom, User } from "../gameObjects/GameObject";
 
 let socket: Socket;
 
@@ -49,6 +49,9 @@ const Hub: NextPageWithLayout = () => {
 		});
 
 		socket.on("newRoom", (newRoomData: IRoom) => {
+			if (newRoomData.gameState === GameState.WAITING && user.id != newRoomData.playerOne.user.id) {
+				return ;
+			}
 			socket.emit("joinRoom", newRoomData.roomId);
 			roomData = newRoomData;
 			roomId = newRoomData.roomId;
