@@ -1,4 +1,4 @@
-import { Fragment, useEffect, useState, useContext } from "react";
+import { Fragment, useEffect, useState, useContext, FunctionComponent } from "react";
 import { io, Socket } from 'socket.io-client';
 import Head from "next/head";
 import { NextPageWithLayout } from "./_app";
@@ -9,6 +9,7 @@ import Canvas from "../components/Canvas";
 import withDashboardLayout from "../components/hoc/withDashboardLayout";
 import OngoingGames from "../components/OngoingGames";
 import { GameState, IRoom, User } from "../gameObjects/GameObject";
+import { SimpleSpinner } from "../components/simple-spinner";
 
 let socket: Socket;
 
@@ -61,18 +62,10 @@ const Hub: NextPageWithLayout = () => {
 
 		socket.on("joinedQueue", () => {
 			setInQueue(true);
-			setAlert({
-				type: "info",
-				content: "You were added to Queue"
-			});
 		});
 
 		socket.on("leavedQueue", () => {
 			setInQueue(false);
-			setAlert({
-				type: "info",
-				content: "You were removed from Queue"
-			});
 		});
 
 		socket.on("joinedRoom", () => {
@@ -114,35 +107,50 @@ const Hub: NextPageWithLayout = () => {
 					content="Play online or watch live games"
 				/>
 			</Head>
-			<div className="text-white">
-				<div style={{ maxWidth: "1080px" }} className="px-2 py-10 mx-auto">
+			<div className="text-white max-w-5xl mx-auto">
+				<div className="px-2 py-10 mx-auto">
 				{
-					displayGame ? (
+					displayGame ?
 						<Canvas socketProps={socket} roomProps={room}></Canvas>
-					) : (<div className="flex flex-col items-center">
-							<OngoingGames currentGamesProps={currentGames} socketProps={socket}></OngoingGames>
+					: (
+					<>
+								<div className="flex flex-row items-center  justify-center gap-x-4">
 							{
 								inQueue ? 
-								<button onClick={leaveQueue} className="px-6 py-2 mx-auto text-xl uppercase bg-gray-600 drop-shadow-md text-bold text-neutral-200">
-									Cancel
-								</button>
-								:
-								<div className="flex flex-row">
-									<div className="flex flex-col items-center px-6">
-										<div>Classic Mode :</div>
-										<button onClick={joinQueue} value="default" className="px-6 py-2 mx-auto text-xl uppercase bg-pink-600 drop-shadow-md text-bold text-neutral-200">
-											Find a match
+									<button
+										onClick={leaveQueue}
+										value={'default'}
+										type="button"
+										className="inline-flex items-center px-6 py-3 border border-transparent text-base font-medium rounded-md shadow-sm text-white bg-pink-600 hover:bg-pink-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-pink-500"
+									>
+										<SimpleSpinner className={'w-5 h-5 mr-3'} /> Leave Queue
+									</button>
+
+									:
+									<>
+										<button
+											onClick={joinQueue}
+											value={'default'}
+											type="button"
+											className="inline-flex items-center px-6 py-3 border border-transparent text-base font-medium rounded-md shadow-sm text-white bg-pink-600 hover:bg-pink-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-pink-500"
+										>
+											Classic Mode
 										</button>
-									</div>
-									<div className="flex flex-col items-center px-6">
-										<div>Timer Mode :</div>
-										<button onClick={joinQueue} value="timer" className="px-6 py-2 mx-auto text-xl uppercase bg-pink-600 drop-shadow-md text-bold text-neutral-200">
-											Find a match
+											<button
+											onClick={joinQueue}
+											value={'timer'}
+											type="button"
+											className="inline-flex items-center px-6 py-3 border border-transparent text-base font-medium rounded-md shadow-sm text-white bg-pink-600 hover:bg-pink-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-pink-500"
+										>
+											Timer Mode
 										</button>
-									</div>
-								</div>
+									</>
+								
 							}
-						</div>)
+							</div>
+
+							<OngoingGames currentGamesProps={currentGames} socketProps={socket}></OngoingGames>
+						</>)
 				}
 				</div>
 			</div>
