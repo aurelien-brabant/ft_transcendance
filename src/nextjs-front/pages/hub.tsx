@@ -8,18 +8,10 @@ import chatContext, { ChatContextType } from "../context/chat/chatContext";
 import Canvas from "../components/Canvas";
 import withDashboardLayout from "../components/hoc/withDashboardLayout";
 import OngoingGames from "../components/OngoingGames";
-import { User } from "transcendance-types";
-import { IRoom } from "../gameObjects/GameObject";
+import { IRoom, User } from "../gameObjects/GameObject";
 import { SimpleSpinner } from "../components/simple-spinner";
 
 let socket: Socket;
-
-type OngoingGameProps = {
-	players: [User, User]
-}
-
-const OngoingGame: FunctionComponent<OngoingGameProps> = ({ players: [player1, player2] }) => {
-}
 
 const Hub: NextPageWithLayout = () => {
 	const { user } = useSession();
