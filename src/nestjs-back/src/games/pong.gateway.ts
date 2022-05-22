@@ -169,7 +169,7 @@ export class PongGateway implements OnGatewayInit, OnGatewayConnection, OnGatewa
 							this.currentGames.splice(roomIndex, 1);
 						}
 						this.server.emit("updateCurrentGames", this.currentGames);
-					} else if (room.gameState !== GameState.PLAYERONEWIN && room.gameState !== GameState.PLAYERTWOWIN) {
+					} else if (room.gameState !== GameState.PLAYERONEWIN && room.gameState !== GameState.PLAYERTWOWIN && room.gameState !== GameState.WAITING) {
 						if (room.gameState === GameState.PLAYERONESCORED || room.gameState === GameState.PLAYERTWOSCORED) {
 							room.resetPosition();
 						}
