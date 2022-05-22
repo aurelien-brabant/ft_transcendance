@@ -35,13 +35,6 @@ export const DirectMessageHeader: React.FC<{ viewParams: any }> = ({
       senderId: user.id,
       receiverId: parseInt(userId),
     });
-
-    closeChat();
-    if (asPath === "/hub") {
-      router.reload();
-    } else {
-      await router.push("/hub");
-    }
   };
 
   return (
@@ -210,6 +203,15 @@ const DirectMessage: React.FC<{ viewParams: { [key: string]: any } }> = ({
     });
   };
 
+  const goToHub = async () => {
+    closeChat();
+    if (asPath === "/hub") {
+      router.reload();
+    } else {
+      await router.push("/hub");
+    }
+  };
+
   useEffect(() => {
     socket.emit("getDmData", { dmId });
 
@@ -217,11 +219,13 @@ const DirectMessage: React.FC<{ viewParams: { [key: string]: any } }> = ({
     socket.on("updateDm", updateDmView);
     socket.on("newDm", handleNewMessage);
     socket.on("newPongInvite", handleNewMessage);
+    socket.on("launchInviteGame", goToHub);
 
     return () => {
       socket.off("updateDm", updateDmView);
       socket.off("newDm", handleNewMessage);
       socket.off("newPongInvite", handleNewMessage);
+      socket.off("launchInviteGame", goToHub);
     };
   }, []);
 
