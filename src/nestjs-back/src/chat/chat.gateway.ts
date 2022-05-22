@@ -170,6 +170,8 @@ export class ChatGateway implements OnGatewayInit, OnGatewayConnection {
 		@MessageBody() { senderId, receiverId }: { senderId: number, receiverId: number }
 	) {
 		try {
+			this.pongGateway.roomAlreadyExists(senderId, receiverId);
+
 			let dm = await this.chatService.checkIfDmExists(senderId.toString(), receiverId.toString());
 			const sender = this.chatUsers.getUser(client.id);
 			const receiver = this.chatUsers.getUserById(receiverId.toString());

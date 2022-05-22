@@ -57,6 +57,19 @@ export class PongGateway implements OnGatewayInit, OnGatewayConnection, OnGatewa
 		return newUser;
 	}
 
+	roomAlreadyExists(senderId: number, receiverId: number) {
+		const sender = this.connectedUsers.getUserById(senderId);
+		const receiver = this.connectedUsers.getUserById(receiverId);
+
+		if (!sender || !receiver) return ;
+
+		this.rooms.forEach((room: Room) => {
+			if (room.isAPlayer(sender) && room.isAPlayer(receiver)) {
+				throw Error("You still have an invitation pending.");
+			}
+		});
+	}
+
 	/* Create room when invite is sent by a User */
 	async createInviteRoom(sender: User, receiverId: number) {
 		this.logger.log("Create new Invite room");
