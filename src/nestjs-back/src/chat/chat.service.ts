@@ -151,7 +151,7 @@ export class ChatService {
 			const newAdmin = await this.usersService.findOne(userId.toString());
 
 			await this.channelsService.update(channel.id.toString(), {
-				admins: [ ...channel.users, newAdmin]
+				admins: [ ...channel.admins, newAdmin]
 			});
 			return newAdmin;
 		}
