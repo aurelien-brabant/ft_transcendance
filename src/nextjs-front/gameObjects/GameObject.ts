@@ -1,7 +1,6 @@
 // Constant
 export const canvasWidth: number = 1920;
 export const canvasHeight: number = 1080;
-export const loadingMsg: string[] = ['loading', 'loading.', 'loading..', 'loading...'];
 export const countDown: string[] = ['3', '2', '1', 'Go !!!'];
 
 export enum GameState {

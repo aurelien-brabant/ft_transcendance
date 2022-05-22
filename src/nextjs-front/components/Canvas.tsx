@@ -85,6 +85,7 @@ const Canvas: React.FC<{socketProps: Socket, roomProps: any}> = ({socketProps, r
 		});
 
 		const waitForInvitedUser = () => {
+            draw.drawLoading();
 			draw.drawWaiting();
 		}
 
