@@ -25,7 +25,7 @@ import { UsersModule } from './users/users.module';
       port: 5432,
       username: `${process.env.POSTGRES_USER}`,
       password: `${process.env.POSTGRES_PASSWORD}`,
-      database: `${process.env.POSTGRES_DATABASE}`,
+      database: `${process.env.POSTGRES_DB}`,
       autoLoadEntities: true,
       synchronize:
         !!process.env.SYNCHRONIZE_DATABASE ||

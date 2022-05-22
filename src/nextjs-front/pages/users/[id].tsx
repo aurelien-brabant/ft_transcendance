@@ -141,15 +141,6 @@ const HighlightItem: React.FC<Highlight> = ({ n, label, hint, nColor }) => (
 
 const UserProfilePage: NextPageWithLayout = ({}) => {
   const router = useRouter();
-  const [profileUsername, setProfileUsername] = useState<string>();
-
-  useEffect(() => {
-    const query = router.query;
-
-    if (query.id) {
-      setProfileUsername(query.id.toString());
-    }
-  }, [router.query]);
 
   const { user, backend } = useSession();
   const actionTooltipStyles = "font-bold bg-dark text-neutral-200";
@@ -164,13 +155,13 @@ const UserProfilePage: NextPageWithLayout = ({}) => {
     setSuggested,
     pendingFriendsSent,
     setPendingFriendsSent,
-    getRelationshipsData
   } = useContext(relationshipContext) as RelationshipContextType;
   const [gamesHistory, setGamesHistory] = useState<PastGame[]>([]);
   const [isLoading, setIsLoading] = useState(true);
   const [selected, setSelected] = useState(0);
   const [rank, setRank] = useState("-");
   const [userData, setUserData] = useState<ActiveUser>(user);
+  const userId: string = userData.id;
   const [alreadyFriend, setAlreadyFriend] = useState(false);
   const [alreadyInvited, setAlreadyInvited] = useState(false);
 
@@ -186,6 +177,7 @@ const UserProfilePage: NextPageWithLayout = ({}) => {
 
   /* Send Pong invite */
   const sendPongInvite = (userId: string) => {
+    console.log(`[users/:id] Invite user [${userId}] to play Pong`);
     chatSocket.emit("sendPongInvite", {
       from: user.id,
       to: parseInt(userId),
@@ -242,6 +234,7 @@ const UserProfilePage: NextPageWithLayout = ({}) => {
       const opponentId =
         game.winnerId === parseInt(userId) ? game.loserId : game.winnerId;
       const userIsWinner = game.winnerId === parseInt(userId);
+      console.log(game.winnerId, game.winnerId === parseInt(userId), userId);
       const res = await fetch(`/api/users/${opponentId}`);
       const data = await res.json();
 
@@ -285,11 +278,11 @@ const UserProfilePage: NextPageWithLayout = ({}) => {
   };
 
   useEffect(() => {
-    if (!profileUsername || !user) return;
+    if (!userId || !user) return;
 
     const fetchData = async () => {
       /* search by username */
-      const res = await fetch(`/api/users/${profileUsername}`);
+      const res = await fetch(`/api/users/${userId}`);
 
       if (!res.ok) {
         router.push("/404");
@@ -307,24 +300,22 @@ const UserProfilePage: NextPageWithLayout = ({}) => {
         setRank("-");
       } else {
         /* Else set rank */
-        const reqRank = await fetch(`/api/users/${profileUsername}/rank`);
+        const reqRank = await fetch(`/api/users/${matchingUser.id}/rank`);
         const res = await reqRank.json();
         setRank(res);
       }
 
-      await getRelationshipsData();
-
-      setAlreadyFriend(!!friends.find((friend) => {
-        return friend.id === matchingUser.id;
-      }));
       setAlreadyInvited(!!pendingFriendsSent.find((pending) => {
         return pending.id === matchingUser.id;
+      }));
+      setAlreadyFriend(!!friends.find((friend) => {
+        return friend.id === matchingUser.id;
       }));
       setIsLoading(false);
     };
 
     fetchData().catch(console.error);
-  }, [profileUsername, user]);
+  }, [userId, user]);
 
   const Skeleton = () => (
     <div style={{ maxWidth: "800px" }} className="px-2 py-16 mx-auto">
@@ -405,7 +396,7 @@ const UserProfilePage: NextPageWithLayout = ({}) => {
                   >
                     <button
                       className={`${
-                        (alreadyFriend || alreadyInvited)
+                        alreadyFriend || alreadyInvited
                           ? "cursor-normal opacity-70"
                           : "cursor-pointer"
                       } p-2 text-2xl bg-pink-200 text-pink-700 rounded-full transition hover:scale-105`}
