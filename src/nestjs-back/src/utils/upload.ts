@@ -2,10 +2,12 @@ import { NotAcceptableException } from "@nestjs/common";
 import { extname } from "path";
 
 export const imageFileFilter = (req, file, callback) => {
-  if (!file.originalname.match(/\.(jpg|jpeg|png|gif|JPG|JPEG|PNG|GIF)$/)) {
+  if (!file.mimetype.match(/\/(jpg|jpeg|png|gif)$/)) {
     return callback(new NotAcceptableException('Only image files are allowed!'), false);
+  } else if ((file.originalname.split('.').length > 2)  && file.originalname.includes('%')) {
+    return callback(new NotAcceptableException('Percent character not allowed in filename.'), false);
   }
-  callback(null, true);
+  callback(null, true); 
 };
 
 export const editFileName = (req, file, callback) => {

@@ -113,7 +113,6 @@ export class UsersService {
 
   async findRank(id: string, paginationQuery: PaginationQueryDto) {
     const users = await this.findAll(paginationQuery);
-    let rank: string;
 
     /* Sort from highest score and put users that didn't play at the end */
     users.sort(
