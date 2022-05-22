@@ -1,4 +1,4 @@
-import { Injectable } from '@nestjs/common';
+import { Injectable, NotFoundException } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { ILike, Repository } from 'typeorm';
 import { join } from 'path';
@@ -14,6 +14,7 @@ import { UpdateUserDto } from './dto/update-user.dto';
 import { PaginationQueryDto } from 'src/common/dto/pagination-query.dto';
 import { prefixWithRandomAdjective } from 'src/utils/prefixWithRandomAdjective';
 import { downloadResource } from 'src/utils/download';
+import { NotFoundError } from 'rxjs';
 
 @Injectable()
 export class UsersService {
@@ -60,7 +61,7 @@ export class UsersService {
   }
 
   /* To be used only at generation */
-  async findUserTfaSecret(id: string) {
+  async getUserTfaSecret(id: string) {
     const user = await this.usersRepository.findOne(id, {
       select: [ 'tfaSecret' ],
     });
@@ -68,7 +69,7 @@ export class UsersService {
     if (!user) {
       throw new Error('User not found');
     }
-    return user;
+    return user.tfaSecret;
   }
 
   async findOne(id: string) {
@@ -427,9 +428,15 @@ export class UsersService {
   }
 
   async isTfaCodeValid(tfaCode: string, user: User) {
+    const secret =  await this.getUserTfaSecret(String(user.id));
+
+    if (!secret) {
+      throw new NotFoundException('No TFA secret generated.');
+    }
+
     return authenticator.verify({
       token: tfaCode,
-      secret: user.tfaSecret as string,
+      secret
     });
   }
 
