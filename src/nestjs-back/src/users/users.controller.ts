@@ -187,7 +187,6 @@ export class UsersController {
     await this.usersService.enableTfa(String(user.id));
   }
 
-  @UseGuards(JwtAuthGuard, IsLoggedInUserGuard)
   @Post(':userId/validate-tfa')
   @HttpCode(200)
   async authenticate(
