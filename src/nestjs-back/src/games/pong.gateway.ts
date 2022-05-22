@@ -67,7 +67,7 @@ export class PongGateway implements OnGatewayInit, OnGatewayConnection, OnGatewa
 
 		this.rooms.forEach((room: Room) => {
 			if (room.isAPlayer(sender) && room.isAPlayer(receiver)) {
-				throw Error("You still have an invitation pending.");
+				throw Error("You still have a pending game.");
 			}
 		});
 	}
