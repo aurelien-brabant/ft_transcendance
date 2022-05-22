@@ -325,11 +325,9 @@ const ChatProvider: React.FC = ({ children }) => {
 				) : (
 					<div className="right-6 rounded-md bottom-6 p-3 border-04dp border fixed z-50 bg-01dp">
 						<button
-							className={`flex items-center justify-center	text-pink-200 text-5xl transition hover:scale-105 text-neutral-200`}
+							className={`flex items-center justify-center text-pink-200 text-5xl transition hover:scale-105 text-neutral-200`}
 							onClick={() => {
-								if (viewStack.length === 0) {
-									setChatView("groups", "Group chats", {});
-								}
+								setChatView("groups", "Group chats", {});
 								setIsChatOpened(true);
 							}}
 						>
