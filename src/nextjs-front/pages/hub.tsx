@@ -66,7 +66,7 @@ const Hub: NextPageWithLayout = () => {
 
 		socket.on("updateCurrentGames", (currentGamesData: IRoom[]) => {
 			updateCurrentGames(currentGamesData);
-		});
+		}); 
 
 		socket.on("newRoom", (newRoomData: IRoom) => {
 			if (newRoomData.gameState === GameState.WAITING && user.id != newRoomData.playerOne.user.id) {

@@ -1,5 +1,6 @@
-import { BadRequestException, Controller, Get, Param, Query } from "@nestjs/common";
-import { PunishmentsService } from "./punishments.service";
+import { Controller } from "@nestjs/common";
+// import { BadRequestException, Get, Param, Query } from "@nestjs/common";
+// import { PunishmentsService } from "./punishments.service";
 
 /**
  * Mostly built for test purposes, we should use the service with
@@ -8,6 +9,7 @@ import { PunishmentsService } from "./punishments.service";
 
 @Controller('channels/:channelId/punishments')
 export class ChannelPunishmentsController {
+    /*
     constructor(
         private readonly channelPunishmentService: PunishmentsService
     ) {}
@@ -17,11 +19,11 @@ export class ChannelPunishmentsController {
         return this.channelPunishmentService.getActiveUserPunishments(channelId, userId);
     }
 
-    /* example endpoint call: /channels/1/punishments/punish-by-mute?punishedId=1&punisherId=2 */
+    // example endpoint call: /channels/1/punishments/punish-by-mute?punishedId=1&punisherId=2
 
     @Get('/punish-by-mute')
     punishUser(@Param('channelId') channelId: number, @Query('punishedId') punishedId: number, @Query('punisherId') punisherId: number) {
-        /* this is checked at the controller level but may be checked at the service level if necessary. I didn't made it to make my testing easier */
+        // this is checked at the controller level but may be checked at the service level if necessary. I didn't made it to make my testing easier
         if (punisherId === punishedId) {
             throw new BadRequestException('punisherId should be different from punishedId')
         }
@@ -51,5 +53,5 @@ export class ChannelPunishmentsController {
 
         return { isBanned }
     }
-
+    */
 }
