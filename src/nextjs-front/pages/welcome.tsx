@@ -292,10 +292,11 @@ const Welcome: NextPageWithLayout = () => {
     if (/^[0-9]+$/.test(key)) {
       e.target.value = tfaCode[currentStep];
       setCurrentStep(currentStep + 1);
-    } else if (key !== "Escape" && key !== "Enter") {
-      setAlert({ type: "warning", content: "Only digit!" });
-      e.target.value = "";
     }
+    // else if (key !== "Escape") {
+    //   setAlert({ type: "warning", content: "Only digit!" });
+    //   e.target.value = "";
+    // }
   };
 
   const checkStep = (key: string) => {
@@ -359,12 +360,9 @@ const Welcome: NextPageWithLayout = () => {
   };
 
   useEffect(() => {
-    if (!tfaCode.length && pendingQR) {
-      setAlert({
-        type: "info",
-        content: "Waiting for 2FA code...",
-      });
-    } else if (tfaCode.length === 6) activateTfa();
+    if (tfaCode.length === 6) {
+      activateTfa();
+    }
   }, [tfaCode]);
 
   /* Account deactivation/reactivation */
@@ -548,11 +546,6 @@ const Welcome: NextPageWithLayout = () => {
                     }`}
                     onClick={() => {
                       if (tfaStatus === "disabled") {
-                        setAlert({
-                          type: "info",
-                          content:
-                            "Scan the QR code to get the 6-digits code given by your authenticator app",
-                        });
                         setPendingQR(true);
                       } else {
                         if (

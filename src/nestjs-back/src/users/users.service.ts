@@ -374,6 +374,7 @@ export class UsersService {
   }
 
   async enableTfa(id: string) {
+    console.log('enableTfa');
     return this.usersRepository.update(id, {
       tfa: true,
     });
@@ -409,8 +410,8 @@ export class UsersService {
 
   async isTfaCodeValid(tfaCode: string, user: User) {
     return authenticator.verify({
-      token: tfaCode,
-      secret: user.tfaSecret,
+      token: tfaCode as string,
+      secret: user.tfaSecret as string,
     });
   }
 
