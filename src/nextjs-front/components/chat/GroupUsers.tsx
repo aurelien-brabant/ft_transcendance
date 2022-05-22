@@ -139,13 +139,6 @@ const GroupUsers: React.FC<{ viewParams: any }> = ({ viewParams }) => {
 			senderId: currentUser.id,
 			receiverId: parseInt(userId),
 		});
-
-		closeChat();
-		if (asPath === "/hub") {
-			router.reload();
-		} else {
-			await router.push("/hub");
-		}
 	};
 
 	/* Listeners */
@@ -156,6 +149,15 @@ const GroupUsers: React.FC<{ viewParams: any }> = ({ viewParams }) => {
 	const userPunishedListener = (message: string) => {
 		setChatView("groups", "Group chats", {});
 	}
+
+	const goToHub = async () => {
+		closeChat();
+		if (asPath === "/hub") {
+			router.reload();
+		} else {
+			await router.push("/hub");
+		}
+	};
 
 	/**
 	 * If true, display administration tools
@@ -218,6 +220,7 @@ const GroupUsers: React.FC<{ viewParams: any }> = ({ viewParams }) => {
 		socket.on("userKicked", userChangedListener);
 		socket.on("punishedInChannel", userPunishedListener);
 		socket.on("kickedFromChannel", userPunishedListener);
+		socket.on("launchInviteGame", goToHub);
 
 		return () => {
 			socket.off("channelUserList", defineUserList);
@@ -228,6 +231,7 @@ const GroupUsers: React.FC<{ viewParams: any }> = ({ viewParams }) => {
 			socket.off("userPunished", userChangedListener);
 			socket.off("punishedInChannel", userPunishedListener);
 			socket.off("kickedFromChannel", userPunishedListener);
+			socket.off("launchInviteGame", goToHub);
 		};
 	}, []);
 

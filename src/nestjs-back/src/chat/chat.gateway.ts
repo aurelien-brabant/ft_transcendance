@@ -208,6 +208,7 @@ export class ChatGateway implements OnGatewayInit, OnGatewayConnection {
 
 			this.server.to(`dm_${dm.id}`).emit('newPongInvite', { message });
 			this.logger.log(`New Pong invite in DM [${message.dm.id}]`);
+			this.server.to(client.id).emit('launchInviteGame');
 		} catch (e) {
 			this.server.to(client.id).emit('chatError', e.message);
 		}
