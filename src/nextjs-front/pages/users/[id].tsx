@@ -11,6 +11,7 @@ import alertContext, {
   AlertContextType,
 } from "../../context/alert/alertContext";
 import chatContext, { ChatContextType } from "../../context/chat/chatContext";
+import relationshipContext, { RelationshipContextType } from "../../context/relationship/relationshipContext";
 import Achievements from "../../components/Achievements";
 import Selector from "../../components/Selector";
 import Tooltip from "../../components/Tooltip";
@@ -141,12 +142,19 @@ const HighlightItem: React.FC<Highlight> = ({ n, label, hint, nColor }) => (
 const UserProfilePage: NextPageWithLayout = ({}) => {
   const router = useRouter();
 
-  const { user } = useSession();
+  const { user, backend } = useSession();
   const actionTooltipStyles = "font-bold bg-dark text-neutral-200";
   const { setAlert } = useContext(alertContext) as AlertContextType;
-  const { socket: chatSocket, createDirectMessage } = useContext(
-    chatContext
-  ) as ChatContextType;
+  const {
+    socket: chatSocket,
+    createDirectMessage
+  } = useContext( chatContext ) as ChatContextType;
+  const {
+    suggested,
+    setSuggested,
+    pendingFriendsSent,
+    setPendingFriendsSent,
+  } = useContext(relationshipContext) as RelationshipContextType;
   const [gamesHistory, setGamesHistory] = useState<PastGame[]>([]);
   const [isLoading, setIsLoading] = useState(true);
   const [alreadyFriend, setAlreadyFriend] = useState(false);
@@ -154,6 +162,11 @@ const UserProfilePage: NextPageWithLayout = ({}) => {
   const [rank, setRank] = useState("-");
   const [userData, setUserData] = useState<ActiveUser>(user);
   const userId: string = userData.id;
+  const [alreadyInvited, setAlreadyInvited] = useState(
+    !!pendingFriendsSent.find((pending) => {
+      return pending.id === userId;
+    })
+  );
 
   /* Send DM to user */
   const handleMessageToUser = async () => {
@@ -175,25 +188,39 @@ const UserProfilePage: NextPageWithLayout = ({}) => {
   };
 
   /* Send friendship invite */
-  const requestFriend = async (id: string, username: string) => {
-    const res = await fetch(`/api/users/${user.id}`, {
+  const requestFriend = async (userId: string) => {
+    if (alreadyInvited) return ;
+
+    const res = await backend.request(`/api/users/${user.id}`, {
       method: "PATCH",
       headers: {
         "Content-Type": "application/json",
       },
       body: JSON.stringify({
-        pendingFriendsSent: [{ id: id }],
+        pendingFriendsSent: [...pendingFriendsSent, { id: userId }],
       }),
     });
 
-    if (res.ok) {
-      setAlreadyFriend(true);
-      setAlert({ type: "info", content: `Friend request sent to ${username}` });
-    } else
+    const data = await res.json();
+
+    if (res.status === 200) {
+      setAlreadyInvited(true);
+      setAlert({
+        type: "info",
+        content: "Friend request sent"
+      });
+      setPendingFriendsSent(data.pendingFriendsSent);
+      setSuggested(
+        suggested.filter((suggestion) => {
+          return suggestion.id !== userId;
+        })
+      );
+    } else {
       setAlert({
         type: "error",
-        content: `Error while sending friend request to ${username}`,
+        content: data.message,
       });
+    }
   };
 
   /* Update user's information */
@@ -218,8 +245,7 @@ const UserProfilePage: NextPageWithLayout = ({}) => {
         id: gameHistory.length.toString(),
         date: new Date(game.createdAt),
         duration: game.gameDuration,
-        // isDraw: (game.winnerScore === game.loserScore), // not used for now
-        isDraw: false,
+        isDraw: false, // used in Leaderboard
         userIsWinner,
         opponentId,
         opponentUsername: data.username,
@@ -387,8 +413,8 @@ const UserProfilePage: NextPageWithLayout = ({}) => {
                   >
                     <button
                       className={`${
-                        alreadyFriend
-                          ? "cursor-normal opacity-80"
+                        alreadyFriend || alreadyInvited
+                          ? "cursor-normal opacity-70"
                           : "cursor-pointer"
                       } p-2 text-2xl bg-pink-200 text-pink-700 rounded-full transition hover:scale-105`}
                     >
@@ -406,7 +432,7 @@ const UserProfilePage: NextPageWithLayout = ({}) => {
                         <UserAddIcon
                           className="h-6 w-6"
                           onClick={() =>
-                            requestFriend(String(userId), userData.username)
+                            requestFriend(userData.id)
                           }
                         />
                       )}

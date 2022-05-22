@@ -174,7 +174,7 @@ export class UsersController {
   @Post(':userId/enableTfa')
   @HttpCode(200)
   async enableTfa(@Param('userId') id: string, @Body() { tfaCode }) {
-    const user = await this.usersService.findUserTfaSecret(id);
+    const user = await this.usersService.findOne(id);
 
     if (!user) throw new NotFoundException();
 
