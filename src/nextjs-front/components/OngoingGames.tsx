@@ -35,7 +35,7 @@ const OngoingGames: React.FC<{currentGamesProps: onGoingGame[], socketProps: Soc
                                     <button
                                         value={room.roomId}
                                         onClick={(e) => {
-                                            spectate
+                                            spectate(e);
                                         }}
                                         className="relative -mr-px w-0 flex-1 inline-flex items-center justify-center py-4 text-sm text-white/90 font-medium border border-transparent rounded-bl-lg hover:text-white"
                                     >
