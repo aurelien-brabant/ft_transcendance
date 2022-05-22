@@ -141,6 +141,7 @@ const HighlightItem: React.FC<Highlight> = ({ n, label, hint, nColor }) => (
 
 const UserProfilePage: NextPageWithLayout = ({}) => {
   const router = useRouter();
+  const { asPath } = useRouter();
   const [profileUsername, setProfileUsername] = useState<string>();
 
   useEffect(() => {
@@ -193,7 +194,11 @@ const UserProfilePage: NextPageWithLayout = ({}) => {
     });
 
     closeChat();
-    await router.push("/hub");
+    if (asPath === "/hub") {
+      router.reload();
+    } else {
+      await router.push("/hub");
+    }
   };
 
   /* Send friendship invite */

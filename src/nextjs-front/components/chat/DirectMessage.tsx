@@ -18,6 +18,7 @@ export const DirectMessageHeader: React.FC<{ viewParams: any }> = ({
   viewParams,
 }) => {
   const { user } = useSession();
+  const { asPath } = useRouter();
   const router = useRouter();
   const {
     socket,
@@ -36,7 +37,11 @@ export const DirectMessageHeader: React.FC<{ viewParams: any }> = ({
     });
 
     closeChat();
-    await router.push("/hub");
+    if (asPath === "/hub") {
+      router.reload();
+    } else {
+      await router.push("/hub");
+    }
   };
 
   return (
