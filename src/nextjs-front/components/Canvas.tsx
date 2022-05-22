@@ -1,12 +1,9 @@
-import React, { useState } from "react";
+import React, { useEffect, useRef, useState } from "react";
 import { Socket } from 'socket.io-client';
-
-import { useRef, useEffect } from 'react';
+import { useSession } from "../hooks/use-session";
 import styles from "../styles/Canvas.module.css";
-
 import { Draw } from "../gameObjects/Draw";
 import { canvasHeight, canvasWidth, countDown, GameMode, GameState, IRoom } from "../gameObjects/GameObject";
-import { useSession } from "../hooks/use-session";
 
 const Canvas: React.FC<{socketProps: Socket, roomProps: any}> = ({socketProps, roomProps}) => {
 	const { user } = useSession();
@@ -45,29 +42,34 @@ const Canvas: React.FC<{socketProps: Socket, roomProps: any}> = ({socketProps, r
 	*/
 	const drawGame = (canvas: HTMLCanvasElement, draw: Draw, room: IRoom): void => {
 		draw.clear();
-		
-		if (room.mode === GameMode.TIMER)
+
+		if (room.mode === GameMode.TIMER) {
 			draw.drawTimer(room);
+		}
 		draw.drawNet();
 		draw.drawScore(room.playerOne, room.playerTwo);
 		draw.drawPaddle(room.playerOne);
 		draw.drawPaddle(room.playerTwo);
-		if (room.gameState !== GameState.PLAYERONESCORED && room.gameState !== GameState.PLAYERTWOSCORED
-			&& room.gameState !== GameState.PLAYERONEWIN && room.gameState !== GameState.PLAYERTWOWIN)
+
+		if (room.gameState !== GameState.PLAYERONESCORED
+			&& room.gameState !== GameState.PLAYERTWOSCORED
+			&& room.gameState !== GameState.PLAYERONEWIN
+			&& room.gameState !== GameState.PLAYERTWOWIN) {
 			draw.drawBall(room.ball);
+		}
 		draw.animateNeon(canvas);
 	}
 
 	useEffect(() => {
 		const canvas = canvasRef.current;
-		if (!canvas)
+		if (!canvas) {
 			return ;
-		// const context = canvas.getContext('2d');
+		}
+
 		let animationFrameId: number;
 
 		canvas.width = canvasWidth;
 		canvas.height = canvasHeight;
-
 
 		const draw: Draw = new Draw(canvas);
 
@@ -79,7 +81,12 @@ const Canvas: React.FC<{socketProps: Socket, roomProps: any}> = ({socketProps, r
 
 		socket.on("updateRoom", function(updatedRoom: string) {
 			room = JSON.parse(updatedRoom);
+			setIsWaiting(room.gameState === GameState.WAITING);
 		});
+
+		const waitForInvitedUser = () => {
+			draw.drawWaiting();
+		}
 
 		const goal = () => {
 			draw.drawGoal(room);
@@ -89,38 +96,45 @@ const Canvas: React.FC<{socketProps: Socket, roomProps: any}> = ({socketProps, r
 			draw.drawGoalParticle(room.ball);
 			draw.drawRectangle(0, 0, canvasWidth, canvasHeight, "rgba(0, 0, 0, 0.4)");
 			seconds += secondElapsed;
-			if (seconds >= 1)
-			{
-				if (display < 3)
+
+			if (seconds >= 1) {
+				if (display < 3) {
 					display++;
+				}
 				seconds -= 1;
 			}
+
 			if (display >= 1) {
-				if (room.gameState === GameState.PLAYERONEWIN)
+				if (room.gameState === GameState.PLAYERONEWIN) {
 					draw.drawCenteredText((room.playerOne.user.username + " Won !!!"), canvasWidth/2, ((canvasHeight/2) - (canvasHeight/10)), 45, 'white');
-				else 
+				} else {
 					draw.drawCenteredText((room.playerTwo.user.username + " Won !!!"), canvasWidth/2, ((canvasHeight/2) - (canvasHeight/10)), 45, 'white');
+				}
 			}
-			if (display >= 2)
-			{
+			if (display >= 2) {
 				draw.drawCenteredText("Match end", canvasWidth/2, ((canvasHeight/2)), 45, 'white');
 			}
+
 			setGameEnded(true);
 		}
 
 		const gameLoop = (timestamp = 0) => {
 			if (room.gameState !== GameState.PLAYERONEWIN && room.gameState !== GameState.PLAYERTWOWIN && isAplayer) {
-					socket.emit("requestUpdate", roomId);
+				socket.emit("requestUpdate", roomId);
 			}
+
 			secondElapsed = (timestamp - oldTimestamp) / 1000;
 			oldTimestamp = timestamp;
-
 			drawGame(canvas, draw, room);
-			if (room.gameState === GameState.STARTING) {
+
+			if (room.gameState === GameState.WAITING) {
+				waitForInvitedUser();
+			} else if (room.gameState === GameState.STARTING) {
 				let count: number = (Date.now() - room.timestampStart) / 1000;
 				draw.drawRectangle(0, 0, canvasWidth, canvasHeight, "rgba(0, 0, 0, 0.5)");
 				draw.drawCountDown(countDown[Math.floor(count)]);
 			}
+
 			if (room.gameState === GameState.PLAYING) {
 				draw.resetParticles();
 			} else if (room.gameState === GameState.PAUSED) {
@@ -128,10 +142,10 @@ const Canvas: React.FC<{socketProps: Socket, roomProps: any}> = ({socketProps, r
 				draw.drawPauseButton(room);
 			} else if (room.gameState === GameState.RESUMED) {
 				let count: number = (Date.now() - room.pauseTime[room.pauseTime.length - 1].resume) / 1000;
+
 				draw.drawRectangle(0, 0, canvasWidth, canvasHeight, "rgba(0, 0, 0, 0.5)");
 				draw.drawCountDown(countDown[Math.floor(count)]);
 				setGamePaused(false);
-
 			} else if (room.gameState === GameState.PLAYERONESCORED || room.gameState === GameState.PLAYERTWOSCORED) {
 				goal();
 			} else if (room.gameState === GameState.PLAYERONEWIN || room.gameState === GameState.PLAYERTWOWIN) {
@@ -153,7 +167,7 @@ const Canvas: React.FC<{socketProps: Socket, roomProps: any}> = ({socketProps, r
 	}, []);
 
 	return (
-		<>		
+		<>
 		{
 			room &&
 				<div className="flex flex-col items-center gap-y-10">	
@@ -189,6 +203,5 @@ const Canvas: React.FC<{socketProps: Socket, roomProps: any}> = ({socketProps, r
 		</>
 	);
 };
-
 
 export default Canvas;

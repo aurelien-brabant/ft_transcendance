@@ -25,48 +25,51 @@ export interface IRoom {
 }
 
 export type SerializeRoom = {
-		roomId: string;
-		gameState: GameState;
-		playerOne: {
-			user: {
-				id: number;
-				username: string;
-			}
-			width: number;
-			height: number;
-			x: number;
-			y: number;
-			color: string;
-			goal: number;
-		};
-		playerTwo: {
-			user: {
-				id: number;
-				username: string;
-			}
-			width: number;
-			height: number;
-			x: number;
-			y: number;
-			color: string;
-			goal: number;
-		};
+	roomId: string;
+	gameState: GameState;
 
-		ball: {
-			x: number;
-			y: number;
-			r: number;
-			color: string;
-		},
-		timestampStart: number;
-		goalTimestamp: number;
-		pauseTime: {
-			pause: number;
-			resume: number;
-		}[],
-		mode: number;
-		timer: number;
-		gameDuration: number;
+	playerOne: {
+		user: {
+			id: number;
+			username: string;
+		}
+		width: number;
+		height: number;
+		x: number;
+		y: number;
+		color: string;
+		goal: number;
+	};
+
+	playerTwo: {
+		user: {
+			id: number;
+			username: string;
+		}
+		width: number;
+		height: number;
+		x: number;
+		y: number;
+		color: string;
+		goal: number;
+	};
+
+	ball: {
+		x: number;
+		y: number;
+		r: number;
+		color: string;
+	},
+
+	timestampStart: number;
+	goalTimestamp: number;
+	pauseTime: {
+		pause: number;
+		resume: number;
+	}[],
+	mode: number;
+	timer: number;
+	gameDuration: number;
 };
 
 export default class Room implements IRoom {
@@ -90,27 +93,31 @@ export default class Room implements IRoom {
 	timer: number;
 	gameDuration: number;
 
-    constructor(roomId: string, users: User[], customisation: {mode?: GameMode} = {mode: GameMode.DEFAULT}) {
-		this.roomId = roomId;
-		this.gameState = GameState.STARTING;
-		this.players = [];
-		this.playerOne = new Player(users[0], 10);
-		this.playerTwo = new Player(users[1], canvasWidth-40);
-		this.ball = new Ball();
+	constructor(
+		roomId: string,
+		users: User[],
+		customisation: { mode?: GameMode } = { mode: GameMode.DEFAULT }
+	) {
+	this.roomId = roomId;
+	this.gameState = GameState.STARTING;
+	this.players = [];
+	this.playerOne = new Player(users[0], 10);
+	this.playerTwo = new Player(users[1], canvasWidth-40);
+	this.ball = new Ball();
 
-		this.timestampStart = Date.now();
-		this.lastUpdate = Date.now();
-		this.goalTimestamp = Date.now();
-		this.pauseTime = [];
+	this.timestampStart = Date.now();
+	this.lastUpdate = Date.now();
+	this.goalTimestamp = Date.now();
+	this.pauseTime = [];
 
-		this.mode = customisation.mode;		
-		this.maxGoal = 11;
+	this.mode = customisation.mode;
+	this.maxGoal = 11;
 
-		this.isGameEnd = false;
+	this.isGameEnd = false;
 
-		this.timer = 0;
-		this.gameDuration = 60000 * 5; // 1min * num of minutes
-    }
+	this.timer = 0;
+	this.gameDuration = 60000 * 5; // 1min * num of minutes
+	}
 
 	isAPlayer(user: User): boolean {
 		return (this.playerOne.user.username === user.username || this.playerTwo.user.username === user.username);

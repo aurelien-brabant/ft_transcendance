@@ -91,6 +91,7 @@ export type DmMessage = {
 	content: string;
 	author: User;
 	type: string;
+	roomId?: string;
 	channel: Channel;
 };
 

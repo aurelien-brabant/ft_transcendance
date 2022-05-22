@@ -156,6 +156,7 @@ const UserProfilePage: NextPageWithLayout = ({}) => {
   const { setAlert } = useContext(alertContext) as AlertContextType;
   const {
     socket: chatSocket,
+    closeChat,
     createDirectMessage
   } = useContext( chatContext ) as ChatContextType;
   const {
@@ -185,11 +186,14 @@ const UserProfilePage: NextPageWithLayout = ({}) => {
   };
 
   /* Send Pong invite */
-  const sendPongInvite = (userId: string) => {
+  const sendPongInvite = async (userId: string) => {
     chatSocket.emit("sendPongInvite", {
-      from: user.id,
-      to: parseInt(userId),
+      senderId: user.id,
+      receiverId: parseInt(userId),
     });
+
+    closeChat();
+    await router.push("/hub");
   };
 
   /* Send friendship invite */

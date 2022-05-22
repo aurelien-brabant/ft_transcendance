@@ -25,6 +25,10 @@ export class CreateDmMessageDto {
   @IsIn(["regular", "invite"])
   readonly type?: string;
 
+  @IsOptional()
+  @IsString()
+  readonly roomId?: string;
+
   @IsNotEmpty()
   readonly dm: DirectMessage;
 }

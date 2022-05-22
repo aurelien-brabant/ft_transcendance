@@ -1,8 +1,9 @@
 import { Fragment, useContext, useEffect, useRef, useState } from "react";
 import { FiSend } from "react-icons/fi";
-import { RiPingPongLine, RiGhostLine } from "react-icons/ri";
+import { RiPingPongLine } from "react-icons/ri";
 import { ArrowSmLeftIcon, XIcon } from "@heroicons/react/outline";
 import Link from "next/link";
+import { useRouter } from "next/router";
 import { DmChannel, DmMessage } from "transcendance-types";
 import { UserStatusItem } from "../UserStatus";
 import { useSession } from "../../hooks/use-session";
@@ -17,20 +18,25 @@ export const DirectMessageHeader: React.FC<{ viewParams: any }> = ({
   viewParams,
 }) => {
   const { user } = useSession();
-  const { socket, closeChat, setChatView } = useContext(
-    chatContext
-  ) as ChatContextType;
+  const router = useRouter();
+  const {
+    socket,
+    closeChat,
+    setChatView
+  } = useContext(chatContext) as ChatContextType;
   const actionTooltipStyles = "font-bold bg-dark text-neutral-200";
   const pongIconStyle =
     "p-1 text-pink-700 bg-pink-200 rounded-full transition hover:scale-110  hover:text-pink-600";
 
   /* Invite for a Pong game */
-  const sendPongInvite = (userId: string) => {
-    console.log(`[Direct Message] Invite user [${userId}] to play Pong`);
+  const sendPongInvite = async (userId: string) => {
     socket.emit("sendPongInvite", {
-      from: user.id,
-      to: parseInt(userId),
+      senderId: user.id,
+      receiverId: parseInt(userId),
     });
+
+    closeChat();
+    await router.push("/hub");
   };
 
   return (
@@ -81,17 +87,16 @@ const DirectMessage: React.FC<{ viewParams: { [key: string]: any } }> = ({
 }) => {
   const dmId: string = viewParams.channelId;
   const { user } = useSession();
-  const { socket, getMessageStyle } = useContext(
+  const { asPath } = useRouter();
+  const router = useRouter();
+  const { socket, closeChat, getMessageStyle } = useContext(
     chatContext
   ) as ChatContextType;
   const [messages, setMessages] = useState<ChatMessage[]>([]);
   const [currentMessage, setCurrentMessage] = useState("");
   const [sendingEnabled, setSendingEnabled] = useState(false);
   const chatBottom = useRef<HTMLDivElement>(null);
-  const pongAcceptIconStyle =
-    "p-1 text-green-800 bg-green-300 rounded-full hover:text-green-600";
-  const pongDeclineIconStyle =
-    "p-1 text-red-800 bg-red-300 rounded-full hover:text-red-600";
+  const pongAcceptIconStyle = "p-1 text-green-800 bg-green-300 rounded-full hover:text-green-600";
 
   /* Send new message */
   const handleDmSubmit = async () => {
@@ -145,6 +150,7 @@ const DirectMessage: React.FC<{ viewParams: { [key: string]: any } }> = ({
         displayAuthor: !(message.author.id === user.id),
         displayStyle: getMessageStyle(message.author),
         isInvite: message.type === "invite",
+        roomId: message.roomId ? message.roomId : undefined,
       });
       return newMessages;
     });
@@ -169,6 +175,7 @@ const DirectMessage: React.FC<{ viewParams: { [key: string]: any } }> = ({
         displayAuthor: !(message.author.id === user.id),
         displayStyle: getMessageStyle(message.author),
         isInvite: message.type === "invite",
+        roomId: message.roomId ? message.roomId : undefined,
       });
     }
     setMessages(messages);
@@ -178,6 +185,25 @@ const DirectMessage: React.FC<{ viewParams: { [key: string]: any } }> = ({
   useEffect(() => {
     chatBottom.current?.scrollIntoView();
   }, [messages]);
+
+  const acceptPongInvite = (roomId: string | undefined) => {
+    if (!roomId) return ;
+
+    socket.emit("acceptPongInvite", {
+      roomId,
+      userId: user.id,
+    });
+
+    socket.on("redirectToGame", () => {
+      closeChat();
+
+      if (asPath === "/hub") {
+        router.reload();
+      } else {
+        router.push("/hub");
+      }
+    });
+  };
 
   useEffect(() => {
     socket.emit("getDmData", { dmId });
@@ -201,21 +227,23 @@ const DirectMessage: React.FC<{ viewParams: { [key: string]: any } }> = ({
           <div
             key={msg.id}
             className={`
-							${msg.displayStyle}
-							max-w-[80%] p-2 my-2 rounded whitespace-wrap break-all`}
+              ${msg.displayStyle}
+              max-w-[80%] p-2 my-2 rounded whitespace-wrap break-all`}
           >
             <p className="whitespace-pre-line">{msg.content}</p>
             {msg.isInvite && (
               <p>
                 <div className="flex justify-around">
-                  <button className={pongAcceptIconStyle}>
+                  <button
+                    className={pongAcceptIconStyle}
+                    onClick={() => {
+                      acceptPongInvite(msg.roomId);
+                    }}
+                  >
                     <RiPingPongLine />
                   </button>
-                  <button className={pongDeclineIconStyle}>
-                    <RiGhostLine />
-                  </button>
                 </div>
-                Accept or Decline
+                Click to join the game
               </p>
             )}
           </div>

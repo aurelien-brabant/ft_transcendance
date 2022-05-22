@@ -9,5 +9,7 @@ import { PongGateway } from './pong.gateway';
 @Module({
     imports: [TypeOrmModule.forFeature([Game]), UsersModule], 
     controllers: [GamesController],
-    providers: [GamesService, PongGateway] })
+    providers: [GamesService, PongGateway],
+    exports: [PongGateway]
+})
 export class GamesModule {}

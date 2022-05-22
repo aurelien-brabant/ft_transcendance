@@ -4,6 +4,7 @@ import { RiPingPongLine } from 'react-icons/ri';
 import { ArrowSmLeftIcon, BanIcon, LockClosedIcon, ShieldExclamationIcon, UserRemoveIcon, UsersIcon, VolumeOffIcon, XIcon } from "@heroicons/react/outline";
 import { ShieldCheckIcon } from "@heroicons/react/solid";
 import Link from "next/link";
+import { useRouter } from "next/router";
 import { Channel } from "transcendance-types";
 import { useSession } from "../../hooks/use-session";
 import Tooltip from "../../components/Tooltip";
@@ -73,21 +74,22 @@ export const GroupUsersHeader: React.FC<{ viewParams: any }> = ({ viewParams }) 
 /* User list */
 const GroupUsers: React.FC<{ viewParams: any }> = ({ viewParams }) => {
 	const channelId: string = viewParams.channelId;
-	const { user } = useSession();
-	const { socket, setChatView } = useContext(chatContext) as ChatContextType;
+	const { user: currentUser } = useSession();
+	const router = useRouter();
+	const { socket, closeChat, setChatView } = useContext(chatContext) as ChatContextType;
 	const { blocked } = useContext(relationshipContext) as RelationshipContextType;
 	const [users, setUsers] = useState<UserSummary[]>([]);
 	const [owner, setOwner] = useState<UserSummary>();
 	const [ownerView, setOwnerView] = useState(false);
 	const [adminView, setAdminView] = useState(false);
 	const actionTooltipStyles = "font-bold bg-dark text-neutral-200";
-	const pongIconStyle = "p-1 text-pink-700 bg-pink-200 rounded-full transition hover:scale-110  hover:text-pink-600";
+	const pongIconStyle = "p-1 text-pink-700 bg-pink-200 rounded-full transition hover:scale-110	hover:text-pink-600";
 
 	/* Make user administrator */
 	const addAdmin = (id: string) => {
 		socket.emit("makeAdmin", {
 			channelId: parseInt(channelId),
-			ownerId: user.id,
+			ownerId: currentUser.id,
 			userId: parseInt(id)
 		});
 	};
@@ -96,7 +98,7 @@ const GroupUsers: React.FC<{ viewParams: any }> = ({ viewParams }) => {
 	const removeAdmin = (id: string) => {
 		socket.emit("removeAdmin", {
 			channelId: parseInt(channelId),
-			ownerId: user.id,
+			ownerId: currentUser.id,
 			userId: parseInt(id)
 		});
 	};
@@ -105,7 +107,7 @@ const GroupUsers: React.FC<{ viewParams: any }> = ({ viewParams }) => {
 	const banUser = (id: string) => {
 		socket.emit("punishUser", {
 			channelId: parseInt(channelId),
-			adminId: user.id,
+			adminId: currentUser.id,
 			userId: parseInt(id),
 			type: "ban"
 		});
@@ -115,7 +117,7 @@ const GroupUsers: React.FC<{ viewParams: any }> = ({ viewParams }) => {
 	const muteUser = (id: string) => {
 		socket.emit("punishUser", {
 			channelId: parseInt(channelId),
-			adminId: user.id,
+			adminId: currentUser.id,
 			userId: parseInt(id),
 			type: "mute"
 		});
@@ -125,18 +127,20 @@ const GroupUsers: React.FC<{ viewParams: any }> = ({ viewParams }) => {
 	const kickUser = (id: string) => {
 		socket.emit("kickUser", {
 			channelId: parseInt(channelId),
-			adminId: user.id,
+			adminId: currentUser.id,
 			userId: parseInt(id)
 		});
 	};
 
 	/* Invite for a Pong game */
-	const sendPongInvite = (userId: string) => {
-		console.log(`[Group Users] Invite user [${userId}] to play Pong`);
+	const sendPongInvite = async (userId: string) => {
 		socket.emit("sendPongInvite", {
-			from: user.id,
-			to: parseInt(userId),
+			senderId: currentUser.id,
+			receiverId: parseInt(userId),
 		});
+
+		closeChat();
+		await router.push("/hub");
 	};
 
 	/* Listeners */
@@ -153,9 +157,9 @@ const GroupUsers: React.FC<{ viewParams: any }> = ({ viewParams }) => {
 	 * ban, mute, kick, make admin
 	 */
 	const setViewMode = (channel: Channel) => {
-		setOwnerView(channel.owner.id === user.id);
+		setOwnerView(channel.owner.id === currentUser.id);
 		setAdminView(!!channel.admins.find((admin) => {
-			return admin.id === user.id; }
+			return admin.id === currentUser.id; }
 		));
 	}
 
@@ -167,8 +171,8 @@ const GroupUsers: React.FC<{ viewParams: any }> = ({ viewParams }) => {
 			id: channel.owner.id,
 			username: channel.owner.username,
 			pic: `/api/users/${channel.owner.id}/photo`,
-			isMe: (channel.owner.id === user.id),
-			isBlocked: !!blocked.find((user) => user.id === channel.owner.id),
+			isMe: (channel.owner.id === currentUser.id),
+			isBlocked: !!blocked.find((blocked) => blocked.id === channel.owner.id),
 			isAdmin: false
 		};
 		setOwner(owner);
@@ -180,8 +184,8 @@ const GroupUsers: React.FC<{ viewParams: any }> = ({ viewParams }) => {
 					id: chanUser.id,
 					username: chanUser.username,
 					pic: `/api/users/${chanUser.id}/photo`,
-					isMe: (chanUser.id === user.id),
-					isBlocked: !!blocked.find((user) => user.id === chanUser.id),
+					isMe: (chanUser.id === currentUser.id),
+					isBlocked: !!blocked.find((blocked) => blocked.id === chanUser.id),
 					isAdmin: !!channel.admins.find((admin) => { return admin.id === chanUser.id; }),
 					isMuted: !!channel.punishments.find((punishment) =>
 						(punishment.punishedUser.id === chanUser.id) && (punishment.type === 'mute')
@@ -322,7 +326,7 @@ const GroupUsers: React.FC<{ viewParams: any }> = ({ viewParams }) => {
 					{!owner.isMe && !owner.isBlocked && <Tooltip className={actionTooltipStyles} content="play">
 						<button
 							className={pongIconStyle}
-							onClick={() => sendPongInvite(user.id)}
+							onClick={() => sendPongInvite(owner.id)}
 						>
 							<RiPingPongLine />
 						</button>

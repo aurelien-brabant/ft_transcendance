@@ -190,9 +190,12 @@ export class Draw {
 		}
 	}
 
+	drawWaiting() {
+		this.drawCenteredText("Game will start when invited player joins", this.width/2, this.height/2, 45, "white");
+	}
+
 	drawCountDown(countDown: string) {
 		this.drawCenteredText(countDown, this.width/2, this.height/2, 45, "white");
-
 	}
 
 	resetParticles() {
