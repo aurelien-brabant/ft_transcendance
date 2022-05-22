@@ -170,7 +170,7 @@ export const DashboardLayout: FunctionComponent = ({ children }) => {
   const { user, logout } = useSession();
 
   const navigation = [
-    { name: "My profile", href: `/users/${user.id}`, icon: HomeIcon, current: true },
+    { name: "My profile", href: `/users/${user.username}`, icon: HomeIcon, current: true },
     { name: "Friends", href: "/friends", icon: UsersIcon, current: false },
     { name: "Play", href: "/hub", icon: FireIcon, current: false },
     { name: "Leaderboard", href: "/leaderboard", icon: BiTrophy, current: false },
