@@ -31,7 +31,7 @@ export class PongGateway implements OnGatewayInit, OnGatewayConnection, OnGatewa
 
 	private readonly queue: Queue = new Queue();
 	private readonly rooms: Map<string, Room> = new Map();
-	private readonly currentGames: Array<string> = new Array();
+	private readonly currentGames: Array<Room> = new Array();
 	private readonly connectedUsers: ConnectedUsers = new ConnectedUsers();
 
 	createNewRoom(players: User[]): void {
@@ -41,10 +41,12 @@ export class PongGateway implements OnGatewayInit, OnGatewayConnection, OnGatewa
 		this.server.to(players[0].socketId).emit("newRoom", room);
 		this.server.to(players[1].socketId).emit("newRoom", room);
 		this.rooms.set(roomId, room);
-		this.currentGames.push(roomId);
+		this.currentGames.push(room);
+
 		this.server.emit("updateCurrentGames", this.currentGames);
 	}
 
+	/* Invite room */
 	createInvitedUser(id: number, username: string) {
 		let newUser: User = this.connectedUsers.getUserById(id);
 
@@ -79,13 +81,12 @@ export class PongGateway implements OnGatewayInit, OnGatewayConnection, OnGatewa
 		const secondPlayer: User = this.createInvitedUser(receiverData.id, receiverData.username);
 
 		const roomId: string = `${Date.now()}${firstPlayer.username}&${secondPlayer.username}`;
-		console.log(roomId);
 
 		let room: Room = new Room(roomId, [firstPlayer, secondPlayer]);
 		room.gameState = GameState.WAITING;
 
 		this.rooms.set(roomId, room);
-		this.currentGames.push(roomId);
+		this.currentGames.push(room);
 
 		this.server.emit("updateCurrentGames", this.currentGames);
 
@@ -163,7 +164,7 @@ export class PongGateway implements OnGatewayInit, OnGatewayConnection, OnGatewa
 						this.logger.log("No player left in the room deleting it...");
 						this.rooms.delete(room.roomId);
 
-						const roomIndex: number = this.currentGames.findIndex(roomIdRm => roomIdRm === room.roomId);
+						const roomIndex: number = this.currentGames.findIndex((toRemove) => toRemove.roomId === room.roomId);
 						if (roomIndex !== -1) {
 							this.currentGames.splice(roomIndex, 1);
 						}
@@ -255,7 +256,7 @@ export class PongGateway implements OnGatewayInit, OnGatewayConnection, OnGatewa
 				this.logger.log("No user left in the room deleting it...");
 				this.rooms.delete(room.roomId);
 
-				const roomIndex: number = this.currentGames.findIndex(roomIdRm => roomIdRm === room.roomId);
+				const roomIndex: number = this.currentGames.findIndex((toRemove) => toRemove.roomId === room.roomId);
 				if (roomIndex !== -1) {
 					this.currentGames.splice(roomIndex, 1);
 				}
@@ -308,7 +309,7 @@ export class PongGateway implements OnGatewayInit, OnGatewayConnection, OnGatewa
 			mode: room.mode
 		});
 
-		const roomIndex: number = this.currentGames.findIndex(roomIdRm => roomIdRm === room.roomId);
+		const roomIndex: number = this.currentGames.findIndex((toRemove) => toRemove.roomId === room.roomId);
 
 		if (roomIndex !== -1) {
 			this.currentGames.splice(roomIndex, 1);

@@ -13,6 +13,12 @@ import { SimpleSpinner } from "../components/simple-spinner";
 
 let socket: Socket;
 
+export type onGoingGame = {
+	roomId: string;
+	playerOne: string;
+	playerTwo: string;
+};
+
 const Hub: NextPageWithLayout = () => {
 	const { user } = useSession();
 	const { setAlert } = useContext(alertContext) as AlertContextType;
@@ -20,7 +26,7 @@ const Hub: NextPageWithLayout = () => {
 	const [displayGame, setDisplayGame] = useState(false);
 	const [inQueue, setInQueue] = useState(false);
 	const [room, setRoom] = useState<IRoom | null>(null);
-	const [currentGames, setCurrentGames] = useState<Array<string>>(new Array());
+	const [currentGames, setCurrentGames] = useState<onGoingGame[]>([]);
 
 	let roomData: IRoom;
 	let roomId: string | undefined;
@@ -34,6 +40,19 @@ const Hub: NextPageWithLayout = () => {
 		socket.emit("leaveQueue");
 	}
 
+	const updateCurrentGames = (currentGamesData: IRoom[]) => {
+		const games: onGoingGame[] = [];
+
+		for (const game of currentGamesData) {
+			games.push({
+				roomId: game.roomId,
+				playerOne: game.playerOne.user.username,
+				playerTwo: game.playerTwo.user.username,
+			});
+		}
+		setCurrentGames(games);
+	};
+
 	useEffect((): any => {
 		// connect to socket server
 		socket = io(process.env.NEXT_PUBLIC_SOCKET_URL + "/game", { transports: ['websocket', 'polling']});
@@ -45,8 +64,8 @@ const Hub: NextPageWithLayout = () => {
 			socket.emit("getCurrentGames");
 		});
 
-		socket.on("updateCurrentGames", (newRoomData: Array<string>) => {
-			setCurrentGames(newRoomData);
+		socket.on("updateCurrentGames", (currentGamesData: IRoom[]) => {
+			updateCurrentGames(currentGamesData);
 		});
 
 		socket.on("newRoom", (newRoomData: IRoom) => {
