@@ -141,13 +141,13 @@ const HighlightItem: React.FC<Highlight> = ({ n, label, hint, nColor }) => (
 
 const UserProfilePage: NextPageWithLayout = ({}) => {
   const router = useRouter();
-  const [userId, setUserId] = useState<string>();
+  const [profileUsername, setProfileUsername] = useState<string>();
 
   useEffect(() => {
     const query = router.query;
 
     if (query.id) {
-      setUserId(query.id.toString());
+      setProfileUsername(query.id.toString());
     }
   }, [router.query]);
 
@@ -159,22 +159,20 @@ const UserProfilePage: NextPageWithLayout = ({}) => {
     createDirectMessage
   } = useContext( chatContext ) as ChatContextType;
   const {
+    friends,
     suggested,
     setSuggested,
     pendingFriendsSent,
     setPendingFriendsSent,
+    getRelationshipsData
   } = useContext(relationshipContext) as RelationshipContextType;
   const [gamesHistory, setGamesHistory] = useState<PastGame[]>([]);
   const [isLoading, setIsLoading] = useState(true);
-  const [alreadyFriend, setAlreadyFriend] = useState(false);
   const [selected, setSelected] = useState(0);
   const [rank, setRank] = useState("-");
   const [userData, setUserData] = useState<ActiveUser>(user);
-  const [alreadyInvited, setAlreadyInvited] = useState(
-    !!pendingFriendsSent.find((pending) => {
-      return pending.id === userId;
-    })
-  );
+  const [alreadyFriend, setAlreadyFriend] = useState(false);
+  const [alreadyInvited, setAlreadyInvited] = useState(false);
 
   /* Send DM to user */
   const handleMessageToUser = async () => {
@@ -188,7 +186,6 @@ const UserProfilePage: NextPageWithLayout = ({}) => {
 
   /* Send Pong invite */
   const sendPongInvite = (userId: string) => {
-    console.log(`[users/:id] Invite user [${userId}] to play Pong`);
     chatSocket.emit("sendPongInvite", {
       from: user.id,
       to: parseInt(userId),
@@ -287,26 +284,12 @@ const UserProfilePage: NextPageWithLayout = ({}) => {
     });
   };
 
-  const alreadyFriendOrAsked = (
-    pending: ActiveUser[],
-    friends: ActiveUser[]
-  ) => {
-    for (let i in pending) {
-      if (pending[i].id === userId) return true;
-    }
-    for (let i in friends) {
-      if (friends[i].id === userId) return true;
-    }
-
-    return false;
-  };
-
   useEffect(() => {
-    if (!userId || !user) return;
+    if (!profileUsername || !user) return;
 
     const fetchData = async () => {
       /* search by username */
-      const res = await fetch(`/api/users/${userId}`);
+      const res = await fetch(`/api/users/${profileUsername}`);
 
       if (!res.ok) {
         router.push("/404");
@@ -316,30 +299,32 @@ const UserProfilePage: NextPageWithLayout = ({}) => {
       const matchingUser: any = await res.json();
       const gamesData: Game[] = JSON.parse(JSON.stringify(matchingUser)).games;
 
-      updateUserData(matchingUser);
-      updateGamesHistory(gamesData, userId);
+      await updateUserData(matchingUser);
+      await updateGamesHistory(gamesData, matchingUser.id);
 
       /* Didn't play yet */
       if (!matchingUser.wins && !matchingUser.losses && !matchingUser.draws) {
         setRank("-");
       } else {
         /* Else set rank */
-        const reqRank = await fetch(`/api/users/${userId}/rank`);
+        const reqRank = await fetch(`/api/users/${profileUsername}/rank`);
         const res = await reqRank.json();
         setRank(res);
       }
 
-      const already = alreadyFriendOrAsked(
-        user.pendingFriendsSent,
-        user.friends
-      );
+      await getRelationshipsData();
 
-      setAlreadyFriend(already);
+      setAlreadyFriend(!!friends.find((friend) => {
+        return friend.id === matchingUser.id;
+      }));
+      setAlreadyInvited(!!pendingFriendsSent.find((pending) => {
+        return pending.id === matchingUser.id;
+      }));
       setIsLoading(false);
     };
 
     fetchData().catch(console.error);
-  }, [userId, user]);
+  }, [profileUsername, user]);
 
   const Skeleton = () => (
     <div style={{ maxWidth: "800px" }} className="px-2 py-16 mx-auto">
@@ -420,7 +405,7 @@ const UserProfilePage: NextPageWithLayout = ({}) => {
                   >
                     <button
                       className={`${
-                        alreadyFriend || alreadyInvited
+                        (alreadyFriend || alreadyInvited)
                           ? "cursor-normal opacity-70"
                           : "cursor-pointer"
                       } p-2 text-2xl bg-pink-200 text-pink-700 rounded-full transition hover:scale-105`}
