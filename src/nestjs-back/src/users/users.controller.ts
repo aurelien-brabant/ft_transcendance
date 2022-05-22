@@ -148,7 +148,7 @@ export class UsersController {
   @UseInterceptors(
     FileInterceptor('image', {
       storage: diskStorage({
-        destination: './avatars',
+        destination: '/upload/avatars',
         filename: editFileName,
       }),
       fileFilter: imageFileFilter,
