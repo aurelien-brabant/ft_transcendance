@@ -192,7 +192,9 @@ const UserProfilePage: NextPageWithLayout = ({}) => {
       senderId: user.id,
       receiverId: parseInt(userId),
     });
+  };
 
+  const goToHub = async () => {
     closeChat();
     if (asPath === "/hub") {
       router.reload();
@@ -334,6 +336,20 @@ const UserProfilePage: NextPageWithLayout = ({}) => {
 
     fetchData().catch(console.error);
   }, [profileUsername, user]);
+
+  useEffect(() => {
+    if (!chatSocket) {
+      return ;
+    }
+    /* Listeners */
+    chatSocket.on("launchInviteGame", goToHub);
+
+    return () => {
+      if (chatSocket) {
+        chatSocket.off("launchInviteGame", goToHub);
+      }
+    };
+  }, []);
 
   const Skeleton = () => (
     <div style={{ maxWidth: "800px" }} className="px-2 py-16 mx-auto">

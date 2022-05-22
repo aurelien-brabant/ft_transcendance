@@ -23,6 +23,9 @@ const Canvas: React.FC<{socketProps: Socket, roomProps: any}> = ({socketProps, r
 	let display: number = 0;
 
 	const leaveRoom = () => {
+		if (room.gameState === GameState.WAITING) {
+			room.gameState = GameState.STARTING;
+		}
 		socket.emit("leaveRoom", roomId);
 	}
 
@@ -85,7 +88,7 @@ const Canvas: React.FC<{socketProps: Socket, roomProps: any}> = ({socketProps, r
 		});
 
 		const waitForInvitedUser = () => {
-            draw.drawLoading();
+			draw.drawLoading();
 			draw.drawWaiting();
 		}
 

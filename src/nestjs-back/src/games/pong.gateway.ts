@@ -135,7 +135,6 @@ export class PongGateway implements OnGatewayInit, OnGatewayConnection, OnGatewa
 		} else {
 			newUser= new User(user.id, user.username, client.id, user.ratio);
 		}
-		newUser.setSocketId(client.id);
 		newUser.setUserStatus(UserStatus.INHUB);
 
 		/* Verify that player is not already in a game */
@@ -162,7 +161,7 @@ export class PongGateway implements OnGatewayInit, OnGatewayConnection, OnGatewa
 				if (room.isAPlayer(user)) {
 					room.removeUser(user);
 
-					if (room.players.length === 0) {
+					if (room.players.length === 0 && room.gameState !== GameState.WAITING) {
 						this.logger.log("No player left in the room deleting it...");
 						this.rooms.delete(room.roomId);
 
