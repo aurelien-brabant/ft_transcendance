@@ -1,4 +1,4 @@
-import { canvasHeight, canvasWidth, IBall, countDown, IPlayer, IRoom, loadingMsg, GameState } from "./GameObject";
+import { canvasHeight, canvasWidth, IBall, countDown, IPlayer, IRoom, GameState } from "./GameObject";
 
 export type PlayerGoal = {
 	p1: boolean;
@@ -87,7 +87,7 @@ export class Draw {
 			this.context.save();
 			this.context.beginPath();
 			this.context.arc(x, y, radius, (degrees * (Math.PI/180)), (degrees * (Math.PI/180) + (3/2) * Math.PI));
-			this.context.lineWidth = 20;
+			this.context.lineWidth = 10;
 			this.context.strokeStyle = color;
 			this.context.shadowColor = "rgb(127, 0, "+ this.neonColor +")";
 			this.context.shadowBlur = this.firstNeon + 10;
@@ -176,18 +176,10 @@ export class Draw {
 		this.drawCenteredText(seconds, this.width/2, (this.height/2 - pauseSizeY), pauseSizeY, "white");
 	}
 
-	drawLoading(seconds: number) {
+	drawLoading() {
 		this.drawRectangle(0, 0, this.width, this.height, "rgba(0, 0, 0, 0.5)");
-		this.drawArc(this.width/2, this.height/2, this.height/4, "white", this.degrees);
-		this.drawCenteredText(loadingMsg[this.dot], this.width/2, this.height/2, 45, "white");
-		this.degrees += 6;
-		if (this.degrees === 360)
-			this.degrees = 0;
-		if (seconds >= 1)
-		{
-			this.dot = (this.dot+1) % loadingMsg.length;
-			seconds = 0;
-		}
+		this.drawArc(this.width/2, this.height/2 + 100, 50, "white", this.degrees);
+		this.degrees += 6 % 360;
 	}
 
 	drawWaiting() {
