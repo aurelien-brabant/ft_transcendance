@@ -338,11 +338,16 @@ const UserProfilePage: NextPageWithLayout = ({}) => {
   }, [profileUsername, user]);
 
   useEffect(() => {
+    if (!chatSocket) {
+      return ;
+    }
     /* Listeners */
     chatSocket.on("launchInviteGame", goToHub);
 
     return () => {
-      chatSocket.off("launchInviteGame", goToHub);
+      if (chatSocket) {
+        chatSocket.off("launchInviteGame", goToHub);
+      }
     };
   }, []);
 
