@@ -174,14 +174,15 @@ export class UsersController {
   @Post(':userId/enableTfa')
   @HttpCode(200)
   async enableTfa(@Param('userId') id: string, @Body() { tfaCode }) {
-    const user = await this.usersService.findOne(id);
+    const user = await this.usersService.findUserTfaSecret(id);
 
     if (!user) throw new NotFoundException();
 
-    const isCodeValid = this.usersService.isTfaCodeValid(tfaCode, user);
+    const isCodeValid = await this.usersService.isTfaCodeValid(tfaCode, user);
 
-    if (!isCodeValid)
-      throw new UnauthorizedException('Wrong authentication code');
+    if (!isCodeValid) {
+      throw new BadRequestException('Wrong authentication code');
+    }
 
     await this.usersService.enableTfa(String(user.id));
   }
