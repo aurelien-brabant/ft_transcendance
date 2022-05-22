@@ -41,6 +41,16 @@ export class UsersController {
     return this.usersService.findAll(paginationQuery);
   }
 
+  @UseGuards(JwtAuthGuard)
+  @Get('/search')
+  async searchUsersBy(@Query('v') searchTerm: string) {
+    if (searchTerm === undefined) {
+      throw new BadRequestException('Missing "v" query parameter')
+    }
+
+    return this.usersService.searchUsers(searchTerm);
+  }
+
   /* NOTE: userId can be either the actual database id of the user, or, preferrably on the frontend, their username */
   @UseGuards(JwtAuthGuard)
   @Get(':userId')
@@ -80,15 +90,6 @@ export class UsersController {
     return this.usersService.findRank(id, paginationQuery);
   }
 
-  @UseGuards(JwtAuthGuard)
-  @Get('/search')
-  async searchUsersBy(@Query('v') searchTerm: string) {
-    if (searchTerm === undefined) {
-      throw new BadRequestException('Missing "v" query parameter')
-    }
-
-    return this.usersService.searchUsers(searchTerm);
-  }
 
   /* anyone can create a new user to begin the authentication process */
   @Post()
