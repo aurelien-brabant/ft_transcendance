@@ -12,10 +12,12 @@ const Canvas: React.FC<{socketProps: Socket, roomProps: any}> = ({socketProps, r
 	const { user } = useSession();
 	const canvasRef = useRef<HTMLCanvasElement>(null);
 
-    let socket: Socket = socketProps;
-    let room: IRoom = roomProps;
+	let socket: Socket = socketProps;
+	let room: IRoom = roomProps;
 	let roomId: string | undefined = room?.roomId;
 	const [gameEnded, setGameEnded] = useState(false);
+	const [gamePaused, setGamePaused] = useState(false);
+	const [isWaiting, setIsWaiting] = useState(room?.gameState === GameState.WAITING);
 
 	let isAplayer: boolean = (room.playerOne.user.username == user.username || room.playerTwo.user.username == user.username);
 	let oldTimestamp: number = 0;
@@ -122,6 +124,7 @@ const Canvas: React.FC<{socketProps: Socket, roomProps: any}> = ({socketProps, r
 			if (room.gameState === GameState.PLAYING) {
 				draw.resetParticles();
 			} else if (room.gameState === GameState.PAUSED) {
+				setGamePaused(true);
 				draw.drawPauseButton(room);
 			} else if (room.gameState === GameState.RESUMED) {
 				let count: number = (Date.now() - room.pauseTime[room.pauseTime.length - 1].resume) / 1000;
@@ -177,7 +180,7 @@ const Canvas: React.FC<{socketProps: Socket, roomProps: any}> = ({socketProps, r
 							</div>
 						</div>
 						{
-							(gameEnded || !isAplayer) &&
+							(gameEnded || gamePaused || !isAplayer || isWaiting) &&
 							<button onClick={leaveRoom} className="px-6 py-2 text-xl uppercase bg-pink-600 drop-shadow-md text-bold text-neutral-200">Leave Room</button>
 						}
 				</div>
