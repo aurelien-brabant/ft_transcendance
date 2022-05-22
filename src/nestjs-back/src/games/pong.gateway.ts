@@ -135,7 +135,6 @@ export class PongGateway implements OnGatewayInit, OnGatewayConnection, OnGatewa
 		} else {
 			newUser= new User(user.id, user.username, client.id, user.ratio);
 		}
-		newUser.setSocketId(client.id);
 		newUser.setUserStatus(UserStatus.INHUB);
 
 		/* Verify that player is not already in a game */
