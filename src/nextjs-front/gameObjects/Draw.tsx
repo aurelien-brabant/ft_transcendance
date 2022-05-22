@@ -240,12 +240,16 @@ export class Draw {
 	drawTimer(room: IRoom) {
 		if (room.gameDuration - room.timer > 0) {
 			let timer: Date = new Date(room.gameDuration - room.timer);
-			let time: string = timer.toLocaleString().substring(12, 18);
+			let minutes: number = timer.getMinutes();
+			let seconds: string = (timer.getSeconds() < 10) ? ("0" + String(timer.getSeconds())) : String(timer.getSeconds());
+			let time: string = minutes + ":" + seconds;
 			this.drawCenteredText(time, canvasWidth - 100, 60, 50, 'white');
 		}
 		else {
 			let timer: Date = new Date(room.timer - room.gameDuration);
-			let time: string = timer.toLocaleString().substring(12, 18);
+			let minutes: string = String(timer.getMinutes());
+			let seconds: string = (timer.getSeconds() < 10) ? ("0" + String(timer.getSeconds())) : String(timer.getSeconds());
+			let time: string = minutes + ":" + seconds;
 			this.drawCenteredText("+" + time, canvasWidth - 100, 60, 50, 'red');
 		}
 	}
