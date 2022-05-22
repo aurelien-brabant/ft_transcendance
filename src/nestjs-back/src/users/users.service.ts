@@ -59,6 +59,18 @@ export class UsersService {
     return user;
   }
 
+  /* To be used only at generation */
+  async findUserTfaSecret(id: string) {
+    const user = await this.usersRepository.findOne(id, {
+      select: [ 'tfaSecret' ],
+    });
+
+    if (!user) {
+      throw new Error('User not found');
+    }
+    return user;
+  }
+
   async findOne(id: string) {
     /* if id can't be parsed as a number then it is assumed to be an username */
     const isDatabaseId = !isNaN(Number(id));
@@ -112,6 +124,8 @@ export class UsersService {
   }
 
   async findRank(id: string, paginationQuery: PaginationQueryDto) {
+    const isDatabaseId = !isNaN(Number(id));
+
     const users = await this.findAll(paginationQuery);
 
     /* Sort from highest score and put users that didn't play at the end */
@@ -123,7 +137,13 @@ export class UsersService {
         ((b.wins + b.ratio) - (a.wins + a.ratio))
     );
 
-    const index = users.findIndex((user) => user.id === parseInt(id));
+    let index: number;
+
+    if (isDatabaseId) {
+      index = users.findIndex((user) => user.id === parseInt(id));
+    } else {
+      index = users.findIndex((user) => user.username === id);
+    }
 
     if (index === -1) {
       throw new Error('User not found');
