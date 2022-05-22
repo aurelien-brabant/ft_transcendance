@@ -67,7 +67,7 @@ services:
       - NODE_ENV=development
       - POSTGRES_USER=transcendance
       - POSTGRES_PASSWORD=transcendance
-      - POSTGRES_DATABASE=transcendance
+      - POSTGRES_DB=transcendance
       - POSTGRES_HOST=postgres
       - JWT_SECRET=dummy_secret
       - JWT_LIFETIME=15m
@@ -91,7 +91,7 @@ services:
 
     environment:
       - POSTGRES_USER=transcendance
-      - POSTGRES_DATABASE=transcendance
+      - POSTGRES_DB=transcendance
       - POSTGRES_PASSWORD=transcendance
 
     restart: unless-stopped
