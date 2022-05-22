@@ -141,15 +141,6 @@ const HighlightItem: React.FC<Highlight> = ({ n, label, hint, nColor }) => (
 
 const UserProfilePage: NextPageWithLayout = ({}) => {
   const router = useRouter();
-  const [userId, setUserId] = useState<string>();
-
-  useEffect(() => {
-    const query = router.query;
-
-    if (query.id) {
-      setUserId(query.id.toString());
-    }
-  }, [router.query]);
 
   const { user, backend } = useSession();
   const actionTooltipStyles = "font-bold bg-dark text-neutral-200";
@@ -170,6 +161,7 @@ const UserProfilePage: NextPageWithLayout = ({}) => {
   const [selected, setSelected] = useState(0);
   const [rank, setRank] = useState("-");
   const [userData, setUserData] = useState<ActiveUser>(user);
+  const userId: string = userData.id;
   const [alreadyInvited, setAlreadyInvited] = useState(
     !!pendingFriendsSent.find((pending) => {
       return pending.id === userId;
@@ -245,6 +237,7 @@ const UserProfilePage: NextPageWithLayout = ({}) => {
       const opponentId =
         game.winnerId === parseInt(userId) ? game.loserId : game.winnerId;
       const userIsWinner = game.winnerId === parseInt(userId);
+      console.log(game.winnerId, game.winnerId === parseInt(userId), userId);
       const res = await fetch(`/api/users/${opponentId}`);
       const data = await res.json();
 

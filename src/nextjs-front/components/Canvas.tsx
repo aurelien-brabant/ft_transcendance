@@ -130,6 +130,7 @@ const Canvas: React.FC<{socketProps: Socket, roomProps: any}> = ({socketProps, r
 				let count: number = (Date.now() - room.pauseTime[room.pauseTime.length - 1].resume) / 1000;
 				draw.drawRectangle(0, 0, canvasWidth, canvasHeight, "rgba(0, 0, 0, 0.5)");
 				draw.drawCountDown(countDown[Math.floor(count)]);
+				setGamePaused(false);
 
 			} else if (room.gameState === GameState.PLAYERONESCORED || room.gameState === GameState.PLAYERTWOSCORED) {
 				goal();
