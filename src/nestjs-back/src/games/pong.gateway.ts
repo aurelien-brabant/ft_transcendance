@@ -138,7 +138,7 @@ export class PongGateway implements OnGatewayInit, OnGatewayConnection, OnGatewa
 
 		/* Verify that player is not already in a game */
 		this.rooms.forEach((room: Room) => {
-			if (room.isAPlayer(newUser) && room.gameState !== GameState.PLAYERONEWIN || room.gameState !== GameState.PLAYERTWOWIN) {
+			if (room.isAPlayer(newUser) && room.gameState !== GameState.PLAYERONEWIN && room.gameState !== GameState.PLAYERTWOWIN) {
 				newUser.setUserStatus(UserStatus.PLAYING);
 				newUser.setRoomId(room.roomId);
 
