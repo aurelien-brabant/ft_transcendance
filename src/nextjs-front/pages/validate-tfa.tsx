@@ -77,7 +77,6 @@ const ValidateCode = () => {
     };
 
     useEffect(() => {
-        console.log(currentStep);
         inputToFocus.current?.focus();
     }, [currentStep]);
 

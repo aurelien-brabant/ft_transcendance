@@ -249,8 +249,6 @@ const ChatProvider: React.FC = ({ children }) => {
 
 		if (socket.connected === false) {
 			socket.on("connect", () => {
-				console.log("[Chat] Client connected");
-
 				socket.emit("updateChatUser", {
 					id: user.id,
 					username: user.username,
@@ -258,7 +256,6 @@ const ChatProvider: React.FC = ({ children }) => {
 			});
 
 			socket.on("connect_error", (err: Error) => {
-				console.log(`connect_error due to ${err.message}`);
 				socket.close();
 			});
 		}
