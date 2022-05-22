@@ -9,6 +9,7 @@ import { authorizationLink } from "../constants/authorize42";
 import alertContext, { AlertContextType } from "../context/alert/alertContext";
 import ProgressiveFrom, { ProgressiveFormConfig } from "../components/ProgressiveForm";
 import withWildLayout from "../components/hoc/withWildLayout";
+import { useSession } from "../hooks/use-session";
 
 const formConfig: ProgressiveFormConfig = {
   steps: [
@@ -52,6 +53,7 @@ const SignUp: NextPageWithLayout = () => {
   const [isLoading, setIsLoading] = useState(false);
   const { setAlert } = useContext(alertContext) as AlertContextType;
   const router = useRouter();
+  const { login } = useSession();
 
   const handleFormSubmit = async (data: any) => {
     if (isLoading) return;
@@ -78,21 +80,10 @@ const SignUp: NextPageWithLayout = () => {
         });
       }
     } else {
-      const userLoginRes = await fetch("/api/auth/login", reqMeta);
-      let tmp = setAlert({ type: "info", content: "Account created" });
-      if (userLoginRes.status != 201) {
-        setAlert({ type: "error", content: "Could not login" }, tmp);
-      } else {
-        const { access_token } = await userLoginRes.json();
-        setAlert({
-          type: "success",
-          content: "Logged in successfully. Redirecting...",
-        }, tmp);
-
-        window.localStorage.setItem("bearer", access_token);
-        await router.push("/welcome");
-        return;
-      }
+      await login('credentials', {
+          email: data.email.toLowerCase(),
+          password: data.password
+      });
     }
     setIsLoading(false);
   };
