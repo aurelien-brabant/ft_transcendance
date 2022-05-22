@@ -66,8 +66,11 @@ export class PongGateway implements OnGatewayInit, OnGatewayConnection, OnGatewa
 		if (!sender || !receiver) return ;
 
 		this.rooms.forEach((room: Room) => {
-			if (room.isAPlayer(sender) && room.isAPlayer(receiver)) {
-				throw Error("You still have a pending game.");
+			if (room.isAPlayer(sender)) {
+				throw Error("You already have a pending game. Finish it or leave the room.");
+			}
+			if (room.isAPlayer(receiver)) {
+				throw Error("User already in a game.");
 			}
 		});
 	}
@@ -132,7 +135,6 @@ export class PongGateway implements OnGatewayInit, OnGatewayConnection, OnGatewa
 		} else {
 			newUser= new User(user.id, user.username, client.id, user.ratio);
 		}
-
 		newUser.setSocketId(client.id);
 		newUser.setUserStatus(UserStatus.INHUB);
 
