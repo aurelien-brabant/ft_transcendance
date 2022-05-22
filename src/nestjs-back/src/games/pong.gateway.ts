@@ -65,7 +65,8 @@ export class PongGateway implements OnGatewayInit, OnGatewayConnection, OnGatewa
 		const receiverData = await this.usersService.findOne(String(receiverId));
 		const secondPlayer: User = this.createInvitedUser(receiverData.id, receiverData.username);
 
-		const roomId: string = `${Date.now()}_${firstPlayer.username}&${secondPlayer.username}`;
+		const roomId: string = `${Date.now()}${firstPlayer.username}&${secondPlayer.username}`;
+		console.log(roomId);
 
 		let room: Room = new Room(roomId, [firstPlayer, secondPlayer]);
 		room.gameState = GameState.WAITING;

@@ -9,12 +9,27 @@ const OngoingGames: React.FC<{currentGamesProps: Array<string>, socketProps: Soc
         socketProps.emit("spectateRoom", e.currentTarget.value);
     }
 
+    const removeTimestamp = (roomId: string) => {
+        /**
+         * If the room ID starts with a number, remove the timestamp.
+         * Usernames never start with a number.
+         */
+        let i = 0;
+
+        if (!isNaN(Number(roomId[i]))) {
+            while (!isNaN(Number(roomId[i])))
+                ++i;
+            return roomId.substring(i);
+        }
+        return roomId;
+    }
+
     return (
         <div className={'mt-14'}>
         <h2 className={'text-xl md:text-2xl lg:text-3xl border-b-4 rounded-sm pb-2 border-02dp'}>On going games</h2>
         <ul role="list" className="mt-8 grid grid-cols-1 gap-6 xs:grid-cols-2 xl:grid-cols-3">
             {currentGamesProps.map((roomId) => {
-                const [username1, username2] = roomId.split('&');
+                const [username1, username2] = removeTimestamp(roomId).split('&');
                 return (
                     <li key={roomId} className="col-span-1 bg-04dp rounded-lg shadow divide-y divide-01dp">
                         <div className="w-full flex items-center justify-between p-6 space-x-6">
