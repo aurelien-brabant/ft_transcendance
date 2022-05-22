@@ -13,6 +13,7 @@ const Canvas: React.FC<{socketProps: Socket, roomProps: any}> = ({socketProps, r
 	let room: IRoom = roomProps;
 	let roomId: string | undefined = room?.roomId;
 	const [gameEnded, setGameEnded] = useState(false);
+	const [gamePaused, setGamePaused] = useState(false);
 	const [isWaiting, setIsWaiting] = useState(room?.gameState === GameState.WAITING);
 
 	let isAplayer: boolean = (room.playerOne.user.username == user.username || room.playerTwo.user.username == user.username);
@@ -137,6 +138,7 @@ const Canvas: React.FC<{socketProps: Socket, roomProps: any}> = ({socketProps, r
 			if (room.gameState === GameState.PLAYING) {
 				draw.resetParticles();
 			} else if (room.gameState === GameState.PAUSED) {
+				setGamePaused(true);
 				draw.drawPauseButton(room);
 			} else if (room.gameState === GameState.RESUMED) {
 				let count: number = (Date.now() - room.pauseTime[room.pauseTime.length - 1].resume) / 1000;
@@ -165,36 +167,37 @@ const Canvas: React.FC<{socketProps: Socket, roomProps: any}> = ({socketProps, r
 
 	return (
 		<>
-		{room &&
-			<div className="flex flex-col items-center gap-y-10">	
-				<canvas ref={canvasRef} className={styles.canvas} ></canvas>
-					<div className="flex justify-between w-full">
-						<div className="flex gap-x-5 items-center">
-							<img
-								className="rounded-full sm:block"
-								height="45px"
-								width="45px"
-								src={`/api/users/${room.playerOne.user.id}/photo`}
-								alt="user's avatar"
-							/>
-							<div>{room.playerOne.user.username}</div>
+		{
+			room &&
+				<div className="flex flex-col items-center gap-y-10">	
+					<canvas ref={canvasRef} className={styles.canvas} ></canvas>
+						<div className="flex justify-between w-full">
+							<div className="flex gap-x-5 items-center">
+								<img
+									className="rounded-full sm:block"
+									height="45px"
+									width="45px"
+									src={`/api/users/${room.playerOne.user.id}/photo`}
+									alt="user's avatar"
+								/>
+								<div>{room.playerOne.user.username}</div>
+							</div>
+							<div className="flex gap-x-5 items-center">
+								<div>{room.playerTwo.user.username}</div>
+								<img
+									className="rounded-full sm:block"
+									height="45px"
+									width="45px"
+									src={`/api/users/${room.playerTwo.user.id}/photo`}
+									alt="user's avatar"
+								/>
+							</div>
 						</div>
-						<div className="flex gap-x-5 items-center">
-							<div>{room.playerTwo.user.username}</div>
-							<img
-								className="rounded-full sm:block"
-								height="45px"
-								width="45px"
-								src={`/api/users/${room.playerTwo.user.id}/photo`}
-								alt="user's avatar"
-							/>
-						</div>
-					</div>
-					{
-						(gameEnded || !isAplayer || isWaiting) &&
-						<button onClick={leaveRoom} className="px-6 py-2 text-xl uppercase bg-pink-600 drop-shadow-md text-bold text-neutral-200">Leave Room</button>
-					}
-			</div>
+						{
+							(gameEnded || gamePaused || !isAplayer || isWaiting) &&
+							<button onClick={leaveRoom} className="px-6 py-2 text-xl uppercase bg-pink-600 drop-shadow-md text-bold text-neutral-200">Leave Room</button>
+						}
+				</div>
 		}
 		</>
 	);
