@@ -292,14 +292,16 @@ const Welcome: NextPageWithLayout = () => {
     if (/^[0-9]+$/.test(key)) {
       e.target.value = tfaCode[currentStep];
       setCurrentStep(currentStep + 1);
-    } else if (key !== "Escape") {
+    } else if (key !== "Escape" && key !== "Enter") {
       setAlert({ type: "warning", content: "Only digit!" });
       e.target.value = "";
     }
   };
 
   const checkStep = (key: string) => {
-    if (/^[0-9]+$/.test(key)) setTfaCode(tfaCode + key);
+    if (/^[0-9]+$/.test(key)) {
+      setTfaCode(tfaCode + key);
+    }
 
     if ((currentStep > 0 && key === "Backspace") || key === "ArrowLeft") {
       setTfaCode(tfaCode.substring(0, tfaCode.length - 1));
@@ -310,6 +312,10 @@ const Welcome: NextPageWithLayout = () => {
       setCurrentStep(0);
     }
   };
+
+  useEffect(() => {
+    inputToFocus.current?.focus();
+  }, [currentStep, pendingQR]);
 
   const getTfaForm = () => {
     let content = [];
