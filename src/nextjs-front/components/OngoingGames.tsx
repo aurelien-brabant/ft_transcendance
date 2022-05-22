@@ -34,7 +34,9 @@ const OngoingGames: React.FC<{currentGamesProps: onGoingGame[], socketProps: Soc
                                 <div className="w-0 flex-1 flex">
                                     <button
                                         value={room.roomId}
-                                        onClick={spectate}
+                                        onClick={(e) => {
+                                            spectate
+                                        }}
                                         className="relative -mr-px w-0 flex-1 inline-flex items-center justify-center py-4 text-sm text-white/90 font-medium border border-transparent rounded-bl-lg hover:text-white"
                                     >
                                         <EyeIcon className="w-5 h-5 text-white/90" aria-hidden="true" />
