@@ -553,7 +553,7 @@ const Welcome: NextPageWithLayout = () => {
                             "Deactivated 2FA with Authenticator App?\nYou can reactivate it when you want.\n\nClick OK to proceed."
                           ) == true
                         )
-                          deactivateTfa();
+                        deactivateTfa();
                       }
                     }}
                   >

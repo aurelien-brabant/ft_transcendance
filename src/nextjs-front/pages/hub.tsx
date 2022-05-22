@@ -111,43 +111,43 @@ const Hub: NextPageWithLayout = () => {
 						<Canvas socketProps={socket} roomProps={room}></Canvas>
 					: (
 					<>
-								<div className="flex flex-row items-center  justify-center gap-x-4">
-							{
-								inQueue ? 
+						<div className="flex flex-row items-center  justify-center gap-x-4">
+						{
+							inQueue ? 
+								<button
+									onClick={leaveQueue}
+									value={'default'}
+									type="button"
+									className="inline-flex items-center px-6 py-3 border border-transparent text-base font-medium rounded-md shadow-sm text-white bg-pink-600 hover:bg-pink-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-pink-500"
+								>
+									<SimpleSpinner className={'w-5 h-5 mr-3'} /> Leave Queue
+								</button>
+
+								:
+								<>
 									<button
-										onClick={leaveQueue}
+										onClick={joinQueue}
 										value={'default'}
 										type="button"
 										className="inline-flex items-center px-6 py-3 border border-transparent text-base font-medium rounded-md shadow-sm text-white bg-pink-600 hover:bg-pink-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-pink-500"
 									>
-										<SimpleSpinner className={'w-5 h-5 mr-3'} /> Leave Queue
+										Classic Mode
 									</button>
-
-									:
-									<>
 										<button
-											onClick={joinQueue}
-											value={'default'}
-											type="button"
-											className="inline-flex items-center px-6 py-3 border border-transparent text-base font-medium rounded-md shadow-sm text-white bg-pink-600 hover:bg-pink-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-pink-500"
-										>
-											Classic Mode
-										</button>
-											<button
-											onClick={joinQueue}
-											value={'timer'}
-											type="button"
-											className="inline-flex items-center px-6 py-3 border border-transparent text-base font-medium rounded-md shadow-sm text-white bg-pink-600 hover:bg-pink-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-pink-500"
-										>
-											Timer Mode
-										</button>
-									</>
-								
-							}
-							</div>
+										onClick={joinQueue}
+										value={'timer'}
+										type="button"
+										className="inline-flex items-center px-6 py-3 border border-transparent text-base font-medium rounded-md shadow-sm text-white bg-pink-600 hover:bg-pink-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-pink-500"
+									>
+										Timer Mode
+									</button>
+								</>
+							
+						}
+						</div>
 
-							<OngoingGames currentGamesProps={currentGames} socketProps={socket}></OngoingGames>
-						</>)
+						<OngoingGames currentGamesProps={currentGames} socketProps={socket}></OngoingGames>
+					</>)
 				}
 				</div>
 			</div>

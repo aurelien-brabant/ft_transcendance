@@ -1,4 +1,4 @@
-import { Injectable } from '@nestjs/common';
+import { Injectable, NotFoundException } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { ILike, Repository } from 'typeorm';
 import { join } from 'path';
@@ -14,6 +14,7 @@ import { UpdateUserDto } from './dto/update-user.dto';
 import { PaginationQueryDto } from 'src/common/dto/pagination-query.dto';
 import { prefixWithRandomAdjective } from 'src/utils/prefixWithRandomAdjective';
 import { downloadResource } from 'src/utils/download';
+import { NotFoundError } from 'rxjs';
 
 @Injectable()
 export class UsersService {
@@ -57,6 +58,18 @@ export class UsersService {
       throw new Error('User not found');
     }
     return user;
+  }
+
+  /* To be used only at generation */
+  async getUserTfaSecret(id: string) {
+    const user = await this.usersRepository.findOne(id, {
+      select: [ 'tfaSecret' ],
+    });
+
+    if (!user) {
+      throw new Error('User not found');
+    }
+    return user.tfaSecret;
   }
 
   async findOne(id: string) {
@@ -112,6 +125,8 @@ export class UsersService {
   }
 
   async findRank(id: string, paginationQuery: PaginationQueryDto) {
+    const isDatabaseId = !isNaN(Number(id));
+
     const users = await this.findAll(paginationQuery);
 
     /* Sort from highest score and put users that didn't play at the end */
@@ -123,7 +138,13 @@ export class UsersService {
         ((b.wins + b.ratio) - (a.wins + a.ratio))
     );
 
-    const index = users.findIndex((user) => user.id === parseInt(id));
+    let index: number;
+
+    if (isDatabaseId) {
+      index = users.findIndex((user) => user.id === parseInt(id));
+    } else {
+      index = users.findIndex((user) => user.username === id);
+    }
 
     if (index === -1) {
       throw new Error('User not found');
@@ -407,9 +428,15 @@ export class UsersService {
   }
 
   async isTfaCodeValid(tfaCode: string, user: User) {
+    const secret =  await this.getUserTfaSecret(String(user.id));
+
+    if (!secret) {
+      throw new NotFoundException('No TFA secret generated.');
+    }
+
     return authenticator.verify({
       token: tfaCode,
-      secret: user.tfaSecret,
+      secret
     });
   }
 

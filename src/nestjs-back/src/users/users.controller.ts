@@ -178,10 +178,11 @@ export class UsersController {
 
     if (!user) throw new NotFoundException();
 
-    const isCodeValid = this.usersService.isTfaCodeValid(tfaCode, user);
+    const isCodeValid = await this.usersService.isTfaCodeValid(tfaCode, user);
 
-    if (!isCodeValid)
-      throw new UnauthorizedException('Wrong authentication code');
+    if (!isCodeValid) {
+      throw new BadRequestException('Wrong authentication code');
+    }
 
     await this.usersService.enableTfa(String(user.id));
   }
