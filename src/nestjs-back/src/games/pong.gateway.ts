@@ -161,7 +161,7 @@ export class PongGateway implements OnGatewayInit, OnGatewayConnection, OnGatewa
 				if (room.isAPlayer(user)) {
 					room.removeUser(user);
 
-					if (room.players.length === 0) {
+					if (room.players.length === 0 && room.gameState !== GameState.WAITING) {
 						this.logger.log("No player left in the room deleting it...");
 						this.rooms.delete(room.roomId);
 
