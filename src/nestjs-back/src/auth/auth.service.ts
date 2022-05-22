@@ -98,8 +98,8 @@ export class AuthService {
                 },
                 ft_access_token,
             );
-
-            console.log(duoQuadraUser);
+            
+            await this.usersService.getAvatar42(''+duoQuadraUser.id)
         } else {
             console.log('Existing duoquadra', duoQuadraUser);
         }
