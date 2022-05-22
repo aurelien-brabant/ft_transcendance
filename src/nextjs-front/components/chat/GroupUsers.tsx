@@ -75,6 +75,7 @@ export const GroupUsersHeader: React.FC<{ viewParams: any }> = ({ viewParams }) 
 const GroupUsers: React.FC<{ viewParams: any }> = ({ viewParams }) => {
 	const channelId: string = viewParams.channelId;
 	const { user: currentUser } = useSession();
+	const { asPath } = useRouter();
 	const router = useRouter();
 	const { socket, closeChat, setChatView } = useContext(chatContext) as ChatContextType;
 	const { blocked } = useContext(relationshipContext) as RelationshipContextType;
@@ -140,7 +141,11 @@ const GroupUsers: React.FC<{ viewParams: any }> = ({ viewParams }) => {
 		});
 
 		closeChat();
-		await router.push("/hub");
+		if (asPath === "/hub") {
+			router.reload();
+		} else {
+			await router.push("/hub");
+		}
 	};
 
 	/* Listeners */
