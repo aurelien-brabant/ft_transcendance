@@ -38,7 +38,7 @@ export class User {
     @Column({ select: false, nullable: true })
     password: string;
 
-    @Column({ select: false, default: false })
+    @Column({ default: false })
     tfa: boolean;
 
     @Column({ select: false, nullable: true })
