@@ -141,15 +141,6 @@ const HighlightItem: React.FC<Highlight> = ({ n, label, hint, nColor }) => (
 
 const UserProfilePage: NextPageWithLayout = ({}) => {
   const router = useRouter();
-  const [userId, setUserId] = useState<string>();
-
-  useEffect(() => {
-    const query = router.query;
-
-    if (query.id) {
-      setUserId(query.id.toString());
-    }
-  }, [router.query]);
 
   const { user, backend } = useSession();
   const actionTooltipStyles = "font-bold bg-dark text-neutral-200";
@@ -160,6 +151,7 @@ const UserProfilePage: NextPageWithLayout = ({}) => {
     createDirectMessage
   } = useContext( chatContext ) as ChatContextType;
   const {
+    friends,
     suggested,
     setSuggested,
     pendingFriendsSent,
@@ -167,15 +159,12 @@ const UserProfilePage: NextPageWithLayout = ({}) => {
   } = useContext(relationshipContext) as RelationshipContextType;
   const [gamesHistory, setGamesHistory] = useState<PastGame[]>([]);
   const [isLoading, setIsLoading] = useState(true);
-  const [alreadyFriend, setAlreadyFriend] = useState(false);
   const [selected, setSelected] = useState(0);
   const [rank, setRank] = useState("-");
   const [userData, setUserData] = useState<ActiveUser>(user);
-  const [alreadyInvited, setAlreadyInvited] = useState(
-    !!pendingFriendsSent.find((pending) => {
-      return pending.id === userId;
-    })
-  );
+  const userId: string = userData.id;
+  const [alreadyFriend, setAlreadyFriend] = useState(false);
+  const [alreadyInvited, setAlreadyInvited] = useState(false);
 
   /* Send DM to user */
   const handleMessageToUser = async () => {
@@ -248,6 +237,7 @@ const UserProfilePage: NextPageWithLayout = ({}) => {
       const opponentId =
         game.winnerId === parseInt(userId) ? game.loserId : game.winnerId;
       const userIsWinner = game.winnerId === parseInt(userId);
+      console.log(game.winnerId, game.winnerId === parseInt(userId), userId);
       const res = await fetch(`/api/users/${opponentId}`);
       const data = await res.json();
 
@@ -290,20 +280,6 @@ const UserProfilePage: NextPageWithLayout = ({}) => {
     });
   };
 
-  const alreadyFriendOrAsked = (
-    pending: ActiveUser[],
-    friends: ActiveUser[]
-  ) => {
-    for (let i in pending) {
-      if (pending[i].id === userId) return true;
-    }
-    for (let i in friends) {
-      if (friends[i].id === userId) return true;
-    }
-
-    return false;
-  };
-
   useEffect(() => {
     if (!userId || !user) return;
 
@@ -319,25 +295,25 @@ const UserProfilePage: NextPageWithLayout = ({}) => {
       const matchingUser: any = await res.json();
       const gamesData: Game[] = JSON.parse(JSON.stringify(matchingUser)).games;
 
-      updateUserData(matchingUser);
-      updateGamesHistory(gamesData, userId);
+      await updateUserData(matchingUser);
+      await updateGamesHistory(gamesData, matchingUser.id);
 
       /* Didn't play yet */
       if (!matchingUser.wins && !matchingUser.losses && !matchingUser.draws) {
         setRank("-");
       } else {
         /* Else set rank */
-        const reqRank = await fetch(`/api/users/${userId}/rank`);
+        const reqRank = await fetch(`/api/users/${matchingUser.id}/rank`);
         const res = await reqRank.json();
         setRank(res);
       }
 
-      const already = alreadyFriendOrAsked(
-        user.pendingFriendsSent,
-        user.friends
-      );
-
-      setAlreadyFriend(already);
+      setAlreadyInvited(!!pendingFriendsSent.find((pending) => {
+        return pending.id === matchingUser.id;
+      }));
+      setAlreadyFriend(!!friends.find((friend) => {
+        return friend.id === matchingUser.id;
+      }));
       setIsLoading(false);
     };
 
