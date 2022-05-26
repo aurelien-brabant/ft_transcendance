@@ -138,7 +138,7 @@ const GroupNew: React.FC = () => {
 	}
 
 	useEffect(() => {
-		setPendingChanges(!(formData.groupName !== "" && formData.password !== "" && formData.password2 !== ""));
+		setPendingChanges(formData.groupName !== "" && formData.password !== "" && formData.password2 !== "");
 	}, [formData]);
 
 	useEffect(() => {
