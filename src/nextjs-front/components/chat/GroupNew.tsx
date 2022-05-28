@@ -138,7 +138,11 @@ const GroupNew: React.FC = () => {
 	}
 
 	useEffect(() => {
-		setPendingChanges(formData.groupName !== "" && formData.password !== "" && formData.password2 !== "");
+		if (formData.groupPrivacy === "protected") {
+			setPendingChanges(formData.groupName !== "" && formData.password !== "" && formData.password2 !== "");
+		} else {
+			setPendingChanges(formData.groupName !== "");
+		}
 	}, [formData]);
 
 	useEffect(() => {
