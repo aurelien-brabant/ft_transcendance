@@ -1,7 +1,8 @@
-COMPOSE := docker-compose -f src/docker-compose.dev.yml
+COMPOSE = docker-compose -f src/docker-compose.development.yml
+#COMPOSE = docker-compose -f src/docker-compose.dev.yml
 
 up:
-	${COMPOSE} up -d
+	${COMPOSE} up --build
 
 up-build:
 	${COMPOSE} up --build -d
